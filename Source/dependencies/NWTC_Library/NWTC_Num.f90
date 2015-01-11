@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-10-30 10:24:01 -0600 (Thu, 30 Oct 2014) $
-! (File) Revision #: $Rev: 264 $
+! File last committed: $Date: 2015-01-10 21:35:49 -0700 (Sat, 10 Jan 2015) $
+! (File) Revision #: $Rev: 283 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Num.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_Num
@@ -301,7 +301,7 @@ CONTAINS
 
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
 
-   CHARACTER(*),    INTENT(OUT) :: ErrMsg                                     ! Error message.
+   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.
@@ -441,7 +441,7 @@ CONTAINS
 
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
 
-   CHARACTER(*),    INTENT(OUT) :: ErrMsg                                     ! Error message.
+   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.
@@ -608,7 +608,7 @@ CONTAINS
 
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
 
-   CHARACTER(*),   INTENT(OUT)  :: ErrMsg                                     ! Error message.
+   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.
@@ -699,7 +699,7 @@ CONTAINS
 
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
 
-   CHARACTER(*),   INTENT(OUT)  :: ErrMsg                                     ! Error message.
+   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.
@@ -1280,7 +1280,7 @@ END SUBROUTINE DCM_SetLogMapForInterp
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
    INTEGER(IntKi), INTENT(OUT)  :: Ind                                        ! The index of the point in Ary just below Val.
 
-   CHARACTER(*),   INTENT(OUT)  :: ErrMsg                                     ! Error message.
+   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.
@@ -2244,10 +2244,13 @@ END SUBROUTINE DCM_SetLogMapForInterp
    FUNCTION TwoNorm(v)
    
       ! this function returns the 2-norm of a vector v
+      ! fortran 2008 has Norm2() built in
+      
       REAL(ReKi), INTENT(IN)  :: v(:)      
       REAL(ReKi)              :: TwoNorm      
       
       TwoNorm = SQRT( DOT_PRODUCT(v, v) )
+      
       
    END FUNCTION
 !=======================================================================
@@ -2533,7 +2536,7 @@ END SUBROUTINE DCM_SetLogMapForInterp
 
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
 
-   CHARACTER(*),   INTENT(OUT) :: ErrMsg                                     ! Error message.
+   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.
@@ -2672,7 +2675,7 @@ END SUBROUTINE DCM_SetLogMapForInterp
 
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
 
-   CHARACTER(*),    INTENT(OUT) :: ErrMsg                                     ! Error message.
+   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.
@@ -2843,7 +2846,7 @@ END SUBROUTINE DCM_SetLogMapForInterp
 
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
 
-   CHARACTER(*),    INTENT(OUT) :: ErrMsg                                     ! Error message.
+   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.
@@ -2934,7 +2937,7 @@ END SUBROUTINE DCM_SetLogMapForInterp
 
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
 
-   CHARACTER(*),   INTENT(OUT) :: ErrMsg                                     ! Error message.
+   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.

@@ -56,9 +56,10 @@ endif
    # Name of compiler to use and flags to use.
 FC      = gfortran
 
-#FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
-#FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -g -pg
+FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
+LDFLAGS = -O2 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware
 
+#FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -g -pg
 #LDFLAGS = -O0 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware -g -pg
 
 # some useful gfortran options:
@@ -67,7 +68,7 @@ FC      = gfortran
 #  -Wl,--stack=999999999       # not necessary when $(BITS) is 64
 #  -Wconversion-extra -Wconversion
 #  -fdefault-real-8 -fcheck=bounds,do,mem,pointer -std=f2003 -O0 -v -Wall
-#  -pg                          # generate debugging info for debuggerdir
+#  -pg                          # generate debugging info for debugger
 # http://gcc.gnu.org/onlinedocs/gfortran/Option-Index.html#Option-Index
 #
 # makefile:
@@ -185,7 +186,6 @@ HD_SOURCES =                 \
 	HydroDyn.f90
 
 MAP_SOURCES =              \
-	MAP_C_Types.f90         \
 	MAP_Types.f90           \
 	MAP.f90
 
@@ -247,7 +247,7 @@ vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DI
 vpath %.f   $(NETLIB_DIR)
 vpath %.mod $(INTER_DIR)
 vpath %.obj $(INTER_DIR)
-vpath %.txt $(FAST_DIR) $(AD_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR) $(IceD_DIR) $(DWM_DIR) 
+vpath %.txt $(FAST_DIR) $(AD_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR) $(IceD_DIR) $(DWM_DIR)
 vpath %.inp $(IceF_DIR)
 #apparently vpath doesn't work as expected if I use %.F90 (is it not case sensitive???)
 #vpath %.F90     $(IceF_DIR)
@@ -288,8 +288,8 @@ default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
 FAST_Types.f90:
 	$(Registry) FAST_Registry.txt -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(AD_DIR) \
 	-I $(HD_DIR_Reg) -I $(IceF_DIR) -I $(IceD_DIR) -I $(MAP_DIR) -I $(FEAM_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR) -noextrap
-   
-   
+
+
 ServoDyn_Types.f90:
 	$(Registry) ServoDyn_Registry.txt -I $(NWTC_Lib_DIR)
 
@@ -444,9 +444,8 @@ SubDyn.obj:                 SubDyn_Output.obj  SD_FEM.obj  qsort_c_module.obj NW
 
 
 # MAP dependency rules:
-MAP_C_Types.obj:            NWTC_Library.obj
-MAP_Types.obj:              NWTC_Library.obj MAP_C_Types.obj
-MAP.obj:                    MAP_Types.obj MAP_C_Types.obj
+MAP_Types.obj:              NWTC_Library.obj
+MAP.obj:                    NWTC_Library.obj  MAP_Types.obj
 
 
 # FEAMooring dependency rules:

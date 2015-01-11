@@ -209,7 +209,6 @@
 		<File RelativePath="..\..\Source\dependencies\FEAMooring\FEAM.f90"/></Filter>
 		<Filter Name="MAP">
 		<File RelativePath="..\..\Source\dependencies\MAP\MAP.f90"/>
-		<File RelativePath="..\..\Source\dependencies\MAP\MAP_C_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\MAP\MAP_Types.f90"/></Filter></Filter>
 		<Filter Name="NWTC_Library">
 		<Filter Name="NetLib">

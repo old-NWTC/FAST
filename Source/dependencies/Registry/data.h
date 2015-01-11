@@ -12,6 +12,8 @@ typedef struct node_struct {
   struct node_struct  * params ;
   struct node_struct  * type ;
   struct node_struct  * module ;  /* type node pointer back to module node it is defined in */
+  int    max_ndims;    // max number of dimensions (so we don't have hundreds of unused variables that produce warnings)
+  int    containsPtr;  // if contains a pointer in type/subtype
   int           ndims ;
   struct node_struct  * dims[MAXDIMS] ;
   int     proc_orient ;    /* ALL_[ZXY]_ON_PROC which dimension is all on processor */
@@ -54,6 +56,9 @@ typedef struct node_struct {
   char assoc_nl_var_e[NAMELEN] ;  /* for NAMELIST */
   int  coord_start ;               /* for CONSTANT */
   int  coord_end ;                 /* for CONSTANT */
+  int  dim_param;                  /* for using PARAMETER dimension */
+  char dim_param_name[NAMELEN];    /* for using PARAMETER dimension */
+
   int  dim_order ;                 /* order that dimensions are specified
                                       in framework */
   int  subgrid ;                  /* 1=subgrid dimension */
@@ -91,6 +96,7 @@ EXTERN int sw_unidir_shift_halo ;  /* 20100210 JM assume that halo to shift is s
 EXTERN int sw_new_with_old_bdys ;  /* 20070207 JM for debugging interim phase, new comms w/ old data structs */
 EXTERN int sw_norealloc_lsh;  /* 20070207 addresses compilers like gfortran that do not /assume:realloc_lhs */
 EXTERN int sw_ccode ;           /* 20130523 generate C code too */
+EXTERN int sw_noextrap;
 EXTERN int sw_embed_class_ptr ; /* 20130523 for C code generation too */
 EXTERN char sw_c2f_underscore[NAMELEN] ;
 EXTERN char sw_shownodes ;
@@ -109,11 +115,11 @@ EXTERN node_t * ModNames ;
 EXTERN node_t Domain ;
 
 EXTERN char t1[NAMELEN], t2[NAMELEN], t3[NAMELEN], t4[NAMELEN], t5[NAMELEN], t6[NAMELEN] ;
-EXTERN char thiscom[8*NAMELEN] ;
+EXTERN char thiscom[NAMELEN] ;
 
 EXTERN int max_time_level  ;  /* Maximum number of time levels of any state variable */
 
-#define MAXINCLDIRS 10 
+#define MAXINCLDIRS 50 
 EXTERN int   nincldirs ;
 EXTERN char IncludeDirs[MAXINCLDIRS][NAMELEN] ;
 

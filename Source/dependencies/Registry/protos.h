@@ -32,7 +32,7 @@ void show_nodelist( node_t * p ) ;
 void show_nodelist1( node_t * p , int indent ) ;
 #endif
 
-void gen_c_module( FILE * fpc , FILE * fph, node_t * ModName, FILE * fpIntf );
+void gen_c_module( FILE * fph, node_t * ModName );
 
 int gen_state_struct ( char * fname ) ;
 int gen_decls ( FILE * fp ,  node_t * node , int sw_ranges, int sw_point , int mask , int layer ) ;
@@ -93,6 +93,7 @@ void remove_nickname( const char *nickname, char *src, char *dst );
 void append_nickname( const char *nickname, char *src, char *dst );
 char * dimstr_c( int d );
 void checkOnlyReals( const char *q_mapsto, node_t * q);
+void checkContainsMesh(node_t * q);
 
 int gen_scalar_indices ( char * dirname ) ;
 int gen_scalar_indices1 ( FILE * fp, FILE ** fp2 ) ;

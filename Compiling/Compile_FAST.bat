@@ -82,6 +82,10 @@ SET MAP_Include_Lib=%MAP_Loc%\map_win32.lib
 SET HD_Reg_Loc=%HD_Loc%
 SET IfW_Reg_Loc=%IfW_Loc%
 SET IceF_RanLux_Loc=%IceF_Loc%
+SET FEAM_Reg_Loc=%FEAM_Loc%
+
+SET MAP_Loc_R=%MAP_Loc%
+SET MAP_Loc_F=%MAP_Loc%
 
 REM ----------------------------------------------------------------------------
 REM The following script changes the above paths for Bonnie Jonkman; other users
@@ -203,9 +207,8 @@ SET SD_SOURCES=^
 
 
 SET MAP_SOURCES=^
- "%MAP_Loc%\MAP_C_Types.f90" ^
- "%MAP_Loc%\MAP_Types.f90" ^
- "%MAP_Loc%\MAP.f90"
+ "%MAP_Loc_R%\MAP_Types.f90" ^
+ "%MAP_Loc_F%\MAP.f90"
 
 
 SET FEAM_SOURCES=^
@@ -282,7 +285,7 @@ MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 
 
 ECHO %Lines%
-SET CURR_LOC=%FEAM_Loc%
+SET CURR_LOC=%FEAM_Reg_Loc%
 SET ModuleName=FEAMooring
 %REGISTRY% "%CURR_LOC%\FEAM_Registry.txt" -I "%NWTC_Lib_Loc%"
 MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"

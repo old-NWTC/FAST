@@ -26,8 +26,8 @@ MODULE IfW_HHWind
 !     -- Note:  Jacobians are not included in this version.
 !
 !----------------------------------------------------------------------------------------------------
-! File last committed: $Date: 2014-06-25 11:50:52 -0600 (Wed, 25 Jun 2014) $
-! (File) Revision #: $Rev: 110 $
+! File last committed: $Date: 2014-12-03 11:23:50 -0700 (Wed, 03 Dec 2014) $
+! (File) Revision #: $Rev: 132 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/IfW_HHWind.f90 $
 !----------------------------------------------------------------------------------------------------
 ! LICENSING

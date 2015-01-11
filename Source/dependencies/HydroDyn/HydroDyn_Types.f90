@@ -3,13 +3,13 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.04.01, 20-Nov-2014)
+! FAST Registry (v2.05.00, 10-Jan-2015)
 !*********************************************************************************************************************************
 ! HydroDyn_Types
 !.................................................................................................................................
 ! This file is part of HydroDyn.
 !
-! Copyright (C) 2012-2014 National Renewable Energy Laboratory
+! Copyright (C) 2012-2015 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -199,15 +199,15 @@ IMPLICIT NONE
 ! =======================
 CONTAINS
  SUBROUTINE HydroDyn_CopyInitInput( SrcInitInputData, DstInitInputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(HydroDyn_initinputtype), INTENT(INOUT) :: SrcInitInputData
-   TYPE(HydroDyn_initinputtype), INTENT(INOUT) :: DstInitInputData
+   TYPE(HydroDyn_InitInputType), INTENT(IN) :: SrcInitInputData
+   TYPE(HydroDyn_InitInputType), INTENT(INOUT) :: DstInitInputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -296,7 +296,7 @@ ENDIF
  END SUBROUTINE HydroDyn_CopyInitInput
 
  SUBROUTINE HydroDyn_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
-  TYPE(HydroDyn_initinputtype), INTENT(INOUT) :: InitInputData
+  TYPE(HydroDyn_InitInputType), INTENT(INOUT) :: InitInputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -321,7 +321,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(HydroDyn_initinputtype),  INTENT(INOUT) :: InData
+  TYPE(HydroDyn_InitInputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -608,7 +608,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(HydroDyn_initinputtype), INTENT(INOUT) :: OutData
+  TYPE(HydroDyn_InitInputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -662,7 +662,8 @@ ENDIF
   OutData%TMax = DbKiBuf ( Db_Xferred )
   Db_Xferred   = Db_Xferred   + 1
   IF ( ALLOCATED(OutData%WaveElevXY) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveElevXY,1),SIZE(OutData%WaveElevXY,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%WaveElevXY,1),SIZE(OutData%WaveElevXY,2)))
+  mask2 = .TRUE.
     OutData%WaveElevXY = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevXY))-1 ),mask2,OutData%WaveElevXY)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevXY)
@@ -671,19 +672,23 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%PtfmLocationY = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%AddF0,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%AddF0,1)))
+  mask1 = .TRUE.
   OutData%AddF0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddF0))-1 ),mask1,OutData%AddF0)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%AddF0)
-  ALLOCATE(mask2(SIZE(OutData%AddCLin,1),SIZE(OutData%AddCLin,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%AddCLin,1),SIZE(OutData%AddCLin,2)))
+  mask2 = .TRUE.
   OutData%AddCLin = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddCLin))-1 ),mask2,OutData%AddCLin)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%AddCLin)
-  ALLOCATE(mask2(SIZE(OutData%AddBLin,1),SIZE(OutData%AddBLin,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%AddBLin,1),SIZE(OutData%AddBLin,2)))
+  mask2 = .TRUE.
   OutData%AddBLin = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddBLin))-1 ),mask2,OutData%AddBLin)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%AddBLin)
-  ALLOCATE(mask2(SIZE(OutData%AddBQuad,1),SIZE(OutData%AddBQuad,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%AddBQuad,1),SIZE(OutData%AddBQuad,2)))
+  mask2 = .TRUE.
   OutData%AddBQuad = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddBQuad))-1 ),mask2,OutData%AddBQuad)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%AddBQuad)
@@ -791,15 +796,15 @@ ENDIF
  END SUBROUTINE HydroDyn_UnPackInitInput
 
  SUBROUTINE HydroDyn_CopyInitOutput( SrcInitOutputData, DstInitOutputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(HydroDyn_initoutputtype), INTENT(INOUT) :: SrcInitOutputData
-   TYPE(HydroDyn_initoutputtype), INTENT(INOUT) :: DstInitOutputData
+   TYPE(HydroDyn_InitOutputType), INTENT(INOUT) :: SrcInitOutputData
+   TYPE(HydroDyn_InitOutputType), INTENT(INOUT) :: DstInitOutputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -864,7 +869,7 @@ ENDIF
  END SUBROUTINE HydroDyn_CopyInitOutput
 
  SUBROUTINE HydroDyn_DestroyInitOutput( InitOutputData, ErrStat, ErrMsg )
-  TYPE(HydroDyn_initoutputtype), INTENT(INOUT) :: InitOutputData
+  TYPE(HydroDyn_InitOutputType), INTENT(INOUT) :: InitOutputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -891,7 +896,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(HydroDyn_initoutputtype),  INTENT(INOUT) :: InData
+  TYPE(HydroDyn_InitOutputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1076,7 +1081,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(HydroDyn_initoutputtype), INTENT(INOUT) :: OutData
+  TYPE(HydroDyn_InitOutputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1181,7 +1186,8 @@ ENDIF
   ENDIF
   CALL Morison_UnPackInitOutput( Re_Morison_Buf, Db_Morison_Buf, Int_Morison_Buf, OutData%Morison, ErrStat, ErrMsg ) ! Morison 
   IF ( ALLOCATED(OutData%WaveElevSeries) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveElevSeries,1),SIZE(OutData%WaveElevSeries,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%WaveElevSeries,1),SIZE(OutData%WaveElevSeries,2)))
+  mask2 = .TRUE.
     OutData%WaveElevSeries = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevSeries))-1 ),mask2,OutData%WaveElevSeries)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevSeries)
@@ -1212,50 +1218,50 @@ ENDIF
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE HydroDyn_UnPackInitOutput
 
- SUBROUTINE HydroDyn_Copyhd_modulemaptype( Srchd_modulemaptypeData, Dsthd_modulemaptypeData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(hd_modulemaptype), INTENT(INOUT) :: Srchd_modulemaptypeData
-   TYPE(hd_modulemaptype), INTENT(INOUT) :: Dsthd_modulemaptypeData
+ SUBROUTINE HydroDyn_CopyHD_ModuleMapType( SrcHD_ModuleMapTypeData, DstHD_ModuleMapTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(HD_ModuleMapType), INTENT(INOUT) :: SrcHD_ModuleMapTypeData
+   TYPE(HD_ModuleMapType), INTENT(INOUT) :: DstHD_ModuleMapTypeData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-      CALL NWTC_Library_Copymeshmaptype( Srchd_modulemaptypeData%HD_P_2_WRP_P, Dsthd_modulemaptypeData%HD_P_2_WRP_P, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Copyhd_modulemaptype:HD_P_2_WRP_P')
+      CALL NWTC_Library_Copymeshmaptype( SrcHD_ModuleMapTypeData%HD_P_2_WRP_P, DstHD_ModuleMapTypeData%HD_P_2_WRP_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyHD_ModuleMapType:HD_P_2_WRP_P')
          IF (ErrStat>=AbortErrLev) RETURN
-      CALL NWTC_Library_Copymeshmaptype( Srchd_modulemaptypeData%M_P_2_WRP_P, Dsthd_modulemaptypeData%M_P_2_WRP_P, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Copyhd_modulemaptype:M_P_2_WRP_P')
+      CALL NWTC_Library_Copymeshmaptype( SrcHD_ModuleMapTypeData%M_P_2_WRP_P, DstHD_ModuleMapTypeData%M_P_2_WRP_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyHD_ModuleMapType:M_P_2_WRP_P')
          IF (ErrStat>=AbortErrLev) RETURN
-      CALL NWTC_Library_Copymeshmaptype( Srchd_modulemaptypeData%M_L_2_WRP_P, Dsthd_modulemaptypeData%M_L_2_WRP_P, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Copyhd_modulemaptype:M_L_2_WRP_P')
+      CALL NWTC_Library_Copymeshmaptype( SrcHD_ModuleMapTypeData%M_L_2_WRP_P, DstHD_ModuleMapTypeData%M_L_2_WRP_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyHD_ModuleMapType:M_L_2_WRP_P')
          IF (ErrStat>=AbortErrLev) RETURN
- END SUBROUTINE HydroDyn_Copyhd_modulemaptype
+ END SUBROUTINE HydroDyn_CopyHD_ModuleMapType
 
- SUBROUTINE HydroDyn_Destroyhd_modulemaptype( hd_modulemaptypeData, ErrStat, ErrMsg )
-  TYPE(hd_modulemaptype), INTENT(INOUT) :: hd_modulemaptypeData
+ SUBROUTINE HydroDyn_DestroyHD_ModuleMapType( HD_ModuleMapTypeData, ErrStat, ErrMsg )
+  TYPE(HD_ModuleMapType), INTENT(INOUT) :: HD_ModuleMapTypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  CALL NWTC_Library_Destroymeshmaptype( hd_modulemaptypeData%HD_P_2_WRP_P, ErrStat, ErrMsg )
-  CALL NWTC_Library_Destroymeshmaptype( hd_modulemaptypeData%M_P_2_WRP_P, ErrStat, ErrMsg )
-  CALL NWTC_Library_Destroymeshmaptype( hd_modulemaptypeData%M_L_2_WRP_P, ErrStat, ErrMsg )
- END SUBROUTINE HydroDyn_Destroyhd_modulemaptype
+  CALL NWTC_Library_Destroymeshmaptype( HD_ModuleMapTypeData%HD_P_2_WRP_P, ErrStat, ErrMsg )
+  CALL NWTC_Library_Destroymeshmaptype( HD_ModuleMapTypeData%M_P_2_WRP_P, ErrStat, ErrMsg )
+  CALL NWTC_Library_Destroymeshmaptype( HD_ModuleMapTypeData%M_L_2_WRP_P, ErrStat, ErrMsg )
+ END SUBROUTINE HydroDyn_DestroyHD_ModuleMapType
 
- SUBROUTINE HydroDyn_Packhd_modulemaptype( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE HydroDyn_PackHD_ModuleMapType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(hd_modulemaptype),  INTENT(INOUT) :: InData
+  TYPE(HD_ModuleMapType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1366,13 +1372,13 @@ ENDIF
   IF( ALLOCATED(Re_M_L_2_WRP_P_Buf) )  DEALLOCATE(Re_M_L_2_WRP_P_Buf)
   IF( ALLOCATED(Db_M_L_2_WRP_P_Buf) )  DEALLOCATE(Db_M_L_2_WRP_P_Buf)
   IF( ALLOCATED(Int_M_L_2_WRP_P_Buf) ) DEALLOCATE(Int_M_L_2_WRP_P_Buf)
- END SUBROUTINE HydroDyn_Packhd_modulemaptype
+ END SUBROUTINE HydroDyn_PackHD_ModuleMapType
 
- SUBROUTINE HydroDyn_UnPackhd_modulemaptype( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE HydroDyn_UnPackHD_ModuleMapType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(hd_modulemaptype), INTENT(INOUT) :: OutData
+  TYPE(HD_ModuleMapType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1458,18 +1464,18 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE HydroDyn_UnPackhd_modulemaptype
+ END SUBROUTINE HydroDyn_UnPackHD_ModuleMapType
 
  SUBROUTINE HydroDyn_CopyContState( SrcContStateData, DstContStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(HydroDyn_continuousstatetype), INTENT(INOUT) :: SrcContStateData
-   TYPE(HydroDyn_continuousstatetype), INTENT(INOUT) :: DstContStateData
+   TYPE(HydroDyn_ContinuousStateType), INTENT(IN) :: SrcContStateData
+   TYPE(HydroDyn_ContinuousStateType), INTENT(INOUT) :: DstContStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -1487,7 +1493,7 @@ ENDIF
  END SUBROUTINE HydroDyn_CopyContState
 
  SUBROUTINE HydroDyn_DestroyContState( ContStateData, ErrStat, ErrMsg )
-  TYPE(HydroDyn_continuousstatetype), INTENT(INOUT) :: ContStateData
+  TYPE(HydroDyn_ContinuousStateType), INTENT(INOUT) :: ContStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -1503,7 +1509,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(HydroDyn_continuousstatetype),  INTENT(INOUT) :: InData
+  TYPE(HydroDyn_ContinuousStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1620,7 +1626,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(HydroDyn_continuousstatetype), INTENT(INOUT) :: OutData
+  TYPE(HydroDyn_ContinuousStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1709,15 +1715,15 @@ ENDIF
  END SUBROUTINE HydroDyn_UnPackContState
 
  SUBROUTINE HydroDyn_CopyDiscState( SrcDiscStateData, DstDiscStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(HydroDyn_discretestatetype), INTENT(INOUT) :: SrcDiscStateData
-   TYPE(HydroDyn_discretestatetype), INTENT(INOUT) :: DstDiscStateData
+   TYPE(HydroDyn_DiscreteStateType), INTENT(IN) :: SrcDiscStateData
+   TYPE(HydroDyn_DiscreteStateType), INTENT(INOUT) :: DstDiscStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -1735,7 +1741,7 @@ ENDIF
  END SUBROUTINE HydroDyn_CopyDiscState
 
  SUBROUTINE HydroDyn_DestroyDiscState( DiscStateData, ErrStat, ErrMsg )
-  TYPE(HydroDyn_discretestatetype), INTENT(INOUT) :: DiscStateData
+  TYPE(HydroDyn_DiscreteStateType), INTENT(INOUT) :: DiscStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -1751,7 +1757,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(HydroDyn_discretestatetype),  INTENT(INOUT) :: InData
+  TYPE(HydroDyn_DiscreteStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1868,7 +1874,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(HydroDyn_discretestatetype), INTENT(INOUT) :: OutData
+  TYPE(HydroDyn_DiscreteStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1957,15 +1963,15 @@ ENDIF
  END SUBROUTINE HydroDyn_UnPackDiscState
 
  SUBROUTINE HydroDyn_CopyConstrState( SrcConstrStateData, DstConstrStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(HydroDyn_constraintstatetype), INTENT(INOUT) :: SrcConstrStateData
-   TYPE(HydroDyn_constraintstatetype), INTENT(INOUT) :: DstConstrStateData
+   TYPE(HydroDyn_ConstraintStateType), INTENT(IN) :: SrcConstrStateData
+   TYPE(HydroDyn_ConstraintStateType), INTENT(INOUT) :: DstConstrStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -1975,7 +1981,7 @@ ENDIF
  END SUBROUTINE HydroDyn_CopyConstrState
 
  SUBROUTINE HydroDyn_DestroyConstrState( ConstrStateData, ErrStat, ErrMsg )
-  TYPE(HydroDyn_constraintstatetype), INTENT(INOUT) :: ConstrStateData
+  TYPE(HydroDyn_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -1988,7 +1994,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(HydroDyn_constraintstatetype),  INTENT(INOUT) :: InData
+  TYPE(HydroDyn_ConstraintStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -2030,7 +2036,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(HydroDyn_constraintstatetype), INTENT(INOUT) :: OutData
+  TYPE(HydroDyn_ConstraintStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -2067,15 +2073,15 @@ ENDIF
  END SUBROUTINE HydroDyn_UnPackConstrState
 
  SUBROUTINE HydroDyn_CopyOtherState( SrcOtherStateData, DstOtherStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(HydroDyn_otherstatetype), INTENT(INOUT) :: SrcOtherStateData
-   TYPE(HydroDyn_otherstatetype), INTENT(INOUT) :: DstOtherStateData
+   TYPE(HydroDyn_OtherStateType), INTENT(INOUT) :: SrcOtherStateData
+   TYPE(HydroDyn_OtherStateType), INTENT(INOUT) :: DstOtherStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -2117,7 +2123,7 @@ ENDIF
  END SUBROUTINE HydroDyn_CopyOtherState
 
  SUBROUTINE HydroDyn_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
-  TYPE(HydroDyn_otherstatetype), INTENT(INOUT) :: OtherStateData
+  TYPE(HydroDyn_OtherStateType), INTENT(INOUT) :: OtherStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -2139,7 +2145,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(HydroDyn_otherstatetype),  INTENT(INOUT) :: InData
+  TYPE(HydroDyn_OtherStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -2431,7 +2437,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(HydroDyn_otherstatetype), INTENT(INOUT) :: OutData
+  TYPE(HydroDyn_OtherStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -2549,15 +2555,18 @@ ENDIF
   CALL Morison_UnPackOtherState( Re_Morison_Buf, Db_Morison_Buf, Int_Morison_Buf, OutData%Morison, ErrStat, ErrMsg ) ! Morison 
   OutData%LastIndWave = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%F_PtfmAdd,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%F_PtfmAdd,1)))
+  mask1 = .TRUE.
   OutData%F_PtfmAdd = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%F_PtfmAdd))-1 ),mask1,OutData%F_PtfmAdd)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%F_PtfmAdd)
-  ALLOCATE(mask1(SIZE(OutData%F_Hydro,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%F_Hydro,1)))
+  mask1 = .TRUE.
   OutData%F_Hydro = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%F_Hydro))-1 ),mask1,OutData%F_Hydro)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%F_Hydro)
-  ALLOCATE(mask1(SIZE(OutData%F_Waves,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%F_Waves,1)))
+  mask1 = .TRUE.
   OutData%F_Waves = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%F_Waves))-1 ),mask1,OutData%F_Waves)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%F_Waves)
@@ -2655,15 +2664,15 @@ ENDIF
  END SUBROUTINE HydroDyn_UnPackOtherState
 
  SUBROUTINE HydroDyn_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(HydroDyn_parametertype), INTENT(INOUT) :: SrcParamData
-   TYPE(HydroDyn_parametertype), INTENT(INOUT) :: DstParamData
+   TYPE(HydroDyn_ParameterType), INTENT(IN) :: SrcParamData
+   TYPE(HydroDyn_ParameterType), INTENT(INOUT) :: DstParamData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -2755,7 +2764,7 @@ ENDIF
  END SUBROUTINE HydroDyn_CopyParam
 
  SUBROUTINE HydroDyn_DestroyParam( ParamData, ErrStat, ErrMsg )
-  TYPE(HydroDyn_parametertype), INTENT(INOUT) :: ParamData
+  TYPE(HydroDyn_ParameterType), INTENT(INOUT) :: ParamData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -2787,7 +2796,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(HydroDyn_parametertype),  INTENT(INOUT) :: InData
+  TYPE(HydroDyn_ParameterType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -3014,7 +3023,7 @@ ENDDO
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(HydroDyn_parametertype), INTENT(INOUT) :: OutData
+  TYPE(HydroDyn_ParameterType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -3119,7 +3128,8 @@ ENDDO
   ENDIF
   CALL Morison_UnPackParam( Re_Morison_Buf, Db_Morison_Buf, Int_Morison_Buf, OutData%Morison, ErrStat, ErrMsg ) ! Morison 
   IF ( ALLOCATED(OutData%WaveTime) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WaveTime,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%WaveTime,1)))
+  mask1 = .TRUE.
     OutData%WaveTime = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ),mask1,OutData%WaveTime)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveTime)
@@ -3129,30 +3139,36 @@ ENDDO
   OutData%NWaveElev = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%WaveElev) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveElev,1),SIZE(OutData%WaveElev,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%WaveElev,1),SIZE(OutData%WaveElev,2)))
+  mask2 = .TRUE.
     OutData%WaveElev = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev))-1 ),mask2,OutData%WaveElev)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev)
   ENDIF
   IF ( ALLOCATED(OutData%WaveElev1) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveElev1,1),SIZE(OutData%WaveElev1,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%WaveElev1,1),SIZE(OutData%WaveElev1,2)))
+  mask2 = .TRUE.
     OutData%WaveElev1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev1))-1 ),mask2,OutData%WaveElev1)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev1)
   ENDIF
-  ALLOCATE(mask1(SIZE(OutData%AddF0,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%AddF0,1)))
+  mask1 = .TRUE.
   OutData%AddF0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddF0))-1 ),mask1,OutData%AddF0)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%AddF0)
-  ALLOCATE(mask2(SIZE(OutData%AddCLin,1),SIZE(OutData%AddCLin,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%AddCLin,1),SIZE(OutData%AddCLin,2)))
+  mask2 = .TRUE.
   OutData%AddCLin = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddCLin))-1 ),mask2,OutData%AddCLin)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%AddCLin)
-  ALLOCATE(mask2(SIZE(OutData%AddBLin,1),SIZE(OutData%AddBLin,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%AddBLin,1),SIZE(OutData%AddBLin,2)))
+  mask2 = .TRUE.
   OutData%AddBLin = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddBLin))-1 ),mask2,OutData%AddBLin)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%AddBLin)
-  ALLOCATE(mask2(SIZE(OutData%AddBQuad,1),SIZE(OutData%AddBQuad,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%AddBQuad,1),SIZE(OutData%AddBQuad,2)))
+  mask2 = .TRUE.
   OutData%AddBQuad = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddBQuad))-1 ),mask2,OutData%AddBQuad)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%AddBQuad)
@@ -3191,15 +3207,15 @@ ENDDO
  END SUBROUTINE HydroDyn_UnPackParam
 
  SUBROUTINE HydroDyn_CopyInput( SrcInputData, DstInputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(HydroDyn_inputtype), INTENT(INOUT) :: SrcInputData
-   TYPE(HydroDyn_inputtype), INTENT(INOUT) :: DstInputData
+   TYPE(HydroDyn_InputType), INTENT(INOUT) :: SrcInputData
+   TYPE(HydroDyn_InputType), INTENT(INOUT) :: DstInputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -3223,7 +3239,7 @@ ENDDO
  END SUBROUTINE HydroDyn_CopyInput
 
  SUBROUTINE HydroDyn_DestroyInput( InputData, ErrStat, ErrMsg )
-  TYPE(HydroDyn_inputtype), INTENT(INOUT) :: InputData
+  TYPE(HydroDyn_InputType), INTENT(INOUT) :: InputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -3241,7 +3257,7 @@ ENDDO
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(HydroDyn_inputtype),  INTENT(INOUT) :: InData
+  TYPE(HydroDyn_InputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -3411,7 +3427,7 @@ ENDDO
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(HydroDyn_inputtype), INTENT(INOUT) :: OutData
+  TYPE(HydroDyn_InputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -3539,15 +3555,15 @@ ENDDO
  END SUBROUTINE HydroDyn_UnPackInput
 
  SUBROUTINE HydroDyn_CopyOutput( SrcOutputData, DstOutputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(HydroDyn_outputtype), INTENT(INOUT) :: SrcOutputData
-   TYPE(HydroDyn_outputtype), INTENT(INOUT) :: DstOutputData
+   TYPE(HydroDyn_OutputType), INTENT(INOUT) :: SrcOutputData
+   TYPE(HydroDyn_OutputType), INTENT(INOUT) :: DstOutputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -3586,7 +3602,7 @@ ENDIF
  END SUBROUTINE HydroDyn_CopyOutput
 
  SUBROUTINE HydroDyn_DestroyOutput( OutputData, ErrStat, ErrMsg )
-  TYPE(HydroDyn_outputtype), INTENT(INOUT) :: OutputData
+  TYPE(HydroDyn_OutputType), INTENT(INOUT) :: OutputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -3608,7 +3624,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(HydroDyn_outputtype),  INTENT(INOUT) :: InData
+  TYPE(HydroDyn_OutputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -3809,7 +3825,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(HydroDyn_outputtype), INTENT(INOUT) :: OutData
+  TYPE(HydroDyn_OutputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -3952,7 +3968,8 @@ ENDIF
   IF( ALLOCATED(Db_AllHdroOrigin_Buf) )  DEALLOCATE(Db_AllHdroOrigin_Buf)
   IF( ALLOCATED(Int_AllHdroOrigin_Buf) ) DEALLOCATE(Int_AllHdroOrigin_Buf)
   IF ( ALLOCATED(OutData%WriteOutput) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WriteOutput,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%WriteOutput,1)))
+  mask1 = .TRUE.
     OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ),mask1,OutData%WriteOutput)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WriteOutput)
@@ -3991,68 +4008,8 @@ ENDIF
  INTEGER(IntKi)                 :: order    ! order of polynomial fit (max 2)
  REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: c1       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: b2       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: c2       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: b3       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: c3       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: b4       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
  INTEGER(IntKi)                             :: ErrStat2 ! local errors
  CHARACTER(1024)                            :: ErrMsg2  ! local errors
- INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i31    ! dim1 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i41    ! dim1 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i51    ! dim1 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i61    ! dim1 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i71    ! dim1 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i81    ! dim1 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i91    ! dim1 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i02    ! dim2 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i12    ! dim2 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i22    ! dim2 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i32    ! dim2 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i42    ! dim2 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i52    ! dim2 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i62    ! dim2 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i72    ! dim2 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i82    ! dim2 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i92    ! dim2 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i03    ! dim3 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i13    ! dim3 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i23    ! dim3 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i33    ! dim3 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i43    ! dim3 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i53    ! dim3 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i63    ! dim3 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i73    ! dim3 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i83    ! dim3 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i93    ! dim3 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i04    ! dim4 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i14    ! dim4 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i24    ! dim4 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i34    ! dim4 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i44    ! dim4 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i54    ! dim4 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i64    ! dim4 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i74    ! dim4 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i84    ! dim4 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i94    ! dim4 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i05    ! dim5 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i15    ! dim5 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i25    ! dim5 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i35    ! dim5 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i45    ! dim5 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i55    ! dim5 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i65    ! dim5 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i75    ! dim5 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i85    ! dim5 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i95    ! dim5 level 9 counter variable for arrays of ddts
     ! Initialize ErrStat
  ErrStat = ErrID_None
  ErrMsg  = ""
@@ -4178,66 +4135,8 @@ ENDIF
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: c1       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: b2       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: c2       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: b3       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: c3       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: b4       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
  INTEGER(IntKi)                             :: ErrStat2 ! local errors
  CHARACTER(1024)                            :: ErrMsg2  ! local errors
- INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i31    ! dim1 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i41    ! dim1 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i51    ! dim1 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i61    ! dim1 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i71    ! dim1 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i81    ! dim1 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i91    ! dim1 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i02    ! dim2 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i12    ! dim2 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i22    ! dim2 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i32    ! dim2 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i42    ! dim2 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i52    ! dim2 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i62    ! dim2 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i72    ! dim2 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i82    ! dim2 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i92    ! dim2 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i03    ! dim3 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i13    ! dim3 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i23    ! dim3 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i33    ! dim3 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i43    ! dim3 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i53    ! dim3 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i63    ! dim3 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i73    ! dim3 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i83    ! dim3 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i93    ! dim3 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i04    ! dim4 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i14    ! dim4 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i24    ! dim4 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i34    ! dim4 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i44    ! dim4 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i54    ! dim4 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i64    ! dim4 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i74    ! dim4 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i84    ! dim4 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i94    ! dim4 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i05    ! dim5 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i15    ! dim5 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i25    ! dim5 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i35    ! dim5 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i45    ! dim5 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i55    ! dim5 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i65    ! dim5 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i75    ! dim5 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i85    ! dim5 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i95    ! dim5 level 9 counter variable for arrays of ddts
     ! Initialize ErrStat
  ErrStat = ErrID_None
  ErrMsg  = ""

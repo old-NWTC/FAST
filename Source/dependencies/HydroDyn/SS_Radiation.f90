@@ -22,9 +22,9 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-09-24 11:10:30 -0600 (Wed, 24 Sep 2014) $
-! (File) Revision #: $Rev: 508 $
-! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/SS_Radiation.f90 $
+! File last committed: $Date: 2014-06-27 09:46:36 -0600 (Fri, 27 Jun 2014) $
+! (File) Revision #: $Rev: 463 $
+! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/SS_Radiation.f90 $
 !**********************************************************************************************************************************
 MODULE SS_Radiation
 

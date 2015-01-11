@@ -8,8 +8,8 @@
    !                    correct type (to avoid having wSave too small)
    ! ADP: 07/28/2014: Added in the complex FFT routines from fftpack v. 4.1
 !=======================================================================
-! File last committed: $Date: 2014-11-07 20:34:16 -0700 (Fri, 07 Nov 2014) $
-! (File) Revision #: $Rev: 266 $
+! File last committed: $Date: 2014-12-03 11:25:14 -0700 (Wed, 03 Dec 2014) $
+! (File) Revision #: $Rev: 281 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/branches/NetLib/NWTC_source/NWTC_FFTPACK.f90 $
 !=======================================================================
 MODULE NWTC_FFTPACK

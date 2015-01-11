@@ -3,20 +3,37 @@
 
 MODULE MAP
   
-  USE MAP_Types
-  USE NWTC_Library
+   USE MAP_Types
+   USE NWTC_Library
 
-  IMPLICIT NONE
+   IMPLICIT NONE
   
-  PRIVATE
+   PRIVATE
  
-  PUBLIC :: MAP_Init
-  PUBLIC :: MAP_UpdateStates
-  PUBLIC :: MAP_CalcOutput
-  PUBLIC :: MAP_End
-  PUBLIC :: MAP_ERROR_CHECKER
+   PUBLIC :: MAP_Init
+   PUBLIC :: MAP_UpdateStates
+   PUBLIC :: MAP_CalcOutput
+   PUBLIC :: MAP_End
 
 
+   INTERFACE ! BEGIN: Interface to external C functions                                                                              
+      ! Initalize Initialization Input object                      
+      FUNCTION MAP_InitInput_Create(msg,err) RESULT( this ) BIND( C, name="MAP_InitInput_Create" )           
+         IMPORT                                                     
+         TYPE(C_ptr) :: this                                        
+         CHARACTER(KIND=C_CHAR), DIMENSION(1024) :: msg             
+         INTEGER(KIND=C_INT) :: err                                 
+      END FUNCTION MAP_InitInput_Create   
+      
+      FUNCTION MAP_OtherState_Create(msg,err) RESULT( this ) BIND( C, name="MAP_OtherState_Create" )          
+         IMPORT                                                     
+            TYPE(C_ptr) :: this                                        
+            CHARACTER(KIND=C_CHAR), DIMENSION(1024) :: msg             
+            INTEGER(KIND=C_INT) :: err                                 
+      END FUNCTION MAP_OtherState_Create
+                  
+   END INTERFACE  
+  
   ! ==========   initalize_map_base   ======     <----------------------------------------------------------+
   ! Initializes states                                                                           !          |
   INTERFACE                                                                                      !          |
@@ -273,7 +290,7 @@ MODULE MAP
   ! Calls C function "MAPCALL_MSQS_CalcOutput(...)" in MAP_FortranBinding.cpp.                   !          |
   ! Calculates the outputs                                                                       !          |
   INTERFACE                                                                                      !          |
-     SUBROUTINE map_calc_output( time  , &                                                       !          |
+     SUBROUTINE MSQS_CalcOutput( time  , &                                                       !          |
                                  FC_u  , &                                                       !          |
                                  FC_p  , &                                                       !          |
                                  FC_x  , &                                                       !          |
@@ -296,7 +313,7 @@ MODULE MAP
        TYPE(MAP_ConstraintStateType_C)         :: FC_z                                           !          |
        TYPE(MAP_OtherStateType_C)              :: FC_O                                           !          |
        TYPE(MAP_OutputType_C)                  :: FC_y                                           !          |
-     END SUBROUTINE map_calc_output !MSQS_CalcOutput                                                              !          |
+     END SUBROUTINE MSQS_CalcOutput !MSQS_CalcOutput                                                              !          |
   END INTERFACE                                                                                  !   -------+
   !==========================================================================================================
   
@@ -331,6 +348,7 @@ MODULE MAP
   END INTERFACE                                                                                  !   -------+
   !==========================================================================================================
 
+  
 CONTAINS
 
 
@@ -358,7 +376,7 @@ CONTAINS
     INTEGER(IntKi)                                  :: n
     REAL(ReKi)                                      :: Pos(3)
     INTEGER(IntKi)                                  :: NumNodes
-
+        
     ErrStat = ErrID_None
     ErrMsg  = "" 
  
@@ -371,9 +389,12 @@ CONTAINS
     p%C_obj%dt = p%dt
 
     CALL NWTC_Init( )  ! Initialize the NWTC Subroutine Library     
-    CALL MAP_InitInput_Initialize(InitInp%C_obj%object, message_from_MAP, status_from_MAP); MAP_CHECKERR() ! Call the constructor for each MAP class to create and instance of each C++ object        
-    CALL MAP_Other_Initialize(other%C_obj%object, message_from_MAP, status_from_MAP); MAP_CHECKERR() 
-    CALL MAP_Initialize_Base(u%C_obj, p%C_obj, x%C_obj, z%C_obj, other%C_obj, y%C_obj, InitOut%C_obj)
+    !CALL MAP_InitInput_Initialize(InitInp%C_obj%object, message_from_MAP, status_from_MAP); MAP_CHECKERR() ! Call the constructor for each MAP class to create and instance of each C++ object        
+    !CALL MAP_Other_Initialize(other%C_obj%object, message_from_MAP, status_from_MAP); MAP_CHECKERR() 
+    
+    InitInp%C_obj%object = MAP_InitInput_Create(message_from_MAP,status_from_MAP); MAP_CHECKERR()        ! routine in MAP dll
+    other%C_obj%object   = MAP_OtherState_Create(message_from_MAP,status_from_MAP); MAP_CHECKERR()       ! routine in MAP dll
+    CALL MAP_Initialize_Base(u%C_obj, p%C_obj, x%C_obj, z%C_obj, other%C_obj, y%C_obj, InitOut%C_obj)    ! routine in MAP dll
 
     ! Set the environmental properties:
     !   depth           = water depth [m]
@@ -422,10 +443,11 @@ CONTAINS
     !  MAP Other State
     !  MAP Output State
     ! =======================================================================================================  
-    CALL MAP_C2F_ConstrState_Array_Allocation(z, ErrStat, ErrMsg); MAP_CHECKERRQ("MAP_ERROR[FORT]: FAST/MAP C2F constraint state conversion error.")
-    CALL MAP_C2F_Output_Array_Allocation(y, ErrStat, ErrMsg); MAP_CHECKERRQ("MAP_ERROR[FORT]: FAST/MAP C2F output state conversion error.")
-    CALL MAP_C2F_OtherState_Array_Allocation(other, ErrStat, ErrMsg); MAP_CHECKERRQ("MAP_ERROR[FORT]: FAST/MAP C2F other state conversion error.")
-    CALL MAP_C2F_Input_Array_Allocation(u, ErrStat, ErrMsg); MAP_CHECKERRQ("MAP_ERROR[FORT]: FAST/MAP C2F input state conversion error.")
+    CALL MAP_C2Fary_CopyConstrState(z, ErrStat, ErrMsg); MAP_CHECKERRQ("MAP_ERROR[FORT]: FAST/MAP C2F constraint state conversion error.")
+    CALL MAP_C2Fary_CopyOutput(y, ErrStat, ErrMsg); MAP_CHECKERRQ("MAP_ERROR[FORT]: FAST/MAP C2F output state conversion error.")
+    CALL MAP_C2Fary_CopyOtherState(other, ErrStat, ErrMsg); MAP_CHECKERRQ("MAP_ERROR[FORT]: FAST/MAP C2F other state conversion error.")
+    CALL MAP_C2Fary_CopyInput(u, ErrStat, ErrMsg); MAP_CHECKERRQ("MAP_ERROR[FORT]: FAST/MAP C2F input state conversion error.")
+    
     CALL MAP_Get_Output_Headers(InitOut, other)
     
     !==========   MAP Mesh initialization   ======     <--------------------------+               
@@ -487,8 +509,6 @@ CONTAINS
     END DO
     
     InitOut%Ver = ProgDesc('MAP++',TRIM(InitOut%version),TRIM(InitOut%compilingData))
-!IF (ALLOCATED(InitOut%WriteOutputHdr)) WRITE(*,*) InitOut%WriteOutputHdr ! @bonnie : this is artificial. Remove.
-!IF (ALLOCATED(InitOut%WriteOutputUnt)) WRITE(*,*) InitOut%WriteOutputUnt ! @bonnie : this is artificial. Remove.
 
    IF ( ALLOCATED(InitOut%WriteOutputHdr) ) THEN
       ALLOCATE( y%WriteOutput(SIZE(InitOut%WriteOutputHdr)), STAT=n)
@@ -543,15 +563,6 @@ CONTAINS
        u_interp%Z(i) = u_interp%PtFairDisplacement%Position(3,i) + u_interp%PtFairDisplacement%TranslationDisp(3,i)
     END DO
     
-    ! @bonnie: remove. This is just to test MAP by using fake fairlead displacements
-    ! write (*,*) u_interp%X(1)!u(1)%x(1)
-
-    CALL copy_inputs_for_c(u_interp, ErrStat, ErrMsg)
-
-    ! @bonnie: If we pass in u(1) as an argument into MSQS_UpdateStates, then the program behaves as expected. It does not seem 
-    !          that u_interp is setup in a way to be handled by the C code -> this is why the states are not updated when 
-    !          UpdateStates is called. I think there is a discrepancy here because the arrays are allocated/deallocation in C. 
-    !          I think MAP_Input_ExtrapInterp neglected this detail? If so, this might also explain the memory leaks.     
     CALL MSQS_UpdateStates( time            , &
                             interval        , & 
                             u_interp%C_obj  , &
@@ -564,8 +575,6 @@ CONTAINS
                             message_from_MAP  )
     MAP_CHECKERR()
     
-    ! delete the temporary input arrays/meshes 
-    CALL deallocate_primitives_for_c(u_interp, ErrStat, ErrMsg)
     CALL MAP_DestroyInput(u_interp, ErrStat, ErrMsg)        
   END SUBROUTINE MAP_UpdateStates                                                                !   -------+
   !==========================================================================================================
@@ -598,7 +607,7 @@ CONTAINS
        u%Z(i) = u%PtFairDisplacement%Position(3,i) + u%PtFairDisplacement%TranslationDisp(3,i)
     END DO
   
-    CALL map_calc_output(time            , & 
+    CALL MSQS_CalcOutput(time            , & 
                          u%C_obj         , &
                          p%C_obj         , &
                          x%C_obj         , &
@@ -610,13 +619,10 @@ CONTAINS
                          message_from_MAP ) 
     MAP_CHECKERR()
   
-  !BJJ: Why doesn't this work? 
 
    IF (ALLOCATED(y%WriteOutput) .AND. ASSOCIATED(y%WrtOutput) ) y%WriteOutput = REAL( y%WrtOutput, ReKi ) 
-   ! IF (ALLOCATED(y%WriteOutput)) WRITE(*,*) y%WriteOutput ! @bonnie : remove
-  !  WRITE(*,*) y%wrtOutput ! @bonnie : remove
-  !  write(*,*)
-    ! Copy the MAP C output types to the native Fortran mesh output types
+
+   ! Copy the MAP C output types to the native Fortran mesh output types
     DO i = 1,y%ptFairleadLoad%NNodes
        y%ptFairleadLoad%Force(1,i) = -y%FX(i) 
        y%ptFairleadLoad%Force(2,i) = -y%FY(i)
@@ -658,36 +664,12 @@ CONTAINS
     MAP_CHECKERR()
 
     ! bjj: we need to nullify Fortran pointers that were associated with C_F_POINTER in the Init routine:
-    ! 
-        
-    IF (.NOT. C_ASSOCIATED( u%C_obj%x              ) ) NULLIFY( u%x              )
-    IF (.NOT. C_ASSOCIATED( u%C_obj%y              ) ) NULLIFY( u%y              )
-    IF (.NOT. C_ASSOCIATED( u%C_obj%z              ) ) NULLIFY( u%z              )
-                                                                                 
-    IF (.NOT. C_ASSOCIATED( z%C_obj%H              ) ) NULLIFY( z%H              )
-    IF (.NOT. C_ASSOCIATED( z%C_obj%V              ) ) NULLIFY( z%V              )
-    IF (.NOT. C_ASSOCIATED( z%C_obj%x              ) ) NULLIFY( z%x              )
-    IF (.NOT. C_ASSOCIATED( z%C_obj%y              ) ) NULLIFY( z%y              )
-    IF (.NOT. C_ASSOCIATED( z%C_obj%z              ) ) NULLIFY( z%z              )
-                                                                                 
-    IF (.NOT. C_ASSOCIATED( y%C_obj%Fx             ) ) NULLIFY( y%Fx             )
-    IF (.NOT. C_ASSOCIATED( y%C_obj%Fy             ) ) NULLIFY( y%Fy             )
-    IF (.NOT. C_ASSOCIATED( y%C_obj%Fz             ) ) NULLIFY( y%Fz             )
-    IF (.NOT. C_ASSOCIATED( y%C_obj%wrtOutput      ) ) NULLIFY( y%wrtOutput      )    
-    
-    IF (.NOT. C_ASSOCIATED( other%C_obj%x          ) ) NULLIFY( other%x          )
-    IF (.NOT. C_ASSOCIATED( other%C_obj%y          ) ) NULLIFY( other%y          )
-    IF (.NOT. C_ASSOCIATED( other%C_obj%z          ) ) NULLIFY( other%z          )
-    IF (.NOT. C_ASSOCIATED( other%C_obj%Fx_connect ) ) NULLIFY( other%Fx_connect )
-    IF (.NOT. C_ASSOCIATED( other%C_obj%Fy_connect ) ) NULLIFY( other%Fy_connect )
-    IF (.NOT. C_ASSOCIATED( other%C_obj%Fz_connect ) ) NULLIFY( other%Fz_connect )
-    IF (.NOT. C_ASSOCIATED( other%C_obj%Fx_anchor  ) ) NULLIFY( other%Fx_anchor  )
-    IF (.NOT. C_ASSOCIATED( other%C_obj%Fy_anchor  ) ) NULLIFY( other%Fy_anchor  )
-    IF (.NOT. C_ASSOCIATED( other%C_obj%Fz_anchor  ) ) NULLIFY( other%Fz_anchor  )
-    
-
-    
-    
+    !        
+    CALL MAP_C2Fary_CopyConstrState(z, ErrStat, ErrMsg)
+    CALL MAP_C2Fary_CopyOutput(y, ErrStat, ErrMsg)
+    CALL MAP_C2Fary_CopyOtherState(other, ErrStat, ErrMsg)
+    CALL MAP_C2Fary_CopyInput(u, ErrStat, ErrMsg)
+           
     
     ! Destroy Fortran MAP types
     ! Anything allocated in C should be destroyed in C. Calling these functions only destroys mesh types. 
@@ -845,7 +827,7 @@ CONTAINS
   LOGICAL FUNCTION MAP_ERROR_CHECKER(msg, stat, ErrMsg, ErrStat)
     CHARACTER(KIND=C_CHAR), DIMENSION(1024), INTENT(INOUT) :: msg
     INTEGER(KIND=C_INT),                     INTENT(INOUT) :: stat
-    CHARACTER(1024),                         INTENT(  OUT) :: ErrMsg 
+    CHARACTER(*),                            INTENT(  OUT) :: ErrMsg 
     INTEGER(IntKi),                          INTENT(  OUT) :: ErrStat    
     INTEGER                                                :: i = 0                                             
 
@@ -854,7 +836,7 @@ CONTAINS
     ErrMsg  = ""
     
     IF (stat.NE.0) THEN
-       DO i = 1,1024 ! convert c-character array to a fortran character array
+       DO i = 1,min(1024,len(ErrMsg)) ! convert c-character array to a fortran character array
           IF(msg(i).NE.C_NULL_CHAR) THEN
              ErrMsg(i:i) = msg(i)
           ELSE
@@ -874,7 +856,7 @@ CONTAINS
   !==========================================================================================================
 
  
-  ! ==========   MAP_C2F_OtherState_Array_Allocation   ======     <-----------------------------------------+
+  ! ==========   MAP_Get_Output_Headers   ======     <-----------------------------------------+
   !                                                                                              !          |
   ! Get te output header for the FAST text file so something like this is printed:
   !  l[1]     h[1]     psi[1]   alpha[1] alpha_a[1]
@@ -925,124 +907,5 @@ CONTAINS
     DEALLOCATE(strUntPtrs)
   END SUBROUTINE MAP_Get_Output_Headers                                                          !   -------+
   !==========================================================================================================
-
-
-  ! ==========   MAP_C2F_OtherState_Array_Allocation   ======     <-----------------------------------------+
-  !                                                                                              !          |
-  ! MAP_OtherStateType (defined in MAP_Types.f90 and MAP_Types.h) :
-  ! Done just once for other states.
-  SUBROUTINE MAP_C2F_OtherState_Array_Allocation(other, ErrStat, ErrMsg) 
-    ! Passed arguments
-    TYPE( MAP_OtherStateType ), INTENT(INOUT)  :: other
-    INTEGER(IntKi),             INTENT(INOUT)  :: ErrStat     ! Error status of the operation
-    CHARACTER(*),               INTENT(INOUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-
-    CALL C_F_POINTER(other%C_obj%x, other%x, (/other%C_obj%x_Len/))  
-    CALL C_F_POINTER(other%C_obj%y, other%y, (/other%C_obj%y_Len/))  
-    CALL C_F_POINTER(other%C_obj%z, other%z, (/other%C_obj%z_Len/))  
-    CALL C_F_POINTER(other%C_obj%Fx_connect, other%Fx_connect, (/other%C_obj%Fx_connect_Len/))  
-    CALL C_F_POINTER(other%C_obj%Fy_connect, other%Fy_connect, (/other%C_obj%Fy_connect_Len/))  
-    CALL C_F_POINTER(other%C_obj%Fz_connect, other%Fz_connect, (/other%C_obj%Fz_connect_Len/))  
-    CALL C_F_POINTER(other%C_obj%Fx_anchor, other%Fx_anchor, (/other%C_obj%Fx_anchor_Len/))  
-    CALL C_F_POINTER(other%C_obj%Fy_anchor, other%Fy_anchor, (/other%C_obj%Fy_anchor_Len/))  
-    CALL C_F_POINTER(other%C_obj%Fz_anchor, other%Fz_anchor, (/other%C_obj%Fz_anchor_Len/))  
-    ErrStat = ErrID_None
-  END SUBROUTINE MAP_C2F_OtherState_Array_Allocation                                             !   -------+
-  !==========================================================================================================
-
-
-  ! ==========   MAP_C2F_Output_Array_Allocation   ======     <---------------------------------------------+
-  !                                                                                              !          |
-  ! MAP_OutputType (defined in MAP_Types.f90 and MAP_Types.h) :
-  ! Done just once for output states.
-  SUBROUTINE MAP_C2F_Output_Array_Allocation(y, ErrStat, ErrMsg) 
-    ! Passed arguments
-    TYPE( MAP_OutputType ), INTENT(INOUT)  :: y
-    INTEGER(IntKi),         INTENT(INOUT)  :: ErrStat     ! Error status of the operation
-    CHARACTER(*),           INTENT(INOUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-
-    CALL C_F_POINTER(y%C_obj%Fx, y%Fx, (/y%C_obj%Fx_Len/))  
-    CALL C_F_POINTER(y%C_obj%Fy, y%Fy, (/y%C_obj%Fy_Len/))  
-    CALL C_F_POINTER(y%C_obj%Fz, y%Fz, (/y%C_obj%Fz_Len/))  
-    CALL C_F_POINTER(y%C_obj%wrtOutput, y%wrtOutput, (/y%C_obj%wrtOutput_Len/))  
-    ErrStat = ErrID_None
-  END SUBROUTINE MAP_C2F_Output_Array_Allocation                                                 !   -------+
-  !==========================================================================================================
-
-
-  ! ==========   MAP_C2F_ConstrState_Array_Allocation   ======     <----------------------------------------+
-  !                                                                                              !          |
-  ! MAP_ConstrStateType (defined in MAP_Types.f90 and MAP_Types.h) :
-  ! Done just once for constraint states.  
-  SUBROUTINE MAP_C2F_ConstrState_Array_Allocation(z, ErrStat, ErrMsg) 
-    ! Passed arguments
-    TYPE( MAP_ConstraintStateType ), INTENT(INOUT)  :: z
-    INTEGER(IntKi),                  INTENT(INOUT)  :: ErrStat     ! Error status of the operation
-    CHARACTER(*),                    INTENT(INOUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-
-    CALL C_F_POINTER(z%C_obj%H, z%H, (/z%C_obj%H_Len/))  
-    CALL C_F_POINTER(z%C_obj%V, z%V, (/z%C_obj%V_Len/))  
-    CALL C_F_POINTER(z%C_obj%x, z%x, (/z%C_obj%x_Len/))  
-    CALL C_F_POINTER(z%C_obj%y, z%y, (/z%C_obj%y_Len/))  
-    CALL C_F_POINTER(z%C_obj%z, z%z, (/z%C_obj%z_Len/))  
-    ErrStat = ErrID_None
-  END SUBROUTINE MAP_C2F_ConstrState_Array_Allocation                                            !   -------+
-  !==========================================================================================================
-
-
-  ! ==========   MAP_C2F_Input_Array_Allocation   ======     <----------------------------------------------+
-  !                                                                                              !          |
-  ! MAP_InputType (defined in MAP_Types.f90 and MAP_Types.h) :
-  ! Done just once for input states.  
-  SUBROUTINE MAP_C2F_Input_Array_Allocation(u, ErrStat, ErrMsg) 
-    ! Passed arguments
-    TYPE( MAP_InputType ), INTENT(INOUT)  :: u
-    INTEGER(IntKi),        INTENT(INOUT)  :: ErrStat     ! Error status of the operation
-    CHARACTER(*),          INTENT(INOUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-
-    CALL C_F_POINTER(u%C_obj%x, u%x, (/u%C_obj%x_Len/))  
-    CALL C_F_POINTER(u%C_obj%y, u%y, (/u%C_obj%y_Len/))  
-    CALL C_F_POINTER(u%C_obj%z, u%z, (/u%C_obj%z_Len/))  
-    ErrStat = ErrID_None
-  END SUBROUTINE MAP_C2F_Input_Array_Allocation                                                  !   -------+
-  !==========================================================================================================
-
-
-  ! ==========   copy_input_for_c   ======     <------------------------------------------------------------+
-  !                                                                                              !          |
-  ! We need to copy the inputs and set the pointer before entering the DLL. Referencing to the inputs
-  ! change when interp/extrap routines are executed. 
-  SUBROUTINE copy_inputs_for_c(u, ErrStat, ErrMsg)
-    TYPE(MAP_InputType), INTENT(INOUT)  :: u
-    INTEGER(IntKi),      INTENT(INOUT)  :: ErrStat     ! Error status of the operation
-    CHARACTER(*),        INTENT(INOUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-
-    u%c_obj%x = C_LOC(u%x(1))
-    u%c_obj%x_Len = SIZE(u%x)
-    u%c_obj%y = C_LOC(u%y(1))
-    u%c_obj%y_Len = SIZE(u%y)
-    u%c_obj%z = C_LOC(u%z(1))
-    u%c_obj%z_Len = SIZE(u%z)    
-  END SUBROUTINE copy_inputs_for_c                                                               !   -------+
-  !==========================================================================================================
-
-
-  ! ==========   deallocate_primitives_for_c   ======     <-------------------------------------------------+
-  !                                                                                              !          |
-  ! Delete the above stuff
-  SUBROUTINE deallocate_primitives_for_c(u, ErrStat, ErrMsg)
-    TYPE(MAP_InputType), INTENT(INOUT)  :: u
-    INTEGER(IntKi),      INTENT(INOUT)  :: ErrStat     ! Error status of the operation
-    CHARACTER(*),        INTENT(INOUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-
-    u%c_obj%x = C_NULL_ptr    
-    u%c_obj%y = C_NULL_ptr    
-    u%c_obj%z = C_NULL_ptr    
-    DEALLOCATE(u%x)
-    DEALLOCATE(u%y)
-    DEALLOCATE(u%z)
-  END SUBROUTINE deallocate_primitives_for_c                                                     !   -------+
-  !==========================================================================================================
-
 
 END MODULE MAP

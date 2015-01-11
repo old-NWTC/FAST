@@ -84,7 +84,7 @@ pre_parse( char * dir, FILE * infile, FILE * outfile, int usefrom_sw )
     if ( (!strncmp( p1 , "include", 7 ) || !strncmp( p1, "usefrom", 7 ))  &&  ! ( ifdef_stack_ptr >= 0 && ! ifdef_stack[ifdef_stack_ptr] ) )
     {
       FILE *include_fp ;
-      char include_file_name[128] ;
+      char include_file_name[NAMELEN] ;
       int checking_for_usefrom = !strncmp( p1, "usefrom", 7 ) ;
 //fprintf(stderr,"checking_for_usefrom %d |%s|\n",checking_for_usefrom,p1) ;
 
@@ -582,10 +582,17 @@ set_dim_len ( char * dimspec , node_t * dim_entry )
     }
     dim_entry->len_defined_how = NAMELIST ;
   }
-  else
+  else /* if (param_dim != NULL) */ {
+     dim_entry->coord_start = 1;
+     dim_entry->len_defined_how = CONSTANT;
+     strcpy(dim_entry->dim_param_name, dimspec);
+     dim_entry->dim_param = 1;
+  }
+/*    else
   {
     return(1) ;
   }
+*/
   return(0) ;
 }
 

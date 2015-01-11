@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-09-24 11:10:30 -0600 (Wed, 24 Sep 2014) $
-! (File) Revision #: $Rev: 508 $
+! File last committed: $Date: 2014-12-08 13:17:52 -0700 (Mon, 08 Dec 2014) $
+! (File) Revision #: $Rev: 594 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Morison_Output.f90 $
 !**********************************************************************************************************************************
 MODULE Morison_Output
@@ -7328,7 +7328,7 @@ SUBROUTINE MrsnOut_Init( InitInp, y,  p, InitOut, ErrStat, ErrMsg )
 !   MrsnOut_Data%NumOuts = HDO_InitData%NumOuts   
 if (p%NumOuts > 0 ) THEN 
    CALL MrsnOut_ChkOutLst( InitInp%OutList(1:p%NumOuts), InitInp%ValidOutList(1:p%NumOuts), y, p,  ErrStat, ErrMsg )
-   IF ( ErrStat > ErrID_Warn ) RETURN
+   IF ( ErrStat >= AbortErrLev ) RETURN
 END IF   
       ! Set the number of outputs related to the OutAll flag
    

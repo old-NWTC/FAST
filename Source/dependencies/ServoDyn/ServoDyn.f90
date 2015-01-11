@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-08-15 12:00:08 -0600 (Fri, 15 Aug 2014) $
-! (File) Revision #: $Rev: 766 $
+! File last committed: $Date: 2014-12-23 14:05:54 -0700 (Tue, 23 Dec 2014) $
+! (File) Revision #: $Rev: 838 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ServoDyn.f90 $
 !**********************************************************************************************************************************
 MODULE ServoDyn
@@ -697,7 +697,7 @@ CONTAINS
       IF ( ErrID /= ErrID_None ) THEN
 
          IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' SrvD_CalcOutput:'//TRIM(Msg)
+         ErrMsg = TRIM(ErrMsg)//'SrvD_CalcOutput:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................

@@ -3,13 +3,13 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.02, 17-Sep-2014)
+! FAST Registry (v2.05.00, 10-Jan-2015)
 !*********************************************************************************************************************************
 ! ServoDyn_Types
 !.................................................................................................................................
 ! This file is part of ServoDyn.
 !
-! Copyright (C) 2012-2014 National Renewable Energy Laboratory
+! Copyright (C) 2012-2015 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -303,149 +303,147 @@ IMPLICIT NONE
   END TYPE SrvD_OutputType
 ! =======================
 CONTAINS
- SUBROUTINE SrvD_Copyinputfile( SrcinputfileData, DstinputfileData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(srvd_inputfile), INTENT(INOUT) :: SrcinputfileData
-   TYPE(srvd_inputfile), INTENT(INOUT) :: DstinputfileData
+ SUBROUTINE SrvD_CopyInputFile( SrcInputFileData, DstInputFileData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(SrvD_InputFile), INTENT(IN) :: SrcInputFileData
+   TYPE(SrvD_InputFile), INTENT(INOUT) :: DstInputFileData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstinputfileData%DT = SrcinputfileData%DT
-   DstinputfileData%PCMode = SrcinputfileData%PCMode
-   DstinputfileData%TPCOn = SrcinputfileData%TPCOn
-   DstinputfileData%TPitManS = SrcinputfileData%TPitManS
-   DstinputfileData%PitManRat = SrcinputfileData%PitManRat
-   DstinputfileData%BlPitchF = SrcinputfileData%BlPitchF
-   DstinputfileData%VSContrl = SrcinputfileData%VSContrl
-   DstinputfileData%GenModel = SrcinputfileData%GenModel
-   DstinputfileData%GenEff = SrcinputfileData%GenEff
-   DstinputfileData%GenTiStr = SrcinputfileData%GenTiStr
-   DstinputfileData%GenTiStp = SrcinputfileData%GenTiStp
-   DstinputfileData%SpdGenOn = SrcinputfileData%SpdGenOn
-   DstinputfileData%TimGenOn = SrcinputfileData%TimGenOn
-   DstinputfileData%TimGenOf = SrcinputfileData%TimGenOf
-   DstinputfileData%VS_RtGnSp = SrcinputfileData%VS_RtGnSp
-   DstinputfileData%VS_RtTq = SrcinputfileData%VS_RtTq
-   DstinputfileData%VS_Rgn2K = SrcinputfileData%VS_Rgn2K
-   DstinputfileData%VS_SlPc = SrcinputfileData%VS_SlPc
-   DstinputfileData%SIG_SlPc = SrcinputfileData%SIG_SlPc
-   DstinputfileData%SIG_SySp = SrcinputfileData%SIG_SySp
-   DstinputfileData%SIG_RtTq = SrcinputfileData%SIG_RtTq
-   DstinputfileData%SIG_PORt = SrcinputfileData%SIG_PORt
-   DstinputfileData%TEC_Freq = SrcinputfileData%TEC_Freq
-   DstinputfileData%TEC_NPol = SrcinputfileData%TEC_NPol
-   DstinputfileData%TEC_SRes = SrcinputfileData%TEC_SRes
-   DstinputfileData%TEC_RRes = SrcinputfileData%TEC_RRes
-   DstinputfileData%TEC_VLL = SrcinputfileData%TEC_VLL
-   DstinputfileData%TEC_SLR = SrcinputfileData%TEC_SLR
-   DstinputfileData%TEC_RLR = SrcinputfileData%TEC_RLR
-   DstinputfileData%TEC_MR = SrcinputfileData%TEC_MR
-   DstinputfileData%HSSBrMode = SrcinputfileData%HSSBrMode
-   DstinputfileData%THSSBrDp = SrcinputfileData%THSSBrDp
-   DstinputfileData%HSSBrDT = SrcinputfileData%HSSBrDT
-   DstinputfileData%HSSBrTqF = SrcinputfileData%HSSBrTqF
-   DstinputfileData%YCMode = SrcinputfileData%YCMode
-   DstinputfileData%TYCOn = SrcinputfileData%TYCOn
-   DstinputfileData%YawNeut = SrcinputfileData%YawNeut
-   DstinputfileData%YawSpr = SrcinputfileData%YawSpr
-   DstinputfileData%YawDamp = SrcinputfileData%YawDamp
-   DstinputfileData%TYawManS = SrcinputfileData%TYawManS
-   DstinputfileData%YawManRat = SrcinputfileData%YawManRat
-   DstinputfileData%NacYawF = SrcinputfileData%NacYawF
-   DstinputfileData%SumPrint = SrcinputfileData%SumPrint
-   DstinputfileData%OutFile = SrcinputfileData%OutFile
-   DstinputfileData%TabDelim = SrcinputfileData%TabDelim
-   DstinputfileData%OutFmt = SrcinputfileData%OutFmt
-   DstinputfileData%Tstart = SrcinputfileData%Tstart
-   DstinputfileData%NumOuts = SrcinputfileData%NumOuts
-IF (ALLOCATED(SrcinputfileData%OutList)) THEN
-   i1_l = LBOUND(SrcinputfileData%OutList,1)
-   i1_u = UBOUND(SrcinputfileData%OutList,1)
-   IF (.NOT. ALLOCATED(DstinputfileData%OutList)) THEN 
-      ALLOCATE(DstinputfileData%OutList(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_Copyinputfile: Error allocating DstinputfileData%OutList.'
+   DstInputFileData%DT = SrcInputFileData%DT
+   DstInputFileData%PCMode = SrcInputFileData%PCMode
+   DstInputFileData%TPCOn = SrcInputFileData%TPCOn
+   DstInputFileData%TPitManS = SrcInputFileData%TPitManS
+   DstInputFileData%PitManRat = SrcInputFileData%PitManRat
+   DstInputFileData%BlPitchF = SrcInputFileData%BlPitchF
+   DstInputFileData%VSContrl = SrcInputFileData%VSContrl
+   DstInputFileData%GenModel = SrcInputFileData%GenModel
+   DstInputFileData%GenEff = SrcInputFileData%GenEff
+   DstInputFileData%GenTiStr = SrcInputFileData%GenTiStr
+   DstInputFileData%GenTiStp = SrcInputFileData%GenTiStp
+   DstInputFileData%SpdGenOn = SrcInputFileData%SpdGenOn
+   DstInputFileData%TimGenOn = SrcInputFileData%TimGenOn
+   DstInputFileData%TimGenOf = SrcInputFileData%TimGenOf
+   DstInputFileData%VS_RtGnSp = SrcInputFileData%VS_RtGnSp
+   DstInputFileData%VS_RtTq = SrcInputFileData%VS_RtTq
+   DstInputFileData%VS_Rgn2K = SrcInputFileData%VS_Rgn2K
+   DstInputFileData%VS_SlPc = SrcInputFileData%VS_SlPc
+   DstInputFileData%SIG_SlPc = SrcInputFileData%SIG_SlPc
+   DstInputFileData%SIG_SySp = SrcInputFileData%SIG_SySp
+   DstInputFileData%SIG_RtTq = SrcInputFileData%SIG_RtTq
+   DstInputFileData%SIG_PORt = SrcInputFileData%SIG_PORt
+   DstInputFileData%TEC_Freq = SrcInputFileData%TEC_Freq
+   DstInputFileData%TEC_NPol = SrcInputFileData%TEC_NPol
+   DstInputFileData%TEC_SRes = SrcInputFileData%TEC_SRes
+   DstInputFileData%TEC_RRes = SrcInputFileData%TEC_RRes
+   DstInputFileData%TEC_VLL = SrcInputFileData%TEC_VLL
+   DstInputFileData%TEC_SLR = SrcInputFileData%TEC_SLR
+   DstInputFileData%TEC_RLR = SrcInputFileData%TEC_RLR
+   DstInputFileData%TEC_MR = SrcInputFileData%TEC_MR
+   DstInputFileData%HSSBrMode = SrcInputFileData%HSSBrMode
+   DstInputFileData%THSSBrDp = SrcInputFileData%THSSBrDp
+   DstInputFileData%HSSBrDT = SrcInputFileData%HSSBrDT
+   DstInputFileData%HSSBrTqF = SrcInputFileData%HSSBrTqF
+   DstInputFileData%YCMode = SrcInputFileData%YCMode
+   DstInputFileData%TYCOn = SrcInputFileData%TYCOn
+   DstInputFileData%YawNeut = SrcInputFileData%YawNeut
+   DstInputFileData%YawSpr = SrcInputFileData%YawSpr
+   DstInputFileData%YawDamp = SrcInputFileData%YawDamp
+   DstInputFileData%TYawManS = SrcInputFileData%TYawManS
+   DstInputFileData%YawManRat = SrcInputFileData%YawManRat
+   DstInputFileData%NacYawF = SrcInputFileData%NacYawF
+   DstInputFileData%SumPrint = SrcInputFileData%SumPrint
+   DstInputFileData%OutFile = SrcInputFileData%OutFile
+   DstInputFileData%TabDelim = SrcInputFileData%TabDelim
+   DstInputFileData%OutFmt = SrcInputFileData%OutFmt
+   DstInputFileData%Tstart = SrcInputFileData%Tstart
+   DstInputFileData%NumOuts = SrcInputFileData%NumOuts
+IF (ALLOCATED(SrcInputFileData%OutList)) THEN
+   i1_l = LBOUND(SrcInputFileData%OutList,1)
+   i1_u = UBOUND(SrcInputFileData%OutList,1)
+   IF (.NOT. ALLOCATED(DstInputFileData%OutList)) THEN 
+      ALLOCATE(DstInputFileData%OutList(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInputFileData%OutList.', ErrStat, ErrMsg,'SrvD_CopyInputFile')
          RETURN
       END IF
    END IF
-   DstinputfileData%OutList = SrcinputfileData%OutList
+   DstInputFileData%OutList = SrcInputFileData%OutList
 ENDIF
-   DstinputfileData%DLL_FileName = SrcinputfileData%DLL_FileName
-   DstinputfileData%DLL_ProcName = SrcinputfileData%DLL_ProcName
-   DstinputfileData%DLL_InFile = SrcinputfileData%DLL_InFile
-   DstinputfileData%NacYaw_North = SrcinputfileData%NacYaw_North
-   DstinputfileData%Ptch_Cntrl = SrcinputfileData%Ptch_Cntrl
-   DstinputfileData%Ptch_SetPnt = SrcinputfileData%Ptch_SetPnt
-   DstinputfileData%Ptch_Min = SrcinputfileData%Ptch_Min
-   DstinputfileData%Ptch_Max = SrcinputfileData%Ptch_Max
-   DstinputfileData%PtchRate_Min = SrcinputfileData%PtchRate_Min
-   DstinputfileData%PtchRate_Max = SrcinputfileData%PtchRate_Max
-   DstinputfileData%Gain_OM = SrcinputfileData%Gain_OM
-   DstinputfileData%GenSpd_MinOM = SrcinputfileData%GenSpd_MinOM
-   DstinputfileData%GenSpd_MaxOM = SrcinputfileData%GenSpd_MaxOM
-   DstinputfileData%GenSpd_Dem = SrcinputfileData%GenSpd_Dem
-   DstinputfileData%GenTrq_Dem = SrcinputfileData%GenTrq_Dem
-   DstinputfileData%GenPwr_Dem = SrcinputfileData%GenPwr_Dem
-   DstinputfileData%DLL_NumTrq = SrcinputfileData%DLL_NumTrq
-IF (ALLOCATED(SrcinputfileData%GenSpd_TLU)) THEN
-   i1_l = LBOUND(SrcinputfileData%GenSpd_TLU,1)
-   i1_u = UBOUND(SrcinputfileData%GenSpd_TLU,1)
-   IF (.NOT. ALLOCATED(DstinputfileData%GenSpd_TLU)) THEN 
-      ALLOCATE(DstinputfileData%GenSpd_TLU(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_Copyinputfile: Error allocating DstinputfileData%GenSpd_TLU.'
+   DstInputFileData%DLL_FileName = SrcInputFileData%DLL_FileName
+   DstInputFileData%DLL_ProcName = SrcInputFileData%DLL_ProcName
+   DstInputFileData%DLL_InFile = SrcInputFileData%DLL_InFile
+   DstInputFileData%NacYaw_North = SrcInputFileData%NacYaw_North
+   DstInputFileData%Ptch_Cntrl = SrcInputFileData%Ptch_Cntrl
+   DstInputFileData%Ptch_SetPnt = SrcInputFileData%Ptch_SetPnt
+   DstInputFileData%Ptch_Min = SrcInputFileData%Ptch_Min
+   DstInputFileData%Ptch_Max = SrcInputFileData%Ptch_Max
+   DstInputFileData%PtchRate_Min = SrcInputFileData%PtchRate_Min
+   DstInputFileData%PtchRate_Max = SrcInputFileData%PtchRate_Max
+   DstInputFileData%Gain_OM = SrcInputFileData%Gain_OM
+   DstInputFileData%GenSpd_MinOM = SrcInputFileData%GenSpd_MinOM
+   DstInputFileData%GenSpd_MaxOM = SrcInputFileData%GenSpd_MaxOM
+   DstInputFileData%GenSpd_Dem = SrcInputFileData%GenSpd_Dem
+   DstInputFileData%GenTrq_Dem = SrcInputFileData%GenTrq_Dem
+   DstInputFileData%GenPwr_Dem = SrcInputFileData%GenPwr_Dem
+   DstInputFileData%DLL_NumTrq = SrcInputFileData%DLL_NumTrq
+IF (ALLOCATED(SrcInputFileData%GenSpd_TLU)) THEN
+   i1_l = LBOUND(SrcInputFileData%GenSpd_TLU,1)
+   i1_u = UBOUND(SrcInputFileData%GenSpd_TLU,1)
+   IF (.NOT. ALLOCATED(DstInputFileData%GenSpd_TLU)) THEN 
+      ALLOCATE(DstInputFileData%GenSpd_TLU(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInputFileData%GenSpd_TLU.', ErrStat, ErrMsg,'SrvD_CopyInputFile')
          RETURN
       END IF
    END IF
-   DstinputfileData%GenSpd_TLU = SrcinputfileData%GenSpd_TLU
+   DstInputFileData%GenSpd_TLU = SrcInputFileData%GenSpd_TLU
 ENDIF
-IF (ALLOCATED(SrcinputfileData%GenTrq_TLU)) THEN
-   i1_l = LBOUND(SrcinputfileData%GenTrq_TLU,1)
-   i1_u = UBOUND(SrcinputfileData%GenTrq_TLU,1)
-   IF (.NOT. ALLOCATED(DstinputfileData%GenTrq_TLU)) THEN 
-      ALLOCATE(DstinputfileData%GenTrq_TLU(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_Copyinputfile: Error allocating DstinputfileData%GenTrq_TLU.'
+IF (ALLOCATED(SrcInputFileData%GenTrq_TLU)) THEN
+   i1_l = LBOUND(SrcInputFileData%GenTrq_TLU,1)
+   i1_u = UBOUND(SrcInputFileData%GenTrq_TLU,1)
+   IF (.NOT. ALLOCATED(DstInputFileData%GenTrq_TLU)) THEN 
+      ALLOCATE(DstInputFileData%GenTrq_TLU(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInputFileData%GenTrq_TLU.', ErrStat, ErrMsg,'SrvD_CopyInputFile')
          RETURN
       END IF
    END IF
-   DstinputfileData%GenTrq_TLU = SrcinputfileData%GenTrq_TLU
+   DstInputFileData%GenTrq_TLU = SrcInputFileData%GenTrq_TLU
 ENDIF
- END SUBROUTINE SrvD_Copyinputfile
+ END SUBROUTINE SrvD_CopyInputFile
 
- SUBROUTINE SrvD_Destroyinputfile( inputfileData, ErrStat, ErrMsg )
-  TYPE(srvd_inputfile), INTENT(INOUT) :: inputfileData
+ SUBROUTINE SrvD_DestroyInputFile( InputFileData, ErrStat, ErrMsg )
+  TYPE(SrvD_InputFile), INTENT(INOUT) :: InputFileData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(inputfileData%OutList)) THEN
-   DEALLOCATE(inputfileData%OutList)
+IF (ALLOCATED(InputFileData%OutList)) THEN
+   DEALLOCATE(InputFileData%OutList)
 ENDIF
-IF (ALLOCATED(inputfileData%GenSpd_TLU)) THEN
-   DEALLOCATE(inputfileData%GenSpd_TLU)
+IF (ALLOCATED(InputFileData%GenSpd_TLU)) THEN
+   DEALLOCATE(InputFileData%GenSpd_TLU)
 ENDIF
-IF (ALLOCATED(inputfileData%GenTrq_TLU)) THEN
-   DEALLOCATE(inputfileData%GenTrq_TLU)
+IF (ALLOCATED(InputFileData%GenTrq_TLU)) THEN
+   DEALLOCATE(InputFileData%GenTrq_TLU)
 ENDIF
- END SUBROUTINE SrvD_Destroyinputfile
+ END SUBROUTINE SrvD_DestroyInputFile
 
- SUBROUTINE SrvD_Packinputfile( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE SrvD_PackInputFile( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(srvd_inputfile),  INTENT(INOUT) :: InData
+  TYPE(SrvD_InputFile),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -484,6 +482,8 @@ ENDIF
   Int_BufSz  = Int_BufSz  + 1  ! VSContrl
   Int_BufSz  = Int_BufSz  + 1  ! GenModel
   Re_BufSz   = Re_BufSz   + 1  ! GenEff
+  Int_BufSz  = Int_BufSz  + 1  ! GenTiStr
+  Int_BufSz  = Int_BufSz  + 1  ! GenTiStp
   Re_BufSz   = Re_BufSz   + 1  ! SpdGenOn
   Db_BufSz   = Db_BufSz   + 1  ! TimGenOn
   Db_BufSz   = Db_BufSz   + 1  ! TimGenOf
@@ -515,9 +515,16 @@ ENDIF
   Db_BufSz   = Db_BufSz   + 1  ! TYawManS
   Re_BufSz   = Re_BufSz   + 1  ! YawManRat
   Re_BufSz   = Re_BufSz   + 1  ! NacYawF
+  Int_BufSz  = Int_BufSz  + 1  ! SumPrint
   Int_BufSz  = Int_BufSz  + 1  ! OutFile
+  Int_BufSz  = Int_BufSz  + 1  ! TabDelim
+!  missing buffer for OutFmt
   Db_BufSz   = Db_BufSz   + 1  ! Tstart
   Int_BufSz  = Int_BufSz  + 1  ! NumOuts
+!  missing buffer for OutList
+!  missing buffer for DLL_FileName
+!  missing buffer for DLL_ProcName
+!  missing buffer for DLL_InFile
   Re_BufSz   = Re_BufSz   + 1  ! NacYaw_North
   Int_BufSz  = Int_BufSz  + 1  ! Ptch_Cntrl
   Re_BufSz   = Re_BufSz   + 1  ! Ptch_SetPnt
@@ -532,8 +539,8 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! GenTrq_Dem
   Re_BufSz   = Re_BufSz   + 1  ! GenPwr_Dem
   Int_BufSz  = Int_BufSz  + 1  ! DLL_NumTrq
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GenSpd_TLU )  ! GenSpd_TLU 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GenTrq_TLU )  ! GenTrq_TLU 
+  IF ( ALLOCATED(InData%GenSpd_TLU) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GenSpd_TLU )  ! GenSpd_TLU 
+  IF ( ALLOCATED(InData%GenTrq_TLU) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GenTrq_TLU )  ! GenTrq_TLU 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -555,6 +562,10 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%GenEff )
   Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%GenTiStr ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%GenTiStp ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%SpdGenOn )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%TimGenOn )
@@ -617,7 +628,11 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%NacYawF )
   Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%SumPrint ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%OutFile )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%TabDelim ), IntKiBuf(1), 1)
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%Tstart )
   Db_Xferred   = Db_Xferred   + 1
@@ -659,13 +674,13 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%GenTrq_TLU))-1 ) =  PACK(InData%GenTrq_TLU ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%GenTrq_TLU)
   ENDIF
- END SUBROUTINE SrvD_Packinputfile
+ END SUBROUTINE SrvD_PackInputFile
 
- SUBROUTINE SrvD_UnPackinputfile( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE SrvD_UnPackInputFile( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(srvd_inputfile), INTENT(INOUT) :: OutData
+  TYPE(SrvD_InputFile), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -700,15 +715,18 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   OutData%TPCOn = DbKiBuf ( Db_Xferred )
   Db_Xferred   = Db_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%TPitManS,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%TPitManS,1)))
+  mask1 = .TRUE.
   OutData%TPitManS = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%TPitManS))-1 ),mask1,OutData%TPitManS)
   DEALLOCATE(mask1)
   Db_Xferred   = Db_Xferred   + SIZE(OutData%TPitManS)
-  ALLOCATE(mask1(SIZE(OutData%PitManRat,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%PitManRat,1)))
+  mask1 = .TRUE.
   OutData%PitManRat = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PitManRat))-1 ),mask1,OutData%PitManRat)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%PitManRat)
-  ALLOCATE(mask1(SIZE(OutData%BlPitchF,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%BlPitchF,1)))
+  mask1 = .TRUE.
   OutData%BlPitchF = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%BlPitchF))-1 ),mask1,OutData%BlPitchF)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%BlPitchF)
@@ -815,13 +833,15 @@ ENDIF
   OutData%DLL_NumTrq = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%GenSpd_TLU) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%GenSpd_TLU,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%GenSpd_TLU,1)))
+  mask1 = .TRUE.
     OutData%GenSpd_TLU = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%GenSpd_TLU))-1 ),mask1,OutData%GenSpd_TLU)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%GenSpd_TLU)
   ENDIF
   IF ( ALLOCATED(OutData%GenTrq_TLU) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%GenTrq_TLU,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%GenTrq_TLU,1)))
+  mask1 = .TRUE.
     OutData%GenTrq_TLU = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%GenTrq_TLU))-1 ),mask1,OutData%GenTrq_TLU)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%GenTrq_TLU)
@@ -829,59 +849,59 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE SrvD_UnPackinputfile
+ END SUBROUTINE SrvD_UnPackInputFile
 
- SUBROUTINE SrvD_Copybladeddlltype( SrcbladeddlltypeData, DstbladeddlltypeData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(bladeddlltype), INTENT(INOUT) :: SrcbladeddlltypeData
-   TYPE(bladeddlltype), INTENT(INOUT) :: DstbladeddlltypeData
+ SUBROUTINE SrvD_CopyBladedDLLType( SrcBladedDLLTypeData, DstBladedDLLTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(BladedDLLType), INTENT(IN) :: SrcBladedDLLTypeData
+   TYPE(BladedDLLType), INTENT(INOUT) :: DstBladedDLLTypeData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ALLOCATED(SrcbladeddlltypeData%avrSWAP)) THEN
-   i1_l = LBOUND(SrcbladeddlltypeData%avrSWAP,1)
-   i1_u = UBOUND(SrcbladeddlltypeData%avrSWAP,1)
-   IF (.NOT. ALLOCATED(DstbladeddlltypeData%avrSWAP)) THEN 
-      ALLOCATE(DstbladeddlltypeData%avrSWAP(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_Copybladeddlltype: Error allocating DstbladeddlltypeData%avrSWAP.'
+IF (ALLOCATED(SrcBladedDLLTypeData%avrSWAP)) THEN
+   i1_l = LBOUND(SrcBladedDLLTypeData%avrSWAP,1)
+   i1_u = UBOUND(SrcBladedDLLTypeData%avrSWAP,1)
+   IF (.NOT. ALLOCATED(DstBladedDLLTypeData%avrSWAP)) THEN 
+      ALLOCATE(DstBladedDLLTypeData%avrSWAP(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBladedDLLTypeData%avrSWAP.', ErrStat, ErrMsg,'SrvD_CopyBladedDLLType')
          RETURN
       END IF
    END IF
-   DstbladeddlltypeData%avrSWAP = SrcbladeddlltypeData%avrSWAP
+   DstBladedDLLTypeData%avrSWAP = SrcBladedDLLTypeData%avrSWAP
 ENDIF
-   DstbladeddlltypeData%HSSBrFrac = SrcbladeddlltypeData%HSSBrFrac
-   DstbladeddlltypeData%YawRateCom = SrcbladeddlltypeData%YawRateCom
-   DstbladeddlltypeData%GenTrq = SrcbladeddlltypeData%GenTrq
-   DstbladeddlltypeData%GenState = SrcbladeddlltypeData%GenState
-   DstbladeddlltypeData%BlPitchCom = SrcbladeddlltypeData%BlPitchCom
- END SUBROUTINE SrvD_Copybladeddlltype
+   DstBladedDLLTypeData%HSSBrFrac = SrcBladedDLLTypeData%HSSBrFrac
+   DstBladedDLLTypeData%YawRateCom = SrcBladedDLLTypeData%YawRateCom
+   DstBladedDLLTypeData%GenTrq = SrcBladedDLLTypeData%GenTrq
+   DstBladedDLLTypeData%GenState = SrcBladedDLLTypeData%GenState
+   DstBladedDLLTypeData%BlPitchCom = SrcBladedDLLTypeData%BlPitchCom
+ END SUBROUTINE SrvD_CopyBladedDLLType
 
- SUBROUTINE SrvD_Destroybladeddlltype( bladeddlltypeData, ErrStat, ErrMsg )
-  TYPE(bladeddlltype), INTENT(INOUT) :: bladeddlltypeData
+ SUBROUTINE SrvD_DestroyBladedDLLType( BladedDLLTypeData, ErrStat, ErrMsg )
+  TYPE(BladedDLLType), INTENT(INOUT) :: BladedDLLTypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(bladeddlltypeData%avrSWAP)) THEN
-   DEALLOCATE(bladeddlltypeData%avrSWAP)
+IF (ALLOCATED(BladedDLLTypeData%avrSWAP)) THEN
+   DEALLOCATE(BladedDLLTypeData%avrSWAP)
 ENDIF
- END SUBROUTINE SrvD_Destroybladeddlltype
+ END SUBROUTINE SrvD_DestroyBladedDLLType
 
- SUBROUTINE SrvD_Packbladeddlltype( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE SrvD_PackBladedDLLType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(bladeddlltype),  INTENT(INOUT) :: InData
+  TYPE(BladedDLLType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -911,7 +931,7 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%avrSWAP )  ! avrSWAP 
+  IF ( ALLOCATED(InData%avrSWAP) )   Re_BufSz    = Re_BufSz    + SIZE( InData%avrSWAP )  ! avrSWAP 
   Re_BufSz   = Re_BufSz   + 1  ! HSSBrFrac
   Re_BufSz   = Re_BufSz   + 1  ! YawRateCom
   Re_BufSz   = Re_BufSz   + 1  ! GenTrq
@@ -934,13 +954,13 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%BlPitchCom))-1 ) =  PACK(InData%BlPitchCom ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%BlPitchCom)
- END SUBROUTINE SrvD_Packbladeddlltype
+ END SUBROUTINE SrvD_PackBladedDLLType
 
- SUBROUTINE SrvD_UnPackbladeddlltype( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE SrvD_UnPackBladedDLLType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(bladeddlltype), INTENT(INOUT) :: OutData
+  TYPE(BladedDLLType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -970,7 +990,8 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%avrSWAP) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%avrSWAP,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%avrSWAP,1)))
+  mask1 = .TRUE.
     OutData%avrSWAP = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%avrSWAP))-1 ),mask1,REAL(OutData%avrSWAP,ReKi)), SiKi)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%avrSWAP)
@@ -983,25 +1004,27 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%GenState = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%BlPitchCom,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%BlPitchCom,1)))
+  mask1 = .TRUE.
   OutData%BlPitchCom = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%BlPitchCom))-1 ),mask1,OutData%BlPitchCom)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%BlPitchCom)
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE SrvD_UnPackbladeddlltype
+ END SUBROUTINE SrvD_UnPackBladedDLLType
 
  SUBROUTINE SrvD_CopyInitInput( SrcInitInputData, DstInitInputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(SrvD_initinputtype), INTENT(INOUT) :: SrcInitInputData
-   TYPE(SrvD_initinputtype), INTENT(INOUT) :: DstInitInputData
+   TYPE(SrvD_InitInputType), INTENT(IN) :: SrcInitInputData
+   TYPE(SrvD_InitInputType), INTENT(INOUT) :: DstInitInputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1012,10 +1035,9 @@ IF (ALLOCATED(SrcInitInputData%BlPitchInit)) THEN
    i1_l = LBOUND(SrcInitInputData%BlPitchInit,1)
    i1_u = UBOUND(SrcInitInputData%BlPitchInit,1)
    IF (.NOT. ALLOCATED(DstInitInputData%BlPitchInit)) THEN 
-      ALLOCATE(DstInitInputData%BlPitchInit(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyInitInput: Error allocating DstInitInputData%BlPitchInit.'
+      ALLOCATE(DstInitInputData%BlPitchInit(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%BlPitchInit.', ErrStat, ErrMsg,'SrvD_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -1024,7 +1046,7 @@ ENDIF
  END SUBROUTINE SrvD_CopyInitInput
 
  SUBROUTINE SrvD_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
-  TYPE(SrvD_initinputtype), INTENT(INOUT) :: InitInputData
+  TYPE(SrvD_InitInputType), INTENT(INOUT) :: InitInputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -1040,7 +1062,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(SrvD_initinputtype),  INTENT(INOUT) :: InData
+  TYPE(SrvD_InitInputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1070,8 +1092,10 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
+!  missing buffer for InputFile
   Int_BufSz  = Int_BufSz  + 1  ! NumBl
-  Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitchInit )  ! BlPitchInit 
+!  missing buffer for RootName
+  IF ( ALLOCATED(InData%BlPitchInit) )   Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitchInit )  ! BlPitchInit 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1087,7 +1111,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(SrvD_initinputtype), INTENT(INOUT) :: OutData
+  TYPE(SrvD_InitInputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1119,7 +1143,8 @@ ENDIF
   OutData%NumBl = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%BlPitchInit) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%BlPitchInit,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%BlPitchInit,1)))
+  mask1 = .TRUE.
     OutData%BlPitchInit = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%BlPitchInit))-1 ),mask1,OutData%BlPitchInit)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%BlPitchInit)
@@ -1130,15 +1155,16 @@ ENDIF
  END SUBROUTINE SrvD_UnPackInitInput
 
  SUBROUTINE SrvD_CopyInitOutput( SrcInitOutputData, DstInitOutputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(SrvD_initoutputtype), INTENT(INOUT) :: SrcInitOutputData
-   TYPE(SrvD_initoutputtype), INTENT(INOUT) :: DstInitOutputData
+   TYPE(SrvD_InitOutputType), INTENT(IN) :: SrcInitOutputData
+   TYPE(SrvD_InitOutputType), INTENT(INOUT) :: DstInitOutputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1146,10 +1172,9 @@ IF (ALLOCATED(SrcInitOutputData%WriteOutputHdr)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputHdr,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputHdr,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
-      ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputHdr.'
+      ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WriteOutputHdr.', ErrStat, ErrMsg,'SrvD_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -1159,21 +1184,22 @@ IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputUnt,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputUnt,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
-      ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputUnt.'
+      ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WriteOutputUnt.', ErrStat, ErrMsg,'SrvD_CopyInitOutput')
          RETURN
       END IF
    END IF
    DstInitOutputData%WriteOutputUnt = SrcInitOutputData%WriteOutputUnt
 ENDIF
-      CALL NWTC_Library_Copyprogdesc( SrcInitOutputData%Ver, DstInitOutputData%Ver, CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copyprogdesc( SrcInitOutputData%Ver, DstInitOutputData%Ver, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'SrvD_CopyInitOutput:Ver')
+         IF (ErrStat>=AbortErrLev) RETURN
    DstInitOutputData%CouplingScheme = SrcInitOutputData%CouplingScheme
  END SUBROUTINE SrvD_CopyInitOutput
 
  SUBROUTINE SrvD_DestroyInitOutput( InitOutputData, ErrStat, ErrMsg )
-  TYPE(SrvD_initoutputtype), INTENT(INOUT) :: InitOutputData
+  TYPE(SrvD_InitOutputType), INTENT(INOUT) :: InitOutputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -1193,7 +1219,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(SrvD_initoutputtype),  INTENT(INOUT) :: InData
+  TYPE(SrvD_InitOutputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1226,6 +1252,8 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
+!  missing buffer for WriteOutputHdr
+!  missing buffer for WriteOutputUnt
   CALL NWTC_Library_Packprogdesc( Re_Ver_Buf, Db_Ver_Buf, Int_Ver_Buf, InData%Ver, ErrStat, ErrMsg, .TRUE. ) ! Ver 
   IF(ALLOCATED(Re_Ver_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_Ver_Buf  ) ! Ver
   IF(ALLOCATED(Db_Ver_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_Ver_Buf  ) ! Ver
@@ -1261,7 +1289,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(SrvD_initoutputtype), INTENT(INOUT) :: OutData
+  TYPE(SrvD_InitOutputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1316,15 +1344,16 @@ ENDIF
  END SUBROUTINE SrvD_UnPackInitOutput
 
  SUBROUTINE SrvD_CopyContState( SrcContStateData, DstContStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(SrvD_continuousstatetype), INTENT(INOUT) :: SrcContStateData
-   TYPE(SrvD_continuousstatetype), INTENT(INOUT) :: DstContStateData
+   TYPE(SrvD_ContinuousStateType), INTENT(IN) :: SrcContStateData
+   TYPE(SrvD_ContinuousStateType), INTENT(INOUT) :: DstContStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1332,7 +1361,7 @@ ENDIF
  END SUBROUTINE SrvD_CopyContState
 
  SUBROUTINE SrvD_DestroyContState( ContStateData, ErrStat, ErrMsg )
-  TYPE(SrvD_continuousstatetype), INTENT(INOUT) :: ContStateData
+  TYPE(SrvD_ContinuousStateType), INTENT(INOUT) :: ContStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -1345,7 +1374,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(SrvD_continuousstatetype),  INTENT(INOUT) :: InData
+  TYPE(SrvD_ContinuousStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1387,7 +1416,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(SrvD_continuousstatetype), INTENT(INOUT) :: OutData
+  TYPE(SrvD_ContinuousStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1424,15 +1453,16 @@ ENDIF
  END SUBROUTINE SrvD_UnPackContState
 
  SUBROUTINE SrvD_CopyDiscState( SrcDiscStateData, DstDiscStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(SrvD_discretestatetype), INTENT(INOUT) :: SrcDiscStateData
-   TYPE(SrvD_discretestatetype), INTENT(INOUT) :: DstDiscStateData
+   TYPE(SrvD_DiscreteStateType), INTENT(IN) :: SrcDiscStateData
+   TYPE(SrvD_DiscreteStateType), INTENT(INOUT) :: DstDiscStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1440,7 +1470,7 @@ ENDIF
  END SUBROUTINE SrvD_CopyDiscState
 
  SUBROUTINE SrvD_DestroyDiscState( DiscStateData, ErrStat, ErrMsg )
-  TYPE(SrvD_discretestatetype), INTENT(INOUT) :: DiscStateData
+  TYPE(SrvD_DiscreteStateType), INTENT(INOUT) :: DiscStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -1453,7 +1483,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(SrvD_discretestatetype),  INTENT(INOUT) :: InData
+  TYPE(SrvD_DiscreteStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1495,7 +1525,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(SrvD_discretestatetype), INTENT(INOUT) :: OutData
+  TYPE(SrvD_DiscreteStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1532,15 +1562,16 @@ ENDIF
  END SUBROUTINE SrvD_UnPackDiscState
 
  SUBROUTINE SrvD_CopyConstrState( SrcConstrStateData, DstConstrStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(SrvD_constraintstatetype), INTENT(INOUT) :: SrcConstrStateData
-   TYPE(SrvD_constraintstatetype), INTENT(INOUT) :: DstConstrStateData
+   TYPE(SrvD_ConstraintStateType), INTENT(IN) :: SrcConstrStateData
+   TYPE(SrvD_ConstraintStateType), INTENT(INOUT) :: DstConstrStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1548,7 +1579,7 @@ ENDIF
  END SUBROUTINE SrvD_CopyConstrState
 
  SUBROUTINE SrvD_DestroyConstrState( ConstrStateData, ErrStat, ErrMsg )
-  TYPE(SrvD_constraintstatetype), INTENT(INOUT) :: ConstrStateData
+  TYPE(SrvD_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -1561,7 +1592,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(SrvD_constraintstatetype),  INTENT(INOUT) :: InData
+  TYPE(SrvD_ConstraintStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1603,7 +1634,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(SrvD_constraintstatetype), INTENT(INOUT) :: OutData
+  TYPE(SrvD_ConstraintStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1640,15 +1671,16 @@ ENDIF
  END SUBROUTINE SrvD_UnPackConstrState
 
  SUBROUTINE SrvD_CopyOtherState( SrcOtherStateData, DstOtherStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(SrvD_otherstatetype), INTENT(INOUT) :: SrcOtherStateData
-   TYPE(SrvD_otherstatetype), INTENT(INOUT) :: DstOtherStateData
+   TYPE(SrvD_OtherStateType), INTENT(IN) :: SrcOtherStateData
+   TYPE(SrvD_OtherStateType), INTENT(INOUT) :: DstOtherStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1656,10 +1688,9 @@ IF (ALLOCATED(SrcOtherStateData%BlPitchI)) THEN
    i1_l = LBOUND(SrcOtherStateData%BlPitchI,1)
    i1_u = UBOUND(SrcOtherStateData%BlPitchI,1)
    IF (.NOT. ALLOCATED(DstOtherStateData%BlPitchI)) THEN 
-      ALLOCATE(DstOtherStateData%BlPitchI(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyOtherState: Error allocating DstOtherStateData%BlPitchI.'
+      ALLOCATE(DstOtherStateData%BlPitchI(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%BlPitchI.', ErrStat, ErrMsg,'SrvD_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1669,10 +1700,9 @@ IF (ALLOCATED(SrcOtherStateData%BegPitMan)) THEN
    i1_l = LBOUND(SrcOtherStateData%BegPitMan,1)
    i1_u = UBOUND(SrcOtherStateData%BegPitMan,1)
    IF (.NOT. ALLOCATED(DstOtherStateData%BegPitMan)) THEN 
-      ALLOCATE(DstOtherStateData%BegPitMan(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyOtherState: Error allocating DstOtherStateData%BegPitMan.'
+      ALLOCATE(DstOtherStateData%BegPitMan(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%BegPitMan.', ErrStat, ErrMsg,'SrvD_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1686,10 +1716,9 @@ IF (ALLOCATED(SrcOtherStateData%TTpBrDp)) THEN
    i1_l = LBOUND(SrcOtherStateData%TTpBrDp,1)
    i1_u = UBOUND(SrcOtherStateData%TTpBrDp,1)
    IF (.NOT. ALLOCATED(DstOtherStateData%TTpBrDp)) THEN 
-      ALLOCATE(DstOtherStateData%TTpBrDp(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyOtherState: Error allocating DstOtherStateData%TTpBrDp.'
+      ALLOCATE(DstOtherStateData%TTpBrDp(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%TTpBrDp.', ErrStat, ErrMsg,'SrvD_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1699,10 +1728,9 @@ IF (ALLOCATED(SrcOtherStateData%TTpBrFl)) THEN
    i1_l = LBOUND(SrcOtherStateData%TTpBrFl,1)
    i1_u = UBOUND(SrcOtherStateData%TTpBrFl,1)
    IF (.NOT. ALLOCATED(DstOtherStateData%TTpBrFl)) THEN 
-      ALLOCATE(DstOtherStateData%TTpBrFl(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyOtherState: Error allocating DstOtherStateData%TTpBrFl.'
+      ALLOCATE(DstOtherStateData%TTpBrFl(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%TTpBrFl.', ErrStat, ErrMsg,'SrvD_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1712,10 +1740,9 @@ IF (ALLOCATED(SrcOtherStateData%TPitManE)) THEN
    i1_l = LBOUND(SrcOtherStateData%TPitManE,1)
    i1_u = UBOUND(SrcOtherStateData%TPitManE,1)
    IF (.NOT. ALLOCATED(DstOtherStateData%TPitManE)) THEN 
-      ALLOCATE(DstOtherStateData%TPitManE(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyOtherState: Error allocating DstOtherStateData%TPitManE.'
+      ALLOCATE(DstOtherStateData%TPitManE(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%TPitManE.', ErrStat, ErrMsg,'SrvD_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1725,10 +1752,9 @@ IF (ALLOCATED(SrcOtherStateData%PitManRat)) THEN
    i1_l = LBOUND(SrcOtherStateData%PitManRat,1)
    i1_u = UBOUND(SrcOtherStateData%PitManRat,1)
    IF (.NOT. ALLOCATED(DstOtherStateData%PitManRat)) THEN 
-      ALLOCATE(DstOtherStateData%PitManRat(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyOtherState: Error allocating DstOtherStateData%PitManRat.'
+      ALLOCATE(DstOtherStateData%PitManRat(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%PitManRat.', ErrStat, ErrMsg,'SrvD_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1736,14 +1762,16 @@ IF (ALLOCATED(SrcOtherStateData%PitManRat)) THEN
 ENDIF
    DstOtherStateData%TOff4Good = SrcOtherStateData%TOff4Good
    DstOtherStateData%TGenOnLine = SrcOtherStateData%TGenOnLine
-      CALL SrvD_Copybladeddlltype( SrcOtherStateData%dll_data, DstOtherStateData%dll_data, CtrlCode, ErrStat, ErrMsg )
+      CALL SrvD_Copybladeddlltype( SrcOtherStateData%dll_data, DstOtherStateData%dll_data, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'SrvD_CopyOtherState:dll_data')
+         IF (ErrStat>=AbortErrLev) RETURN
    DstOtherStateData%LastTimeCalled = SrcOtherStateData%LastTimeCalled
    DstOtherStateData%FirstWarn = SrcOtherStateData%FirstWarn
    DstOtherStateData%FirstWarn_THSSBrDp = SrcOtherStateData%FirstWarn_THSSBrDp
  END SUBROUTINE SrvD_CopyOtherState
 
  SUBROUTINE SrvD_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
-  TYPE(SrvD_otherstatetype), INTENT(INOUT) :: OtherStateData
+  TYPE(SrvD_OtherStateType), INTENT(INOUT) :: OtherStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -1775,7 +1803,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(SrvD_otherstatetype),  INTENT(INOUT) :: InData
+  TYPE(SrvD_OtherStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1808,16 +1836,16 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitchI )  ! BlPitchI 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%BegPitMan )  ! BegPitMan 
+  IF ( ALLOCATED(InData%BlPitchI) )   Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitchI )  ! BlPitchI 
+  IF ( ALLOCATED(InData%BegPitMan) )   Db_BufSz    = Db_BufSz    + SIZE( InData%BegPitMan )  ! BegPitMan 
   Db_BufSz   = Db_BufSz   + 1  ! BegYawMan
   Re_BufSz   = Re_BufSz   + 1  ! NacYawI
   Re_BufSz   = Re_BufSz   + 1  ! YawManRat
   Db_BufSz   = Db_BufSz   + 1  ! TYawManE
-  Db_BufSz    = Db_BufSz    + SIZE( InData%TTpBrDp )  ! TTpBrDp 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%TTpBrFl )  ! TTpBrFl 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%TPitManE )  ! TPitManE 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%PitManRat )  ! PitManRat 
+  IF ( ALLOCATED(InData%TTpBrDp) )   Db_BufSz    = Db_BufSz    + SIZE( InData%TTpBrDp )  ! TTpBrDp 
+  IF ( ALLOCATED(InData%TTpBrFl) )   Db_BufSz    = Db_BufSz    + SIZE( InData%TTpBrFl )  ! TTpBrFl 
+  IF ( ALLOCATED(InData%TPitManE) )   Db_BufSz    = Db_BufSz    + SIZE( InData%TPitManE )  ! TPitManE 
+  IF ( ALLOCATED(InData%PitManRat) )   Re_BufSz    = Re_BufSz    + SIZE( InData%PitManRat )  ! PitManRat 
   Db_BufSz   = Db_BufSz   + 1  ! TOff4Good
   Db_BufSz   = Db_BufSz   + 1  ! TGenOnLine
   CALL SrvD_Packbladeddlltype( Re_dll_data_Buf, Db_dll_data_Buf, Int_dll_data_Buf, InData%dll_data, ErrStat, ErrMsg, .TRUE. ) ! dll_data 
@@ -1828,6 +1856,8 @@ ENDIF
   IF(ALLOCATED(Db_dll_data_Buf))  DEALLOCATE(Db_dll_data_Buf)
   IF(ALLOCATED(Int_dll_data_Buf)) DEALLOCATE(Int_dll_data_Buf)
   Db_BufSz   = Db_BufSz   + 1  ! LastTimeCalled
+  Int_BufSz  = Int_BufSz  + 1  ! FirstWarn
+  Int_BufSz  = Int_BufSz  + 1  ! FirstWarn_THSSBrDp
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1885,13 +1915,17 @@ ENDIF
   IF( ALLOCATED(Int_dll_data_Buf) ) DEALLOCATE(Int_dll_data_Buf)
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%LastTimeCalled )
   Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%FirstWarn ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%FirstWarn_THSSBrDp ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE SrvD_PackOtherState
 
  SUBROUTINE SrvD_UnPackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(SrvD_otherstatetype), INTENT(INOUT) :: OutData
+  TYPE(SrvD_OtherStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1924,13 +1958,15 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%BlPitchI) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%BlPitchI,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%BlPitchI,1)))
+  mask1 = .TRUE.
     OutData%BlPitchI = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%BlPitchI))-1 ),mask1,OutData%BlPitchI)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%BlPitchI)
   ENDIF
   IF ( ALLOCATED(OutData%BegPitMan) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%BegPitMan,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%BegPitMan,1)))
+  mask1 = .TRUE.
     OutData%BegPitMan = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%BegPitMan))-1 ),mask1,OutData%BegPitMan)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%BegPitMan)
@@ -1944,25 +1980,29 @@ ENDIF
   OutData%TYawManE = DbKiBuf ( Db_Xferred )
   Db_Xferred   = Db_Xferred   + 1
   IF ( ALLOCATED(OutData%TTpBrDp) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%TTpBrDp,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%TTpBrDp,1)))
+  mask1 = .TRUE.
     OutData%TTpBrDp = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%TTpBrDp))-1 ),mask1,OutData%TTpBrDp)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%TTpBrDp)
   ENDIF
   IF ( ALLOCATED(OutData%TTpBrFl) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%TTpBrFl,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%TTpBrFl,1)))
+  mask1 = .TRUE.
     OutData%TTpBrFl = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%TTpBrFl))-1 ),mask1,OutData%TTpBrFl)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%TTpBrFl)
   ENDIF
   IF ( ALLOCATED(OutData%TPitManE) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%TPitManE,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%TPitManE,1)))
+  mask1 = .TRUE.
     OutData%TPitManE = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%TPitManE))-1 ),mask1,OutData%TPitManE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%TPitManE)
   ENDIF
   IF ( ALLOCATED(OutData%PitManRat) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%PitManRat,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%PitManRat,1)))
+  mask1 = .TRUE.
     OutData%PitManRat = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PitManRat))-1 ),mask1,OutData%PitManRat)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%PitManRat)
@@ -1994,15 +2034,16 @@ ENDIF
  END SUBROUTINE SrvD_UnPackOtherState
 
  SUBROUTINE SrvD_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(SrvD_parametertype), INTENT(INOUT) :: SrcParamData
-   TYPE(SrvD_parametertype), INTENT(INOUT) :: DstParamData
+   TYPE(SrvD_ParameterType), INTENT(IN) :: SrcParamData
+   TYPE(SrvD_ParameterType), INTENT(INOUT) :: DstParamData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -2034,10 +2075,9 @@ IF (ALLOCATED(SrcParamData%BlPitchInit)) THEN
    i1_l = LBOUND(SrcParamData%BlPitchInit,1)
    i1_u = UBOUND(SrcParamData%BlPitchInit,1)
    IF (.NOT. ALLOCATED(DstParamData%BlPitchInit)) THEN 
-      ALLOCATE(DstParamData%BlPitchInit(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyParam: Error allocating DstParamData%BlPitchInit.'
+      ALLOCATE(DstParamData%BlPitchInit(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%BlPitchInit.', ErrStat, ErrMsg,'SrvD_CopyParam')
          RETURN
       END IF
    END IF
@@ -2047,10 +2087,9 @@ IF (ALLOCATED(SrcParamData%BlPitchF)) THEN
    i1_l = LBOUND(SrcParamData%BlPitchF,1)
    i1_u = UBOUND(SrcParamData%BlPitchF,1)
    IF (.NOT. ALLOCATED(DstParamData%BlPitchF)) THEN 
-      ALLOCATE(DstParamData%BlPitchF(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyParam: Error allocating DstParamData%BlPitchF.'
+      ALLOCATE(DstParamData%BlPitchF(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%BlPitchF.', ErrStat, ErrMsg,'SrvD_CopyParam')
          RETURN
       END IF
    END IF
@@ -2067,10 +2106,9 @@ IF (ALLOCATED(SrcParamData%TPitManS)) THEN
    i1_l = LBOUND(SrcParamData%TPitManS,1)
    i1_u = UBOUND(SrcParamData%TPitManS,1)
    IF (.NOT. ALLOCATED(DstParamData%TPitManS)) THEN 
-      ALLOCATE(DstParamData%TPitManS(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyParam: Error allocating DstParamData%TPitManS.'
+      ALLOCATE(DstParamData%TPitManS(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%TPitManS.', ErrStat, ErrMsg,'SrvD_CopyParam')
          RETURN
       END IF
    END IF
@@ -2097,10 +2135,9 @@ IF (ALLOCATED(SrcParamData%TBDepISp)) THEN
    i1_l = LBOUND(SrcParamData%TBDepISp,1)
    i1_u = UBOUND(SrcParamData%TBDepISp,1)
    IF (.NOT. ALLOCATED(DstParamData%TBDepISp)) THEN 
-      ALLOCATE(DstParamData%TBDepISp(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyParam: Error allocating DstParamData%TBDepISp.'
+      ALLOCATE(DstParamData%TBDepISp(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%TBDepISp.', ErrStat, ErrMsg,'SrvD_CopyParam')
          RETURN
       END IF
    END IF
@@ -2120,15 +2157,16 @@ IF (ALLOCATED(SrcParamData%OutParam)) THEN
    i1_l = LBOUND(SrcParamData%OutParam,1)
    i1_u = UBOUND(SrcParamData%OutParam,1)
    IF (.NOT. ALLOCATED(DstParamData%OutParam)) THEN 
-      ALLOCATE(DstParamData%OutParam(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyParam: Error allocating DstParamData%OutParam.'
+      ALLOCATE(DstParamData%OutParam(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%OutParam.', ErrStat, ErrMsg,'SrvD_CopyParam')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcParamData%OutParam,1), UBOUND(SrcParamData%OutParam,1)
-      CALL NWTC_Library_Copyoutparmtype( SrcParamData%OutParam(i1), DstParamData%OutParam(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copyoutparmtype( SrcParamData%OutParam(i1), DstParamData%OutParam(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'SrvD_CopyParam:OutParam(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstParamData%Delim = SrcParamData%Delim
@@ -2144,10 +2182,9 @@ IF (ALLOCATED(SrcParamData%GenSpd_TLU)) THEN
    i1_l = LBOUND(SrcParamData%GenSpd_TLU,1)
    i1_u = UBOUND(SrcParamData%GenSpd_TLU,1)
    IF (.NOT. ALLOCATED(DstParamData%GenSpd_TLU)) THEN 
-      ALLOCATE(DstParamData%GenSpd_TLU(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyParam: Error allocating DstParamData%GenSpd_TLU.'
+      ALLOCATE(DstParamData%GenSpd_TLU(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%GenSpd_TLU.', ErrStat, ErrMsg,'SrvD_CopyParam')
          RETURN
       END IF
    END IF
@@ -2158,10 +2195,9 @@ IF (ALLOCATED(SrcParamData%GenTrq_TLU)) THEN
    i1_l = LBOUND(SrcParamData%GenTrq_TLU,1)
    i1_u = UBOUND(SrcParamData%GenTrq_TLU,1)
    IF (.NOT. ALLOCATED(DstParamData%GenTrq_TLU)) THEN 
-      ALLOCATE(DstParamData%GenTrq_TLU(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyParam: Error allocating DstParamData%GenTrq_TLU.'
+      ALLOCATE(DstParamData%GenTrq_TLU(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%GenTrq_TLU.', ErrStat, ErrMsg,'SrvD_CopyParam')
          RETURN
       END IF
    END IF
@@ -2178,7 +2214,7 @@ ENDIF
  END SUBROUTINE SrvD_CopyParam
 
  SUBROUTINE SrvD_DestroyParam( ParamData, ErrStat, ErrMsg )
-  TYPE(SrvD_parametertype), INTENT(INOUT) :: ParamData
+  TYPE(SrvD_ParameterType), INTENT(INOUT) :: ParamData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -2216,7 +2252,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(SrvD_parametertype),  INTENT(INOUT) :: InData
+  TYPE(SrvD_ParameterType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -2276,8 +2312,8 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! TEC_VLL
   Re_BufSz   = Re_BufSz   + 1  ! TEC_Xe1
   Re_BufSz   = Re_BufSz   + 1  ! GenEff
-  Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitchInit )  ! BlPitchInit 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitchF )  ! BlPitchF 
+  IF ( ALLOCATED(InData%BlPitchInit) )   Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitchInit )  ! BlPitchInit 
+  IF ( ALLOCATED(InData%BlPitchF) )   Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitchF )  ! BlPitchF 
   Re_BufSz   = Re_BufSz   + 1  ! NacYawF
   Re_BufSz   = Re_BufSz   + 1  ! SpdGenOn
   Db_BufSz   = Db_BufSz   + 1  ! THSSBrDp
@@ -2285,7 +2321,7 @@ ENDIF
   Db_BufSz   = Db_BufSz   + 1  ! TimGenOf
   Db_BufSz   = Db_BufSz   + 1  ! TimGenOn
   Db_BufSz   = Db_BufSz   + 1  ! TPCOn
-  Db_BufSz    = Db_BufSz    + SIZE( InData%TPitManS )  ! TPitManS 
+  IF ( ALLOCATED(InData%TPitManS) )   Db_BufSz    = Db_BufSz    + SIZE( InData%TPitManS )  ! TPitManS 
   Db_BufSz   = Db_BufSz   + 1  ! TYawManS
   Db_BufSz   = Db_BufSz   + 1  ! TYCOn
   Re_BufSz   = Re_BufSz   + 1  ! VS_RtGnSp
@@ -2301,7 +2337,9 @@ ENDIF
   Int_BufSz  = Int_BufSz  + 1  ! PCMode
   Int_BufSz  = Int_BufSz  + 1  ! VSContrl
   Int_BufSz  = Int_BufSz  + 1  ! YCMode
-  Re_BufSz    = Re_BufSz    + SIZE( InData%TBDepISp )  ! TBDepISp 
+  Int_BufSz  = Int_BufSz  + 1  ! GenTiStp
+  Int_BufSz  = Int_BufSz  + 1  ! GenTiStr
+  IF ( ALLOCATED(InData%TBDepISp) )   Re_BufSz    = Re_BufSz    + SIZE( InData%TBDepISp )  ! TBDepISp 
   Re_BufSz   = Re_BufSz   + 1  ! VS_Rgn2K
   Re_BufSz   = Re_BufSz   + 1  ! YawNeut
   Re_BufSz   = Re_BufSz   + 1  ! YawSpr
@@ -2311,6 +2349,7 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! TBDrConD
   Int_BufSz  = Int_BufSz  + 1  ! NumBl
   Int_BufSz  = Int_BufSz  + 1  ! NumOuts
+!  missing buffer for RootName
 DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
   CALL NWTC_Library_Packoutparmtype( Re_OutParam_Buf, Db_OutParam_Buf, Int_OutParam_Buf, InData%OutParam(i1), ErrStat, ErrMsg, .TRUE. ) ! OutParam 
   IF(ALLOCATED(Re_OutParam_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_OutParam_Buf  ) ! OutParam
@@ -2320,6 +2359,8 @@ DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
   IF(ALLOCATED(Db_OutParam_Buf))  DEALLOCATE(Db_OutParam_Buf)
   IF(ALLOCATED(Int_OutParam_Buf)) DEALLOCATE(Int_OutParam_Buf)
 ENDDO
+!  missing buffer for Delim
+  Int_BufSz  = Int_BufSz  + 1  ! UseBladedInterface
   Int_BufSz  = Int_BufSz  + 1  ! DLL_NumTrq
   Int_BufSz  = Int_BufSz  + 1  ! Ptch_Cntrl
   Re_BufSz   = Re_BufSz   + 1  ! Gain_OM
@@ -2327,15 +2368,16 @@ ENDDO
   Re_BufSz   = Re_BufSz   + 1  ! GenSpd_Dem
   Re_BufSz   = Re_BufSz   + 1  ! GenSpd_MaxOM
   Re_BufSz   = Re_BufSz   + 1  ! GenSpd_MinOM
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GenSpd_TLU )  ! GenSpd_TLU 
+  IF ( ALLOCATED(InData%GenSpd_TLU) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GenSpd_TLU )  ! GenSpd_TLU 
   Re_BufSz   = Re_BufSz   + 1  ! GenTrq_Dem
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GenTrq_TLU )  ! GenTrq_TLU 
+  IF ( ALLOCATED(InData%GenTrq_TLU) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GenTrq_TLU )  ! GenTrq_TLU 
   Re_BufSz   = Re_BufSz   + 1  ! Ptch_Max
   Re_BufSz   = Re_BufSz   + 1  ! Ptch_Min
   Re_BufSz   = Re_BufSz   + 1  ! Ptch_SetPnt
   Re_BufSz   = Re_BufSz   + 1  ! PtchRate_Max
   Re_BufSz   = Re_BufSz   + 1  ! PtchRate_Min
   Re_BufSz   = Re_BufSz   + 1  ! NacYaw_North
+!  missing buffer for DLL_InFile
  ! Allocate dll_type buffers, if any (we'll also get sizes from these) 
   CALL DLLTypePack( InData%DLL_Trgt, Re_DLL_Trgt_Buf, Db_DLL_Trgt_Buf, Int_DLL_Trgt_Buf, ErrStat, ErrMsg, .TRUE. ) ! DLL_Trgt 
   IF(ALLOCATED(Int_DLL_Trgt_Buf))Int_BufSz = Int_BufSz + SIZE( Int_DLL_Trgt_Buf ) ! DLL_Trgt
@@ -2447,6 +2489,10 @@ ENDDO
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%YCMode )
   Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%GenTiStp ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%GenTiStr ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(InData%TBDepISp) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TBDepISp))-1 ) =  PACK(InData%TBDepISp ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%TBDepISp)
@@ -2487,6 +2533,8 @@ DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
   IF( ALLOCATED(Db_OutParam_Buf) )  DEALLOCATE(Db_OutParam_Buf)
   IF( ALLOCATED(Int_OutParam_Buf) ) DEALLOCATE(Int_OutParam_Buf)
 ENDDO
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%UseBladedInterface ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%DLL_NumTrq )
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%Ptch_Cntrl )
@@ -2535,7 +2583,7 @@ ENDDO
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(SrvD_parametertype), INTENT(INOUT) :: OutData
+  TYPE(SrvD_ParameterType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -2619,13 +2667,15 @@ ENDDO
   OutData%GenEff = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%BlPitchInit) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%BlPitchInit,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%BlPitchInit,1)))
+  mask1 = .TRUE.
     OutData%BlPitchInit = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%BlPitchInit))-1 ),mask1,OutData%BlPitchInit)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%BlPitchInit)
   ENDIF
   IF ( ALLOCATED(OutData%BlPitchF) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%BlPitchF,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%BlPitchF,1)))
+  mask1 = .TRUE.
     OutData%BlPitchF = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%BlPitchF))-1 ),mask1,OutData%BlPitchF)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%BlPitchF)
@@ -2645,7 +2695,8 @@ ENDDO
   OutData%TPCOn = DbKiBuf ( Db_Xferred )
   Db_Xferred   = Db_Xferred   + 1
   IF ( ALLOCATED(OutData%TPitManS) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%TPitManS,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%TPitManS,1)))
+  mask1 = .TRUE.
     OutData%TPitManS = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%TPitManS))-1 ),mask1,OutData%TPitManS)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%TPitManS)
@@ -2681,7 +2732,8 @@ ENDDO
   OutData%YCMode = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%TBDepISp) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%TBDepISp,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%TBDepISp,1)))
+  mask1 = .TRUE.
     OutData%TBDepISp = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TBDepISp))-1 ),mask1,OutData%TBDepISp)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%TBDepISp)
@@ -2736,7 +2788,8 @@ ENDDO
   OutData%GenSpd_MinOM = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%GenSpd_TLU) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%GenSpd_TLU,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%GenSpd_TLU,1)))
+  mask1 = .TRUE.
     OutData%GenSpd_TLU = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%GenSpd_TLU))-1 ),mask1,OutData%GenSpd_TLU)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%GenSpd_TLU)
@@ -2744,7 +2797,8 @@ ENDDO
   OutData%GenTrq_Dem = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%GenTrq_TLU) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%GenTrq_TLU,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%GenTrq_TLU,1)))
+  mask1 = .TRUE.
     OutData%GenTrq_TLU = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%GenTrq_TLU))-1 ),mask1,OutData%GenTrq_TLU)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%GenTrq_TLU)
@@ -2775,15 +2829,16 @@ ENDDO
  END SUBROUTINE SrvD_UnPackParam
 
  SUBROUTINE SrvD_CopyInput( SrcInputData, DstInputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(SrvD_inputtype), INTENT(INOUT) :: SrcInputData
-   TYPE(SrvD_inputtype), INTENT(INOUT) :: DstInputData
+   TYPE(SrvD_InputType), INTENT(IN) :: SrcInputData
+   TYPE(SrvD_InputType), INTENT(INOUT) :: DstInputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -2791,10 +2846,9 @@ IF (ALLOCATED(SrcInputData%BlPitch)) THEN
    i1_l = LBOUND(SrcInputData%BlPitch,1)
    i1_u = UBOUND(SrcInputData%BlPitch,1)
    IF (.NOT. ALLOCATED(DstInputData%BlPitch)) THEN 
-      ALLOCATE(DstInputData%BlPitch(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyInput: Error allocating DstInputData%BlPitch.'
+      ALLOCATE(DstInputData%BlPitch(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInputData%BlPitch.', ErrStat, ErrMsg,'SrvD_CopyInput')
          RETURN
       END IF
    END IF
@@ -2811,10 +2865,9 @@ IF (ALLOCATED(SrcInputData%ExternalBlPitchCom)) THEN
    i1_l = LBOUND(SrcInputData%ExternalBlPitchCom,1)
    i1_u = UBOUND(SrcInputData%ExternalBlPitchCom,1)
    IF (.NOT. ALLOCATED(DstInputData%ExternalBlPitchCom)) THEN 
-      ALLOCATE(DstInputData%ExternalBlPitchCom(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyInput: Error allocating DstInputData%ExternalBlPitchCom.'
+      ALLOCATE(DstInputData%ExternalBlPitchCom(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInputData%ExternalBlPitchCom.', ErrStat, ErrMsg,'SrvD_CopyInput')
          RETURN
       END IF
    END IF
@@ -2848,7 +2901,7 @@ ENDIF
  END SUBROUTINE SrvD_CopyInput
 
  SUBROUTINE SrvD_DestroyInput( InputData, ErrStat, ErrMsg )
-  TYPE(SrvD_inputtype), INTENT(INOUT) :: InputData
+  TYPE(SrvD_InputType), INTENT(INOUT) :: InputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -2867,7 +2920,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(SrvD_inputtype),  INTENT(INOUT) :: InData
+  TYPE(SrvD_InputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -2897,7 +2950,7 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitch )  ! BlPitch 
+  IF ( ALLOCATED(InData%BlPitch) )   Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitch )  ! BlPitch 
   Re_BufSz   = Re_BufSz   + 1  ! Yaw
   Re_BufSz   = Re_BufSz   + 1  ! YawRate
   Re_BufSz   = Re_BufSz   + 1  ! LSS_Spd
@@ -2905,7 +2958,7 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! RotSpeed
   Re_BufSz   = Re_BufSz   + 1  ! ExternalYawPosCom
   Re_BufSz   = Re_BufSz   + 1  ! ExternalYawRateCom
-  Re_BufSz    = Re_BufSz    + SIZE( InData%ExternalBlPitchCom )  ! ExternalBlPitchCom 
+  IF ( ALLOCATED(InData%ExternalBlPitchCom) )   Re_BufSz    = Re_BufSz    + SIZE( InData%ExternalBlPitchCom )  ! ExternalBlPitchCom 
   Re_BufSz   = Re_BufSz   + 1  ! ExternalGenTrq
   Re_BufSz   = Re_BufSz   + 1  ! ExternalElecPwr
   Re_BufSz   = Re_BufSz   + 1  ! ExternalHSSBrFrac
@@ -3012,7 +3065,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(SrvD_inputtype), INTENT(INOUT) :: OutData
+  TYPE(SrvD_InputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -3042,7 +3095,8 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%BlPitch) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%BlPitch,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%BlPitch,1)))
+  mask1 = .TRUE.
     OutData%BlPitch = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%BlPitch))-1 ),mask1,OutData%BlPitch)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%BlPitch)
@@ -3062,7 +3116,8 @@ ENDIF
   OutData%ExternalYawRateCom = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%ExternalBlPitchCom) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%ExternalBlPitchCom,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%ExternalBlPitchCom,1)))
+  mask1 = .TRUE.
     OutData%ExternalBlPitchCom = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ExternalBlPitchCom))-1 ),mask1,OutData%ExternalBlPitchCom)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%ExternalBlPitchCom)
@@ -3079,7 +3134,8 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%WindDir = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%RootMyc,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%RootMyc,1)))
+  mask1 = .TRUE.
   OutData%RootMyc = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%RootMyc))-1 ),mask1,OutData%RootMyc)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%RootMyc)
@@ -3089,7 +3145,8 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%LSSTipPxa = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%RootMxc,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%RootMxc,1)))
+  mask1 = .TRUE.
   OutData%RootMxc = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%RootMxc))-1 ),mask1,OutData%RootMxc)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%RootMxc)
@@ -3127,15 +3184,16 @@ ENDIF
  END SUBROUTINE SrvD_UnPackInput
 
  SUBROUTINE SrvD_CopyOutput( SrcOutputData, DstOutputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(SrvD_outputtype), INTENT(INOUT) :: SrcOutputData
-   TYPE(SrvD_outputtype), INTENT(INOUT) :: DstOutputData
+   TYPE(SrvD_OutputType), INTENT(IN) :: SrcOutputData
+   TYPE(SrvD_OutputType), INTENT(INOUT) :: DstOutputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -3143,10 +3201,9 @@ IF (ALLOCATED(SrcOutputData%WriteOutput)) THEN
    i1_l = LBOUND(SrcOutputData%WriteOutput,1)
    i1_u = UBOUND(SrcOutputData%WriteOutput,1)
    IF (.NOT. ALLOCATED(DstOutputData%WriteOutput)) THEN 
-      ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyOutput: Error allocating DstOutputData%WriteOutput.'
+      ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%WriteOutput.', ErrStat, ErrMsg,'SrvD_CopyOutput')
          RETURN
       END IF
    END IF
@@ -3156,10 +3213,9 @@ IF (ALLOCATED(SrcOutputData%BlPitchCom)) THEN
    i1_l = LBOUND(SrcOutputData%BlPitchCom,1)
    i1_u = UBOUND(SrcOutputData%BlPitchCom,1)
    IF (.NOT. ALLOCATED(DstOutputData%BlPitchCom)) THEN 
-      ALLOCATE(DstOutputData%BlPitchCom(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyOutput: Error allocating DstOutputData%BlPitchCom.'
+      ALLOCATE(DstOutputData%BlPitchCom(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%BlPitchCom.', ErrStat, ErrMsg,'SrvD_CopyOutput')
          RETURN
       END IF
    END IF
@@ -3173,10 +3229,9 @@ IF (ALLOCATED(SrcOutputData%TBDrCon)) THEN
    i1_l = LBOUND(SrcOutputData%TBDrCon,1)
    i1_u = UBOUND(SrcOutputData%TBDrCon,1)
    IF (.NOT. ALLOCATED(DstOutputData%TBDrCon)) THEN 
-      ALLOCATE(DstOutputData%TBDrCon(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SrvD_CopyOutput: Error allocating DstOutputData%TBDrCon.'
+      ALLOCATE(DstOutputData%TBDrCon(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%TBDrCon.', ErrStat, ErrMsg,'SrvD_CopyOutput')
          RETURN
       END IF
    END IF
@@ -3185,7 +3240,7 @@ ENDIF
  END SUBROUTINE SrvD_CopyOutput
 
  SUBROUTINE SrvD_DestroyOutput( OutputData, ErrStat, ErrMsg )
-  TYPE(SrvD_outputtype), INTENT(INOUT) :: OutputData
+  TYPE(SrvD_OutputType), INTENT(INOUT) :: OutputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -3207,7 +3262,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(SrvD_outputtype),  INTENT(INOUT) :: InData
+  TYPE(SrvD_OutputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -3237,13 +3292,13 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WriteOutput )  ! WriteOutput 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitchCom )  ! BlPitchCom 
+  IF ( ALLOCATED(InData%WriteOutput) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WriteOutput )  ! WriteOutput 
+  IF ( ALLOCATED(InData%BlPitchCom) )   Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitchCom )  ! BlPitchCom 
   Re_BufSz   = Re_BufSz   + 1  ! YawMom
   Re_BufSz   = Re_BufSz   + 1  ! GenTrq
   Re_BufSz   = Re_BufSz   + 1  ! HSSBrTrq
   Re_BufSz   = Re_BufSz   + 1  ! ElecPwr
-  Re_BufSz    = Re_BufSz    + SIZE( InData%TBDrCon )  ! TBDrCon 
+  IF ( ALLOCATED(InData%TBDrCon) )   Re_BufSz    = Re_BufSz    + SIZE( InData%TBDrCon )  ! TBDrCon 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -3273,7 +3328,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(SrvD_outputtype), INTENT(INOUT) :: OutData
+  TYPE(SrvD_OutputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -3303,13 +3358,15 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%WriteOutput) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WriteOutput,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%WriteOutput,1)))
+  mask1 = .TRUE.
     OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ),mask1,OutData%WriteOutput)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WriteOutput)
   ENDIF
   IF ( ALLOCATED(OutData%BlPitchCom) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%BlPitchCom,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%BlPitchCom,1)))
+  mask1 = .TRUE.
     OutData%BlPitchCom = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%BlPitchCom))-1 ),mask1,OutData%BlPitchCom)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%BlPitchCom)
@@ -3323,7 +3380,8 @@ ENDIF
   OutData%ElecPwr = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%TBDrCon) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%TBDrCon,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%TBDrCon,1)))
+  mask1 = .TRUE.
     OutData%TBDrCon = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TBDrCon))-1 ),mask1,OutData%TBDrCon)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%TBDrCon)
@@ -3364,64 +3422,8 @@ ENDIF
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: c1       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: b2       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: c2       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: b3       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: c3       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: b4       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
- INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i31    ! dim1 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i41    ! dim1 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i51    ! dim1 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i61    ! dim1 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i71    ! dim1 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i81    ! dim1 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i91    ! dim1 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i02    ! dim2 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i12    ! dim2 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i22    ! dim2 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i32    ! dim2 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i42    ! dim2 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i52    ! dim2 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i62    ! dim2 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i72    ! dim2 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i82    ! dim2 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i92    ! dim2 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i03    ! dim3 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i13    ! dim3 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i23    ! dim3 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i33    ! dim3 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i43    ! dim3 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i53    ! dim3 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i63    ! dim3 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i73    ! dim3 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i83    ! dim3 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i93    ! dim3 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i04    ! dim4 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i14    ! dim4 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i24    ! dim4 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i34    ! dim4 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i44    ! dim4 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i54    ! dim4 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i64    ! dim4 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i74    ! dim4 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i84    ! dim4 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i94    ! dim4 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i05    ! dim5 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i15    ! dim5 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i25    ! dim5 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i35    ! dim5 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i45    ! dim5 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i55    ! dim5 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i65    ! dim5 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i75    ! dim5 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i85    ! dim5 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i95    ! dim5 level 9 counter variable for arrays of ddts
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
     ! Initialize ErrStat
  ErrStat = ErrID_None
  ErrMsg  = ""
@@ -3750,64 +3752,8 @@ END IF ! check if allocated
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: c1       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: b2       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: c2       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: b3       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: c3       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: b4       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
- INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i31    ! dim1 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i41    ! dim1 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i51    ! dim1 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i61    ! dim1 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i71    ! dim1 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i81    ! dim1 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i91    ! dim1 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i02    ! dim2 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i12    ! dim2 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i22    ! dim2 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i32    ! dim2 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i42    ! dim2 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i52    ! dim2 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i62    ! dim2 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i72    ! dim2 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i82    ! dim2 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i92    ! dim2 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i03    ! dim3 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i13    ! dim3 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i23    ! dim3 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i33    ! dim3 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i43    ! dim3 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i53    ! dim3 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i63    ! dim3 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i73    ! dim3 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i83    ! dim3 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i93    ! dim3 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i04    ! dim4 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i14    ! dim4 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i24    ! dim4 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i34    ! dim4 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i44    ! dim4 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i54    ! dim4 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i64    ! dim4 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i74    ! dim4 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i84    ! dim4 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i94    ! dim4 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i05    ! dim5 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i15    ! dim5 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i25    ! dim5 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i35    ! dim5 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i45    ! dim5 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i55    ! dim5 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i65    ! dim5 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i75    ! dim5 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i85    ! dim5 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i95    ! dim5 level 9 counter variable for arrays of ddts
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
     ! Initialize ErrStat
  ErrStat = ErrID_None
  ErrMsg  = ""

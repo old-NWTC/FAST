@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-10-30 10:24:01 -0600 (Thu, 30 Oct 2014) $
-! (File) Revision #: $Rev: 264 $
+! File last committed: $Date: 2015-01-10 21:57:59 -0700 (Sat, 10 Jan 2015) $
+! (File) Revision #: $Rev: 284 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_IO.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_IO
@@ -35,7 +35,7 @@ MODULE NWTC_IO
 !=======================================================================
 
    TYPE(ProgDesc), PARAMETER    :: NWTC_Ver = &                               ! The name, version, and date of the NWTC Subroutine Library.
-                                    ProgDesc( 'NWTC Subroutine Library', 'v2.05.00a-bjj', '30-Oct-2014')
+                                    ProgDesc( 'NWTC Subroutine Library', 'v2.05.01a-bjj', '10-Jan-2015')
 
    TYPE, PUBLIC                 :: FNlist_Type                                ! This type stores a linked list of file names.
       CHARACTER(1024)                        :: FileName                      ! A file name.
@@ -329,7 +329,7 @@ CONTAINS
    !     SUBROUTINE ReadVar       ( UnIn, Fil, Var, VarName, VarDescr [, ErrStat] [, UnEc] )                 ! Generic interface for ReadCVar, ReadIVar, ReadLVar, and ReadR*Var.
    !     SUBROUTINE RemoveNullChar     ( Str )
    !     SUBROUTINE ScanComFile   ( FirstFile, ThisFile, LastFile, StartLine, LastLine, NumLines, ErrStat, ErrMsg )        ! Recursive routine to scan commented input files.
-   !     SUBROUTINE SetErrStat         ( ErrStatLcl, ErrMessLcl, ErrStat, ErrMess, RoutineName )
+   !     SUBROUTINE SetErrStat         ( ErrStatLcl, ErrMessLcl, ErrStat, ErrMess, RoutineName ) !note: moved to NWTC_Library_Types.f90
    !     SUBROUTINE Str2IntAry         ( Str, IntAry, ErrStat, ErrMsg )
    !     SUBROUTINE WaitTime      ( WaitSecs )
    !     SUBROUTINE WrBinFAST     ( FileName, FileID, DescStr, ChanName, ChanUnit, TimeData, AllOutData, ErrStat, ErrMsg )
@@ -6572,33 +6572,6 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
       END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
 
    END SUBROUTINE ScanComFile ! ( FileName, NumLines, NumFiles, ErrStat, ErrMsg )
-!=======================================================================
-   SUBROUTINE SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat, ErrMess, RoutineName )
-   
-      ! This routine sets the error status and error message for a routine      
-      !  that may set non-AbortErrLev errors. It concatenates error messages
-      !  and has the ability to provide a sort of traceback message of called
-      !  routines (if this is called consistently).
-      !  Modules in the FAST framework are recommend to use it.
-   
-      INTEGER(IntKi),                    INTENT(IN   )  :: ErrStatLcl   ! Error status of the operation
-      CHARACTER(*),                      INTENT(IN   )  :: ErrMessLcl   ! Error message if ErrStat /= ErrID_None
-                                                                        
-      INTEGER(IntKi),                    INTENT(INOUT)  :: ErrStat      ! Error status of the operation
-      CHARACTER(*),                      INTENT(INOUT)  :: ErrMess      ! Error message if ErrStat /= ErrID_None
-   
-      CHARACTER(*),                      INTENT(IN   )  :: RoutineName  ! Name of the routine error occurred in
-      
-   
-      IF ( ErrStatLcl /= ErrID_None ) THEN
-      
-         IF (ErrStat /= ErrID_None) ErrMess = TRIM(ErrMess)//NewLine
-         ErrMess = TRIM(ErrMess)//TRIM(RoutineName)//':'//TRIM(ErrMessLcl)         
-         ErrStat = MAX(ErrStat,ErrStatLcl)
-         
-      END IF
-         
-   END SUBROUTINE SetErrStat    
 !=======================================================================
    SUBROUTINE Str2IntAry( Str, IntAry, ErrStat, ErrMsg )
    

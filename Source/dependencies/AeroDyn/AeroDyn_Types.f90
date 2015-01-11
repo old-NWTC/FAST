@@ -3,13 +3,13 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.04.01, 20-Nov-2014)
+! FAST Registry (v2.05.00, 10-Jan-2015)
 !*********************************************************************************************************************************
 ! AeroDyn_Types
 !.................................................................................................................................
 ! This file is part of AeroDyn.
 !
-! Copyright (C) 2012-2014 National Renewable Energy Laboratory
+! Copyright (C) 2012-2015 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -475,42 +475,43 @@ IMPLICIT NONE
   END TYPE AD_OutputType
 ! =======================
 CONTAINS
- SUBROUTINE AD_Copymarker( SrcmarkerData, DstmarkerData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(marker), INTENT(INOUT) :: SrcmarkerData
-   TYPE(marker), INTENT(INOUT) :: DstmarkerData
+ SUBROUTINE AD_CopyMarker( SrcMarkerData, DstMarkerData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Marker), INTENT(IN) :: SrcMarkerData
+   TYPE(Marker), INTENT(INOUT) :: DstMarkerData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstmarkerData%Position = SrcmarkerData%Position
-   DstmarkerData%Orientation = SrcmarkerData%Orientation
-   DstmarkerData%TranslationVel = SrcmarkerData%TranslationVel
-   DstmarkerData%RotationVel = SrcmarkerData%RotationVel
- END SUBROUTINE AD_Copymarker
+   DstMarkerData%Position = SrcMarkerData%Position
+   DstMarkerData%Orientation = SrcMarkerData%Orientation
+   DstMarkerData%TranslationVel = SrcMarkerData%TranslationVel
+   DstMarkerData%RotationVel = SrcMarkerData%RotationVel
+ END SUBROUTINE AD_CopyMarker
 
- SUBROUTINE AD_Destroymarker( markerData, ErrStat, ErrMsg )
-  TYPE(marker), INTENT(INOUT) :: markerData
+ SUBROUTINE AD_DestroyMarker( MarkerData, ErrStat, ErrMsg )
+  TYPE(Marker), INTENT(INOUT) :: MarkerData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE AD_Destroymarker
+ END SUBROUTINE AD_DestroyMarker
 
- SUBROUTINE AD_Packmarker( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackMarker( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(marker),  INTENT(INOUT) :: InData
+  TYPE(Marker),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -555,13 +556,13 @@ CONTAINS
   Re_Xferred   = Re_Xferred   + SIZE(InData%TranslationVel)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%RotationVel))-1 ) =  PACK(InData%RotationVel ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%RotationVel)
- END SUBROUTINE AD_Packmarker
+ END SUBROUTINE AD_PackMarker
 
- SUBROUTINE AD_UnPackmarker( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackMarker( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(marker), INTENT(INOUT) :: OutData
+  TYPE(Marker), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -590,110 +591,115 @@ CONTAINS
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  ALLOCATE(mask1(SIZE(OutData%Position,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%Position,1)))
+  mask1 = .TRUE.
   OutData%Position = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Position))-1 ),mask1,OutData%Position)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%Position)
-  ALLOCATE(mask2(SIZE(OutData%Orientation,1),SIZE(OutData%Orientation,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%Orientation,1),SIZE(OutData%Orientation,2)))
+  mask2 = .TRUE.
   OutData%Orientation = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Orientation))-1 ),mask2,OutData%Orientation)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%Orientation)
-  ALLOCATE(mask1(SIZE(OutData%TranslationVel,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%TranslationVel,1)))
+  mask1 = .TRUE.
   OutData%TranslationVel = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TranslationVel))-1 ),mask1,OutData%TranslationVel)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%TranslationVel)
-  ALLOCATE(mask1(SIZE(OutData%RotationVel,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%RotationVel,1)))
+  mask1 = .TRUE.
   OutData%RotationVel = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%RotationVel))-1 ),mask1,OutData%RotationVel)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%RotationVel)
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackmarker
+ END SUBROUTINE AD_UnPackMarker
 
- SUBROUTINE AD_Copyaeroconfig( SrcaeroconfigData, DstaeroconfigData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(aeroconfig), INTENT(INOUT) :: SrcaeroconfigData
-   TYPE(aeroconfig), INTENT(INOUT) :: DstaeroconfigData
+ SUBROUTINE AD_CopyAeroConfig( SrcAeroConfigData, DstAeroConfigData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(AeroConfig), INTENT(IN) :: SrcAeroConfigData
+   TYPE(AeroConfig), INTENT(INOUT) :: DstAeroConfigData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ALLOCATED(SrcaeroconfigData%Blade)) THEN
-   i1_l = LBOUND(SrcaeroconfigData%Blade,1)
-   i1_u = UBOUND(SrcaeroconfigData%Blade,1)
-   IF (.NOT. ALLOCATED(DstaeroconfigData%Blade)) THEN 
-      ALLOCATE(DstaeroconfigData%Blade(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcAeroConfigData%Blade)) THEN
+   i1_l = LBOUND(SrcAeroConfigData%Blade,1)
+   i1_u = UBOUND(SrcAeroConfigData%Blade,1)
+   IF (.NOT. ALLOCATED(DstAeroConfigData%Blade)) THEN 
+      ALLOCATE(DstAeroConfigData%Blade(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstaeroconfigData%Blade.', ErrStat, ErrMsg,'AD_Copyaeroconfig')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstAeroConfigData%Blade.', ErrStat, ErrMsg,'AD_CopyAeroConfig')
          RETURN
       END IF
    END IF
-   DO i1 = LBOUND(SrcaeroconfigData%Blade,1), UBOUND(SrcaeroconfigData%Blade,1)
-      CALL AD_Copymarker( SrcaeroconfigData%Blade(i1), DstaeroconfigData%Blade(i1), CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'AD_Copyaeroconfig:Blade(i1)')
+   DO i1 = LBOUND(SrcAeroConfigData%Blade,1), UBOUND(SrcAeroConfigData%Blade,1)
+      CALL AD_Copymarker( SrcAeroConfigData%Blade(i1), DstAeroConfigData%Blade(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'AD_CopyAeroConfig:Blade(i1)')
          IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
-      CALL AD_Copymarker( SrcaeroconfigData%Hub, DstaeroconfigData%Hub, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'AD_Copyaeroconfig:Hub')
+      CALL AD_Copymarker( SrcAeroConfigData%Hub, DstAeroConfigData%Hub, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'AD_CopyAeroConfig:Hub')
          IF (ErrStat>=AbortErrLev) RETURN
-      CALL AD_Copymarker( SrcaeroconfigData%RotorFurl, DstaeroconfigData%RotorFurl, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'AD_Copyaeroconfig:RotorFurl')
+      CALL AD_Copymarker( SrcAeroConfigData%RotorFurl, DstAeroConfigData%RotorFurl, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'AD_CopyAeroConfig:RotorFurl')
          IF (ErrStat>=AbortErrLev) RETURN
-      CALL AD_Copymarker( SrcaeroconfigData%Nacelle, DstaeroconfigData%Nacelle, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'AD_Copyaeroconfig:Nacelle')
+      CALL AD_Copymarker( SrcAeroConfigData%Nacelle, DstAeroConfigData%Nacelle, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'AD_CopyAeroConfig:Nacelle')
          IF (ErrStat>=AbortErrLev) RETURN
-      CALL AD_Copymarker( SrcaeroconfigData%TailFin, DstaeroconfigData%TailFin, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'AD_Copyaeroconfig:TailFin')
+      CALL AD_Copymarker( SrcAeroConfigData%TailFin, DstAeroConfigData%TailFin, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'AD_CopyAeroConfig:TailFin')
          IF (ErrStat>=AbortErrLev) RETURN
-      CALL AD_Copymarker( SrcaeroconfigData%Tower, DstaeroconfigData%Tower, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'AD_Copyaeroconfig:Tower')
+      CALL AD_Copymarker( SrcAeroConfigData%Tower, DstAeroConfigData%Tower, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'AD_CopyAeroConfig:Tower')
          IF (ErrStat>=AbortErrLev) RETURN
-      CALL AD_Copymarker( SrcaeroconfigData%SubStructure, DstaeroconfigData%SubStructure, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'AD_Copyaeroconfig:SubStructure')
+      CALL AD_Copymarker( SrcAeroConfigData%SubStructure, DstAeroConfigData%SubStructure, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'AD_CopyAeroConfig:SubStructure')
          IF (ErrStat>=AbortErrLev) RETURN
-      CALL AD_Copymarker( SrcaeroconfigData%Foundation, DstaeroconfigData%Foundation, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'AD_Copyaeroconfig:Foundation')
+      CALL AD_Copymarker( SrcAeroConfigData%Foundation, DstAeroConfigData%Foundation, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'AD_CopyAeroConfig:Foundation')
          IF (ErrStat>=AbortErrLev) RETURN
-   DstaeroconfigData%BladeLength = SrcaeroconfigData%BladeLength
- END SUBROUTINE AD_Copyaeroconfig
+   DstAeroConfigData%BladeLength = SrcAeroConfigData%BladeLength
+ END SUBROUTINE AD_CopyAeroConfig
 
- SUBROUTINE AD_Destroyaeroconfig( aeroconfigData, ErrStat, ErrMsg )
-  TYPE(aeroconfig), INTENT(INOUT) :: aeroconfigData
+ SUBROUTINE AD_DestroyAeroConfig( AeroConfigData, ErrStat, ErrMsg )
+  TYPE(AeroConfig), INTENT(INOUT) :: AeroConfigData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(aeroconfigData%Blade)) THEN
-DO i1 = LBOUND(aeroconfigData%Blade,1), UBOUND(aeroconfigData%Blade,1)
-  CALL AD_Destroymarker( aeroconfigData%Blade(i1), ErrStat, ErrMsg )
+IF (ALLOCATED(AeroConfigData%Blade)) THEN
+DO i1 = LBOUND(AeroConfigData%Blade,1), UBOUND(AeroConfigData%Blade,1)
+  CALL AD_Destroymarker( AeroConfigData%Blade(i1), ErrStat, ErrMsg )
 ENDDO
-   DEALLOCATE(aeroconfigData%Blade)
+   DEALLOCATE(AeroConfigData%Blade)
 ENDIF
-  CALL AD_Destroymarker( aeroconfigData%Hub, ErrStat, ErrMsg )
-  CALL AD_Destroymarker( aeroconfigData%RotorFurl, ErrStat, ErrMsg )
-  CALL AD_Destroymarker( aeroconfigData%Nacelle, ErrStat, ErrMsg )
-  CALL AD_Destroymarker( aeroconfigData%TailFin, ErrStat, ErrMsg )
-  CALL AD_Destroymarker( aeroconfigData%Tower, ErrStat, ErrMsg )
-  CALL AD_Destroymarker( aeroconfigData%SubStructure, ErrStat, ErrMsg )
-  CALL AD_Destroymarker( aeroconfigData%Foundation, ErrStat, ErrMsg )
- END SUBROUTINE AD_Destroyaeroconfig
+  CALL AD_Destroymarker( AeroConfigData%Hub, ErrStat, ErrMsg )
+  CALL AD_Destroymarker( AeroConfigData%RotorFurl, ErrStat, ErrMsg )
+  CALL AD_Destroymarker( AeroConfigData%Nacelle, ErrStat, ErrMsg )
+  CALL AD_Destroymarker( AeroConfigData%TailFin, ErrStat, ErrMsg )
+  CALL AD_Destroymarker( AeroConfigData%Tower, ErrStat, ErrMsg )
+  CALL AD_Destroymarker( AeroConfigData%SubStructure, ErrStat, ErrMsg )
+  CALL AD_Destroymarker( AeroConfigData%Foundation, ErrStat, ErrMsg )
+ END SUBROUTINE AD_DestroyAeroConfig
 
- SUBROUTINE AD_Packaeroconfig( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackAeroConfig( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(aeroconfig),  INTENT(INOUT) :: InData
+  TYPE(AeroConfig),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -941,13 +947,13 @@ ENDDO
   IF( ALLOCATED(Int_Foundation_Buf) ) DEALLOCATE(Int_Foundation_Buf)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%BladeLength )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE AD_Packaeroconfig
+ END SUBROUTINE AD_PackAeroConfig
 
- SUBROUTINE AD_UnPackaeroconfig( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackAeroConfig( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(aeroconfig), INTENT(INOUT) :: OutData
+  TYPE(AeroConfig), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1127,116 +1133,117 @@ ENDDO
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackaeroconfig
+ END SUBROUTINE AD_UnPackAeroConfig
 
- SUBROUTINE AD_Copyairfoil( SrcairfoilData, DstairfoilData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(airfoil), INTENT(INOUT) :: SrcairfoilData
-   TYPE(airfoil), INTENT(INOUT) :: DstairfoilData
+ SUBROUTINE AD_CopyAirFoil( SrcAirFoilData, DstAirFoilData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(AirFoil), INTENT(IN) :: SrcAirFoilData
+   TYPE(AirFoil), INTENT(INOUT) :: DstAirFoilData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ALLOCATED(SrcairfoilData%AL)) THEN
-   i1_l = LBOUND(SrcairfoilData%AL,1)
-   i1_u = UBOUND(SrcairfoilData%AL,1)
-   i2_l = LBOUND(SrcairfoilData%AL,2)
-   i2_u = UBOUND(SrcairfoilData%AL,2)
-   IF (.NOT. ALLOCATED(DstairfoilData%AL)) THEN 
-      ALLOCATE(DstairfoilData%AL(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcAirFoilData%AL)) THEN
+   i1_l = LBOUND(SrcAirFoilData%AL,1)
+   i1_u = UBOUND(SrcAirFoilData%AL,1)
+   i2_l = LBOUND(SrcAirFoilData%AL,2)
+   i2_u = UBOUND(SrcAirFoilData%AL,2)
+   IF (.NOT. ALLOCATED(DstAirFoilData%AL)) THEN 
+      ALLOCATE(DstAirFoilData%AL(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstairfoilData%AL.', ErrStat, ErrMsg,'AD_Copyairfoil')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstAirFoilData%AL.', ErrStat, ErrMsg,'AD_CopyAirFoil')
          RETURN
       END IF
    END IF
-   DstairfoilData%AL = SrcairfoilData%AL
+   DstAirFoilData%AL = SrcAirFoilData%AL
 ENDIF
-IF (ALLOCATED(SrcairfoilData%CD)) THEN
-   i1_l = LBOUND(SrcairfoilData%CD,1)
-   i1_u = UBOUND(SrcairfoilData%CD,1)
-   i2_l = LBOUND(SrcairfoilData%CD,2)
-   i2_u = UBOUND(SrcairfoilData%CD,2)
-   i3_l = LBOUND(SrcairfoilData%CD,3)
-   i3_u = UBOUND(SrcairfoilData%CD,3)
-   IF (.NOT. ALLOCATED(DstairfoilData%CD)) THEN 
-      ALLOCATE(DstairfoilData%CD(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcAirFoilData%CD)) THEN
+   i1_l = LBOUND(SrcAirFoilData%CD,1)
+   i1_u = UBOUND(SrcAirFoilData%CD,1)
+   i2_l = LBOUND(SrcAirFoilData%CD,2)
+   i2_u = UBOUND(SrcAirFoilData%CD,2)
+   i3_l = LBOUND(SrcAirFoilData%CD,3)
+   i3_u = UBOUND(SrcAirFoilData%CD,3)
+   IF (.NOT. ALLOCATED(DstAirFoilData%CD)) THEN 
+      ALLOCATE(DstAirFoilData%CD(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstairfoilData%CD.', ErrStat, ErrMsg,'AD_Copyairfoil')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstAirFoilData%CD.', ErrStat, ErrMsg,'AD_CopyAirFoil')
          RETURN
       END IF
    END IF
-   DstairfoilData%CD = SrcairfoilData%CD
+   DstAirFoilData%CD = SrcAirFoilData%CD
 ENDIF
-IF (ALLOCATED(SrcairfoilData%CL)) THEN
-   i1_l = LBOUND(SrcairfoilData%CL,1)
-   i1_u = UBOUND(SrcairfoilData%CL,1)
-   i2_l = LBOUND(SrcairfoilData%CL,2)
-   i2_u = UBOUND(SrcairfoilData%CL,2)
-   i3_l = LBOUND(SrcairfoilData%CL,3)
-   i3_u = UBOUND(SrcairfoilData%CL,3)
-   IF (.NOT. ALLOCATED(DstairfoilData%CL)) THEN 
-      ALLOCATE(DstairfoilData%CL(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcAirFoilData%CL)) THEN
+   i1_l = LBOUND(SrcAirFoilData%CL,1)
+   i1_u = UBOUND(SrcAirFoilData%CL,1)
+   i2_l = LBOUND(SrcAirFoilData%CL,2)
+   i2_u = UBOUND(SrcAirFoilData%CL,2)
+   i3_l = LBOUND(SrcAirFoilData%CL,3)
+   i3_u = UBOUND(SrcAirFoilData%CL,3)
+   IF (.NOT. ALLOCATED(DstAirFoilData%CL)) THEN 
+      ALLOCATE(DstAirFoilData%CL(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstairfoilData%CL.', ErrStat, ErrMsg,'AD_Copyairfoil')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstAirFoilData%CL.', ErrStat, ErrMsg,'AD_CopyAirFoil')
          RETURN
       END IF
    END IF
-   DstairfoilData%CL = SrcairfoilData%CL
+   DstAirFoilData%CL = SrcAirFoilData%CL
 ENDIF
-IF (ALLOCATED(SrcairfoilData%CM)) THEN
-   i1_l = LBOUND(SrcairfoilData%CM,1)
-   i1_u = UBOUND(SrcairfoilData%CM,1)
-   i2_l = LBOUND(SrcairfoilData%CM,2)
-   i2_u = UBOUND(SrcairfoilData%CM,2)
-   i3_l = LBOUND(SrcairfoilData%CM,3)
-   i3_u = UBOUND(SrcairfoilData%CM,3)
-   IF (.NOT. ALLOCATED(DstairfoilData%CM)) THEN 
-      ALLOCATE(DstairfoilData%CM(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcAirFoilData%CM)) THEN
+   i1_l = LBOUND(SrcAirFoilData%CM,1)
+   i1_u = UBOUND(SrcAirFoilData%CM,1)
+   i2_l = LBOUND(SrcAirFoilData%CM,2)
+   i2_u = UBOUND(SrcAirFoilData%CM,2)
+   i3_l = LBOUND(SrcAirFoilData%CM,3)
+   i3_u = UBOUND(SrcAirFoilData%CM,3)
+   IF (.NOT. ALLOCATED(DstAirFoilData%CM)) THEN 
+      ALLOCATE(DstAirFoilData%CM(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstairfoilData%CM.', ErrStat, ErrMsg,'AD_Copyairfoil')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstAirFoilData%CM.', ErrStat, ErrMsg,'AD_CopyAirFoil')
          RETURN
       END IF
    END IF
-   DstairfoilData%CM = SrcairfoilData%CM
+   DstAirFoilData%CM = SrcAirFoilData%CM
 ENDIF
-   DstairfoilData%PMC = SrcairfoilData%PMC
-   DstairfoilData%MulTabLoc = SrcairfoilData%MulTabLoc
- END SUBROUTINE AD_Copyairfoil
+   DstAirFoilData%PMC = SrcAirFoilData%PMC
+   DstAirFoilData%MulTabLoc = SrcAirFoilData%MulTabLoc
+ END SUBROUTINE AD_CopyAirFoil
 
- SUBROUTINE AD_Destroyairfoil( airfoilData, ErrStat, ErrMsg )
-  TYPE(airfoil), INTENT(INOUT) :: airfoilData
+ SUBROUTINE AD_DestroyAirFoil( AirFoilData, ErrStat, ErrMsg )
+  TYPE(AirFoil), INTENT(INOUT) :: AirFoilData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(airfoilData%AL)) THEN
-   DEALLOCATE(airfoilData%AL)
+IF (ALLOCATED(AirFoilData%AL)) THEN
+   DEALLOCATE(AirFoilData%AL)
 ENDIF
-IF (ALLOCATED(airfoilData%CD)) THEN
-   DEALLOCATE(airfoilData%CD)
+IF (ALLOCATED(AirFoilData%CD)) THEN
+   DEALLOCATE(AirFoilData%CD)
 ENDIF
-IF (ALLOCATED(airfoilData%CL)) THEN
-   DEALLOCATE(airfoilData%CL)
+IF (ALLOCATED(AirFoilData%CL)) THEN
+   DEALLOCATE(AirFoilData%CL)
 ENDIF
-IF (ALLOCATED(airfoilData%CM)) THEN
-   DEALLOCATE(airfoilData%CM)
+IF (ALLOCATED(AirFoilData%CM)) THEN
+   DEALLOCATE(AirFoilData%CM)
 ENDIF
- END SUBROUTINE AD_Destroyairfoil
+ END SUBROUTINE AD_DestroyAirFoil
 
- SUBROUTINE AD_Packairfoil( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackAirFoil( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(airfoil),  INTENT(INOUT) :: InData
+  TYPE(AirFoil),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1295,13 +1302,13 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%MulTabLoc )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE AD_Packairfoil
+ END SUBROUTINE AD_PackAirFoil
 
- SUBROUTINE AD_UnPackairfoil( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackAirFoil( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(airfoil), INTENT(INOUT) :: OutData
+  TYPE(AirFoil), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1331,25 +1338,29 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%AL) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%AL,1),SIZE(OutData%AL,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%AL,1),SIZE(OutData%AL,2)))
+  mask2 = .TRUE.
     OutData%AL = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AL))-1 ),mask2,OutData%AL)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%AL)
   ENDIF
   IF ( ALLOCATED(OutData%CD) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%CD,1),SIZE(OutData%CD,2),SIZE(OutData%CD,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%CD,1),SIZE(OutData%CD,2),SIZE(OutData%CD,3)))
+  mask3 = .TRUE.
     OutData%CD = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CD))-1 ),mask3,OutData%CD)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CD)
   ENDIF
   IF ( ALLOCATED(OutData%CL) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%CL,1),SIZE(OutData%CL,2),SIZE(OutData%CL,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%CL,1),SIZE(OutData%CL,2),SIZE(OutData%CL,3)))
+  mask3 = .TRUE.
     OutData%CL = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CL))-1 ),mask3,OutData%CL)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CL)
   ENDIF
   IF ( ALLOCATED(OutData%CM) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%CM,1),SIZE(OutData%CM,2),SIZE(OutData%CM,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%CM,1),SIZE(OutData%CM,2),SIZE(OutData%CM,3)))
+  mask3 = .TRUE.
     OutData%CM = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CM))-1 ),mask3,OutData%CM)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CM)
@@ -1361,120 +1372,121 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackairfoil
+ END SUBROUTINE AD_UnPackAirFoil
 
- SUBROUTINE AD_Copyairfoilparms( SrcairfoilparmsData, DstairfoilparmsData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(airfoilparms), INTENT(INOUT) :: SrcairfoilparmsData
-   TYPE(airfoilparms), INTENT(INOUT) :: DstairfoilparmsData
+ SUBROUTINE AD_CopyAirFoilParms( SrcAirFoilParmsData, DstAirFoilParmsData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(AirFoilParms), INTENT(IN) :: SrcAirFoilParmsData
+   TYPE(AirFoilParms), INTENT(INOUT) :: DstAirFoilParmsData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstairfoilparmsData%MaxTable = SrcairfoilparmsData%MaxTable
-IF (ALLOCATED(SrcairfoilparmsData%NTables)) THEN
-   i1_l = LBOUND(SrcairfoilparmsData%NTables,1)
-   i1_u = UBOUND(SrcairfoilparmsData%NTables,1)
-   IF (.NOT. ALLOCATED(DstairfoilparmsData%NTables)) THEN 
-      ALLOCATE(DstairfoilparmsData%NTables(i1_l:i1_u),STAT=ErrStat2)
+   DstAirFoilParmsData%MaxTable = SrcAirFoilParmsData%MaxTable
+IF (ALLOCATED(SrcAirFoilParmsData%NTables)) THEN
+   i1_l = LBOUND(SrcAirFoilParmsData%NTables,1)
+   i1_u = UBOUND(SrcAirFoilParmsData%NTables,1)
+   IF (.NOT. ALLOCATED(DstAirFoilParmsData%NTables)) THEN 
+      ALLOCATE(DstAirFoilParmsData%NTables(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstairfoilparmsData%NTables.', ErrStat, ErrMsg,'AD_Copyairfoilparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstAirFoilParmsData%NTables.', ErrStat, ErrMsg,'AD_CopyAirFoilParms')
          RETURN
       END IF
    END IF
-   DstairfoilparmsData%NTables = SrcairfoilparmsData%NTables
+   DstAirFoilParmsData%NTables = SrcAirFoilParmsData%NTables
 ENDIF
-IF (ALLOCATED(SrcairfoilparmsData%NLift)) THEN
-   i1_l = LBOUND(SrcairfoilparmsData%NLift,1)
-   i1_u = UBOUND(SrcairfoilparmsData%NLift,1)
-   IF (.NOT. ALLOCATED(DstairfoilparmsData%NLift)) THEN 
-      ALLOCATE(DstairfoilparmsData%NLift(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcAirFoilParmsData%NLift)) THEN
+   i1_l = LBOUND(SrcAirFoilParmsData%NLift,1)
+   i1_u = UBOUND(SrcAirFoilParmsData%NLift,1)
+   IF (.NOT. ALLOCATED(DstAirFoilParmsData%NLift)) THEN 
+      ALLOCATE(DstAirFoilParmsData%NLift(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstairfoilparmsData%NLift.', ErrStat, ErrMsg,'AD_Copyairfoilparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstAirFoilParmsData%NLift.', ErrStat, ErrMsg,'AD_CopyAirFoilParms')
          RETURN
       END IF
    END IF
-   DstairfoilparmsData%NLift = SrcairfoilparmsData%NLift
+   DstAirFoilParmsData%NLift = SrcAirFoilParmsData%NLift
 ENDIF
-   DstairfoilparmsData%NumCL = SrcairfoilparmsData%NumCL
-   DstairfoilparmsData%NumFoil = SrcairfoilparmsData%NumFoil
-IF (ALLOCATED(SrcairfoilparmsData%NFoil)) THEN
-   i1_l = LBOUND(SrcairfoilparmsData%NFoil,1)
-   i1_u = UBOUND(SrcairfoilparmsData%NFoil,1)
-   IF (.NOT. ALLOCATED(DstairfoilparmsData%NFoil)) THEN 
-      ALLOCATE(DstairfoilparmsData%NFoil(i1_l:i1_u),STAT=ErrStat2)
+   DstAirFoilParmsData%NumCL = SrcAirFoilParmsData%NumCL
+   DstAirFoilParmsData%NumFoil = SrcAirFoilParmsData%NumFoil
+IF (ALLOCATED(SrcAirFoilParmsData%NFoil)) THEN
+   i1_l = LBOUND(SrcAirFoilParmsData%NFoil,1)
+   i1_u = UBOUND(SrcAirFoilParmsData%NFoil,1)
+   IF (.NOT. ALLOCATED(DstAirFoilParmsData%NFoil)) THEN 
+      ALLOCATE(DstAirFoilParmsData%NFoil(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstairfoilparmsData%NFoil.', ErrStat, ErrMsg,'AD_Copyairfoilparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstAirFoilParmsData%NFoil.', ErrStat, ErrMsg,'AD_CopyAirFoilParms')
          RETURN
       END IF
    END IF
-   DstairfoilparmsData%NFoil = SrcairfoilparmsData%NFoil
+   DstAirFoilParmsData%NFoil = SrcAirFoilParmsData%NFoil
 ENDIF
-IF (ALLOCATED(SrcairfoilparmsData%MulTabMet)) THEN
-   i1_l = LBOUND(SrcairfoilparmsData%MulTabMet,1)
-   i1_u = UBOUND(SrcairfoilparmsData%MulTabMet,1)
-   i2_l = LBOUND(SrcairfoilparmsData%MulTabMet,2)
-   i2_u = UBOUND(SrcairfoilparmsData%MulTabMet,2)
-   IF (.NOT. ALLOCATED(DstairfoilparmsData%MulTabMet)) THEN 
-      ALLOCATE(DstairfoilparmsData%MulTabMet(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcAirFoilParmsData%MulTabMet)) THEN
+   i1_l = LBOUND(SrcAirFoilParmsData%MulTabMet,1)
+   i1_u = UBOUND(SrcAirFoilParmsData%MulTabMet,1)
+   i2_l = LBOUND(SrcAirFoilParmsData%MulTabMet,2)
+   i2_u = UBOUND(SrcAirFoilParmsData%MulTabMet,2)
+   IF (.NOT. ALLOCATED(DstAirFoilParmsData%MulTabMet)) THEN 
+      ALLOCATE(DstAirFoilParmsData%MulTabMet(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstairfoilparmsData%MulTabMet.', ErrStat, ErrMsg,'AD_Copyairfoilparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstAirFoilParmsData%MulTabMet.', ErrStat, ErrMsg,'AD_CopyAirFoilParms')
          RETURN
       END IF
    END IF
-   DstairfoilparmsData%MulTabMet = SrcairfoilparmsData%MulTabMet
+   DstAirFoilParmsData%MulTabMet = SrcAirFoilParmsData%MulTabMet
 ENDIF
-IF (ALLOCATED(SrcairfoilparmsData%FoilNm)) THEN
-   i1_l = LBOUND(SrcairfoilparmsData%FoilNm,1)
-   i1_u = UBOUND(SrcairfoilparmsData%FoilNm,1)
-   IF (.NOT. ALLOCATED(DstairfoilparmsData%FoilNm)) THEN 
-      ALLOCATE(DstairfoilparmsData%FoilNm(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcAirFoilParmsData%FoilNm)) THEN
+   i1_l = LBOUND(SrcAirFoilParmsData%FoilNm,1)
+   i1_u = UBOUND(SrcAirFoilParmsData%FoilNm,1)
+   IF (.NOT. ALLOCATED(DstAirFoilParmsData%FoilNm)) THEN 
+      ALLOCATE(DstAirFoilParmsData%FoilNm(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstairfoilparmsData%FoilNm.', ErrStat, ErrMsg,'AD_Copyairfoilparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstAirFoilParmsData%FoilNm.', ErrStat, ErrMsg,'AD_CopyAirFoilParms')
          RETURN
       END IF
    END IF
-   DstairfoilparmsData%FoilNm = SrcairfoilparmsData%FoilNm
+   DstAirFoilParmsData%FoilNm = SrcAirFoilParmsData%FoilNm
 ENDIF
- END SUBROUTINE AD_Copyairfoilparms
+ END SUBROUTINE AD_CopyAirFoilParms
 
- SUBROUTINE AD_Destroyairfoilparms( airfoilparmsData, ErrStat, ErrMsg )
-  TYPE(airfoilparms), INTENT(INOUT) :: airfoilparmsData
+ SUBROUTINE AD_DestroyAirFoilParms( AirFoilParmsData, ErrStat, ErrMsg )
+  TYPE(AirFoilParms), INTENT(INOUT) :: AirFoilParmsData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(airfoilparmsData%NTables)) THEN
-   DEALLOCATE(airfoilparmsData%NTables)
+IF (ALLOCATED(AirFoilParmsData%NTables)) THEN
+   DEALLOCATE(AirFoilParmsData%NTables)
 ENDIF
-IF (ALLOCATED(airfoilparmsData%NLift)) THEN
-   DEALLOCATE(airfoilparmsData%NLift)
+IF (ALLOCATED(AirFoilParmsData%NLift)) THEN
+   DEALLOCATE(AirFoilParmsData%NLift)
 ENDIF
-IF (ALLOCATED(airfoilparmsData%NFoil)) THEN
-   DEALLOCATE(airfoilparmsData%NFoil)
+IF (ALLOCATED(AirFoilParmsData%NFoil)) THEN
+   DEALLOCATE(AirFoilParmsData%NFoil)
 ENDIF
-IF (ALLOCATED(airfoilparmsData%MulTabMet)) THEN
-   DEALLOCATE(airfoilparmsData%MulTabMet)
+IF (ALLOCATED(AirFoilParmsData%MulTabMet)) THEN
+   DEALLOCATE(AirFoilParmsData%MulTabMet)
 ENDIF
-IF (ALLOCATED(airfoilparmsData%FoilNm)) THEN
-   DEALLOCATE(airfoilparmsData%FoilNm)
+IF (ALLOCATED(AirFoilParmsData%FoilNm)) THEN
+   DEALLOCATE(AirFoilParmsData%FoilNm)
 ENDIF
- END SUBROUTINE AD_Destroyairfoilparms
+ END SUBROUTINE AD_DestroyAirFoilParms
 
- SUBROUTINE AD_Packairfoilparms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackAirFoilParms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(airfoilparms),  INTENT(INOUT) :: InData
+  TYPE(AirFoilParms),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1537,13 +1549,13 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%MulTabMet))-1 ) =  PACK(InData%MulTabMet ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%MulTabMet)
   ENDIF
- END SUBROUTINE AD_Packairfoilparms
+ END SUBROUTINE AD_PackAirFoilParms
 
- SUBROUTINE AD_UnPackairfoilparms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackAirFoilParms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(airfoilparms), INTENT(INOUT) :: OutData
+  TYPE(AirFoilParms), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1575,13 +1587,15 @@ ENDIF
   OutData%MaxTable = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%NTables) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%NTables,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%NTables,1)))
+  mask1 = .TRUE.
     OutData%NTables = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%NTables))-1 ),mask1,OutData%NTables)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%NTables)
   ENDIF
   IF ( ALLOCATED(OutData%NLift) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%NLift,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%NLift,1)))
+  mask1 = .TRUE.
     OutData%NLift = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%NLift))-1 ),mask1,OutData%NLift)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%NLift)
@@ -1591,13 +1605,15 @@ ENDIF
   OutData%NumFoil = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%NFoil) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%NFoil,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%NFoil,1)))
+  mask1 = .TRUE.
     OutData%NFoil = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%NFoil))-1 ),mask1,OutData%NFoil)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%NFoil)
   ENDIF
   IF ( ALLOCATED(OutData%MulTabMet) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%MulTabMet,1),SIZE(OutData%MulTabMet,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%MulTabMet,1),SIZE(OutData%MulTabMet,2)))
+  mask2 = .TRUE.
     OutData%MulTabMet = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%MulTabMet))-1 ),mask2,OutData%MulTabMet)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%MulTabMet)
@@ -1605,941 +1621,942 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackairfoilparms
+ END SUBROUTINE AD_UnPackAirFoilParms
 
- SUBROUTINE AD_Copybeddoes( SrcbeddoesData, DstbeddoesData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(beddoes), INTENT(INOUT) :: SrcbeddoesData
-   TYPE(beddoes), INTENT(INOUT) :: DstbeddoesData
+ SUBROUTINE AD_CopyBeddoes( SrcBeddoesData, DstBeddoesData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Beddoes), INTENT(IN) :: SrcBeddoesData
+   TYPE(Beddoes), INTENT(INOUT) :: DstBeddoesData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ALLOCATED(SrcbeddoesData%ADOT)) THEN
-   i1_l = LBOUND(SrcbeddoesData%ADOT,1)
-   i1_u = UBOUND(SrcbeddoesData%ADOT,1)
-   i2_l = LBOUND(SrcbeddoesData%ADOT,2)
-   i2_u = UBOUND(SrcbeddoesData%ADOT,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%ADOT)) THEN 
-      ALLOCATE(DstbeddoesData%ADOT(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%ADOT)) THEN
+   i1_l = LBOUND(SrcBeddoesData%ADOT,1)
+   i1_u = UBOUND(SrcBeddoesData%ADOT,1)
+   i2_l = LBOUND(SrcBeddoesData%ADOT,2)
+   i2_u = UBOUND(SrcBeddoesData%ADOT,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%ADOT)) THEN 
+      ALLOCATE(DstBeddoesData%ADOT(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%ADOT.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%ADOT.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%ADOT = SrcbeddoesData%ADOT
+   DstBeddoesData%ADOT = SrcBeddoesData%ADOT
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%ADOT1)) THEN
-   i1_l = LBOUND(SrcbeddoesData%ADOT1,1)
-   i1_u = UBOUND(SrcbeddoesData%ADOT1,1)
-   i2_l = LBOUND(SrcbeddoesData%ADOT1,2)
-   i2_u = UBOUND(SrcbeddoesData%ADOT1,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%ADOT1)) THEN 
-      ALLOCATE(DstbeddoesData%ADOT1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%ADOT1)) THEN
+   i1_l = LBOUND(SrcBeddoesData%ADOT1,1)
+   i1_u = UBOUND(SrcBeddoesData%ADOT1,1)
+   i2_l = LBOUND(SrcBeddoesData%ADOT1,2)
+   i2_u = UBOUND(SrcBeddoesData%ADOT1,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%ADOT1)) THEN 
+      ALLOCATE(DstBeddoesData%ADOT1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%ADOT1.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%ADOT1.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%ADOT1 = SrcbeddoesData%ADOT1
+   DstBeddoesData%ADOT1 = SrcBeddoesData%ADOT1
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%AFE)) THEN
-   i1_l = LBOUND(SrcbeddoesData%AFE,1)
-   i1_u = UBOUND(SrcbeddoesData%AFE,1)
-   i2_l = LBOUND(SrcbeddoesData%AFE,2)
-   i2_u = UBOUND(SrcbeddoesData%AFE,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%AFE)) THEN 
-      ALLOCATE(DstbeddoesData%AFE(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%AFE)) THEN
+   i1_l = LBOUND(SrcBeddoesData%AFE,1)
+   i1_u = UBOUND(SrcBeddoesData%AFE,1)
+   i2_l = LBOUND(SrcBeddoesData%AFE,2)
+   i2_u = UBOUND(SrcBeddoesData%AFE,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%AFE)) THEN 
+      ALLOCATE(DstBeddoesData%AFE(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%AFE.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%AFE.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%AFE = SrcbeddoesData%AFE
+   DstBeddoesData%AFE = SrcBeddoesData%AFE
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%AFE1)) THEN
-   i1_l = LBOUND(SrcbeddoesData%AFE1,1)
-   i1_u = UBOUND(SrcbeddoesData%AFE1,1)
-   i2_l = LBOUND(SrcbeddoesData%AFE1,2)
-   i2_u = UBOUND(SrcbeddoesData%AFE1,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%AFE1)) THEN 
-      ALLOCATE(DstbeddoesData%AFE1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%AFE1)) THEN
+   i1_l = LBOUND(SrcBeddoesData%AFE1,1)
+   i1_u = UBOUND(SrcBeddoesData%AFE1,1)
+   i2_l = LBOUND(SrcBeddoesData%AFE1,2)
+   i2_u = UBOUND(SrcBeddoesData%AFE1,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%AFE1)) THEN 
+      ALLOCATE(DstBeddoesData%AFE1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%AFE1.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%AFE1.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%AFE1 = SrcbeddoesData%AFE1
+   DstBeddoesData%AFE1 = SrcBeddoesData%AFE1
 ENDIF
-   DstbeddoesData%AN = SrcbeddoesData%AN
-IF (ALLOCATED(SrcbeddoesData%ANE)) THEN
-   i1_l = LBOUND(SrcbeddoesData%ANE,1)
-   i1_u = UBOUND(SrcbeddoesData%ANE,1)
-   i2_l = LBOUND(SrcbeddoesData%ANE,2)
-   i2_u = UBOUND(SrcbeddoesData%ANE,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%ANE)) THEN 
-      ALLOCATE(DstbeddoesData%ANE(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+   DstBeddoesData%AN = SrcBeddoesData%AN
+IF (ALLOCATED(SrcBeddoesData%ANE)) THEN
+   i1_l = LBOUND(SrcBeddoesData%ANE,1)
+   i1_u = UBOUND(SrcBeddoesData%ANE,1)
+   i2_l = LBOUND(SrcBeddoesData%ANE,2)
+   i2_u = UBOUND(SrcBeddoesData%ANE,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%ANE)) THEN 
+      ALLOCATE(DstBeddoesData%ANE(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%ANE.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%ANE.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%ANE = SrcbeddoesData%ANE
+   DstBeddoesData%ANE = SrcBeddoesData%ANE
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%ANE1)) THEN
-   i1_l = LBOUND(SrcbeddoesData%ANE1,1)
-   i1_u = UBOUND(SrcbeddoesData%ANE1,1)
-   i2_l = LBOUND(SrcbeddoesData%ANE1,2)
-   i2_u = UBOUND(SrcbeddoesData%ANE1,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%ANE1)) THEN 
-      ALLOCATE(DstbeddoesData%ANE1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%ANE1)) THEN
+   i1_l = LBOUND(SrcBeddoesData%ANE1,1)
+   i1_u = UBOUND(SrcBeddoesData%ANE1,1)
+   i2_l = LBOUND(SrcBeddoesData%ANE1,2)
+   i2_u = UBOUND(SrcBeddoesData%ANE1,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%ANE1)) THEN 
+      ALLOCATE(DstBeddoesData%ANE1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%ANE1.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%ANE1.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%ANE1 = SrcbeddoesData%ANE1
+   DstBeddoesData%ANE1 = SrcBeddoesData%ANE1
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%AOD)) THEN
-   i1_l = LBOUND(SrcbeddoesData%AOD,1)
-   i1_u = UBOUND(SrcbeddoesData%AOD,1)
-   i2_l = LBOUND(SrcbeddoesData%AOD,2)
-   i2_u = UBOUND(SrcbeddoesData%AOD,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%AOD)) THEN 
-      ALLOCATE(DstbeddoesData%AOD(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%AOD)) THEN
+   i1_l = LBOUND(SrcBeddoesData%AOD,1)
+   i1_u = UBOUND(SrcBeddoesData%AOD,1)
+   i2_l = LBOUND(SrcBeddoesData%AOD,2)
+   i2_u = UBOUND(SrcBeddoesData%AOD,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%AOD)) THEN 
+      ALLOCATE(DstBeddoesData%AOD(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%AOD.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%AOD.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%AOD = SrcbeddoesData%AOD
+   DstBeddoesData%AOD = SrcBeddoesData%AOD
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%AOL)) THEN
-   i1_l = LBOUND(SrcbeddoesData%AOL,1)
-   i1_u = UBOUND(SrcbeddoesData%AOL,1)
-   i2_l = LBOUND(SrcbeddoesData%AOL,2)
-   i2_u = UBOUND(SrcbeddoesData%AOL,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%AOL)) THEN 
-      ALLOCATE(DstbeddoesData%AOL(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%AOL)) THEN
+   i1_l = LBOUND(SrcBeddoesData%AOL,1)
+   i1_u = UBOUND(SrcBeddoesData%AOL,1)
+   i2_l = LBOUND(SrcBeddoesData%AOL,2)
+   i2_u = UBOUND(SrcBeddoesData%AOL,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%AOL)) THEN 
+      ALLOCATE(DstBeddoesData%AOL(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%AOL.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%AOL.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%AOL = SrcbeddoesData%AOL
+   DstBeddoesData%AOL = SrcBeddoesData%AOL
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%BEDSEP)) THEN
-   i1_l = LBOUND(SrcbeddoesData%BEDSEP,1)
-   i1_u = UBOUND(SrcbeddoesData%BEDSEP,1)
-   i2_l = LBOUND(SrcbeddoesData%BEDSEP,2)
-   i2_u = UBOUND(SrcbeddoesData%BEDSEP,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%BEDSEP)) THEN 
-      ALLOCATE(DstbeddoesData%BEDSEP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%BEDSEP)) THEN
+   i1_l = LBOUND(SrcBeddoesData%BEDSEP,1)
+   i1_u = UBOUND(SrcBeddoesData%BEDSEP,1)
+   i2_l = LBOUND(SrcBeddoesData%BEDSEP,2)
+   i2_u = UBOUND(SrcBeddoesData%BEDSEP,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%BEDSEP)) THEN 
+      ALLOCATE(DstBeddoesData%BEDSEP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%BEDSEP.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%BEDSEP.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%BEDSEP = SrcbeddoesData%BEDSEP
+   DstBeddoesData%BEDSEP = SrcBeddoesData%BEDSEP
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%OLDSEP)) THEN
-   i1_l = LBOUND(SrcbeddoesData%OLDSEP,1)
-   i1_u = UBOUND(SrcbeddoesData%OLDSEP,1)
-   i2_l = LBOUND(SrcbeddoesData%OLDSEP,2)
-   i2_u = UBOUND(SrcbeddoesData%OLDSEP,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%OLDSEP)) THEN 
-      ALLOCATE(DstbeddoesData%OLDSEP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%OLDSEP)) THEN
+   i1_l = LBOUND(SrcBeddoesData%OLDSEP,1)
+   i1_u = UBOUND(SrcBeddoesData%OLDSEP,1)
+   i2_l = LBOUND(SrcBeddoesData%OLDSEP,2)
+   i2_u = UBOUND(SrcBeddoesData%OLDSEP,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%OLDSEP)) THEN 
+      ALLOCATE(DstBeddoesData%OLDSEP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%OLDSEP.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%OLDSEP.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%OLDSEP = SrcbeddoesData%OLDSEP
+   DstBeddoesData%OLDSEP = SrcBeddoesData%OLDSEP
 ENDIF
-   DstbeddoesData%CC = SrcbeddoesData%CC
-IF (ALLOCATED(SrcbeddoesData%CDO)) THEN
-   i1_l = LBOUND(SrcbeddoesData%CDO,1)
-   i1_u = UBOUND(SrcbeddoesData%CDO,1)
-   i2_l = LBOUND(SrcbeddoesData%CDO,2)
-   i2_u = UBOUND(SrcbeddoesData%CDO,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%CDO)) THEN 
-      ALLOCATE(DstbeddoesData%CDO(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+   DstBeddoesData%CC = SrcBeddoesData%CC
+IF (ALLOCATED(SrcBeddoesData%CDO)) THEN
+   i1_l = LBOUND(SrcBeddoesData%CDO,1)
+   i1_u = UBOUND(SrcBeddoesData%CDO,1)
+   i2_l = LBOUND(SrcBeddoesData%CDO,2)
+   i2_u = UBOUND(SrcBeddoesData%CDO,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%CDO)) THEN 
+      ALLOCATE(DstBeddoesData%CDO(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%CDO.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%CDO.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%CDO = SrcbeddoesData%CDO
+   DstBeddoesData%CDO = SrcBeddoesData%CDO
 ENDIF
-   DstbeddoesData%CMI = SrcbeddoesData%CMI
-   DstbeddoesData%CMQ = SrcbeddoesData%CMQ
-   DstbeddoesData%CN = SrcbeddoesData%CN
-IF (ALLOCATED(SrcbeddoesData%CNA)) THEN
-   i1_l = LBOUND(SrcbeddoesData%CNA,1)
-   i1_u = UBOUND(SrcbeddoesData%CNA,1)
-   i2_l = LBOUND(SrcbeddoesData%CNA,2)
-   i2_u = UBOUND(SrcbeddoesData%CNA,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%CNA)) THEN 
-      ALLOCATE(DstbeddoesData%CNA(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+   DstBeddoesData%CMI = SrcBeddoesData%CMI
+   DstBeddoesData%CMQ = SrcBeddoesData%CMQ
+   DstBeddoesData%CN = SrcBeddoesData%CN
+IF (ALLOCATED(SrcBeddoesData%CNA)) THEN
+   i1_l = LBOUND(SrcBeddoesData%CNA,1)
+   i1_u = UBOUND(SrcBeddoesData%CNA,1)
+   i2_l = LBOUND(SrcBeddoesData%CNA,2)
+   i2_u = UBOUND(SrcBeddoesData%CNA,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%CNA)) THEN 
+      ALLOCATE(DstBeddoesData%CNA(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%CNA.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%CNA.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%CNA = SrcbeddoesData%CNA
+   DstBeddoesData%CNA = SrcBeddoesData%CNA
 ENDIF
-   DstbeddoesData%CNCP = SrcbeddoesData%CNCP
-   DstbeddoesData%CNIQ = SrcbeddoesData%CNIQ
-IF (ALLOCATED(SrcbeddoesData%CNP)) THEN
-   i1_l = LBOUND(SrcbeddoesData%CNP,1)
-   i1_u = UBOUND(SrcbeddoesData%CNP,1)
-   i2_l = LBOUND(SrcbeddoesData%CNP,2)
-   i2_u = UBOUND(SrcbeddoesData%CNP,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%CNP)) THEN 
-      ALLOCATE(DstbeddoesData%CNP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+   DstBeddoesData%CNCP = SrcBeddoesData%CNCP
+   DstBeddoesData%CNIQ = SrcBeddoesData%CNIQ
+IF (ALLOCATED(SrcBeddoesData%CNP)) THEN
+   i1_l = LBOUND(SrcBeddoesData%CNP,1)
+   i1_u = UBOUND(SrcBeddoesData%CNP,1)
+   i2_l = LBOUND(SrcBeddoesData%CNP,2)
+   i2_u = UBOUND(SrcBeddoesData%CNP,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%CNP)) THEN 
+      ALLOCATE(DstBeddoesData%CNP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%CNP.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%CNP.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%CNP = SrcbeddoesData%CNP
+   DstBeddoesData%CNP = SrcBeddoesData%CNP
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%CNP1)) THEN
-   i1_l = LBOUND(SrcbeddoesData%CNP1,1)
-   i1_u = UBOUND(SrcbeddoesData%CNP1,1)
-   i2_l = LBOUND(SrcbeddoesData%CNP1,2)
-   i2_u = UBOUND(SrcbeddoesData%CNP1,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%CNP1)) THEN 
-      ALLOCATE(DstbeddoesData%CNP1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%CNP1)) THEN
+   i1_l = LBOUND(SrcBeddoesData%CNP1,1)
+   i1_u = UBOUND(SrcBeddoesData%CNP1,1)
+   i2_l = LBOUND(SrcBeddoesData%CNP1,2)
+   i2_u = UBOUND(SrcBeddoesData%CNP1,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%CNP1)) THEN 
+      ALLOCATE(DstBeddoesData%CNP1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%CNP1.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%CNP1.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%CNP1 = SrcbeddoesData%CNP1
+   DstBeddoesData%CNP1 = SrcBeddoesData%CNP1
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%CNPD)) THEN
-   i1_l = LBOUND(SrcbeddoesData%CNPD,1)
-   i1_u = UBOUND(SrcbeddoesData%CNPD,1)
-   i2_l = LBOUND(SrcbeddoesData%CNPD,2)
-   i2_u = UBOUND(SrcbeddoesData%CNPD,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%CNPD)) THEN 
-      ALLOCATE(DstbeddoesData%CNPD(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%CNPD)) THEN
+   i1_l = LBOUND(SrcBeddoesData%CNPD,1)
+   i1_u = UBOUND(SrcBeddoesData%CNPD,1)
+   i2_l = LBOUND(SrcBeddoesData%CNPD,2)
+   i2_u = UBOUND(SrcBeddoesData%CNPD,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%CNPD)) THEN 
+      ALLOCATE(DstBeddoesData%CNPD(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%CNPD.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%CNPD.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%CNPD = SrcbeddoesData%CNPD
+   DstBeddoesData%CNPD = SrcBeddoesData%CNPD
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%CNPD1)) THEN
-   i1_l = LBOUND(SrcbeddoesData%CNPD1,1)
-   i1_u = UBOUND(SrcbeddoesData%CNPD1,1)
-   i2_l = LBOUND(SrcbeddoesData%CNPD1,2)
-   i2_u = UBOUND(SrcbeddoesData%CNPD1,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%CNPD1)) THEN 
-      ALLOCATE(DstbeddoesData%CNPD1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%CNPD1)) THEN
+   i1_l = LBOUND(SrcBeddoesData%CNPD1,1)
+   i1_u = UBOUND(SrcBeddoesData%CNPD1,1)
+   i2_l = LBOUND(SrcBeddoesData%CNPD1,2)
+   i2_u = UBOUND(SrcBeddoesData%CNPD1,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%CNPD1)) THEN 
+      ALLOCATE(DstBeddoesData%CNPD1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%CNPD1.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%CNPD1.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%CNPD1 = SrcbeddoesData%CNPD1
+   DstBeddoesData%CNPD1 = SrcBeddoesData%CNPD1
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%CNPOT)) THEN
-   i1_l = LBOUND(SrcbeddoesData%CNPOT,1)
-   i1_u = UBOUND(SrcbeddoesData%CNPOT,1)
-   i2_l = LBOUND(SrcbeddoesData%CNPOT,2)
-   i2_u = UBOUND(SrcbeddoesData%CNPOT,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%CNPOT)) THEN 
-      ALLOCATE(DstbeddoesData%CNPOT(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%CNPOT)) THEN
+   i1_l = LBOUND(SrcBeddoesData%CNPOT,1)
+   i1_u = UBOUND(SrcBeddoesData%CNPOT,1)
+   i2_l = LBOUND(SrcBeddoesData%CNPOT,2)
+   i2_u = UBOUND(SrcBeddoesData%CNPOT,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%CNPOT)) THEN 
+      ALLOCATE(DstBeddoesData%CNPOT(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%CNPOT.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%CNPOT.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%CNPOT = SrcbeddoesData%CNPOT
+   DstBeddoesData%CNPOT = SrcBeddoesData%CNPOT
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%CNPOT1)) THEN
-   i1_l = LBOUND(SrcbeddoesData%CNPOT1,1)
-   i1_u = UBOUND(SrcbeddoesData%CNPOT1,1)
-   i2_l = LBOUND(SrcbeddoesData%CNPOT1,2)
-   i2_u = UBOUND(SrcbeddoesData%CNPOT1,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%CNPOT1)) THEN 
-      ALLOCATE(DstbeddoesData%CNPOT1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%CNPOT1)) THEN
+   i1_l = LBOUND(SrcBeddoesData%CNPOT1,1)
+   i1_u = UBOUND(SrcBeddoesData%CNPOT1,1)
+   i2_l = LBOUND(SrcBeddoesData%CNPOT1,2)
+   i2_u = UBOUND(SrcBeddoesData%CNPOT1,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%CNPOT1)) THEN 
+      ALLOCATE(DstBeddoesData%CNPOT1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%CNPOT1.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%CNPOT1.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%CNPOT1 = SrcbeddoesData%CNPOT1
+   DstBeddoesData%CNPOT1 = SrcBeddoesData%CNPOT1
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%CNS)) THEN
-   i1_l = LBOUND(SrcbeddoesData%CNS,1)
-   i1_u = UBOUND(SrcbeddoesData%CNS,1)
-   i2_l = LBOUND(SrcbeddoesData%CNS,2)
-   i2_u = UBOUND(SrcbeddoesData%CNS,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%CNS)) THEN 
-      ALLOCATE(DstbeddoesData%CNS(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%CNS)) THEN
+   i1_l = LBOUND(SrcBeddoesData%CNS,1)
+   i1_u = UBOUND(SrcBeddoesData%CNS,1)
+   i2_l = LBOUND(SrcBeddoesData%CNS,2)
+   i2_u = UBOUND(SrcBeddoesData%CNS,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%CNS)) THEN 
+      ALLOCATE(DstBeddoesData%CNS(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%CNS.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%CNS.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%CNS = SrcbeddoesData%CNS
+   DstBeddoesData%CNS = SrcBeddoesData%CNS
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%CNSL)) THEN
-   i1_l = LBOUND(SrcbeddoesData%CNSL,1)
-   i1_u = UBOUND(SrcbeddoesData%CNSL,1)
-   i2_l = LBOUND(SrcbeddoesData%CNSL,2)
-   i2_u = UBOUND(SrcbeddoesData%CNSL,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%CNSL)) THEN 
-      ALLOCATE(DstbeddoesData%CNSL(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%CNSL)) THEN
+   i1_l = LBOUND(SrcBeddoesData%CNSL,1)
+   i1_u = UBOUND(SrcBeddoesData%CNSL,1)
+   i2_l = LBOUND(SrcBeddoesData%CNSL,2)
+   i2_u = UBOUND(SrcBeddoesData%CNSL,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%CNSL)) THEN 
+      ALLOCATE(DstBeddoesData%CNSL(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%CNSL.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%CNSL.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%CNSL = SrcbeddoesData%CNSL
+   DstBeddoesData%CNSL = SrcBeddoesData%CNSL
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%CNV)) THEN
-   i1_l = LBOUND(SrcbeddoesData%CNV,1)
-   i1_u = UBOUND(SrcbeddoesData%CNV,1)
-   i2_l = LBOUND(SrcbeddoesData%CNV,2)
-   i2_u = UBOUND(SrcbeddoesData%CNV,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%CNV)) THEN 
-      ALLOCATE(DstbeddoesData%CNV(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%CNV)) THEN
+   i1_l = LBOUND(SrcBeddoesData%CNV,1)
+   i1_u = UBOUND(SrcBeddoesData%CNV,1)
+   i2_l = LBOUND(SrcBeddoesData%CNV,2)
+   i2_u = UBOUND(SrcBeddoesData%CNV,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%CNV)) THEN 
+      ALLOCATE(DstBeddoesData%CNV(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%CNV.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%CNV.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%CNV = SrcbeddoesData%CNV
+   DstBeddoesData%CNV = SrcBeddoesData%CNV
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%CVN)) THEN
-   i1_l = LBOUND(SrcbeddoesData%CVN,1)
-   i1_u = UBOUND(SrcbeddoesData%CVN,1)
-   i2_l = LBOUND(SrcbeddoesData%CVN,2)
-   i2_u = UBOUND(SrcbeddoesData%CVN,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%CVN)) THEN 
-      ALLOCATE(DstbeddoesData%CVN(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%CVN)) THEN
+   i1_l = LBOUND(SrcBeddoesData%CVN,1)
+   i1_u = UBOUND(SrcBeddoesData%CVN,1)
+   i2_l = LBOUND(SrcBeddoesData%CVN,2)
+   i2_u = UBOUND(SrcBeddoesData%CVN,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%CVN)) THEN 
+      ALLOCATE(DstBeddoesData%CVN(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%CVN.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%CVN.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%CVN = SrcbeddoesData%CVN
+   DstBeddoesData%CVN = SrcBeddoesData%CVN
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%CVN1)) THEN
-   i1_l = LBOUND(SrcbeddoesData%CVN1,1)
-   i1_u = UBOUND(SrcbeddoesData%CVN1,1)
-   i2_l = LBOUND(SrcbeddoesData%CVN1,2)
-   i2_u = UBOUND(SrcbeddoesData%CVN1,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%CVN1)) THEN 
-      ALLOCATE(DstbeddoesData%CVN1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%CVN1)) THEN
+   i1_l = LBOUND(SrcBeddoesData%CVN1,1)
+   i1_u = UBOUND(SrcBeddoesData%CVN1,1)
+   i2_l = LBOUND(SrcBeddoesData%CVN1,2)
+   i2_u = UBOUND(SrcBeddoesData%CVN1,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%CVN1)) THEN 
+      ALLOCATE(DstBeddoesData%CVN1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%CVN1.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%CVN1.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%CVN1 = SrcbeddoesData%CVN1
+   DstBeddoesData%CVN1 = SrcBeddoesData%CVN1
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%DF)) THEN
-   i1_l = LBOUND(SrcbeddoesData%DF,1)
-   i1_u = UBOUND(SrcbeddoesData%DF,1)
-   i2_l = LBOUND(SrcbeddoesData%DF,2)
-   i2_u = UBOUND(SrcbeddoesData%DF,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%DF)) THEN 
-      ALLOCATE(DstbeddoesData%DF(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%DF)) THEN
+   i1_l = LBOUND(SrcBeddoesData%DF,1)
+   i1_u = UBOUND(SrcBeddoesData%DF,1)
+   i2_l = LBOUND(SrcBeddoesData%DF,2)
+   i2_u = UBOUND(SrcBeddoesData%DF,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%DF)) THEN 
+      ALLOCATE(DstBeddoesData%DF(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%DF.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%DF.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%DF = SrcbeddoesData%DF
+   DstBeddoesData%DF = SrcBeddoesData%DF
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%DFAFE)) THEN
-   i1_l = LBOUND(SrcbeddoesData%DFAFE,1)
-   i1_u = UBOUND(SrcbeddoesData%DFAFE,1)
-   i2_l = LBOUND(SrcbeddoesData%DFAFE,2)
-   i2_u = UBOUND(SrcbeddoesData%DFAFE,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%DFAFE)) THEN 
-      ALLOCATE(DstbeddoesData%DFAFE(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%DFAFE)) THEN
+   i1_l = LBOUND(SrcBeddoesData%DFAFE,1)
+   i1_u = UBOUND(SrcBeddoesData%DFAFE,1)
+   i2_l = LBOUND(SrcBeddoesData%DFAFE,2)
+   i2_u = UBOUND(SrcBeddoesData%DFAFE,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%DFAFE)) THEN 
+      ALLOCATE(DstBeddoesData%DFAFE(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%DFAFE.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%DFAFE.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%DFAFE = SrcbeddoesData%DFAFE
+   DstBeddoesData%DFAFE = SrcBeddoesData%DFAFE
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%DFAFE1)) THEN
-   i1_l = LBOUND(SrcbeddoesData%DFAFE1,1)
-   i1_u = UBOUND(SrcbeddoesData%DFAFE1,1)
-   i2_l = LBOUND(SrcbeddoesData%DFAFE1,2)
-   i2_u = UBOUND(SrcbeddoesData%DFAFE1,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%DFAFE1)) THEN 
-      ALLOCATE(DstbeddoesData%DFAFE1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%DFAFE1)) THEN
+   i1_l = LBOUND(SrcBeddoesData%DFAFE1,1)
+   i1_u = UBOUND(SrcBeddoesData%DFAFE1,1)
+   i2_l = LBOUND(SrcBeddoesData%DFAFE1,2)
+   i2_u = UBOUND(SrcBeddoesData%DFAFE1,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%DFAFE1)) THEN 
+      ALLOCATE(DstBeddoesData%DFAFE1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%DFAFE1.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%DFAFE1.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%DFAFE1 = SrcbeddoesData%DFAFE1
+   DstBeddoesData%DFAFE1 = SrcBeddoesData%DFAFE1
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%DFC)) THEN
-   i1_l = LBOUND(SrcbeddoesData%DFC,1)
-   i1_u = UBOUND(SrcbeddoesData%DFC,1)
-   i2_l = LBOUND(SrcbeddoesData%DFC,2)
-   i2_u = UBOUND(SrcbeddoesData%DFC,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%DFC)) THEN 
-      ALLOCATE(DstbeddoesData%DFC(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%DFC)) THEN
+   i1_l = LBOUND(SrcBeddoesData%DFC,1)
+   i1_u = UBOUND(SrcBeddoesData%DFC,1)
+   i2_l = LBOUND(SrcBeddoesData%DFC,2)
+   i2_u = UBOUND(SrcBeddoesData%DFC,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%DFC)) THEN 
+      ALLOCATE(DstBeddoesData%DFC(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%DFC.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%DFC.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%DFC = SrcbeddoesData%DFC
+   DstBeddoesData%DFC = SrcBeddoesData%DFC
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%DN)) THEN
-   i1_l = LBOUND(SrcbeddoesData%DN,1)
-   i1_u = UBOUND(SrcbeddoesData%DN,1)
-   i2_l = LBOUND(SrcbeddoesData%DN,2)
-   i2_u = UBOUND(SrcbeddoesData%DN,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%DN)) THEN 
-      ALLOCATE(DstbeddoesData%DN(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%DN)) THEN
+   i1_l = LBOUND(SrcBeddoesData%DN,1)
+   i1_u = UBOUND(SrcBeddoesData%DN,1)
+   i2_l = LBOUND(SrcBeddoesData%DN,2)
+   i2_u = UBOUND(SrcBeddoesData%DN,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%DN)) THEN 
+      ALLOCATE(DstBeddoesData%DN(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%DN.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%DN.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%DN = SrcbeddoesData%DN
+   DstBeddoesData%DN = SrcBeddoesData%DN
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%DPP)) THEN
-   i1_l = LBOUND(SrcbeddoesData%DPP,1)
-   i1_u = UBOUND(SrcbeddoesData%DPP,1)
-   i2_l = LBOUND(SrcbeddoesData%DPP,2)
-   i2_u = UBOUND(SrcbeddoesData%DPP,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%DPP)) THEN 
-      ALLOCATE(DstbeddoesData%DPP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%DPP)) THEN
+   i1_l = LBOUND(SrcBeddoesData%DPP,1)
+   i1_u = UBOUND(SrcBeddoesData%DPP,1)
+   i2_l = LBOUND(SrcBeddoesData%DPP,2)
+   i2_u = UBOUND(SrcBeddoesData%DPP,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%DPP)) THEN 
+      ALLOCATE(DstBeddoesData%DPP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%DPP.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%DPP.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%DPP = SrcbeddoesData%DPP
+   DstBeddoesData%DPP = SrcBeddoesData%DPP
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%DQ)) THEN
-   i1_l = LBOUND(SrcbeddoesData%DQ,1)
-   i1_u = UBOUND(SrcbeddoesData%DQ,1)
-   i2_l = LBOUND(SrcbeddoesData%DQ,2)
-   i2_u = UBOUND(SrcbeddoesData%DQ,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%DQ)) THEN 
-      ALLOCATE(DstbeddoesData%DQ(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%DQ)) THEN
+   i1_l = LBOUND(SrcBeddoesData%DQ,1)
+   i1_u = UBOUND(SrcBeddoesData%DQ,1)
+   i2_l = LBOUND(SrcBeddoesData%DQ,2)
+   i2_u = UBOUND(SrcBeddoesData%DQ,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%DQ)) THEN 
+      ALLOCATE(DstBeddoesData%DQ(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%DQ.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%DQ.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%DQ = SrcbeddoesData%DQ
+   DstBeddoesData%DQ = SrcBeddoesData%DQ
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%DQP)) THEN
-   i1_l = LBOUND(SrcbeddoesData%DQP,1)
-   i1_u = UBOUND(SrcbeddoesData%DQP,1)
-   i2_l = LBOUND(SrcbeddoesData%DQP,2)
-   i2_u = UBOUND(SrcbeddoesData%DQP,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%DQP)) THEN 
-      ALLOCATE(DstbeddoesData%DQP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%DQP)) THEN
+   i1_l = LBOUND(SrcBeddoesData%DQP,1)
+   i1_u = UBOUND(SrcBeddoesData%DQP,1)
+   i2_l = LBOUND(SrcBeddoesData%DQP,2)
+   i2_u = UBOUND(SrcBeddoesData%DQP,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%DQP)) THEN 
+      ALLOCATE(DstBeddoesData%DQP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%DQP.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%DQP.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%DQP = SrcbeddoesData%DQP
+   DstBeddoesData%DQP = SrcBeddoesData%DQP
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%DQP1)) THEN
-   i1_l = LBOUND(SrcbeddoesData%DQP1,1)
-   i1_u = UBOUND(SrcbeddoesData%DQP1,1)
-   i2_l = LBOUND(SrcbeddoesData%DQP1,2)
-   i2_u = UBOUND(SrcbeddoesData%DQP1,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%DQP1)) THEN 
-      ALLOCATE(DstbeddoesData%DQP1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%DQP1)) THEN
+   i1_l = LBOUND(SrcBeddoesData%DQP1,1)
+   i1_u = UBOUND(SrcBeddoesData%DQP1,1)
+   i2_l = LBOUND(SrcBeddoesData%DQP1,2)
+   i2_u = UBOUND(SrcBeddoesData%DQP1,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%DQP1)) THEN 
+      ALLOCATE(DstBeddoesData%DQP1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%DQP1.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%DQP1.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%DQP1 = SrcbeddoesData%DQP1
+   DstBeddoesData%DQP1 = SrcBeddoesData%DQP1
 ENDIF
-   DstbeddoesData%DS = SrcbeddoesData%DS
-   DstbeddoesData%FK = SrcbeddoesData%FK
-   DstbeddoesData%FP = SrcbeddoesData%FP
-   DstbeddoesData%FPC = SrcbeddoesData%FPC
-IF (ALLOCATED(SrcbeddoesData%FSP)) THEN
-   i1_l = LBOUND(SrcbeddoesData%FSP,1)
-   i1_u = UBOUND(SrcbeddoesData%FSP,1)
-   i2_l = LBOUND(SrcbeddoesData%FSP,2)
-   i2_u = UBOUND(SrcbeddoesData%FSP,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%FSP)) THEN 
-      ALLOCATE(DstbeddoesData%FSP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+   DstBeddoesData%DS = SrcBeddoesData%DS
+   DstBeddoesData%FK = SrcBeddoesData%FK
+   DstBeddoesData%FP = SrcBeddoesData%FP
+   DstBeddoesData%FPC = SrcBeddoesData%FPC
+IF (ALLOCATED(SrcBeddoesData%FSP)) THEN
+   i1_l = LBOUND(SrcBeddoesData%FSP,1)
+   i1_u = UBOUND(SrcBeddoesData%FSP,1)
+   i2_l = LBOUND(SrcBeddoesData%FSP,2)
+   i2_u = UBOUND(SrcBeddoesData%FSP,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%FSP)) THEN 
+      ALLOCATE(DstBeddoesData%FSP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%FSP.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%FSP.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%FSP = SrcbeddoesData%FSP
+   DstBeddoesData%FSP = SrcBeddoesData%FSP
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%FSP1)) THEN
-   i1_l = LBOUND(SrcbeddoesData%FSP1,1)
-   i1_u = UBOUND(SrcbeddoesData%FSP1,1)
-   i2_l = LBOUND(SrcbeddoesData%FSP1,2)
-   i2_u = UBOUND(SrcbeddoesData%FSP1,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%FSP1)) THEN 
-      ALLOCATE(DstbeddoesData%FSP1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%FSP1)) THEN
+   i1_l = LBOUND(SrcBeddoesData%FSP1,1)
+   i1_u = UBOUND(SrcBeddoesData%FSP1,1)
+   i2_l = LBOUND(SrcBeddoesData%FSP1,2)
+   i2_u = UBOUND(SrcBeddoesData%FSP1,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%FSP1)) THEN 
+      ALLOCATE(DstBeddoesData%FSP1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%FSP1.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%FSP1.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%FSP1 = SrcbeddoesData%FSP1
+   DstBeddoesData%FSP1 = SrcBeddoesData%FSP1
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%FSPC)) THEN
-   i1_l = LBOUND(SrcbeddoesData%FSPC,1)
-   i1_u = UBOUND(SrcbeddoesData%FSPC,1)
-   i2_l = LBOUND(SrcbeddoesData%FSPC,2)
-   i2_u = UBOUND(SrcbeddoesData%FSPC,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%FSPC)) THEN 
-      ALLOCATE(DstbeddoesData%FSPC(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%FSPC)) THEN
+   i1_l = LBOUND(SrcBeddoesData%FSPC,1)
+   i1_u = UBOUND(SrcBeddoesData%FSPC,1)
+   i2_l = LBOUND(SrcBeddoesData%FSPC,2)
+   i2_u = UBOUND(SrcBeddoesData%FSPC,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%FSPC)) THEN 
+      ALLOCATE(DstBeddoesData%FSPC(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%FSPC.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%FSPC.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%FSPC = SrcbeddoesData%FSPC
+   DstBeddoesData%FSPC = SrcBeddoesData%FSPC
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%FSPC1)) THEN
-   i1_l = LBOUND(SrcbeddoesData%FSPC1,1)
-   i1_u = UBOUND(SrcbeddoesData%FSPC1,1)
-   i2_l = LBOUND(SrcbeddoesData%FSPC1,2)
-   i2_u = UBOUND(SrcbeddoesData%FSPC1,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%FSPC1)) THEN 
-      ALLOCATE(DstbeddoesData%FSPC1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%FSPC1)) THEN
+   i1_l = LBOUND(SrcBeddoesData%FSPC1,1)
+   i1_u = UBOUND(SrcBeddoesData%FSPC1,1)
+   i2_l = LBOUND(SrcBeddoesData%FSPC1,2)
+   i2_u = UBOUND(SrcBeddoesData%FSPC1,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%FSPC1)) THEN 
+      ALLOCATE(DstBeddoesData%FSPC1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%FSPC1.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%FSPC1.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%FSPC1 = SrcbeddoesData%FSPC1
+   DstBeddoesData%FSPC1 = SrcBeddoesData%FSPC1
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%FTB)) THEN
-   i1_l = LBOUND(SrcbeddoesData%FTB,1)
-   i1_u = UBOUND(SrcbeddoesData%FTB,1)
-   i2_l = LBOUND(SrcbeddoesData%FTB,2)
-   i2_u = UBOUND(SrcbeddoesData%FTB,2)
-   i3_l = LBOUND(SrcbeddoesData%FTB,3)
-   i3_u = UBOUND(SrcbeddoesData%FTB,3)
-   IF (.NOT. ALLOCATED(DstbeddoesData%FTB)) THEN 
-      ALLOCATE(DstbeddoesData%FTB(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%FTB)) THEN
+   i1_l = LBOUND(SrcBeddoesData%FTB,1)
+   i1_u = UBOUND(SrcBeddoesData%FTB,1)
+   i2_l = LBOUND(SrcBeddoesData%FTB,2)
+   i2_u = UBOUND(SrcBeddoesData%FTB,2)
+   i3_l = LBOUND(SrcBeddoesData%FTB,3)
+   i3_u = UBOUND(SrcBeddoesData%FTB,3)
+   IF (.NOT. ALLOCATED(DstBeddoesData%FTB)) THEN 
+      ALLOCATE(DstBeddoesData%FTB(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%FTB.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%FTB.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%FTB = SrcbeddoesData%FTB
+   DstBeddoesData%FTB = SrcBeddoesData%FTB
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%FTBC)) THEN
-   i1_l = LBOUND(SrcbeddoesData%FTBC,1)
-   i1_u = UBOUND(SrcbeddoesData%FTBC,1)
-   i2_l = LBOUND(SrcbeddoesData%FTBC,2)
-   i2_u = UBOUND(SrcbeddoesData%FTBC,2)
-   i3_l = LBOUND(SrcbeddoesData%FTBC,3)
-   i3_u = UBOUND(SrcbeddoesData%FTBC,3)
-   IF (.NOT. ALLOCATED(DstbeddoesData%FTBC)) THEN 
-      ALLOCATE(DstbeddoesData%FTBC(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%FTBC)) THEN
+   i1_l = LBOUND(SrcBeddoesData%FTBC,1)
+   i1_u = UBOUND(SrcBeddoesData%FTBC,1)
+   i2_l = LBOUND(SrcBeddoesData%FTBC,2)
+   i2_u = UBOUND(SrcBeddoesData%FTBC,2)
+   i3_l = LBOUND(SrcBeddoesData%FTBC,3)
+   i3_u = UBOUND(SrcBeddoesData%FTBC,3)
+   IF (.NOT. ALLOCATED(DstBeddoesData%FTBC)) THEN 
+      ALLOCATE(DstBeddoesData%FTBC(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%FTBC.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%FTBC.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%FTBC = SrcbeddoesData%FTBC
+   DstBeddoesData%FTBC = SrcBeddoesData%FTBC
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%OLDCNV)) THEN
-   i1_l = LBOUND(SrcbeddoesData%OLDCNV,1)
-   i1_u = UBOUND(SrcbeddoesData%OLDCNV,1)
-   i2_l = LBOUND(SrcbeddoesData%OLDCNV,2)
-   i2_u = UBOUND(SrcbeddoesData%OLDCNV,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%OLDCNV)) THEN 
-      ALLOCATE(DstbeddoesData%OLDCNV(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%OLDCNV)) THEN
+   i1_l = LBOUND(SrcBeddoesData%OLDCNV,1)
+   i1_u = UBOUND(SrcBeddoesData%OLDCNV,1)
+   i2_l = LBOUND(SrcBeddoesData%OLDCNV,2)
+   i2_u = UBOUND(SrcBeddoesData%OLDCNV,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%OLDCNV)) THEN 
+      ALLOCATE(DstBeddoesData%OLDCNV(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%OLDCNV.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%OLDCNV.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%OLDCNV = SrcbeddoesData%OLDCNV
+   DstBeddoesData%OLDCNV = SrcBeddoesData%OLDCNV
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%OLDDF)) THEN
-   i1_l = LBOUND(SrcbeddoesData%OLDDF,1)
-   i1_u = UBOUND(SrcbeddoesData%OLDDF,1)
-   i2_l = LBOUND(SrcbeddoesData%OLDDF,2)
-   i2_u = UBOUND(SrcbeddoesData%OLDDF,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%OLDDF)) THEN 
-      ALLOCATE(DstbeddoesData%OLDDF(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%OLDDF)) THEN
+   i1_l = LBOUND(SrcBeddoesData%OLDDF,1)
+   i1_u = UBOUND(SrcBeddoesData%OLDDF,1)
+   i2_l = LBOUND(SrcBeddoesData%OLDDF,2)
+   i2_u = UBOUND(SrcBeddoesData%OLDDF,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%OLDDF)) THEN 
+      ALLOCATE(DstBeddoesData%OLDDF(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%OLDDF.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%OLDDF.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%OLDDF = SrcbeddoesData%OLDDF
+   DstBeddoesData%OLDDF = SrcBeddoesData%OLDDF
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%OLDDFC)) THEN
-   i1_l = LBOUND(SrcbeddoesData%OLDDFC,1)
-   i1_u = UBOUND(SrcbeddoesData%OLDDFC,1)
-   i2_l = LBOUND(SrcbeddoesData%OLDDFC,2)
-   i2_u = UBOUND(SrcbeddoesData%OLDDFC,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%OLDDFC)) THEN 
-      ALLOCATE(DstbeddoesData%OLDDFC(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%OLDDFC)) THEN
+   i1_l = LBOUND(SrcBeddoesData%OLDDFC,1)
+   i1_u = UBOUND(SrcBeddoesData%OLDDFC,1)
+   i2_l = LBOUND(SrcBeddoesData%OLDDFC,2)
+   i2_u = UBOUND(SrcBeddoesData%OLDDFC,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%OLDDFC)) THEN 
+      ALLOCATE(DstBeddoesData%OLDDFC(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%OLDDFC.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%OLDDFC.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%OLDDFC = SrcbeddoesData%OLDDFC
+   DstBeddoesData%OLDDFC = SrcBeddoesData%OLDDFC
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%OLDDN)) THEN
-   i1_l = LBOUND(SrcbeddoesData%OLDDN,1)
-   i1_u = UBOUND(SrcbeddoesData%OLDDN,1)
-   i2_l = LBOUND(SrcbeddoesData%OLDDN,2)
-   i2_u = UBOUND(SrcbeddoesData%OLDDN,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%OLDDN)) THEN 
-      ALLOCATE(DstbeddoesData%OLDDN(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%OLDDN)) THEN
+   i1_l = LBOUND(SrcBeddoesData%OLDDN,1)
+   i1_u = UBOUND(SrcBeddoesData%OLDDN,1)
+   i2_l = LBOUND(SrcBeddoesData%OLDDN,2)
+   i2_u = UBOUND(SrcBeddoesData%OLDDN,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%OLDDN)) THEN 
+      ALLOCATE(DstBeddoesData%OLDDN(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%OLDDN.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%OLDDN.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%OLDDN = SrcbeddoesData%OLDDN
+   DstBeddoesData%OLDDN = SrcBeddoesData%OLDDN
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%OLDDPP)) THEN
-   i1_l = LBOUND(SrcbeddoesData%OLDDPP,1)
-   i1_u = UBOUND(SrcbeddoesData%OLDDPP,1)
-   i2_l = LBOUND(SrcbeddoesData%OLDDPP,2)
-   i2_u = UBOUND(SrcbeddoesData%OLDDPP,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%OLDDPP)) THEN 
-      ALLOCATE(DstbeddoesData%OLDDPP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%OLDDPP)) THEN
+   i1_l = LBOUND(SrcBeddoesData%OLDDPP,1)
+   i1_u = UBOUND(SrcBeddoesData%OLDDPP,1)
+   i2_l = LBOUND(SrcBeddoesData%OLDDPP,2)
+   i2_u = UBOUND(SrcBeddoesData%OLDDPP,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%OLDDPP)) THEN 
+      ALLOCATE(DstBeddoesData%OLDDPP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%OLDDPP.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%OLDDPP.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%OLDDPP = SrcbeddoesData%OLDDPP
+   DstBeddoesData%OLDDPP = SrcBeddoesData%OLDDPP
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%OLDDQ)) THEN
-   i1_l = LBOUND(SrcbeddoesData%OLDDQ,1)
-   i1_u = UBOUND(SrcbeddoesData%OLDDQ,1)
-   i2_l = LBOUND(SrcbeddoesData%OLDDQ,2)
-   i2_u = UBOUND(SrcbeddoesData%OLDDQ,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%OLDDQ)) THEN 
-      ALLOCATE(DstbeddoesData%OLDDQ(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%OLDDQ)) THEN
+   i1_l = LBOUND(SrcBeddoesData%OLDDQ,1)
+   i1_u = UBOUND(SrcBeddoesData%OLDDQ,1)
+   i2_l = LBOUND(SrcBeddoesData%OLDDQ,2)
+   i2_u = UBOUND(SrcBeddoesData%OLDDQ,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%OLDDQ)) THEN 
+      ALLOCATE(DstBeddoesData%OLDDQ(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%OLDDQ.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%OLDDQ.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%OLDDQ = SrcbeddoesData%OLDDQ
+   DstBeddoesData%OLDDQ = SrcBeddoesData%OLDDQ
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%OLDTAU)) THEN
-   i1_l = LBOUND(SrcbeddoesData%OLDTAU,1)
-   i1_u = UBOUND(SrcbeddoesData%OLDTAU,1)
-   i2_l = LBOUND(SrcbeddoesData%OLDTAU,2)
-   i2_u = UBOUND(SrcbeddoesData%OLDTAU,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%OLDTAU)) THEN 
-      ALLOCATE(DstbeddoesData%OLDTAU(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%OLDTAU)) THEN
+   i1_l = LBOUND(SrcBeddoesData%OLDTAU,1)
+   i1_u = UBOUND(SrcBeddoesData%OLDTAU,1)
+   i2_l = LBOUND(SrcBeddoesData%OLDTAU,2)
+   i2_u = UBOUND(SrcBeddoesData%OLDTAU,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%OLDTAU)) THEN 
+      ALLOCATE(DstBeddoesData%OLDTAU(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%OLDTAU.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%OLDTAU.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%OLDTAU = SrcbeddoesData%OLDTAU
+   DstBeddoesData%OLDTAU = SrcBeddoesData%OLDTAU
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%OLDXN)) THEN
-   i1_l = LBOUND(SrcbeddoesData%OLDXN,1)
-   i1_u = UBOUND(SrcbeddoesData%OLDXN,1)
-   i2_l = LBOUND(SrcbeddoesData%OLDXN,2)
-   i2_u = UBOUND(SrcbeddoesData%OLDXN,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%OLDXN)) THEN 
-      ALLOCATE(DstbeddoesData%OLDXN(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%OLDXN)) THEN
+   i1_l = LBOUND(SrcBeddoesData%OLDXN,1)
+   i1_u = UBOUND(SrcBeddoesData%OLDXN,1)
+   i2_l = LBOUND(SrcBeddoesData%OLDXN,2)
+   i2_u = UBOUND(SrcBeddoesData%OLDXN,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%OLDXN)) THEN 
+      ALLOCATE(DstBeddoesData%OLDXN(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%OLDXN.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%OLDXN.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%OLDXN = SrcbeddoesData%OLDXN
+   DstBeddoesData%OLDXN = SrcBeddoesData%OLDXN
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%OLDYN)) THEN
-   i1_l = LBOUND(SrcbeddoesData%OLDYN,1)
-   i1_u = UBOUND(SrcbeddoesData%OLDYN,1)
-   i2_l = LBOUND(SrcbeddoesData%OLDYN,2)
-   i2_u = UBOUND(SrcbeddoesData%OLDYN,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%OLDYN)) THEN 
-      ALLOCATE(DstbeddoesData%OLDYN(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%OLDYN)) THEN
+   i1_l = LBOUND(SrcBeddoesData%OLDYN,1)
+   i1_u = UBOUND(SrcBeddoesData%OLDYN,1)
+   i2_l = LBOUND(SrcBeddoesData%OLDYN,2)
+   i2_u = UBOUND(SrcBeddoesData%OLDYN,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%OLDYN)) THEN 
+      ALLOCATE(DstBeddoesData%OLDYN(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%OLDYN.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%OLDYN.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%OLDYN = SrcbeddoesData%OLDYN
+   DstBeddoesData%OLDYN = SrcBeddoesData%OLDYN
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%QX)) THEN
-   i1_l = LBOUND(SrcbeddoesData%QX,1)
-   i1_u = UBOUND(SrcbeddoesData%QX,1)
-   i2_l = LBOUND(SrcbeddoesData%QX,2)
-   i2_u = UBOUND(SrcbeddoesData%QX,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%QX)) THEN 
-      ALLOCATE(DstbeddoesData%QX(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%QX)) THEN
+   i1_l = LBOUND(SrcBeddoesData%QX,1)
+   i1_u = UBOUND(SrcBeddoesData%QX,1)
+   i2_l = LBOUND(SrcBeddoesData%QX,2)
+   i2_u = UBOUND(SrcBeddoesData%QX,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%QX)) THEN 
+      ALLOCATE(DstBeddoesData%QX(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%QX.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%QX.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%QX = SrcbeddoesData%QX
+   DstBeddoesData%QX = SrcBeddoesData%QX
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%QX1)) THEN
-   i1_l = LBOUND(SrcbeddoesData%QX1,1)
-   i1_u = UBOUND(SrcbeddoesData%QX1,1)
-   i2_l = LBOUND(SrcbeddoesData%QX1,2)
-   i2_u = UBOUND(SrcbeddoesData%QX1,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%QX1)) THEN 
-      ALLOCATE(DstbeddoesData%QX1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%QX1)) THEN
+   i1_l = LBOUND(SrcBeddoesData%QX1,1)
+   i1_u = UBOUND(SrcBeddoesData%QX1,1)
+   i2_l = LBOUND(SrcBeddoesData%QX1,2)
+   i2_u = UBOUND(SrcBeddoesData%QX1,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%QX1)) THEN 
+      ALLOCATE(DstBeddoesData%QX1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%QX1.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%QX1.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%QX1 = SrcbeddoesData%QX1
+   DstBeddoesData%QX1 = SrcBeddoesData%QX1
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%TAU)) THEN
-   i1_l = LBOUND(SrcbeddoesData%TAU,1)
-   i1_u = UBOUND(SrcbeddoesData%TAU,1)
-   i2_l = LBOUND(SrcbeddoesData%TAU,2)
-   i2_u = UBOUND(SrcbeddoesData%TAU,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%TAU)) THEN 
-      ALLOCATE(DstbeddoesData%TAU(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%TAU)) THEN
+   i1_l = LBOUND(SrcBeddoesData%TAU,1)
+   i1_u = UBOUND(SrcBeddoesData%TAU,1)
+   i2_l = LBOUND(SrcBeddoesData%TAU,2)
+   i2_u = UBOUND(SrcBeddoesData%TAU,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%TAU)) THEN 
+      ALLOCATE(DstBeddoesData%TAU(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%TAU.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%TAU.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%TAU = SrcbeddoesData%TAU
+   DstBeddoesData%TAU = SrcBeddoesData%TAU
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%XN)) THEN
-   i1_l = LBOUND(SrcbeddoesData%XN,1)
-   i1_u = UBOUND(SrcbeddoesData%XN,1)
-   i2_l = LBOUND(SrcbeddoesData%XN,2)
-   i2_u = UBOUND(SrcbeddoesData%XN,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%XN)) THEN 
-      ALLOCATE(DstbeddoesData%XN(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%XN)) THEN
+   i1_l = LBOUND(SrcBeddoesData%XN,1)
+   i1_u = UBOUND(SrcBeddoesData%XN,1)
+   i2_l = LBOUND(SrcBeddoesData%XN,2)
+   i2_u = UBOUND(SrcBeddoesData%XN,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%XN)) THEN 
+      ALLOCATE(DstBeddoesData%XN(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%XN.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%XN.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%XN = SrcbeddoesData%XN
+   DstBeddoesData%XN = SrcBeddoesData%XN
 ENDIF
-IF (ALLOCATED(SrcbeddoesData%YN)) THEN
-   i1_l = LBOUND(SrcbeddoesData%YN,1)
-   i1_u = UBOUND(SrcbeddoesData%YN,1)
-   i2_l = LBOUND(SrcbeddoesData%YN,2)
-   i2_u = UBOUND(SrcbeddoesData%YN,2)
-   IF (.NOT. ALLOCATED(DstbeddoesData%YN)) THEN 
-      ALLOCATE(DstbeddoesData%YN(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBeddoesData%YN)) THEN
+   i1_l = LBOUND(SrcBeddoesData%YN,1)
+   i1_u = UBOUND(SrcBeddoesData%YN,1)
+   i2_l = LBOUND(SrcBeddoesData%YN,2)
+   i2_u = UBOUND(SrcBeddoesData%YN,2)
+   IF (.NOT. ALLOCATED(DstBeddoesData%YN)) THEN 
+      ALLOCATE(DstBeddoesData%YN(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbeddoesData%YN.', ErrStat, ErrMsg,'AD_Copybeddoes')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBeddoesData%YN.', ErrStat, ErrMsg,'AD_CopyBeddoes')
          RETURN
       END IF
    END IF
-   DstbeddoesData%YN = SrcbeddoesData%YN
+   DstBeddoesData%YN = SrcBeddoesData%YN
 ENDIF
-   DstbeddoesData%SHIFT = SrcbeddoesData%SHIFT
-   DstbeddoesData%VOR = SrcbeddoesData%VOR
- END SUBROUTINE AD_Copybeddoes
+   DstBeddoesData%SHIFT = SrcBeddoesData%SHIFT
+   DstBeddoesData%VOR = SrcBeddoesData%VOR
+ END SUBROUTINE AD_CopyBeddoes
 
- SUBROUTINE AD_Destroybeddoes( beddoesData, ErrStat, ErrMsg )
-  TYPE(beddoes), INTENT(INOUT) :: beddoesData
+ SUBROUTINE AD_DestroyBeddoes( BeddoesData, ErrStat, ErrMsg )
+  TYPE(Beddoes), INTENT(INOUT) :: BeddoesData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(beddoesData%ADOT)) THEN
-   DEALLOCATE(beddoesData%ADOT)
+IF (ALLOCATED(BeddoesData%ADOT)) THEN
+   DEALLOCATE(BeddoesData%ADOT)
 ENDIF
-IF (ALLOCATED(beddoesData%ADOT1)) THEN
-   DEALLOCATE(beddoesData%ADOT1)
+IF (ALLOCATED(BeddoesData%ADOT1)) THEN
+   DEALLOCATE(BeddoesData%ADOT1)
 ENDIF
-IF (ALLOCATED(beddoesData%AFE)) THEN
-   DEALLOCATE(beddoesData%AFE)
+IF (ALLOCATED(BeddoesData%AFE)) THEN
+   DEALLOCATE(BeddoesData%AFE)
 ENDIF
-IF (ALLOCATED(beddoesData%AFE1)) THEN
-   DEALLOCATE(beddoesData%AFE1)
+IF (ALLOCATED(BeddoesData%AFE1)) THEN
+   DEALLOCATE(BeddoesData%AFE1)
 ENDIF
-IF (ALLOCATED(beddoesData%ANE)) THEN
-   DEALLOCATE(beddoesData%ANE)
+IF (ALLOCATED(BeddoesData%ANE)) THEN
+   DEALLOCATE(BeddoesData%ANE)
 ENDIF
-IF (ALLOCATED(beddoesData%ANE1)) THEN
-   DEALLOCATE(beddoesData%ANE1)
+IF (ALLOCATED(BeddoesData%ANE1)) THEN
+   DEALLOCATE(BeddoesData%ANE1)
 ENDIF
-IF (ALLOCATED(beddoesData%AOD)) THEN
-   DEALLOCATE(beddoesData%AOD)
+IF (ALLOCATED(BeddoesData%AOD)) THEN
+   DEALLOCATE(BeddoesData%AOD)
 ENDIF
-IF (ALLOCATED(beddoesData%AOL)) THEN
-   DEALLOCATE(beddoesData%AOL)
+IF (ALLOCATED(BeddoesData%AOL)) THEN
+   DEALLOCATE(BeddoesData%AOL)
 ENDIF
-IF (ALLOCATED(beddoesData%BEDSEP)) THEN
-   DEALLOCATE(beddoesData%BEDSEP)
+IF (ALLOCATED(BeddoesData%BEDSEP)) THEN
+   DEALLOCATE(BeddoesData%BEDSEP)
 ENDIF
-IF (ALLOCATED(beddoesData%OLDSEP)) THEN
-   DEALLOCATE(beddoesData%OLDSEP)
+IF (ALLOCATED(BeddoesData%OLDSEP)) THEN
+   DEALLOCATE(BeddoesData%OLDSEP)
 ENDIF
-IF (ALLOCATED(beddoesData%CDO)) THEN
-   DEALLOCATE(beddoesData%CDO)
+IF (ALLOCATED(BeddoesData%CDO)) THEN
+   DEALLOCATE(BeddoesData%CDO)
 ENDIF
-IF (ALLOCATED(beddoesData%CNA)) THEN
-   DEALLOCATE(beddoesData%CNA)
+IF (ALLOCATED(BeddoesData%CNA)) THEN
+   DEALLOCATE(BeddoesData%CNA)
 ENDIF
-IF (ALLOCATED(beddoesData%CNP)) THEN
-   DEALLOCATE(beddoesData%CNP)
+IF (ALLOCATED(BeddoesData%CNP)) THEN
+   DEALLOCATE(BeddoesData%CNP)
 ENDIF
-IF (ALLOCATED(beddoesData%CNP1)) THEN
-   DEALLOCATE(beddoesData%CNP1)
+IF (ALLOCATED(BeddoesData%CNP1)) THEN
+   DEALLOCATE(BeddoesData%CNP1)
 ENDIF
-IF (ALLOCATED(beddoesData%CNPD)) THEN
-   DEALLOCATE(beddoesData%CNPD)
+IF (ALLOCATED(BeddoesData%CNPD)) THEN
+   DEALLOCATE(BeddoesData%CNPD)
 ENDIF
-IF (ALLOCATED(beddoesData%CNPD1)) THEN
-   DEALLOCATE(beddoesData%CNPD1)
+IF (ALLOCATED(BeddoesData%CNPD1)) THEN
+   DEALLOCATE(BeddoesData%CNPD1)
 ENDIF
-IF (ALLOCATED(beddoesData%CNPOT)) THEN
-   DEALLOCATE(beddoesData%CNPOT)
+IF (ALLOCATED(BeddoesData%CNPOT)) THEN
+   DEALLOCATE(BeddoesData%CNPOT)
 ENDIF
-IF (ALLOCATED(beddoesData%CNPOT1)) THEN
-   DEALLOCATE(beddoesData%CNPOT1)
+IF (ALLOCATED(BeddoesData%CNPOT1)) THEN
+   DEALLOCATE(BeddoesData%CNPOT1)
 ENDIF
-IF (ALLOCATED(beddoesData%CNS)) THEN
-   DEALLOCATE(beddoesData%CNS)
+IF (ALLOCATED(BeddoesData%CNS)) THEN
+   DEALLOCATE(BeddoesData%CNS)
 ENDIF
-IF (ALLOCATED(beddoesData%CNSL)) THEN
-   DEALLOCATE(beddoesData%CNSL)
+IF (ALLOCATED(BeddoesData%CNSL)) THEN
+   DEALLOCATE(BeddoesData%CNSL)
 ENDIF
-IF (ALLOCATED(beddoesData%CNV)) THEN
-   DEALLOCATE(beddoesData%CNV)
+IF (ALLOCATED(BeddoesData%CNV)) THEN
+   DEALLOCATE(BeddoesData%CNV)
 ENDIF
-IF (ALLOCATED(beddoesData%CVN)) THEN
-   DEALLOCATE(beddoesData%CVN)
+IF (ALLOCATED(BeddoesData%CVN)) THEN
+   DEALLOCATE(BeddoesData%CVN)
 ENDIF
-IF (ALLOCATED(beddoesData%CVN1)) THEN
-   DEALLOCATE(beddoesData%CVN1)
+IF (ALLOCATED(BeddoesData%CVN1)) THEN
+   DEALLOCATE(BeddoesData%CVN1)
 ENDIF
-IF (ALLOCATED(beddoesData%DF)) THEN
-   DEALLOCATE(beddoesData%DF)
+IF (ALLOCATED(BeddoesData%DF)) THEN
+   DEALLOCATE(BeddoesData%DF)
 ENDIF
-IF (ALLOCATED(beddoesData%DFAFE)) THEN
-   DEALLOCATE(beddoesData%DFAFE)
+IF (ALLOCATED(BeddoesData%DFAFE)) THEN
+   DEALLOCATE(BeddoesData%DFAFE)
 ENDIF
-IF (ALLOCATED(beddoesData%DFAFE1)) THEN
-   DEALLOCATE(beddoesData%DFAFE1)
+IF (ALLOCATED(BeddoesData%DFAFE1)) THEN
+   DEALLOCATE(BeddoesData%DFAFE1)
 ENDIF
-IF (ALLOCATED(beddoesData%DFC)) THEN
-   DEALLOCATE(beddoesData%DFC)
+IF (ALLOCATED(BeddoesData%DFC)) THEN
+   DEALLOCATE(BeddoesData%DFC)
 ENDIF
-IF (ALLOCATED(beddoesData%DN)) THEN
-   DEALLOCATE(beddoesData%DN)
+IF (ALLOCATED(BeddoesData%DN)) THEN
+   DEALLOCATE(BeddoesData%DN)
 ENDIF
-IF (ALLOCATED(beddoesData%DPP)) THEN
-   DEALLOCATE(beddoesData%DPP)
+IF (ALLOCATED(BeddoesData%DPP)) THEN
+   DEALLOCATE(BeddoesData%DPP)
 ENDIF
-IF (ALLOCATED(beddoesData%DQ)) THEN
-   DEALLOCATE(beddoesData%DQ)
+IF (ALLOCATED(BeddoesData%DQ)) THEN
+   DEALLOCATE(BeddoesData%DQ)
 ENDIF
-IF (ALLOCATED(beddoesData%DQP)) THEN
-   DEALLOCATE(beddoesData%DQP)
+IF (ALLOCATED(BeddoesData%DQP)) THEN
+   DEALLOCATE(BeddoesData%DQP)
 ENDIF
-IF (ALLOCATED(beddoesData%DQP1)) THEN
-   DEALLOCATE(beddoesData%DQP1)
+IF (ALLOCATED(BeddoesData%DQP1)) THEN
+   DEALLOCATE(BeddoesData%DQP1)
 ENDIF
-IF (ALLOCATED(beddoesData%FSP)) THEN
-   DEALLOCATE(beddoesData%FSP)
+IF (ALLOCATED(BeddoesData%FSP)) THEN
+   DEALLOCATE(BeddoesData%FSP)
 ENDIF
-IF (ALLOCATED(beddoesData%FSP1)) THEN
-   DEALLOCATE(beddoesData%FSP1)
+IF (ALLOCATED(BeddoesData%FSP1)) THEN
+   DEALLOCATE(BeddoesData%FSP1)
 ENDIF
-IF (ALLOCATED(beddoesData%FSPC)) THEN
-   DEALLOCATE(beddoesData%FSPC)
+IF (ALLOCATED(BeddoesData%FSPC)) THEN
+   DEALLOCATE(BeddoesData%FSPC)
 ENDIF
-IF (ALLOCATED(beddoesData%FSPC1)) THEN
-   DEALLOCATE(beddoesData%FSPC1)
+IF (ALLOCATED(BeddoesData%FSPC1)) THEN
+   DEALLOCATE(BeddoesData%FSPC1)
 ENDIF
-IF (ALLOCATED(beddoesData%FTB)) THEN
-   DEALLOCATE(beddoesData%FTB)
+IF (ALLOCATED(BeddoesData%FTB)) THEN
+   DEALLOCATE(BeddoesData%FTB)
 ENDIF
-IF (ALLOCATED(beddoesData%FTBC)) THEN
-   DEALLOCATE(beddoesData%FTBC)
+IF (ALLOCATED(BeddoesData%FTBC)) THEN
+   DEALLOCATE(BeddoesData%FTBC)
 ENDIF
-IF (ALLOCATED(beddoesData%OLDCNV)) THEN
-   DEALLOCATE(beddoesData%OLDCNV)
+IF (ALLOCATED(BeddoesData%OLDCNV)) THEN
+   DEALLOCATE(BeddoesData%OLDCNV)
 ENDIF
-IF (ALLOCATED(beddoesData%OLDDF)) THEN
-   DEALLOCATE(beddoesData%OLDDF)
+IF (ALLOCATED(BeddoesData%OLDDF)) THEN
+   DEALLOCATE(BeddoesData%OLDDF)
 ENDIF
-IF (ALLOCATED(beddoesData%OLDDFC)) THEN
-   DEALLOCATE(beddoesData%OLDDFC)
+IF (ALLOCATED(BeddoesData%OLDDFC)) THEN
+   DEALLOCATE(BeddoesData%OLDDFC)
 ENDIF
-IF (ALLOCATED(beddoesData%OLDDN)) THEN
-   DEALLOCATE(beddoesData%OLDDN)
+IF (ALLOCATED(BeddoesData%OLDDN)) THEN
+   DEALLOCATE(BeddoesData%OLDDN)
 ENDIF
-IF (ALLOCATED(beddoesData%OLDDPP)) THEN
-   DEALLOCATE(beddoesData%OLDDPP)
+IF (ALLOCATED(BeddoesData%OLDDPP)) THEN
+   DEALLOCATE(BeddoesData%OLDDPP)
 ENDIF
-IF (ALLOCATED(beddoesData%OLDDQ)) THEN
-   DEALLOCATE(beddoesData%OLDDQ)
+IF (ALLOCATED(BeddoesData%OLDDQ)) THEN
+   DEALLOCATE(BeddoesData%OLDDQ)
 ENDIF
-IF (ALLOCATED(beddoesData%OLDTAU)) THEN
-   DEALLOCATE(beddoesData%OLDTAU)
+IF (ALLOCATED(BeddoesData%OLDTAU)) THEN
+   DEALLOCATE(BeddoesData%OLDTAU)
 ENDIF
-IF (ALLOCATED(beddoesData%OLDXN)) THEN
-   DEALLOCATE(beddoesData%OLDXN)
+IF (ALLOCATED(BeddoesData%OLDXN)) THEN
+   DEALLOCATE(BeddoesData%OLDXN)
 ENDIF
-IF (ALLOCATED(beddoesData%OLDYN)) THEN
-   DEALLOCATE(beddoesData%OLDYN)
+IF (ALLOCATED(BeddoesData%OLDYN)) THEN
+   DEALLOCATE(BeddoesData%OLDYN)
 ENDIF
-IF (ALLOCATED(beddoesData%QX)) THEN
-   DEALLOCATE(beddoesData%QX)
+IF (ALLOCATED(BeddoesData%QX)) THEN
+   DEALLOCATE(BeddoesData%QX)
 ENDIF
-IF (ALLOCATED(beddoesData%QX1)) THEN
-   DEALLOCATE(beddoesData%QX1)
+IF (ALLOCATED(BeddoesData%QX1)) THEN
+   DEALLOCATE(BeddoesData%QX1)
 ENDIF
-IF (ALLOCATED(beddoesData%TAU)) THEN
-   DEALLOCATE(beddoesData%TAU)
+IF (ALLOCATED(BeddoesData%TAU)) THEN
+   DEALLOCATE(BeddoesData%TAU)
 ENDIF
-IF (ALLOCATED(beddoesData%XN)) THEN
-   DEALLOCATE(beddoesData%XN)
+IF (ALLOCATED(BeddoesData%XN)) THEN
+   DEALLOCATE(BeddoesData%XN)
 ENDIF
-IF (ALLOCATED(beddoesData%YN)) THEN
-   DEALLOCATE(beddoesData%YN)
+IF (ALLOCATED(BeddoesData%YN)) THEN
+   DEALLOCATE(BeddoesData%YN)
 ENDIF
- END SUBROUTINE AD_Destroybeddoes
+ END SUBROUTINE AD_DestroyBeddoes
 
- SUBROUTINE AD_Packbeddoes( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackBeddoes( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(beddoes),  INTENT(INOUT) :: InData
+  TYPE(Beddoes),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -2871,13 +2888,13 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%VOR ), IntKiBuf(1), 1)
   Int_Xferred   = Int_Xferred   + 1
- END SUBROUTINE AD_Packbeddoes
+ END SUBROUTINE AD_PackBeddoes
 
- SUBROUTINE AD_UnPackbeddoes( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackBeddoes( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(beddoes), INTENT(INOUT) :: OutData
+  TYPE(Beddoes), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -2907,25 +2924,29 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%ADOT) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%ADOT,1),SIZE(OutData%ADOT,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%ADOT,1),SIZE(OutData%ADOT,2)))
+  mask2 = .TRUE.
     OutData%ADOT = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ADOT))-1 ),mask2,OutData%ADOT)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%ADOT)
   ENDIF
   IF ( ALLOCATED(OutData%ADOT1) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%ADOT1,1),SIZE(OutData%ADOT1,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%ADOT1,1),SIZE(OutData%ADOT1,2)))
+  mask2 = .TRUE.
     OutData%ADOT1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ADOT1))-1 ),mask2,OutData%ADOT1)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%ADOT1)
   ENDIF
   IF ( ALLOCATED(OutData%AFE) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%AFE,1),SIZE(OutData%AFE,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%AFE,1),SIZE(OutData%AFE,2)))
+  mask2 = .TRUE.
     OutData%AFE = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AFE))-1 ),mask2,OutData%AFE)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%AFE)
   ENDIF
   IF ( ALLOCATED(OutData%AFE1) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%AFE1,1),SIZE(OutData%AFE1,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%AFE1,1),SIZE(OutData%AFE1,2)))
+  mask2 = .TRUE.
     OutData%AFE1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AFE1))-1 ),mask2,OutData%AFE1)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%AFE1)
@@ -2933,25 +2954,29 @@ ENDIF
   OutData%AN = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%ANE) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%ANE,1),SIZE(OutData%ANE,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%ANE,1),SIZE(OutData%ANE,2)))
+  mask2 = .TRUE.
     OutData%ANE = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ANE))-1 ),mask2,OutData%ANE)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%ANE)
   ENDIF
   IF ( ALLOCATED(OutData%ANE1) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%ANE1,1),SIZE(OutData%ANE1,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%ANE1,1),SIZE(OutData%ANE1,2)))
+  mask2 = .TRUE.
     OutData%ANE1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ANE1))-1 ),mask2,OutData%ANE1)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%ANE1)
   ENDIF
   IF ( ALLOCATED(OutData%AOD) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%AOD,1),SIZE(OutData%AOD,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%AOD,1),SIZE(OutData%AOD,2)))
+  mask2 = .TRUE.
     OutData%AOD = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AOD))-1 ),mask2,OutData%AOD)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%AOD)
   ENDIF
   IF ( ALLOCATED(OutData%AOL) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%AOL,1),SIZE(OutData%AOL,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%AOL,1),SIZE(OutData%AOL,2)))
+  mask2 = .TRUE.
     OutData%AOL = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AOL))-1 ),mask2,OutData%AOL)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%AOL)
@@ -2963,7 +2988,8 @@ ENDIF
   OutData%CC = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%CDO) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%CDO,1),SIZE(OutData%CDO,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%CDO,1),SIZE(OutData%CDO,2)))
+  mask2 = .TRUE.
     OutData%CDO = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CDO))-1 ),mask2,OutData%CDO)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CDO)
@@ -2975,7 +3001,8 @@ ENDIF
   OutData%CN = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%CNA) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%CNA,1),SIZE(OutData%CNA,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%CNA,1),SIZE(OutData%CNA,2)))
+  mask2 = .TRUE.
     OutData%CNA = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CNA))-1 ),mask2,OutData%CNA)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CNA)
@@ -2985,121 +3012,141 @@ ENDIF
   OutData%CNIQ = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%CNP) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%CNP,1),SIZE(OutData%CNP,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%CNP,1),SIZE(OutData%CNP,2)))
+  mask2 = .TRUE.
     OutData%CNP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CNP))-1 ),mask2,OutData%CNP)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CNP)
   ENDIF
   IF ( ALLOCATED(OutData%CNP1) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%CNP1,1),SIZE(OutData%CNP1,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%CNP1,1),SIZE(OutData%CNP1,2)))
+  mask2 = .TRUE.
     OutData%CNP1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CNP1))-1 ),mask2,OutData%CNP1)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CNP1)
   ENDIF
   IF ( ALLOCATED(OutData%CNPD) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%CNPD,1),SIZE(OutData%CNPD,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%CNPD,1),SIZE(OutData%CNPD,2)))
+  mask2 = .TRUE.
     OutData%CNPD = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CNPD))-1 ),mask2,OutData%CNPD)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CNPD)
   ENDIF
   IF ( ALLOCATED(OutData%CNPD1) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%CNPD1,1),SIZE(OutData%CNPD1,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%CNPD1,1),SIZE(OutData%CNPD1,2)))
+  mask2 = .TRUE.
     OutData%CNPD1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CNPD1))-1 ),mask2,OutData%CNPD1)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CNPD1)
   ENDIF
   IF ( ALLOCATED(OutData%CNPOT) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%CNPOT,1),SIZE(OutData%CNPOT,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%CNPOT,1),SIZE(OutData%CNPOT,2)))
+  mask2 = .TRUE.
     OutData%CNPOT = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CNPOT))-1 ),mask2,OutData%CNPOT)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CNPOT)
   ENDIF
   IF ( ALLOCATED(OutData%CNPOT1) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%CNPOT1,1),SIZE(OutData%CNPOT1,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%CNPOT1,1),SIZE(OutData%CNPOT1,2)))
+  mask2 = .TRUE.
     OutData%CNPOT1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CNPOT1))-1 ),mask2,OutData%CNPOT1)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CNPOT1)
   ENDIF
   IF ( ALLOCATED(OutData%CNS) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%CNS,1),SIZE(OutData%CNS,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%CNS,1),SIZE(OutData%CNS,2)))
+  mask2 = .TRUE.
     OutData%CNS = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CNS))-1 ),mask2,OutData%CNS)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CNS)
   ENDIF
   IF ( ALLOCATED(OutData%CNSL) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%CNSL,1),SIZE(OutData%CNSL,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%CNSL,1),SIZE(OutData%CNSL,2)))
+  mask2 = .TRUE.
     OutData%CNSL = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CNSL))-1 ),mask2,OutData%CNSL)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CNSL)
   ENDIF
   IF ( ALLOCATED(OutData%CNV) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%CNV,1),SIZE(OutData%CNV,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%CNV,1),SIZE(OutData%CNV,2)))
+  mask2 = .TRUE.
     OutData%CNV = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CNV))-1 ),mask2,OutData%CNV)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CNV)
   ENDIF
   IF ( ALLOCATED(OutData%CVN) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%CVN,1),SIZE(OutData%CVN,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%CVN,1),SIZE(OutData%CVN,2)))
+  mask2 = .TRUE.
     OutData%CVN = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CVN))-1 ),mask2,OutData%CVN)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CVN)
   ENDIF
   IF ( ALLOCATED(OutData%CVN1) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%CVN1,1),SIZE(OutData%CVN1,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%CVN1,1),SIZE(OutData%CVN1,2)))
+  mask2 = .TRUE.
     OutData%CVN1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CVN1))-1 ),mask2,OutData%CVN1)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CVN1)
   ENDIF
   IF ( ALLOCATED(OutData%DF) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%DF,1),SIZE(OutData%DF,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%DF,1),SIZE(OutData%DF,2)))
+  mask2 = .TRUE.
     OutData%DF = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DF))-1 ),mask2,OutData%DF)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%DF)
   ENDIF
   IF ( ALLOCATED(OutData%DFAFE) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%DFAFE,1),SIZE(OutData%DFAFE,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%DFAFE,1),SIZE(OutData%DFAFE,2)))
+  mask2 = .TRUE.
     OutData%DFAFE = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DFAFE))-1 ),mask2,OutData%DFAFE)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%DFAFE)
   ENDIF
   IF ( ALLOCATED(OutData%DFAFE1) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%DFAFE1,1),SIZE(OutData%DFAFE1,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%DFAFE1,1),SIZE(OutData%DFAFE1,2)))
+  mask2 = .TRUE.
     OutData%DFAFE1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DFAFE1))-1 ),mask2,OutData%DFAFE1)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%DFAFE1)
   ENDIF
   IF ( ALLOCATED(OutData%DFC) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%DFC,1),SIZE(OutData%DFC,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%DFC,1),SIZE(OutData%DFC,2)))
+  mask2 = .TRUE.
     OutData%DFC = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DFC))-1 ),mask2,OutData%DFC)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%DFC)
   ENDIF
   IF ( ALLOCATED(OutData%DN) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%DN,1),SIZE(OutData%DN,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%DN,1),SIZE(OutData%DN,2)))
+  mask2 = .TRUE.
     OutData%DN = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DN))-1 ),mask2,OutData%DN)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%DN)
   ENDIF
   IF ( ALLOCATED(OutData%DPP) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%DPP,1),SIZE(OutData%DPP,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%DPP,1),SIZE(OutData%DPP,2)))
+  mask2 = .TRUE.
     OutData%DPP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DPP))-1 ),mask2,OutData%DPP)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%DPP)
   ENDIF
   IF ( ALLOCATED(OutData%DQ) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%DQ,1),SIZE(OutData%DQ,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%DQ,1),SIZE(OutData%DQ,2)))
+  mask2 = .TRUE.
     OutData%DQ = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DQ))-1 ),mask2,OutData%DQ)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%DQ)
   ENDIF
   IF ( ALLOCATED(OutData%DQP) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%DQP,1),SIZE(OutData%DQP,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%DQP,1),SIZE(OutData%DQP,2)))
+  mask2 = .TRUE.
     OutData%DQP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DQP))-1 ),mask2,OutData%DQP)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%DQP)
   ENDIF
   IF ( ALLOCATED(OutData%DQP1) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%DQP1,1),SIZE(OutData%DQP1,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%DQP1,1),SIZE(OutData%DQP1,2)))
+  mask2 = .TRUE.
     OutData%DQP1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DQP1))-1 ),mask2,OutData%DQP1)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%DQP1)
@@ -3113,121 +3160,141 @@ ENDIF
   OutData%FPC = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%FSP) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%FSP,1),SIZE(OutData%FSP,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%FSP,1),SIZE(OutData%FSP,2)))
+  mask2 = .TRUE.
     OutData%FSP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FSP))-1 ),mask2,OutData%FSP)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%FSP)
   ENDIF
   IF ( ALLOCATED(OutData%FSP1) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%FSP1,1),SIZE(OutData%FSP1,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%FSP1,1),SIZE(OutData%FSP1,2)))
+  mask2 = .TRUE.
     OutData%FSP1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FSP1))-1 ),mask2,OutData%FSP1)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%FSP1)
   ENDIF
   IF ( ALLOCATED(OutData%FSPC) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%FSPC,1),SIZE(OutData%FSPC,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%FSPC,1),SIZE(OutData%FSPC,2)))
+  mask2 = .TRUE.
     OutData%FSPC = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FSPC))-1 ),mask2,OutData%FSPC)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%FSPC)
   ENDIF
   IF ( ALLOCATED(OutData%FSPC1) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%FSPC1,1),SIZE(OutData%FSPC1,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%FSPC1,1),SIZE(OutData%FSPC1,2)))
+  mask2 = .TRUE.
     OutData%FSPC1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FSPC1))-1 ),mask2,OutData%FSPC1)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%FSPC1)
   ENDIF
   IF ( ALLOCATED(OutData%FTB) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%FTB,1),SIZE(OutData%FTB,2),SIZE(OutData%FTB,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%FTB,1),SIZE(OutData%FTB,2),SIZE(OutData%FTB,3)))
+  mask3 = .TRUE.
     OutData%FTB = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FTB))-1 ),mask3,OutData%FTB)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%FTB)
   ENDIF
   IF ( ALLOCATED(OutData%FTBC) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%FTBC,1),SIZE(OutData%FTBC,2),SIZE(OutData%FTBC,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%FTBC,1),SIZE(OutData%FTBC,2),SIZE(OutData%FTBC,3)))
+  mask3 = .TRUE.
     OutData%FTBC = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FTBC))-1 ),mask3,OutData%FTBC)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%FTBC)
   ENDIF
   IF ( ALLOCATED(OutData%OLDCNV) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%OLDCNV,1),SIZE(OutData%OLDCNV,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%OLDCNV,1),SIZE(OutData%OLDCNV,2)))
+  mask2 = .TRUE.
     OutData%OLDCNV = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%OLDCNV))-1 ),mask2,OutData%OLDCNV)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%OLDCNV)
   ENDIF
   IF ( ALLOCATED(OutData%OLDDF) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%OLDDF,1),SIZE(OutData%OLDDF,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%OLDDF,1),SIZE(OutData%OLDDF,2)))
+  mask2 = .TRUE.
     OutData%OLDDF = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%OLDDF))-1 ),mask2,OutData%OLDDF)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%OLDDF)
   ENDIF
   IF ( ALLOCATED(OutData%OLDDFC) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%OLDDFC,1),SIZE(OutData%OLDDFC,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%OLDDFC,1),SIZE(OutData%OLDDFC,2)))
+  mask2 = .TRUE.
     OutData%OLDDFC = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%OLDDFC))-1 ),mask2,OutData%OLDDFC)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%OLDDFC)
   ENDIF
   IF ( ALLOCATED(OutData%OLDDN) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%OLDDN,1),SIZE(OutData%OLDDN,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%OLDDN,1),SIZE(OutData%OLDDN,2)))
+  mask2 = .TRUE.
     OutData%OLDDN = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%OLDDN))-1 ),mask2,OutData%OLDDN)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%OLDDN)
   ENDIF
   IF ( ALLOCATED(OutData%OLDDPP) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%OLDDPP,1),SIZE(OutData%OLDDPP,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%OLDDPP,1),SIZE(OutData%OLDDPP,2)))
+  mask2 = .TRUE.
     OutData%OLDDPP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%OLDDPP))-1 ),mask2,OutData%OLDDPP)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%OLDDPP)
   ENDIF
   IF ( ALLOCATED(OutData%OLDDQ) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%OLDDQ,1),SIZE(OutData%OLDDQ,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%OLDDQ,1),SIZE(OutData%OLDDQ,2)))
+  mask2 = .TRUE.
     OutData%OLDDQ = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%OLDDQ))-1 ),mask2,OutData%OLDDQ)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%OLDDQ)
   ENDIF
   IF ( ALLOCATED(OutData%OLDTAU) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%OLDTAU,1),SIZE(OutData%OLDTAU,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%OLDTAU,1),SIZE(OutData%OLDTAU,2)))
+  mask2 = .TRUE.
     OutData%OLDTAU = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%OLDTAU))-1 ),mask2,OutData%OLDTAU)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%OLDTAU)
   ENDIF
   IF ( ALLOCATED(OutData%OLDXN) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%OLDXN,1),SIZE(OutData%OLDXN,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%OLDXN,1),SIZE(OutData%OLDXN,2)))
+  mask2 = .TRUE.
     OutData%OLDXN = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%OLDXN))-1 ),mask2,OutData%OLDXN)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%OLDXN)
   ENDIF
   IF ( ALLOCATED(OutData%OLDYN) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%OLDYN,1),SIZE(OutData%OLDYN,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%OLDYN,1),SIZE(OutData%OLDYN,2)))
+  mask2 = .TRUE.
     OutData%OLDYN = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%OLDYN))-1 ),mask2,OutData%OLDYN)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%OLDYN)
   ENDIF
   IF ( ALLOCATED(OutData%QX) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%QX,1),SIZE(OutData%QX,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%QX,1),SIZE(OutData%QX,2)))
+  mask2 = .TRUE.
     OutData%QX = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%QX))-1 ),mask2,OutData%QX)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%QX)
   ENDIF
   IF ( ALLOCATED(OutData%QX1) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%QX1,1),SIZE(OutData%QX1,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%QX1,1),SIZE(OutData%QX1,2)))
+  mask2 = .TRUE.
     OutData%QX1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%QX1))-1 ),mask2,OutData%QX1)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%QX1)
   ENDIF
   IF ( ALLOCATED(OutData%TAU) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%TAU,1),SIZE(OutData%TAU,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%TAU,1),SIZE(OutData%TAU,2)))
+  mask2 = .TRUE.
     OutData%TAU = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TAU))-1 ),mask2,OutData%TAU)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%TAU)
   ENDIF
   IF ( ALLOCATED(OutData%XN) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%XN,1),SIZE(OutData%XN,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%XN,1),SIZE(OutData%XN,2)))
+  mask2 = .TRUE.
     OutData%XN = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%XN))-1 ),mask2,OutData%XN)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%XN)
   ENDIF
   IF ( ALLOCATED(OutData%YN) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%YN,1),SIZE(OutData%YN,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%YN,1),SIZE(OutData%YN,2)))
+  mask2 = .TRUE.
     OutData%YN = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%YN))-1 ),mask2,OutData%YN)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%YN)
@@ -3235,45 +3302,46 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackbeddoes
+ END SUBROUTINE AD_UnPackBeddoes
 
- SUBROUTINE AD_Copybeddoesparms( SrcbeddoesparmsData, DstbeddoesparmsData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(beddoesparms), INTENT(INOUT) :: SrcbeddoesparmsData
-   TYPE(beddoesparms), INTENT(INOUT) :: DstbeddoesparmsData
+ SUBROUTINE AD_CopyBeddoesParms( SrcBeddoesParmsData, DstBeddoesParmsData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(BeddoesParms), INTENT(IN) :: SrcBeddoesParmsData
+   TYPE(BeddoesParms), INTENT(INOUT) :: DstBeddoesParmsData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstbeddoesparmsData%AS = SrcbeddoesparmsData%AS
-   DstbeddoesparmsData%TF = SrcbeddoesparmsData%TF
-   DstbeddoesparmsData%TP = SrcbeddoesparmsData%TP
-   DstbeddoesparmsData%TV = SrcbeddoesparmsData%TV
-   DstbeddoesparmsData%TVL = SrcbeddoesparmsData%TVL
- END SUBROUTINE AD_Copybeddoesparms
+   DstBeddoesParmsData%AS = SrcBeddoesParmsData%AS
+   DstBeddoesParmsData%TF = SrcBeddoesParmsData%TF
+   DstBeddoesParmsData%TP = SrcBeddoesParmsData%TP
+   DstBeddoesParmsData%TV = SrcBeddoesParmsData%TV
+   DstBeddoesParmsData%TVL = SrcBeddoesParmsData%TVL
+ END SUBROUTINE AD_CopyBeddoesParms
 
- SUBROUTINE AD_Destroybeddoesparms( beddoesparmsData, ErrStat, ErrMsg )
-  TYPE(beddoesparms), INTENT(INOUT) :: beddoesparmsData
+ SUBROUTINE AD_DestroyBeddoesParms( BeddoesParmsData, ErrStat, ErrMsg )
+  TYPE(BeddoesParms), INTENT(INOUT) :: BeddoesParmsData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE AD_Destroybeddoesparms
+ END SUBROUTINE AD_DestroyBeddoesParms
 
- SUBROUTINE AD_Packbeddoesparms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackBeddoesParms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(beddoesparms),  INTENT(INOUT) :: InData
+  TYPE(BeddoesParms),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -3321,13 +3389,13 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%TVL )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE AD_Packbeddoesparms
+ END SUBROUTINE AD_PackBeddoesParms
 
- SUBROUTINE AD_UnPackbeddoesparms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackBeddoesParms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(beddoesparms), INTENT(INOUT) :: OutData
+  TYPE(BeddoesParms), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -3369,72 +3437,73 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackbeddoesparms
+ END SUBROUTINE AD_UnPackBeddoesParms
 
- SUBROUTINE AD_Copybladeparms( SrcbladeparmsData, DstbladeparmsData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(bladeparms), INTENT(INOUT) :: SrcbladeparmsData
-   TYPE(bladeparms), INTENT(INOUT) :: DstbladeparmsData
+ SUBROUTINE AD_CopyBladeParms( SrcBladeParmsData, DstBladeParmsData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(BladeParms), INTENT(IN) :: SrcBladeParmsData
+   TYPE(BladeParms), INTENT(INOUT) :: DstBladeParmsData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ALLOCATED(SrcbladeparmsData%C)) THEN
-   i1_l = LBOUND(SrcbladeparmsData%C,1)
-   i1_u = UBOUND(SrcbladeparmsData%C,1)
-   IF (.NOT. ALLOCATED(DstbladeparmsData%C)) THEN 
-      ALLOCATE(DstbladeparmsData%C(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBladeParmsData%C)) THEN
+   i1_l = LBOUND(SrcBladeParmsData%C,1)
+   i1_u = UBOUND(SrcBladeParmsData%C,1)
+   IF (.NOT. ALLOCATED(DstBladeParmsData%C)) THEN 
+      ALLOCATE(DstBladeParmsData%C(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbladeparmsData%C.', ErrStat, ErrMsg,'AD_Copybladeparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBladeParmsData%C.', ErrStat, ErrMsg,'AD_CopyBladeParms')
          RETURN
       END IF
    END IF
-   DstbladeparmsData%C = SrcbladeparmsData%C
+   DstBladeParmsData%C = SrcBladeParmsData%C
 ENDIF
-IF (ALLOCATED(SrcbladeparmsData%DR)) THEN
-   i1_l = LBOUND(SrcbladeparmsData%DR,1)
-   i1_u = UBOUND(SrcbladeparmsData%DR,1)
-   IF (.NOT. ALLOCATED(DstbladeparmsData%DR)) THEN 
-      ALLOCATE(DstbladeparmsData%DR(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcBladeParmsData%DR)) THEN
+   i1_l = LBOUND(SrcBladeParmsData%DR,1)
+   i1_u = UBOUND(SrcBladeParmsData%DR,1)
+   IF (.NOT. ALLOCATED(DstBladeParmsData%DR)) THEN 
+      ALLOCATE(DstBladeParmsData%DR(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstbladeparmsData%DR.', ErrStat, ErrMsg,'AD_Copybladeparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBladeParmsData%DR.', ErrStat, ErrMsg,'AD_CopyBladeParms')
          RETURN
       END IF
    END IF
-   DstbladeparmsData%DR = SrcbladeparmsData%DR
+   DstBladeParmsData%DR = SrcBladeParmsData%DR
 ENDIF
-   DstbladeparmsData%R = SrcbladeparmsData%R
-   DstbladeparmsData%BladeLength = SrcbladeparmsData%BladeLength
- END SUBROUTINE AD_Copybladeparms
+   DstBladeParmsData%R = SrcBladeParmsData%R
+   DstBladeParmsData%BladeLength = SrcBladeParmsData%BladeLength
+ END SUBROUTINE AD_CopyBladeParms
 
- SUBROUTINE AD_Destroybladeparms( bladeparmsData, ErrStat, ErrMsg )
-  TYPE(bladeparms), INTENT(INOUT) :: bladeparmsData
+ SUBROUTINE AD_DestroyBladeParms( BladeParmsData, ErrStat, ErrMsg )
+  TYPE(BladeParms), INTENT(INOUT) :: BladeParmsData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(bladeparmsData%C)) THEN
-   DEALLOCATE(bladeparmsData%C)
+IF (ALLOCATED(BladeParmsData%C)) THEN
+   DEALLOCATE(BladeParmsData%C)
 ENDIF
-IF (ALLOCATED(bladeparmsData%DR)) THEN
-   DEALLOCATE(bladeparmsData%DR)
+IF (ALLOCATED(BladeParmsData%DR)) THEN
+   DEALLOCATE(BladeParmsData%DR)
 ENDIF
- END SUBROUTINE AD_Destroybladeparms
+ END SUBROUTINE AD_DestroyBladeParms
 
- SUBROUTINE AD_Packbladeparms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackBladeParms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(bladeparms),  INTENT(INOUT) :: InData
+  TYPE(BladeParms),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -3483,13 +3552,13 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%BladeLength )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE AD_Packbladeparms
+ END SUBROUTINE AD_PackBladeParms
 
- SUBROUTINE AD_UnPackbladeparms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackBladeParms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(bladeparms), INTENT(INOUT) :: OutData
+  TYPE(BladeParms), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -3519,13 +3588,15 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%C) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%C,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%C,1)))
+  mask1 = .TRUE.
     OutData%C = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%C))-1 ),mask1,OutData%C)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%C)
   ENDIF
   IF ( ALLOCATED(OutData%DR) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%DR,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%DR,1)))
+  mask1 = .TRUE.
     OutData%DR = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DR))-1 ),mask1,OutData%DR)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%DR)
@@ -3537,102 +3608,103 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackbladeparms
+ END SUBROUTINE AD_UnPackBladeParms
 
- SUBROUTINE AD_Copydyninflow( SrcdyninflowData, DstdyninflowData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(dyninflow), INTENT(INOUT) :: SrcdyninflowData
-   TYPE(dyninflow), INTENT(INOUT) :: DstdyninflowData
+ SUBROUTINE AD_CopyDynInflow( SrcDynInflowData, DstDynInflowData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(DynInflow), INTENT(IN) :: SrcDynInflowData
+   TYPE(DynInflow), INTENT(INOUT) :: DstDynInflowData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstdyninflowData%dAlph_dt = SrcdyninflowData%dAlph_dt
-   DstdyninflowData%dBeta_dt = SrcdyninflowData%dBeta_dt
-   DstdyninflowData%DTO = SrcdyninflowData%DTO
-   DstdyninflowData%old_Alph = SrcdyninflowData%old_Alph
-   DstdyninflowData%old_Beta = SrcdyninflowData%old_Beta
-   DstdyninflowData%old_LmdM = SrcdyninflowData%old_LmdM
-   DstdyninflowData%oldKai = SrcdyninflowData%oldKai
-   DstdyninflowData%PhiLqC = SrcdyninflowData%PhiLqC
-   DstdyninflowData%PhiLqS = SrcdyninflowData%PhiLqS
-   DstdyninflowData%Pzero = SrcdyninflowData%Pzero
-IF (ALLOCATED(SrcdyninflowData%RMC_SAVE)) THEN
-   i1_l = LBOUND(SrcdyninflowData%RMC_SAVE,1)
-   i1_u = UBOUND(SrcdyninflowData%RMC_SAVE,1)
-   i2_l = LBOUND(SrcdyninflowData%RMC_SAVE,2)
-   i2_u = UBOUND(SrcdyninflowData%RMC_SAVE,2)
-   i3_l = LBOUND(SrcdyninflowData%RMC_SAVE,3)
-   i3_u = UBOUND(SrcdyninflowData%RMC_SAVE,3)
-   IF (.NOT. ALLOCATED(DstdyninflowData%RMC_SAVE)) THEN 
-      ALLOCATE(DstdyninflowData%RMC_SAVE(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+   DstDynInflowData%dAlph_dt = SrcDynInflowData%dAlph_dt
+   DstDynInflowData%dBeta_dt = SrcDynInflowData%dBeta_dt
+   DstDynInflowData%DTO = SrcDynInflowData%DTO
+   DstDynInflowData%old_Alph = SrcDynInflowData%old_Alph
+   DstDynInflowData%old_Beta = SrcDynInflowData%old_Beta
+   DstDynInflowData%old_LmdM = SrcDynInflowData%old_LmdM
+   DstDynInflowData%oldKai = SrcDynInflowData%oldKai
+   DstDynInflowData%PhiLqC = SrcDynInflowData%PhiLqC
+   DstDynInflowData%PhiLqS = SrcDynInflowData%PhiLqS
+   DstDynInflowData%Pzero = SrcDynInflowData%Pzero
+IF (ALLOCATED(SrcDynInflowData%RMC_SAVE)) THEN
+   i1_l = LBOUND(SrcDynInflowData%RMC_SAVE,1)
+   i1_u = UBOUND(SrcDynInflowData%RMC_SAVE,1)
+   i2_l = LBOUND(SrcDynInflowData%RMC_SAVE,2)
+   i2_u = UBOUND(SrcDynInflowData%RMC_SAVE,2)
+   i3_l = LBOUND(SrcDynInflowData%RMC_SAVE,3)
+   i3_u = UBOUND(SrcDynInflowData%RMC_SAVE,3)
+   IF (.NOT. ALLOCATED(DstDynInflowData%RMC_SAVE)) THEN 
+      ALLOCATE(DstDynInflowData%RMC_SAVE(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstdyninflowData%RMC_SAVE.', ErrStat, ErrMsg,'AD_Copydyninflow')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstDynInflowData%RMC_SAVE.', ErrStat, ErrMsg,'AD_CopyDynInflow')
          RETURN
       END IF
    END IF
-   DstdyninflowData%RMC_SAVE = SrcdyninflowData%RMC_SAVE
+   DstDynInflowData%RMC_SAVE = SrcDynInflowData%RMC_SAVE
 ENDIF
-IF (ALLOCATED(SrcdyninflowData%RMS_SAVE)) THEN
-   i1_l = LBOUND(SrcdyninflowData%RMS_SAVE,1)
-   i1_u = UBOUND(SrcdyninflowData%RMS_SAVE,1)
-   i2_l = LBOUND(SrcdyninflowData%RMS_SAVE,2)
-   i2_u = UBOUND(SrcdyninflowData%RMS_SAVE,2)
-   i3_l = LBOUND(SrcdyninflowData%RMS_SAVE,3)
-   i3_u = UBOUND(SrcdyninflowData%RMS_SAVE,3)
-   IF (.NOT. ALLOCATED(DstdyninflowData%RMS_SAVE)) THEN 
-      ALLOCATE(DstdyninflowData%RMS_SAVE(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcDynInflowData%RMS_SAVE)) THEN
+   i1_l = LBOUND(SrcDynInflowData%RMS_SAVE,1)
+   i1_u = UBOUND(SrcDynInflowData%RMS_SAVE,1)
+   i2_l = LBOUND(SrcDynInflowData%RMS_SAVE,2)
+   i2_u = UBOUND(SrcDynInflowData%RMS_SAVE,2)
+   i3_l = LBOUND(SrcDynInflowData%RMS_SAVE,3)
+   i3_u = UBOUND(SrcDynInflowData%RMS_SAVE,3)
+   IF (.NOT. ALLOCATED(DstDynInflowData%RMS_SAVE)) THEN 
+      ALLOCATE(DstDynInflowData%RMS_SAVE(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstdyninflowData%RMS_SAVE.', ErrStat, ErrMsg,'AD_Copydyninflow')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstDynInflowData%RMS_SAVE.', ErrStat, ErrMsg,'AD_CopyDynInflow')
          RETURN
       END IF
    END IF
-   DstdyninflowData%RMS_SAVE = SrcdyninflowData%RMS_SAVE
+   DstDynInflowData%RMS_SAVE = SrcDynInflowData%RMS_SAVE
 ENDIF
-   DstdyninflowData%TipSpeed = SrcdyninflowData%TipSpeed
-   DstdyninflowData%totalInf = SrcdyninflowData%totalInf
-   DstdyninflowData%Vparam = SrcdyninflowData%Vparam
-   DstdyninflowData%Vtotal = SrcdyninflowData%Vtotal
-   DstdyninflowData%xAlpha = SrcdyninflowData%xAlpha
-   DstdyninflowData%xBeta = SrcdyninflowData%xBeta
-   DstdyninflowData%xKai = SrcdyninflowData%xKai
-   DstdyninflowData%XLAMBDA_M = SrcdyninflowData%XLAMBDA_M
-   DstdyninflowData%xLcos = SrcdyninflowData%xLcos
-   DstdyninflowData%xLsin = SrcdyninflowData%xLsin
-   DstdyninflowData%MminR = SrcdyninflowData%MminR
-   DstdyninflowData%MminusR = SrcdyninflowData%MminusR
-   DstdyninflowData%MplusR = SrcdyninflowData%MplusR
-   DstdyninflowData%GAMMA = SrcdyninflowData%GAMMA
- END SUBROUTINE AD_Copydyninflow
+   DstDynInflowData%TipSpeed = SrcDynInflowData%TipSpeed
+   DstDynInflowData%totalInf = SrcDynInflowData%totalInf
+   DstDynInflowData%Vparam = SrcDynInflowData%Vparam
+   DstDynInflowData%Vtotal = SrcDynInflowData%Vtotal
+   DstDynInflowData%xAlpha = SrcDynInflowData%xAlpha
+   DstDynInflowData%xBeta = SrcDynInflowData%xBeta
+   DstDynInflowData%xKai = SrcDynInflowData%xKai
+   DstDynInflowData%XLAMBDA_M = SrcDynInflowData%XLAMBDA_M
+   DstDynInflowData%xLcos = SrcDynInflowData%xLcos
+   DstDynInflowData%xLsin = SrcDynInflowData%xLsin
+   DstDynInflowData%MminR = SrcDynInflowData%MminR
+   DstDynInflowData%MminusR = SrcDynInflowData%MminusR
+   DstDynInflowData%MplusR = SrcDynInflowData%MplusR
+   DstDynInflowData%GAMMA = SrcDynInflowData%GAMMA
+ END SUBROUTINE AD_CopyDynInflow
 
- SUBROUTINE AD_Destroydyninflow( dyninflowData, ErrStat, ErrMsg )
-  TYPE(dyninflow), INTENT(INOUT) :: dyninflowData
+ SUBROUTINE AD_DestroyDynInflow( DynInflowData, ErrStat, ErrMsg )
+  TYPE(DynInflow), INTENT(INOUT) :: DynInflowData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(dyninflowData%RMC_SAVE)) THEN
-   DEALLOCATE(dyninflowData%RMC_SAVE)
+IF (ALLOCATED(DynInflowData%RMC_SAVE)) THEN
+   DEALLOCATE(DynInflowData%RMC_SAVE)
 ENDIF
-IF (ALLOCATED(dyninflowData%RMS_SAVE)) THEN
-   DEALLOCATE(dyninflowData%RMS_SAVE)
+IF (ALLOCATED(DynInflowData%RMS_SAVE)) THEN
+   DEALLOCATE(DynInflowData%RMS_SAVE)
 ENDIF
- END SUBROUTINE AD_Destroydyninflow
+ END SUBROUTINE AD_DestroyDynInflow
 
- SUBROUTINE AD_Packdyninflow( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackDynInflow( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(dyninflow),  INTENT(INOUT) :: InData
+  TYPE(DynInflow),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -3747,13 +3819,13 @@ ENDIF
   Int_Xferred   = Int_Xferred   + SIZE(InData%MplusR)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%GAMMA))-1 ) =  PACK(InData%GAMMA ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%GAMMA)
- END SUBROUTINE AD_Packdyninflow
+ END SUBROUTINE AD_PackDynInflow
 
- SUBROUTINE AD_UnPackdyninflow( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackDynInflow( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(dyninflow), INTENT(INOUT) :: OutData
+  TYPE(DynInflow), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -3782,21 +3854,25 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  ALLOCATE(mask2(SIZE(OutData%dAlph_dt,1),SIZE(OutData%dAlph_dt,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%dAlph_dt,1),SIZE(OutData%dAlph_dt,2)))
+  mask2 = .TRUE.
   OutData%dAlph_dt = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%dAlph_dt))-1 ),mask2,OutData%dAlph_dt)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%dAlph_dt)
-  ALLOCATE(mask2(SIZE(OutData%dBeta_dt,1),SIZE(OutData%dBeta_dt,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%dBeta_dt,1),SIZE(OutData%dBeta_dt,2)))
+  mask2 = .TRUE.
   OutData%dBeta_dt = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%dBeta_dt))-1 ),mask2,OutData%dBeta_dt)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%dBeta_dt)
   OutData%DTO = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%old_Alph,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%old_Alph,1)))
+  mask1 = .TRUE.
   OutData%old_Alph = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%old_Alph))-1 ),mask1,OutData%old_Alph)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%old_Alph)
-  ALLOCATE(mask1(SIZE(OutData%old_Beta,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%old_Beta,1)))
+  mask1 = .TRUE.
   OutData%old_Beta = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%old_Beta))-1 ),mask1,OutData%old_Beta)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%old_Beta)
@@ -3804,24 +3880,28 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%oldKai = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%PhiLqC,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%PhiLqC,1)))
+  mask1 = .TRUE.
   OutData%PhiLqC = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PhiLqC))-1 ),mask1,OutData%PhiLqC)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%PhiLqC)
-  ALLOCATE(mask1(SIZE(OutData%PhiLqS,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%PhiLqS,1)))
+  mask1 = .TRUE.
   OutData%PhiLqS = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PhiLqS))-1 ),mask1,OutData%PhiLqS)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%PhiLqS)
   OutData%Pzero = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%RMC_SAVE) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%RMC_SAVE,1),SIZE(OutData%RMC_SAVE,2),SIZE(OutData%RMC_SAVE,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%RMC_SAVE,1),SIZE(OutData%RMC_SAVE,2),SIZE(OutData%RMC_SAVE,3)))
+  mask3 = .TRUE.
     OutData%RMC_SAVE = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%RMC_SAVE))-1 ),mask3,OutData%RMC_SAVE)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%RMC_SAVE)
   ENDIF
   IF ( ALLOCATED(OutData%RMS_SAVE) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%RMS_SAVE,1),SIZE(OutData%RMS_SAVE,2),SIZE(OutData%RMS_SAVE,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%RMS_SAVE,1),SIZE(OutData%RMS_SAVE,2),SIZE(OutData%RMS_SAVE,3)))
+  mask3 = .TRUE.
     OutData%RMS_SAVE = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%RMS_SAVE))-1 ),mask3,OutData%RMS_SAVE)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%RMS_SAVE)
@@ -3834,11 +3914,13 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%Vtotal = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%xAlpha,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%xAlpha,1)))
+  mask1 = .TRUE.
   OutData%xAlpha = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%xAlpha))-1 ),mask1,OutData%xAlpha)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%xAlpha)
-  ALLOCATE(mask1(SIZE(OutData%xBeta,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%xBeta,1)))
+  mask1 = .TRUE.
   OutData%xBeta = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%xBeta))-1 ),mask1,OutData%xBeta)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%xBeta)
@@ -3846,69 +3928,76 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%XLAMBDA_M = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  ALLOCATE(mask2(SIZE(OutData%xLcos,1),SIZE(OutData%xLcos,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%xLcos,1),SIZE(OutData%xLcos,2)))
+  mask2 = .TRUE.
   OutData%xLcos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%xLcos))-1 ),mask2,OutData%xLcos)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%xLcos)
-  ALLOCATE(mask2(SIZE(OutData%xLsin,1),SIZE(OutData%xLsin,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%xLsin,1),SIZE(OutData%xLsin,2)))
+  mask2 = .TRUE.
   OutData%xLsin = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%xLsin))-1 ),mask2,OutData%xLsin)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%xLsin)
-  ALLOCATE(mask2(SIZE(OutData%MminR,1),SIZE(OutData%MminR,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%MminR,1),SIZE(OutData%MminR,2)))
+  mask2 = .TRUE.
   OutData%MminR = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%MminR))-1 ),mask2,OutData%MminR)
   DEALLOCATE(mask2)
   Int_Xferred   = Int_Xferred   + SIZE(OutData%MminR)
-  ALLOCATE(mask2(SIZE(OutData%MminusR,1),SIZE(OutData%MminusR,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%MminusR,1),SIZE(OutData%MminusR,2)))
+  mask2 = .TRUE.
   OutData%MminusR = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%MminusR))-1 ),mask2,OutData%MminusR)
   DEALLOCATE(mask2)
   Int_Xferred   = Int_Xferred   + SIZE(OutData%MminusR)
-  ALLOCATE(mask2(SIZE(OutData%MplusR,1),SIZE(OutData%MplusR,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%MplusR,1),SIZE(OutData%MplusR,2)))
+  mask2 = .TRUE.
   OutData%MplusR = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%MplusR))-1 ),mask2,OutData%MplusR)
   DEALLOCATE(mask2)
   Int_Xferred   = Int_Xferred   + SIZE(OutData%MplusR)
-  ALLOCATE(mask2(SIZE(OutData%GAMMA,1),SIZE(OutData%GAMMA,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%GAMMA,1),SIZE(OutData%GAMMA,2)))
+  mask2 = .TRUE.
   OutData%GAMMA = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%GAMMA))-1 ),mask2,OutData%GAMMA)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%GAMMA)
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackdyninflow
+ END SUBROUTINE AD_UnPackDynInflow
 
- SUBROUTINE AD_Copydyninflowparms( SrcdyninflowparmsData, DstdyninflowparmsData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(dyninflowparms), INTENT(INOUT) :: SrcdyninflowparmsData
-   TYPE(dyninflowparms), INTENT(INOUT) :: DstdyninflowparmsData
+ SUBROUTINE AD_CopyDynInflowParms( SrcDynInflowParmsData, DstDynInflowParmsData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(DynInflowParms), INTENT(IN) :: SrcDynInflowParmsData
+   TYPE(DynInflowParms), INTENT(INOUT) :: DstDynInflowParmsData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstdyninflowparmsData%MAXINFLO = SrcdyninflowparmsData%MAXINFLO
-   DstdyninflowparmsData%xMinv = SrcdyninflowparmsData%xMinv
- END SUBROUTINE AD_Copydyninflowparms
+   DstDynInflowParmsData%MAXINFLO = SrcDynInflowParmsData%MAXINFLO
+   DstDynInflowParmsData%xMinv = SrcDynInflowParmsData%xMinv
+ END SUBROUTINE AD_CopyDynInflowParms
 
- SUBROUTINE AD_Destroydyninflowparms( dyninflowparmsData, ErrStat, ErrMsg )
-  TYPE(dyninflowparms), INTENT(INOUT) :: dyninflowparmsData
+ SUBROUTINE AD_DestroyDynInflowParms( DynInflowParmsData, ErrStat, ErrMsg )
+  TYPE(DynInflowParms), INTENT(INOUT) :: DynInflowParmsData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE AD_Destroydyninflowparms
+ END SUBROUTINE AD_DestroyDynInflowParms
 
- SUBROUTINE AD_Packdyninflowparms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackDynInflowParms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(dyninflowparms),  INTENT(INOUT) :: InData
+  TYPE(DynInflowParms),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -3947,13 +4036,13 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%xMinv))-1 ) =  PACK(InData%xMinv ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%xMinv)
- END SUBROUTINE AD_Packdyninflowparms
+ END SUBROUTINE AD_PackDynInflowParms
 
- SUBROUTINE AD_UnPackdyninflowparms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackDynInflowParms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(dyninflowparms), INTENT(INOUT) :: OutData
+  TYPE(DynInflowParms), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -3984,150 +4073,152 @@ ENDIF
   Int_BufSz  = 0
   OutData%MAXINFLO = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%xMinv,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%xMinv,1)))
+  mask1 = .TRUE.
   OutData%xMinv = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%xMinv))-1 ),mask1,OutData%xMinv)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%xMinv)
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackdyninflowparms
+ END SUBROUTINE AD_UnPackDynInflowParms
 
- SUBROUTINE AD_Copyelement( SrcelementData, DstelementData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(element), INTENT(INOUT) :: SrcelementData
-   TYPE(element), INTENT(INOUT) :: DstelementData
+ SUBROUTINE AD_CopyElement( SrcElementData, DstElementData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Element), INTENT(IN) :: SrcElementData
+   TYPE(Element), INTENT(INOUT) :: DstElementData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ALLOCATED(SrcelementData%A)) THEN
-   i1_l = LBOUND(SrcelementData%A,1)
-   i1_u = UBOUND(SrcelementData%A,1)
-   i2_l = LBOUND(SrcelementData%A,2)
-   i2_u = UBOUND(SrcelementData%A,2)
-   IF (.NOT. ALLOCATED(DstelementData%A)) THEN 
-      ALLOCATE(DstelementData%A(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElementData%A)) THEN
+   i1_l = LBOUND(SrcElementData%A,1)
+   i1_u = UBOUND(SrcElementData%A,1)
+   i2_l = LBOUND(SrcElementData%A,2)
+   i2_u = UBOUND(SrcElementData%A,2)
+   IF (.NOT. ALLOCATED(DstElementData%A)) THEN 
+      ALLOCATE(DstElementData%A(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstelementData%A.', ErrStat, ErrMsg,'AD_Copyelement')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElementData%A.', ErrStat, ErrMsg,'AD_CopyElement')
          RETURN
       END IF
    END IF
-   DstelementData%A = SrcelementData%A
+   DstElementData%A = SrcElementData%A
 ENDIF
-IF (ALLOCATED(SrcelementData%AP)) THEN
-   i1_l = LBOUND(SrcelementData%AP,1)
-   i1_u = UBOUND(SrcelementData%AP,1)
-   i2_l = LBOUND(SrcelementData%AP,2)
-   i2_u = UBOUND(SrcelementData%AP,2)
-   IF (.NOT. ALLOCATED(DstelementData%AP)) THEN 
-      ALLOCATE(DstelementData%AP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElementData%AP)) THEN
+   i1_l = LBOUND(SrcElementData%AP,1)
+   i1_u = UBOUND(SrcElementData%AP,1)
+   i2_l = LBOUND(SrcElementData%AP,2)
+   i2_u = UBOUND(SrcElementData%AP,2)
+   IF (.NOT. ALLOCATED(DstElementData%AP)) THEN 
+      ALLOCATE(DstElementData%AP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstelementData%AP.', ErrStat, ErrMsg,'AD_Copyelement')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElementData%AP.', ErrStat, ErrMsg,'AD_CopyElement')
          RETURN
       END IF
    END IF
-   DstelementData%AP = SrcelementData%AP
+   DstElementData%AP = SrcElementData%AP
 ENDIF
-IF (ALLOCATED(SrcelementData%ALPHA)) THEN
-   i1_l = LBOUND(SrcelementData%ALPHA,1)
-   i1_u = UBOUND(SrcelementData%ALPHA,1)
-   i2_l = LBOUND(SrcelementData%ALPHA,2)
-   i2_u = UBOUND(SrcelementData%ALPHA,2)
-   IF (.NOT. ALLOCATED(DstelementData%ALPHA)) THEN 
-      ALLOCATE(DstelementData%ALPHA(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElementData%ALPHA)) THEN
+   i1_l = LBOUND(SrcElementData%ALPHA,1)
+   i1_u = UBOUND(SrcElementData%ALPHA,1)
+   i2_l = LBOUND(SrcElementData%ALPHA,2)
+   i2_u = UBOUND(SrcElementData%ALPHA,2)
+   IF (.NOT. ALLOCATED(DstElementData%ALPHA)) THEN 
+      ALLOCATE(DstElementData%ALPHA(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstelementData%ALPHA.', ErrStat, ErrMsg,'AD_Copyelement')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElementData%ALPHA.', ErrStat, ErrMsg,'AD_CopyElement')
          RETURN
       END IF
    END IF
-   DstelementData%ALPHA = SrcelementData%ALPHA
+   DstElementData%ALPHA = SrcElementData%ALPHA
 ENDIF
-IF (ALLOCATED(SrcelementData%W2)) THEN
-   i1_l = LBOUND(SrcelementData%W2,1)
-   i1_u = UBOUND(SrcelementData%W2,1)
-   i2_l = LBOUND(SrcelementData%W2,2)
-   i2_u = UBOUND(SrcelementData%W2,2)
-   IF (.NOT. ALLOCATED(DstelementData%W2)) THEN 
-      ALLOCATE(DstelementData%W2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElementData%W2)) THEN
+   i1_l = LBOUND(SrcElementData%W2,1)
+   i1_u = UBOUND(SrcElementData%W2,1)
+   i2_l = LBOUND(SrcElementData%W2,2)
+   i2_u = UBOUND(SrcElementData%W2,2)
+   IF (.NOT. ALLOCATED(DstElementData%W2)) THEN 
+      ALLOCATE(DstElementData%W2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstelementData%W2.', ErrStat, ErrMsg,'AD_Copyelement')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElementData%W2.', ErrStat, ErrMsg,'AD_CopyElement')
          RETURN
       END IF
    END IF
-   DstelementData%W2 = SrcelementData%W2
+   DstElementData%W2 = SrcElementData%W2
 ENDIF
-IF (ALLOCATED(SrcelementData%OLD_A_NS)) THEN
-   i1_l = LBOUND(SrcelementData%OLD_A_NS,1)
-   i1_u = UBOUND(SrcelementData%OLD_A_NS,1)
-   i2_l = LBOUND(SrcelementData%OLD_A_NS,2)
-   i2_u = UBOUND(SrcelementData%OLD_A_NS,2)
-   IF (.NOT. ALLOCATED(DstelementData%OLD_A_NS)) THEN 
-      ALLOCATE(DstelementData%OLD_A_NS(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElementData%OLD_A_NS)) THEN
+   i1_l = LBOUND(SrcElementData%OLD_A_NS,1)
+   i1_u = UBOUND(SrcElementData%OLD_A_NS,1)
+   i2_l = LBOUND(SrcElementData%OLD_A_NS,2)
+   i2_u = UBOUND(SrcElementData%OLD_A_NS,2)
+   IF (.NOT. ALLOCATED(DstElementData%OLD_A_NS)) THEN 
+      ALLOCATE(DstElementData%OLD_A_NS(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstelementData%OLD_A_NS.', ErrStat, ErrMsg,'AD_Copyelement')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElementData%OLD_A_NS.', ErrStat, ErrMsg,'AD_CopyElement')
          RETURN
       END IF
    END IF
-   DstelementData%OLD_A_NS = SrcelementData%OLD_A_NS
+   DstElementData%OLD_A_NS = SrcElementData%OLD_A_NS
 ENDIF
-IF (ALLOCATED(SrcelementData%OLD_AP_NS)) THEN
-   i1_l = LBOUND(SrcelementData%OLD_AP_NS,1)
-   i1_u = UBOUND(SrcelementData%OLD_AP_NS,1)
-   i2_l = LBOUND(SrcelementData%OLD_AP_NS,2)
-   i2_u = UBOUND(SrcelementData%OLD_AP_NS,2)
-   IF (.NOT. ALLOCATED(DstelementData%OLD_AP_NS)) THEN 
-      ALLOCATE(DstelementData%OLD_AP_NS(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElementData%OLD_AP_NS)) THEN
+   i1_l = LBOUND(SrcElementData%OLD_AP_NS,1)
+   i1_u = UBOUND(SrcElementData%OLD_AP_NS,1)
+   i2_l = LBOUND(SrcElementData%OLD_AP_NS,2)
+   i2_u = UBOUND(SrcElementData%OLD_AP_NS,2)
+   IF (.NOT. ALLOCATED(DstElementData%OLD_AP_NS)) THEN 
+      ALLOCATE(DstElementData%OLD_AP_NS(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstelementData%OLD_AP_NS.', ErrStat, ErrMsg,'AD_Copyelement')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElementData%OLD_AP_NS.', ErrStat, ErrMsg,'AD_CopyElement')
          RETURN
       END IF
    END IF
-   DstelementData%OLD_AP_NS = SrcelementData%OLD_AP_NS
+   DstElementData%OLD_AP_NS = SrcElementData%OLD_AP_NS
 ENDIF
-   DstelementData%PITNOW = SrcelementData%PITNOW
- END SUBROUTINE AD_Copyelement
+   DstElementData%PITNOW = SrcElementData%PITNOW
+ END SUBROUTINE AD_CopyElement
 
- SUBROUTINE AD_Destroyelement( elementData, ErrStat, ErrMsg )
-  TYPE(element), INTENT(INOUT) :: elementData
+ SUBROUTINE AD_DestroyElement( ElementData, ErrStat, ErrMsg )
+  TYPE(Element), INTENT(INOUT) :: ElementData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(elementData%A)) THEN
-   DEALLOCATE(elementData%A)
+IF (ALLOCATED(ElementData%A)) THEN
+   DEALLOCATE(ElementData%A)
 ENDIF
-IF (ALLOCATED(elementData%AP)) THEN
-   DEALLOCATE(elementData%AP)
+IF (ALLOCATED(ElementData%AP)) THEN
+   DEALLOCATE(ElementData%AP)
 ENDIF
-IF (ALLOCATED(elementData%ALPHA)) THEN
-   DEALLOCATE(elementData%ALPHA)
+IF (ALLOCATED(ElementData%ALPHA)) THEN
+   DEALLOCATE(ElementData%ALPHA)
 ENDIF
-IF (ALLOCATED(elementData%W2)) THEN
-   DEALLOCATE(elementData%W2)
+IF (ALLOCATED(ElementData%W2)) THEN
+   DEALLOCATE(ElementData%W2)
 ENDIF
-IF (ALLOCATED(elementData%OLD_A_NS)) THEN
-   DEALLOCATE(elementData%OLD_A_NS)
+IF (ALLOCATED(ElementData%OLD_A_NS)) THEN
+   DEALLOCATE(ElementData%OLD_A_NS)
 ENDIF
-IF (ALLOCATED(elementData%OLD_AP_NS)) THEN
-   DEALLOCATE(elementData%OLD_AP_NS)
+IF (ALLOCATED(ElementData%OLD_AP_NS)) THEN
+   DEALLOCATE(ElementData%OLD_AP_NS)
 ENDIF
- END SUBROUTINE AD_Destroyelement
+ END SUBROUTINE AD_DestroyElement
 
- SUBROUTINE AD_Packelement( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackElement( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(element),  INTENT(INOUT) :: InData
+  TYPE(Element),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -4193,13 +4284,13 @@ ENDIF
   ENDIF
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%PITNOW )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE AD_Packelement
+ END SUBROUTINE AD_PackElement
 
- SUBROUTINE AD_UnPackelement( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackElement( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(element), INTENT(INOUT) :: OutData
+  TYPE(Element), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -4229,37 +4320,43 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%A) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%A,1),SIZE(OutData%A,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%A,1),SIZE(OutData%A,2)))
+  mask2 = .TRUE.
     OutData%A = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%A))-1 ),mask2,OutData%A)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%A)
   ENDIF
   IF ( ALLOCATED(OutData%AP) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%AP,1),SIZE(OutData%AP,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%AP,1),SIZE(OutData%AP,2)))
+  mask2 = .TRUE.
     OutData%AP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AP))-1 ),mask2,OutData%AP)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%AP)
   ENDIF
   IF ( ALLOCATED(OutData%ALPHA) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%ALPHA,1),SIZE(OutData%ALPHA,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%ALPHA,1),SIZE(OutData%ALPHA,2)))
+  mask2 = .TRUE.
     OutData%ALPHA = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ALPHA))-1 ),mask2,OutData%ALPHA)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%ALPHA)
   ENDIF
   IF ( ALLOCATED(OutData%W2) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%W2,1),SIZE(OutData%W2,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%W2,1),SIZE(OutData%W2,2)))
+  mask2 = .TRUE.
     OutData%W2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%W2))-1 ),mask2,OutData%W2)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%W2)
   ENDIF
   IF ( ALLOCATED(OutData%OLD_A_NS) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%OLD_A_NS,1),SIZE(OutData%OLD_A_NS,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%OLD_A_NS,1),SIZE(OutData%OLD_A_NS,2)))
+  mask2 = .TRUE.
     OutData%OLD_A_NS = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%OLD_A_NS))-1 ),mask2,OutData%OLD_A_NS)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%OLD_A_NS)
   ENDIF
   IF ( ALLOCATED(OutData%OLD_AP_NS) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%OLD_AP_NS,1),SIZE(OutData%OLD_AP_NS,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%OLD_AP_NS,1),SIZE(OutData%OLD_AP_NS,2)))
+  mask2 = .TRUE.
     OutData%OLD_AP_NS = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%OLD_AP_NS))-1 ),mask2,OutData%OLD_AP_NS)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%OLD_AP_NS)
@@ -4269,101 +4366,102 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackelement
+ END SUBROUTINE AD_UnPackElement
 
- SUBROUTINE AD_Copyelementparms( SrcelementparmsData, DstelementparmsData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(elementparms), INTENT(INOUT) :: SrcelementparmsData
-   TYPE(elementparms), INTENT(INOUT) :: DstelementparmsData
+ SUBROUTINE AD_CopyElementParms( SrcElementParmsData, DstElementParmsData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(ElementParms), INTENT(IN) :: SrcElementParmsData
+   TYPE(ElementParms), INTENT(INOUT) :: DstElementParmsData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstelementparmsData%NELM = SrcelementparmsData%NELM
-IF (ALLOCATED(SrcelementparmsData%TWIST)) THEN
-   i1_l = LBOUND(SrcelementparmsData%TWIST,1)
-   i1_u = UBOUND(SrcelementparmsData%TWIST,1)
-   IF (.NOT. ALLOCATED(DstelementparmsData%TWIST)) THEN 
-      ALLOCATE(DstelementparmsData%TWIST(i1_l:i1_u),STAT=ErrStat2)
+   DstElementParmsData%NELM = SrcElementParmsData%NELM
+IF (ALLOCATED(SrcElementParmsData%TWIST)) THEN
+   i1_l = LBOUND(SrcElementParmsData%TWIST,1)
+   i1_u = UBOUND(SrcElementParmsData%TWIST,1)
+   IF (.NOT. ALLOCATED(DstElementParmsData%TWIST)) THEN 
+      ALLOCATE(DstElementParmsData%TWIST(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstelementparmsData%TWIST.', ErrStat, ErrMsg,'AD_Copyelementparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElementParmsData%TWIST.', ErrStat, ErrMsg,'AD_CopyElementParms')
          RETURN
       END IF
    END IF
-   DstelementparmsData%TWIST = SrcelementparmsData%TWIST
+   DstElementParmsData%TWIST = SrcElementParmsData%TWIST
 ENDIF
-IF (ALLOCATED(SrcelementparmsData%RELM)) THEN
-   i1_l = LBOUND(SrcelementparmsData%RELM,1)
-   i1_u = UBOUND(SrcelementparmsData%RELM,1)
-   IF (.NOT. ALLOCATED(DstelementparmsData%RELM)) THEN 
-      ALLOCATE(DstelementparmsData%RELM(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElementParmsData%RELM)) THEN
+   i1_l = LBOUND(SrcElementParmsData%RELM,1)
+   i1_u = UBOUND(SrcElementParmsData%RELM,1)
+   IF (.NOT. ALLOCATED(DstElementParmsData%RELM)) THEN 
+      ALLOCATE(DstElementParmsData%RELM(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstelementparmsData%RELM.', ErrStat, ErrMsg,'AD_Copyelementparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElementParmsData%RELM.', ErrStat, ErrMsg,'AD_CopyElementParms')
          RETURN
       END IF
    END IF
-   DstelementparmsData%RELM = SrcelementparmsData%RELM
+   DstElementParmsData%RELM = SrcElementParmsData%RELM
 ENDIF
-IF (ALLOCATED(SrcelementparmsData%HLCNST)) THEN
-   i1_l = LBOUND(SrcelementparmsData%HLCNST,1)
-   i1_u = UBOUND(SrcelementparmsData%HLCNST,1)
-   IF (.NOT. ALLOCATED(DstelementparmsData%HLCNST)) THEN 
-      ALLOCATE(DstelementparmsData%HLCNST(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElementParmsData%HLCNST)) THEN
+   i1_l = LBOUND(SrcElementParmsData%HLCNST,1)
+   i1_u = UBOUND(SrcElementParmsData%HLCNST,1)
+   IF (.NOT. ALLOCATED(DstElementParmsData%HLCNST)) THEN 
+      ALLOCATE(DstElementParmsData%HLCNST(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstelementparmsData%HLCNST.', ErrStat, ErrMsg,'AD_Copyelementparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElementParmsData%HLCNST.', ErrStat, ErrMsg,'AD_CopyElementParms')
          RETURN
       END IF
    END IF
-   DstelementparmsData%HLCNST = SrcelementparmsData%HLCNST
+   DstElementParmsData%HLCNST = SrcElementParmsData%HLCNST
 ENDIF
-IF (ALLOCATED(SrcelementparmsData%TLCNST)) THEN
-   i1_l = LBOUND(SrcelementparmsData%TLCNST,1)
-   i1_u = UBOUND(SrcelementparmsData%TLCNST,1)
-   IF (.NOT. ALLOCATED(DstelementparmsData%TLCNST)) THEN 
-      ALLOCATE(DstelementparmsData%TLCNST(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElementParmsData%TLCNST)) THEN
+   i1_l = LBOUND(SrcElementParmsData%TLCNST,1)
+   i1_u = UBOUND(SrcElementParmsData%TLCNST,1)
+   IF (.NOT. ALLOCATED(DstElementParmsData%TLCNST)) THEN 
+      ALLOCATE(DstElementParmsData%TLCNST(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstelementparmsData%TLCNST.', ErrStat, ErrMsg,'AD_Copyelementparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElementParmsData%TLCNST.', ErrStat, ErrMsg,'AD_CopyElementParms')
          RETURN
       END IF
    END IF
-   DstelementparmsData%TLCNST = SrcelementparmsData%TLCNST
+   DstElementParmsData%TLCNST = SrcElementParmsData%TLCNST
 ENDIF
- END SUBROUTINE AD_Copyelementparms
+ END SUBROUTINE AD_CopyElementParms
 
- SUBROUTINE AD_Destroyelementparms( elementparmsData, ErrStat, ErrMsg )
-  TYPE(elementparms), INTENT(INOUT) :: elementparmsData
+ SUBROUTINE AD_DestroyElementParms( ElementParmsData, ErrStat, ErrMsg )
+  TYPE(ElementParms), INTENT(INOUT) :: ElementParmsData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(elementparmsData%TWIST)) THEN
-   DEALLOCATE(elementparmsData%TWIST)
+IF (ALLOCATED(ElementParmsData%TWIST)) THEN
+   DEALLOCATE(ElementParmsData%TWIST)
 ENDIF
-IF (ALLOCATED(elementparmsData%RELM)) THEN
-   DEALLOCATE(elementparmsData%RELM)
+IF (ALLOCATED(ElementParmsData%RELM)) THEN
+   DEALLOCATE(ElementParmsData%RELM)
 ENDIF
-IF (ALLOCATED(elementparmsData%HLCNST)) THEN
-   DEALLOCATE(elementparmsData%HLCNST)
+IF (ALLOCATED(ElementParmsData%HLCNST)) THEN
+   DEALLOCATE(ElementParmsData%HLCNST)
 ENDIF
-IF (ALLOCATED(elementparmsData%TLCNST)) THEN
-   DEALLOCATE(elementparmsData%TLCNST)
+IF (ALLOCATED(ElementParmsData%TLCNST)) THEN
+   DEALLOCATE(ElementParmsData%TLCNST)
 ENDIF
- END SUBROUTINE AD_Destroyelementparms
+ END SUBROUTINE AD_DestroyElementParms
 
- SUBROUTINE AD_Packelementparms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackElementParms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(elementparms),  INTENT(INOUT) :: InData
+  TYPE(ElementParms),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -4419,13 +4517,13 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TLCNST))-1 ) =  PACK(InData%TLCNST ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%TLCNST)
   ENDIF
- END SUBROUTINE AD_Packelementparms
+ END SUBROUTINE AD_PackElementParms
 
- SUBROUTINE AD_UnPackelementparms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackElementParms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(elementparms), INTENT(INOUT) :: OutData
+  TYPE(ElementParms), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -4457,25 +4555,29 @@ ENDIF
   OutData%NELM = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%TWIST) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%TWIST,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%TWIST,1)))
+  mask1 = .TRUE.
     OutData%TWIST = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TWIST))-1 ),mask1,OutData%TWIST)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%TWIST)
   ENDIF
   IF ( ALLOCATED(OutData%RELM) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%RELM,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%RELM,1)))
+  mask1 = .TRUE.
     OutData%RELM = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%RELM))-1 ),mask1,OutData%RELM)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%RELM)
   ENDIF
   IF ( ALLOCATED(OutData%HLCNST) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%HLCNST,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%HLCNST,1)))
+  mask1 = .TRUE.
     OutData%HLCNST = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%HLCNST))-1 ),mask1,OutData%HLCNST)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%HLCNST)
   ENDIF
   IF ( ALLOCATED(OutData%TLCNST) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%TLCNST,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%TLCNST,1)))
+  mask1 = .TRUE.
     OutData%TLCNST = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TLCNST))-1 ),mask1,OutData%TLCNST)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%TLCNST)
@@ -4483,366 +4585,367 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackelementparms
+ END SUBROUTINE AD_UnPackElementParms
 
- SUBROUTINE AD_Copyeloutparms( SrceloutparmsData, DsteloutparmsData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(eloutparms), INTENT(INOUT) :: SrceloutparmsData
-   TYPE(eloutparms), INTENT(INOUT) :: DsteloutparmsData
+ SUBROUTINE AD_CopyElOutParms( SrcElOutParmsData, DstElOutParmsData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(ElOutParms), INTENT(IN) :: SrcElOutParmsData
+   TYPE(ElOutParms), INTENT(INOUT) :: DstElOutParmsData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ALLOCATED(SrceloutparmsData%AAA)) THEN
-   i1_l = LBOUND(SrceloutparmsData%AAA,1)
-   i1_u = UBOUND(SrceloutparmsData%AAA,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%AAA)) THEN 
-      ALLOCATE(DsteloutparmsData%AAA(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%AAA)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%AAA,1)
+   i1_u = UBOUND(SrcElOutParmsData%AAA,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%AAA)) THEN 
+      ALLOCATE(DstElOutParmsData%AAA(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%AAA.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%AAA.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%AAA = SrceloutparmsData%AAA
+   DstElOutParmsData%AAA = SrcElOutParmsData%AAA
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%AAP)) THEN
-   i1_l = LBOUND(SrceloutparmsData%AAP,1)
-   i1_u = UBOUND(SrceloutparmsData%AAP,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%AAP)) THEN 
-      ALLOCATE(DsteloutparmsData%AAP(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%AAP)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%AAP,1)
+   i1_u = UBOUND(SrcElOutParmsData%AAP,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%AAP)) THEN 
+      ALLOCATE(DstElOutParmsData%AAP(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%AAP.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%AAP.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%AAP = SrceloutparmsData%AAP
+   DstElOutParmsData%AAP = SrcElOutParmsData%AAP
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%ALF)) THEN
-   i1_l = LBOUND(SrceloutparmsData%ALF,1)
-   i1_u = UBOUND(SrceloutparmsData%ALF,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%ALF)) THEN 
-      ALLOCATE(DsteloutparmsData%ALF(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%ALF)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%ALF,1)
+   i1_u = UBOUND(SrcElOutParmsData%ALF,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%ALF)) THEN 
+      ALLOCATE(DstElOutParmsData%ALF(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%ALF.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%ALF.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%ALF = SrceloutparmsData%ALF
+   DstElOutParmsData%ALF = SrcElOutParmsData%ALF
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%CDD)) THEN
-   i1_l = LBOUND(SrceloutparmsData%CDD,1)
-   i1_u = UBOUND(SrceloutparmsData%CDD,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%CDD)) THEN 
-      ALLOCATE(DsteloutparmsData%CDD(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%CDD)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%CDD,1)
+   i1_u = UBOUND(SrcElOutParmsData%CDD,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%CDD)) THEN 
+      ALLOCATE(DstElOutParmsData%CDD(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%CDD.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%CDD.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%CDD = SrceloutparmsData%CDD
+   DstElOutParmsData%CDD = SrcElOutParmsData%CDD
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%CLL)) THEN
-   i1_l = LBOUND(SrceloutparmsData%CLL,1)
-   i1_u = UBOUND(SrceloutparmsData%CLL,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%CLL)) THEN 
-      ALLOCATE(DsteloutparmsData%CLL(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%CLL)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%CLL,1)
+   i1_u = UBOUND(SrcElOutParmsData%CLL,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%CLL)) THEN 
+      ALLOCATE(DstElOutParmsData%CLL(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%CLL.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%CLL.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%CLL = SrceloutparmsData%CLL
+   DstElOutParmsData%CLL = SrcElOutParmsData%CLL
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%CMM)) THEN
-   i1_l = LBOUND(SrceloutparmsData%CMM,1)
-   i1_u = UBOUND(SrceloutparmsData%CMM,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%CMM)) THEN 
-      ALLOCATE(DsteloutparmsData%CMM(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%CMM)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%CMM,1)
+   i1_u = UBOUND(SrcElOutParmsData%CMM,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%CMM)) THEN 
+      ALLOCATE(DstElOutParmsData%CMM(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%CMM.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%CMM.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%CMM = SrceloutparmsData%CMM
+   DstElOutParmsData%CMM = SrcElOutParmsData%CMM
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%CNN)) THEN
-   i1_l = LBOUND(SrceloutparmsData%CNN,1)
-   i1_u = UBOUND(SrceloutparmsData%CNN,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%CNN)) THEN 
-      ALLOCATE(DsteloutparmsData%CNN(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%CNN)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%CNN,1)
+   i1_u = UBOUND(SrcElOutParmsData%CNN,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%CNN)) THEN 
+      ALLOCATE(DstElOutParmsData%CNN(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%CNN.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%CNN.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%CNN = SrceloutparmsData%CNN
+   DstElOutParmsData%CNN = SrcElOutParmsData%CNN
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%CTT)) THEN
-   i1_l = LBOUND(SrceloutparmsData%CTT,1)
-   i1_u = UBOUND(SrceloutparmsData%CTT,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%CTT)) THEN 
-      ALLOCATE(DsteloutparmsData%CTT(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%CTT)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%CTT,1)
+   i1_u = UBOUND(SrcElOutParmsData%CTT,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%CTT)) THEN 
+      ALLOCATE(DstElOutParmsData%CTT(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%CTT.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%CTT.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%CTT = SrceloutparmsData%CTT
+   DstElOutParmsData%CTT = SrcElOutParmsData%CTT
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%DFNSAV)) THEN
-   i1_l = LBOUND(SrceloutparmsData%DFNSAV,1)
-   i1_u = UBOUND(SrceloutparmsData%DFNSAV,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%DFNSAV)) THEN 
-      ALLOCATE(DsteloutparmsData%DFNSAV(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%DFNSAV)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%DFNSAV,1)
+   i1_u = UBOUND(SrcElOutParmsData%DFNSAV,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%DFNSAV)) THEN 
+      ALLOCATE(DstElOutParmsData%DFNSAV(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%DFNSAV.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%DFNSAV.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%DFNSAV = SrceloutparmsData%DFNSAV
+   DstElOutParmsData%DFNSAV = SrcElOutParmsData%DFNSAV
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%DFTSAV)) THEN
-   i1_l = LBOUND(SrceloutparmsData%DFTSAV,1)
-   i1_u = UBOUND(SrceloutparmsData%DFTSAV,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%DFTSAV)) THEN 
-      ALLOCATE(DsteloutparmsData%DFTSAV(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%DFTSAV)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%DFTSAV,1)
+   i1_u = UBOUND(SrcElOutParmsData%DFTSAV,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%DFTSAV)) THEN 
+      ALLOCATE(DstElOutParmsData%DFTSAV(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%DFTSAV.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%DFTSAV.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%DFTSAV = SrceloutparmsData%DFTSAV
+   DstElOutParmsData%DFTSAV = SrcElOutParmsData%DFTSAV
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%DynPres)) THEN
-   i1_l = LBOUND(SrceloutparmsData%DynPres,1)
-   i1_u = UBOUND(SrceloutparmsData%DynPres,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%DynPres)) THEN 
-      ALLOCATE(DsteloutparmsData%DynPres(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%DynPres)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%DynPres,1)
+   i1_u = UBOUND(SrcElOutParmsData%DynPres,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%DynPres)) THEN 
+      ALLOCATE(DstElOutParmsData%DynPres(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%DynPres.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%DynPres.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%DynPres = SrceloutparmsData%DynPres
+   DstElOutParmsData%DynPres = SrcElOutParmsData%DynPres
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%PMM)) THEN
-   i1_l = LBOUND(SrceloutparmsData%PMM,1)
-   i1_u = UBOUND(SrceloutparmsData%PMM,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%PMM)) THEN 
-      ALLOCATE(DsteloutparmsData%PMM(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%PMM)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%PMM,1)
+   i1_u = UBOUND(SrcElOutParmsData%PMM,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%PMM)) THEN 
+      ALLOCATE(DstElOutParmsData%PMM(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%PMM.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%PMM.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%PMM = SrceloutparmsData%PMM
+   DstElOutParmsData%PMM = SrcElOutParmsData%PMM
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%PITSAV)) THEN
-   i1_l = LBOUND(SrceloutparmsData%PITSAV,1)
-   i1_u = UBOUND(SrceloutparmsData%PITSAV,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%PITSAV)) THEN 
-      ALLOCATE(DsteloutparmsData%PITSAV(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%PITSAV)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%PITSAV,1)
+   i1_u = UBOUND(SrcElOutParmsData%PITSAV,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%PITSAV)) THEN 
+      ALLOCATE(DstElOutParmsData%PITSAV(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%PITSAV.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%PITSAV.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%PITSAV = SrceloutparmsData%PITSAV
+   DstElOutParmsData%PITSAV = SrcElOutParmsData%PITSAV
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%ReyNum)) THEN
-   i1_l = LBOUND(SrceloutparmsData%ReyNum,1)
-   i1_u = UBOUND(SrceloutparmsData%ReyNum,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%ReyNum)) THEN 
-      ALLOCATE(DsteloutparmsData%ReyNum(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%ReyNum)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%ReyNum,1)
+   i1_u = UBOUND(SrcElOutParmsData%ReyNum,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%ReyNum)) THEN 
+      ALLOCATE(DstElOutParmsData%ReyNum(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%ReyNum.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%ReyNum.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%ReyNum = SrceloutparmsData%ReyNum
+   DstElOutParmsData%ReyNum = SrcElOutParmsData%ReyNum
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%SaveVX)) THEN
-   i1_l = LBOUND(SrceloutparmsData%SaveVX,1)
-   i1_u = UBOUND(SrceloutparmsData%SaveVX,1)
-   i2_l = LBOUND(SrceloutparmsData%SaveVX,2)
-   i2_u = UBOUND(SrceloutparmsData%SaveVX,2)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%SaveVX)) THEN 
-      ALLOCATE(DsteloutparmsData%SaveVX(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%SaveVX)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%SaveVX,1)
+   i1_u = UBOUND(SrcElOutParmsData%SaveVX,1)
+   i2_l = LBOUND(SrcElOutParmsData%SaveVX,2)
+   i2_u = UBOUND(SrcElOutParmsData%SaveVX,2)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%SaveVX)) THEN 
+      ALLOCATE(DstElOutParmsData%SaveVX(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%SaveVX.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%SaveVX.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%SaveVX = SrceloutparmsData%SaveVX
+   DstElOutParmsData%SaveVX = SrcElOutParmsData%SaveVX
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%SaveVY)) THEN
-   i1_l = LBOUND(SrceloutparmsData%SaveVY,1)
-   i1_u = UBOUND(SrceloutparmsData%SaveVY,1)
-   i2_l = LBOUND(SrceloutparmsData%SaveVY,2)
-   i2_u = UBOUND(SrceloutparmsData%SaveVY,2)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%SaveVY)) THEN 
-      ALLOCATE(DsteloutparmsData%SaveVY(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%SaveVY)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%SaveVY,1)
+   i1_u = UBOUND(SrcElOutParmsData%SaveVY,1)
+   i2_l = LBOUND(SrcElOutParmsData%SaveVY,2)
+   i2_u = UBOUND(SrcElOutParmsData%SaveVY,2)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%SaveVY)) THEN 
+      ALLOCATE(DstElOutParmsData%SaveVY(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%SaveVY.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%SaveVY.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%SaveVY = SrceloutparmsData%SaveVY
+   DstElOutParmsData%SaveVY = SrcElOutParmsData%SaveVY
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%SaveVZ)) THEN
-   i1_l = LBOUND(SrceloutparmsData%SaveVZ,1)
-   i1_u = UBOUND(SrceloutparmsData%SaveVZ,1)
-   i2_l = LBOUND(SrceloutparmsData%SaveVZ,2)
-   i2_u = UBOUND(SrceloutparmsData%SaveVZ,2)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%SaveVZ)) THEN 
-      ALLOCATE(DsteloutparmsData%SaveVZ(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%SaveVZ)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%SaveVZ,1)
+   i1_u = UBOUND(SrcElOutParmsData%SaveVZ,1)
+   i2_l = LBOUND(SrcElOutParmsData%SaveVZ,2)
+   i2_u = UBOUND(SrcElOutParmsData%SaveVZ,2)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%SaveVZ)) THEN 
+      ALLOCATE(DstElOutParmsData%SaveVZ(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%SaveVZ.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%SaveVZ.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%SaveVZ = SrceloutparmsData%SaveVZ
+   DstElOutParmsData%SaveVZ = SrcElOutParmsData%SaveVZ
 ENDIF
-   DsteloutparmsData%VXSAV = SrceloutparmsData%VXSAV
-   DsteloutparmsData%VYSAV = SrceloutparmsData%VYSAV
-   DsteloutparmsData%VZSAV = SrceloutparmsData%VZSAV
-   DsteloutparmsData%NumWndElOut = SrceloutparmsData%NumWndElOut
-IF (ALLOCATED(SrceloutparmsData%WndElPrList)) THEN
-   i1_l = LBOUND(SrceloutparmsData%WndElPrList,1)
-   i1_u = UBOUND(SrceloutparmsData%WndElPrList,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%WndElPrList)) THEN 
-      ALLOCATE(DsteloutparmsData%WndElPrList(i1_l:i1_u),STAT=ErrStat2)
+   DstElOutParmsData%VXSAV = SrcElOutParmsData%VXSAV
+   DstElOutParmsData%VYSAV = SrcElOutParmsData%VYSAV
+   DstElOutParmsData%VZSAV = SrcElOutParmsData%VZSAV
+   DstElOutParmsData%NumWndElOut = SrcElOutParmsData%NumWndElOut
+IF (ALLOCATED(SrcElOutParmsData%WndElPrList)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%WndElPrList,1)
+   i1_u = UBOUND(SrcElOutParmsData%WndElPrList,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%WndElPrList)) THEN 
+      ALLOCATE(DstElOutParmsData%WndElPrList(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%WndElPrList.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%WndElPrList.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%WndElPrList = SrceloutparmsData%WndElPrList
+   DstElOutParmsData%WndElPrList = SrcElOutParmsData%WndElPrList
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%WndElPrNum)) THEN
-   i1_l = LBOUND(SrceloutparmsData%WndElPrNum,1)
-   i1_u = UBOUND(SrceloutparmsData%WndElPrNum,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%WndElPrNum)) THEN 
-      ALLOCATE(DsteloutparmsData%WndElPrNum(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%WndElPrNum)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%WndElPrNum,1)
+   i1_u = UBOUND(SrcElOutParmsData%WndElPrNum,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%WndElPrNum)) THEN 
+      ALLOCATE(DstElOutParmsData%WndElPrNum(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%WndElPrNum.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%WndElPrNum.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%WndElPrNum = SrceloutparmsData%WndElPrNum
+   DstElOutParmsData%WndElPrNum = SrcElOutParmsData%WndElPrNum
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%ElPrList)) THEN
-   i1_l = LBOUND(SrceloutparmsData%ElPrList,1)
-   i1_u = UBOUND(SrceloutparmsData%ElPrList,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%ElPrList)) THEN 
-      ALLOCATE(DsteloutparmsData%ElPrList(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%ElPrList)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%ElPrList,1)
+   i1_u = UBOUND(SrcElOutParmsData%ElPrList,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%ElPrList)) THEN 
+      ALLOCATE(DstElOutParmsData%ElPrList(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%ElPrList.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%ElPrList.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%ElPrList = SrceloutparmsData%ElPrList
+   DstElOutParmsData%ElPrList = SrcElOutParmsData%ElPrList
 ENDIF
-IF (ALLOCATED(SrceloutparmsData%ElPrNum)) THEN
-   i1_l = LBOUND(SrceloutparmsData%ElPrNum,1)
-   i1_u = UBOUND(SrceloutparmsData%ElPrNum,1)
-   IF (.NOT. ALLOCATED(DsteloutparmsData%ElPrNum)) THEN 
-      ALLOCATE(DsteloutparmsData%ElPrNum(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcElOutParmsData%ElPrNum)) THEN
+   i1_l = LBOUND(SrcElOutParmsData%ElPrNum,1)
+   i1_u = UBOUND(SrcElOutParmsData%ElPrNum,1)
+   IF (.NOT. ALLOCATED(DstElOutParmsData%ElPrNum)) THEN 
+      ALLOCATE(DstElOutParmsData%ElPrNum(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsteloutparmsData%ElPrNum.', ErrStat, ErrMsg,'AD_Copyeloutparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElOutParmsData%ElPrNum.', ErrStat, ErrMsg,'AD_CopyElOutParms')
          RETURN
       END IF
    END IF
-   DsteloutparmsData%ElPrNum = SrceloutparmsData%ElPrNum
+   DstElOutParmsData%ElPrNum = SrcElOutParmsData%ElPrNum
 ENDIF
-   DsteloutparmsData%NumElOut = SrceloutparmsData%NumElOut
- END SUBROUTINE AD_Copyeloutparms
+   DstElOutParmsData%NumElOut = SrcElOutParmsData%NumElOut
+ END SUBROUTINE AD_CopyElOutParms
 
- SUBROUTINE AD_Destroyeloutparms( eloutparmsData, ErrStat, ErrMsg )
-  TYPE(eloutparms), INTENT(INOUT) :: eloutparmsData
+ SUBROUTINE AD_DestroyElOutParms( ElOutParmsData, ErrStat, ErrMsg )
+  TYPE(ElOutParms), INTENT(INOUT) :: ElOutParmsData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(eloutparmsData%AAA)) THEN
-   DEALLOCATE(eloutparmsData%AAA)
+IF (ALLOCATED(ElOutParmsData%AAA)) THEN
+   DEALLOCATE(ElOutParmsData%AAA)
 ENDIF
-IF (ALLOCATED(eloutparmsData%AAP)) THEN
-   DEALLOCATE(eloutparmsData%AAP)
+IF (ALLOCATED(ElOutParmsData%AAP)) THEN
+   DEALLOCATE(ElOutParmsData%AAP)
 ENDIF
-IF (ALLOCATED(eloutparmsData%ALF)) THEN
-   DEALLOCATE(eloutparmsData%ALF)
+IF (ALLOCATED(ElOutParmsData%ALF)) THEN
+   DEALLOCATE(ElOutParmsData%ALF)
 ENDIF
-IF (ALLOCATED(eloutparmsData%CDD)) THEN
-   DEALLOCATE(eloutparmsData%CDD)
+IF (ALLOCATED(ElOutParmsData%CDD)) THEN
+   DEALLOCATE(ElOutParmsData%CDD)
 ENDIF
-IF (ALLOCATED(eloutparmsData%CLL)) THEN
-   DEALLOCATE(eloutparmsData%CLL)
+IF (ALLOCATED(ElOutParmsData%CLL)) THEN
+   DEALLOCATE(ElOutParmsData%CLL)
 ENDIF
-IF (ALLOCATED(eloutparmsData%CMM)) THEN
-   DEALLOCATE(eloutparmsData%CMM)
+IF (ALLOCATED(ElOutParmsData%CMM)) THEN
+   DEALLOCATE(ElOutParmsData%CMM)
 ENDIF
-IF (ALLOCATED(eloutparmsData%CNN)) THEN
-   DEALLOCATE(eloutparmsData%CNN)
+IF (ALLOCATED(ElOutParmsData%CNN)) THEN
+   DEALLOCATE(ElOutParmsData%CNN)
 ENDIF
-IF (ALLOCATED(eloutparmsData%CTT)) THEN
-   DEALLOCATE(eloutparmsData%CTT)
+IF (ALLOCATED(ElOutParmsData%CTT)) THEN
+   DEALLOCATE(ElOutParmsData%CTT)
 ENDIF
-IF (ALLOCATED(eloutparmsData%DFNSAV)) THEN
-   DEALLOCATE(eloutparmsData%DFNSAV)
+IF (ALLOCATED(ElOutParmsData%DFNSAV)) THEN
+   DEALLOCATE(ElOutParmsData%DFNSAV)
 ENDIF
-IF (ALLOCATED(eloutparmsData%DFTSAV)) THEN
-   DEALLOCATE(eloutparmsData%DFTSAV)
+IF (ALLOCATED(ElOutParmsData%DFTSAV)) THEN
+   DEALLOCATE(ElOutParmsData%DFTSAV)
 ENDIF
-IF (ALLOCATED(eloutparmsData%DynPres)) THEN
-   DEALLOCATE(eloutparmsData%DynPres)
+IF (ALLOCATED(ElOutParmsData%DynPres)) THEN
+   DEALLOCATE(ElOutParmsData%DynPres)
 ENDIF
-IF (ALLOCATED(eloutparmsData%PMM)) THEN
-   DEALLOCATE(eloutparmsData%PMM)
+IF (ALLOCATED(ElOutParmsData%PMM)) THEN
+   DEALLOCATE(ElOutParmsData%PMM)
 ENDIF
-IF (ALLOCATED(eloutparmsData%PITSAV)) THEN
-   DEALLOCATE(eloutparmsData%PITSAV)
+IF (ALLOCATED(ElOutParmsData%PITSAV)) THEN
+   DEALLOCATE(ElOutParmsData%PITSAV)
 ENDIF
-IF (ALLOCATED(eloutparmsData%ReyNum)) THEN
-   DEALLOCATE(eloutparmsData%ReyNum)
+IF (ALLOCATED(ElOutParmsData%ReyNum)) THEN
+   DEALLOCATE(ElOutParmsData%ReyNum)
 ENDIF
-IF (ALLOCATED(eloutparmsData%SaveVX)) THEN
-   DEALLOCATE(eloutparmsData%SaveVX)
+IF (ALLOCATED(ElOutParmsData%SaveVX)) THEN
+   DEALLOCATE(ElOutParmsData%SaveVX)
 ENDIF
-IF (ALLOCATED(eloutparmsData%SaveVY)) THEN
-   DEALLOCATE(eloutparmsData%SaveVY)
+IF (ALLOCATED(ElOutParmsData%SaveVY)) THEN
+   DEALLOCATE(ElOutParmsData%SaveVY)
 ENDIF
-IF (ALLOCATED(eloutparmsData%SaveVZ)) THEN
-   DEALLOCATE(eloutparmsData%SaveVZ)
+IF (ALLOCATED(ElOutParmsData%SaveVZ)) THEN
+   DEALLOCATE(ElOutParmsData%SaveVZ)
 ENDIF
-IF (ALLOCATED(eloutparmsData%WndElPrList)) THEN
-   DEALLOCATE(eloutparmsData%WndElPrList)
+IF (ALLOCATED(ElOutParmsData%WndElPrList)) THEN
+   DEALLOCATE(ElOutParmsData%WndElPrList)
 ENDIF
-IF (ALLOCATED(eloutparmsData%WndElPrNum)) THEN
-   DEALLOCATE(eloutparmsData%WndElPrNum)
+IF (ALLOCATED(ElOutParmsData%WndElPrNum)) THEN
+   DEALLOCATE(ElOutParmsData%WndElPrNum)
 ENDIF
-IF (ALLOCATED(eloutparmsData%ElPrList)) THEN
-   DEALLOCATE(eloutparmsData%ElPrList)
+IF (ALLOCATED(ElOutParmsData%ElPrList)) THEN
+   DEALLOCATE(ElOutParmsData%ElPrList)
 ENDIF
-IF (ALLOCATED(eloutparmsData%ElPrNum)) THEN
-   DEALLOCATE(eloutparmsData%ElPrNum)
+IF (ALLOCATED(ElOutParmsData%ElPrNum)) THEN
+   DEALLOCATE(ElOutParmsData%ElPrNum)
 ENDIF
- END SUBROUTINE AD_Destroyeloutparms
+ END SUBROUTINE AD_DestroyElOutParms
 
- SUBROUTINE AD_Packeloutparms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackElOutParms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(eloutparms),  INTENT(INOUT) :: InData
+  TYPE(ElOutParms),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -4995,13 +5098,13 @@ ENDIF
   ENDIF
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumElOut )
   Int_Xferred   = Int_Xferred   + 1
- END SUBROUTINE AD_Packeloutparms
+ END SUBROUTINE AD_PackElOutParms
 
- SUBROUTINE AD_UnPackeloutparms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackElOutParms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(eloutparms), INTENT(INOUT) :: OutData
+  TYPE(ElOutParms), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -5031,103 +5134,120 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%AAA) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%AAA,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%AAA,1)))
+  mask1 = .TRUE.
     OutData%AAA = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AAA))-1 ),mask1,OutData%AAA)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%AAA)
   ENDIF
   IF ( ALLOCATED(OutData%AAP) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%AAP,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%AAP,1)))
+  mask1 = .TRUE.
     OutData%AAP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AAP))-1 ),mask1,OutData%AAP)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%AAP)
   ENDIF
   IF ( ALLOCATED(OutData%ALF) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%ALF,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%ALF,1)))
+  mask1 = .TRUE.
     OutData%ALF = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ALF))-1 ),mask1,OutData%ALF)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%ALF)
   ENDIF
   IF ( ALLOCATED(OutData%CDD) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%CDD,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%CDD,1)))
+  mask1 = .TRUE.
     OutData%CDD = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CDD))-1 ),mask1,OutData%CDD)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CDD)
   ENDIF
   IF ( ALLOCATED(OutData%CLL) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%CLL,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%CLL,1)))
+  mask1 = .TRUE.
     OutData%CLL = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CLL))-1 ),mask1,OutData%CLL)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CLL)
   ENDIF
   IF ( ALLOCATED(OutData%CMM) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%CMM,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%CMM,1)))
+  mask1 = .TRUE.
     OutData%CMM = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CMM))-1 ),mask1,OutData%CMM)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CMM)
   ENDIF
   IF ( ALLOCATED(OutData%CNN) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%CNN,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%CNN,1)))
+  mask1 = .TRUE.
     OutData%CNN = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CNN))-1 ),mask1,OutData%CNN)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CNN)
   ENDIF
   IF ( ALLOCATED(OutData%CTT) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%CTT,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%CTT,1)))
+  mask1 = .TRUE.
     OutData%CTT = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CTT))-1 ),mask1,OutData%CTT)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CTT)
   ENDIF
   IF ( ALLOCATED(OutData%DFNSAV) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%DFNSAV,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%DFNSAV,1)))
+  mask1 = .TRUE.
     OutData%DFNSAV = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DFNSAV))-1 ),mask1,OutData%DFNSAV)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%DFNSAV)
   ENDIF
   IF ( ALLOCATED(OutData%DFTSAV) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%DFTSAV,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%DFTSAV,1)))
+  mask1 = .TRUE.
     OutData%DFTSAV = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DFTSAV))-1 ),mask1,OutData%DFTSAV)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%DFTSAV)
   ENDIF
   IF ( ALLOCATED(OutData%DynPres) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%DynPres,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%DynPres,1)))
+  mask1 = .TRUE.
     OutData%DynPres = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DynPres))-1 ),mask1,OutData%DynPres)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%DynPres)
   ENDIF
   IF ( ALLOCATED(OutData%PMM) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%PMM,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%PMM,1)))
+  mask1 = .TRUE.
     OutData%PMM = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PMM))-1 ),mask1,OutData%PMM)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%PMM)
   ENDIF
   IF ( ALLOCATED(OutData%PITSAV) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%PITSAV,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%PITSAV,1)))
+  mask1 = .TRUE.
     OutData%PITSAV = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PITSAV))-1 ),mask1,OutData%PITSAV)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%PITSAV)
   ENDIF
   IF ( ALLOCATED(OutData%ReyNum) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%ReyNum,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%ReyNum,1)))
+  mask1 = .TRUE.
     OutData%ReyNum = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ReyNum))-1 ),mask1,OutData%ReyNum)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%ReyNum)
   ENDIF
   IF ( ALLOCATED(OutData%SaveVX) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%SaveVX,1),SIZE(OutData%SaveVX,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%SaveVX,1),SIZE(OutData%SaveVX,2)))
+  mask2 = .TRUE.
     OutData%SaveVX = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%SaveVX))-1 ),mask2,OutData%SaveVX)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%SaveVX)
   ENDIF
   IF ( ALLOCATED(OutData%SaveVY) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%SaveVY,1),SIZE(OutData%SaveVY,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%SaveVY,1),SIZE(OutData%SaveVY,2)))
+  mask2 = .TRUE.
     OutData%SaveVY = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%SaveVY))-1 ),mask2,OutData%SaveVY)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%SaveVY)
   ENDIF
   IF ( ALLOCATED(OutData%SaveVZ) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%SaveVZ,1),SIZE(OutData%SaveVZ,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%SaveVZ,1),SIZE(OutData%SaveVZ,2)))
+  mask2 = .TRUE.
     OutData%SaveVZ = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%SaveVZ))-1 ),mask2,OutData%SaveVZ)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%SaveVZ)
@@ -5141,25 +5261,29 @@ ENDIF
   OutData%NumWndElOut = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%WndElPrList) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WndElPrList,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%WndElPrList,1)))
+  mask1 = .TRUE.
     OutData%WndElPrList = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%WndElPrList))-1 ),mask1,OutData%WndElPrList)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%WndElPrList)
   ENDIF
   IF ( ALLOCATED(OutData%WndElPrNum) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WndElPrNum,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%WndElPrNum,1)))
+  mask1 = .TRUE.
     OutData%WndElPrNum = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%WndElPrNum))-1 ),mask1,OutData%WndElPrNum)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%WndElPrNum)
   ENDIF
   IF ( ALLOCATED(OutData%ElPrList) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%ElPrList,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%ElPrList,1)))
+  mask1 = .TRUE.
     OutData%ElPrList = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%ElPrList))-1 ),mask1,OutData%ElPrList)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%ElPrList)
   ENDIF
   IF ( ALLOCATED(OutData%ElPrNum) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%ElPrNum,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%ElPrNum,1)))
+  mask1 = .TRUE.
     OutData%ElPrNum = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%ElPrNum))-1 ),mask1,OutData%ElPrNum)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%ElPrNum)
@@ -5169,41 +5293,42 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackeloutparms
+ END SUBROUTINE AD_UnPackElOutParms
 
- SUBROUTINE AD_Copyinducedvel( SrcinducedvelData, DstinducedvelData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(inducedvel), INTENT(INOUT) :: SrcinducedvelData
-   TYPE(inducedvel), INTENT(INOUT) :: DstinducedvelData
+ SUBROUTINE AD_CopyInducedVel( SrcInducedVelData, DstInducedVelData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(InducedVel), INTENT(IN) :: SrcInducedVelData
+   TYPE(InducedVel), INTENT(INOUT) :: DstInducedVelData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstinducedvelData%SumInFl = SrcinducedvelData%SumInFl
- END SUBROUTINE AD_Copyinducedvel
+   DstInducedVelData%SumInFl = SrcInducedVelData%SumInFl
+ END SUBROUTINE AD_CopyInducedVel
 
- SUBROUTINE AD_Destroyinducedvel( inducedvelData, ErrStat, ErrMsg )
-  TYPE(inducedvel), INTENT(INOUT) :: inducedvelData
+ SUBROUTINE AD_DestroyInducedVel( InducedVelData, ErrStat, ErrMsg )
+  TYPE(InducedVel), INTENT(INOUT) :: InducedVelData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE AD_Destroyinducedvel
+ END SUBROUTINE AD_DestroyInducedVel
 
- SUBROUTINE AD_Packinducedvel( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackInducedVel( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(inducedvel),  INTENT(INOUT) :: InData
+  TYPE(InducedVel),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -5239,13 +5364,13 @@ ENDIF
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%SumInFl )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE AD_Packinducedvel
+ END SUBROUTINE AD_PackInducedVel
 
- SUBROUTINE AD_UnPackinducedvel( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackInducedVel( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(inducedvel), INTENT(INOUT) :: OutData
+  TYPE(InducedVel), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -5279,47 +5404,48 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackinducedvel
+ END SUBROUTINE AD_UnPackInducedVel
 
- SUBROUTINE AD_Copyinducedvelparms( SrcinducedvelparmsData, DstinducedvelparmsData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(inducedvelparms), INTENT(INOUT) :: SrcinducedvelparmsData
-   TYPE(inducedvelparms), INTENT(INOUT) :: DstinducedvelparmsData
+ SUBROUTINE AD_CopyInducedVelParms( SrcInducedVelParmsData, DstInducedVelParmsData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(InducedVelParms), INTENT(IN) :: SrcInducedVelParmsData
+   TYPE(InducedVelParms), INTENT(INOUT) :: DstInducedVelParmsData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstinducedvelparmsData%AToler = SrcinducedvelparmsData%AToler
-   DstinducedvelparmsData%EqAIDmult = SrcinducedvelparmsData%EqAIDmult
-   DstinducedvelparmsData%EquilDA = SrcinducedvelparmsData%EquilDA
-   DstinducedvelparmsData%EquilDT = SrcinducedvelparmsData%EquilDT
-   DstinducedvelparmsData%TLoss = SrcinducedvelparmsData%TLoss
-   DstinducedvelparmsData%GTech = SrcinducedvelparmsData%GTech
-   DstinducedvelparmsData%HLoss = SrcinducedvelparmsData%HLoss
- END SUBROUTINE AD_Copyinducedvelparms
+   DstInducedVelParmsData%AToler = SrcInducedVelParmsData%AToler
+   DstInducedVelParmsData%EqAIDmult = SrcInducedVelParmsData%EqAIDmult
+   DstInducedVelParmsData%EquilDA = SrcInducedVelParmsData%EquilDA
+   DstInducedVelParmsData%EquilDT = SrcInducedVelParmsData%EquilDT
+   DstInducedVelParmsData%TLoss = SrcInducedVelParmsData%TLoss
+   DstInducedVelParmsData%GTech = SrcInducedVelParmsData%GTech
+   DstInducedVelParmsData%HLoss = SrcInducedVelParmsData%HLoss
+ END SUBROUTINE AD_CopyInducedVelParms
 
- SUBROUTINE AD_Destroyinducedvelparms( inducedvelparmsData, ErrStat, ErrMsg )
-  TYPE(inducedvelparms), INTENT(INOUT) :: inducedvelparmsData
+ SUBROUTINE AD_DestroyInducedVelParms( InducedVelParmsData, ErrStat, ErrMsg )
+  TYPE(InducedVelParms), INTENT(INOUT) :: InducedVelParmsData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE AD_Destroyinducedvelparms
+ END SUBROUTINE AD_DestroyInducedVelParms
 
- SUBROUTINE AD_Packinducedvelparms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackInducedVelParms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(inducedvelparms),  INTENT(INOUT) :: InData
+  TYPE(InducedVelParms),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -5373,13 +5499,13 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%HLoss ), IntKiBuf(1), 1)
   Int_Xferred   = Int_Xferred   + 1
- END SUBROUTINE AD_Packinducedvelparms
+ END SUBROUTINE AD_PackInducedVelParms
 
- SUBROUTINE AD_UnPackinducedvelparms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackInducedVelParms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(inducedvelparms), INTENT(INOUT) :: OutData
+  TYPE(InducedVelParms), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -5415,49 +5541,50 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackinducedvelparms
+ END SUBROUTINE AD_UnPackInducedVelParms
 
- SUBROUTINE AD_Copyrotor( SrcrotorData, DstrotorData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(rotor), INTENT(INOUT) :: SrcrotorData
-   TYPE(rotor), INTENT(INOUT) :: DstrotorData
+ SUBROUTINE AD_CopyRotor( SrcRotorData, DstRotorData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Rotor), INTENT(IN) :: SrcRotorData
+   TYPE(Rotor), INTENT(INOUT) :: DstRotorData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstrotorData%AVGINFL = SrcrotorData%AVGINFL
-   DstrotorData%CTILT = SrcrotorData%CTILT
-   DstrotorData%CYaw = SrcrotorData%CYaw
-   DstrotorData%REVS = SrcrotorData%REVS
-   DstrotorData%STILT = SrcrotorData%STILT
-   DstrotorData%SYaw = SrcrotorData%SYaw
-   DstrotorData%TILT = SrcrotorData%TILT
-   DstrotorData%YawAng = SrcrotorData%YawAng
-   DstrotorData%YawVEL = SrcrotorData%YawVEL
- END SUBROUTINE AD_Copyrotor
+   DstRotorData%AVGINFL = SrcRotorData%AVGINFL
+   DstRotorData%CTILT = SrcRotorData%CTILT
+   DstRotorData%CYaw = SrcRotorData%CYaw
+   DstRotorData%REVS = SrcRotorData%REVS
+   DstRotorData%STILT = SrcRotorData%STILT
+   DstRotorData%SYaw = SrcRotorData%SYaw
+   DstRotorData%TILT = SrcRotorData%TILT
+   DstRotorData%YawAng = SrcRotorData%YawAng
+   DstRotorData%YawVEL = SrcRotorData%YawVEL
+ END SUBROUTINE AD_CopyRotor
 
- SUBROUTINE AD_Destroyrotor( rotorData, ErrStat, ErrMsg )
-  TYPE(rotor), INTENT(INOUT) :: rotorData
+ SUBROUTINE AD_DestroyRotor( RotorData, ErrStat, ErrMsg )
+  TYPE(Rotor), INTENT(INOUT) :: RotorData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE AD_Destroyrotor
+ END SUBROUTINE AD_DestroyRotor
 
- SUBROUTINE AD_Packrotor( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackRotor( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(rotor),  INTENT(INOUT) :: InData
+  TYPE(Rotor),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -5517,13 +5644,13 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%YawVEL )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE AD_Packrotor
+ END SUBROUTINE AD_PackRotor
 
- SUBROUTINE AD_UnPackrotor( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackRotor( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(rotor), INTENT(INOUT) :: OutData
+  TYPE(Rotor), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -5573,41 +5700,42 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackrotor
+ END SUBROUTINE AD_UnPackRotor
 
- SUBROUTINE AD_Copyrotorparms( SrcrotorparmsData, DstrotorparmsData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(rotorparms), INTENT(INOUT) :: SrcrotorparmsData
-   TYPE(rotorparms), INTENT(INOUT) :: DstrotorparmsData
+ SUBROUTINE AD_CopyRotorParms( SrcRotorParmsData, DstRotorParmsData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(RotorParms), INTENT(IN) :: SrcRotorParmsData
+   TYPE(RotorParms), INTENT(INOUT) :: DstRotorParmsData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstrotorparmsData%HH = SrcrotorparmsData%HH
- END SUBROUTINE AD_Copyrotorparms
+   DstRotorParmsData%HH = SrcRotorParmsData%HH
+ END SUBROUTINE AD_CopyRotorParms
 
- SUBROUTINE AD_Destroyrotorparms( rotorparmsData, ErrStat, ErrMsg )
-  TYPE(rotorparms), INTENT(INOUT) :: rotorparmsData
+ SUBROUTINE AD_DestroyRotorParms( RotorParmsData, ErrStat, ErrMsg )
+  TYPE(RotorParms), INTENT(INOUT) :: RotorParmsData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE AD_Destroyrotorparms
+ END SUBROUTINE AD_DestroyRotorParms
 
- SUBROUTINE AD_Packrotorparms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackRotorParms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(rotorparms),  INTENT(INOUT) :: InData
+  TYPE(RotorParms),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -5643,13 +5771,13 @@ ENDIF
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%HH )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE AD_Packrotorparms
+ END SUBROUTINE AD_PackRotorParms
 
- SUBROUTINE AD_UnPackrotorparms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackRotorParms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(rotorparms), INTENT(INOUT) :: OutData
+  TYPE(RotorParms), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -5683,148 +5811,149 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackrotorparms
+ END SUBROUTINE AD_UnPackRotorParms
 
- SUBROUTINE AD_Copytwrpropsparms( SrctwrpropsparmsData, DsttwrpropsparmsData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(twrpropsparms), INTENT(INOUT) :: SrctwrpropsparmsData
-   TYPE(twrpropsparms), INTENT(INOUT) :: DsttwrpropsparmsData
+ SUBROUTINE AD_CopyTwrPropsParms( SrcTwrPropsParmsData, DstTwrPropsParmsData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(TwrPropsParms), INTENT(IN) :: SrcTwrPropsParmsData
+   TYPE(TwrPropsParms), INTENT(INOUT) :: DstTwrPropsParmsData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ALLOCATED(SrctwrpropsparmsData%TwrHtFr)) THEN
-   i1_l = LBOUND(SrctwrpropsparmsData%TwrHtFr,1)
-   i1_u = UBOUND(SrctwrpropsparmsData%TwrHtFr,1)
-   IF (.NOT. ALLOCATED(DsttwrpropsparmsData%TwrHtFr)) THEN 
-      ALLOCATE(DsttwrpropsparmsData%TwrHtFr(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcTwrPropsParmsData%TwrHtFr)) THEN
+   i1_l = LBOUND(SrcTwrPropsParmsData%TwrHtFr,1)
+   i1_u = UBOUND(SrcTwrPropsParmsData%TwrHtFr,1)
+   IF (.NOT. ALLOCATED(DstTwrPropsParmsData%TwrHtFr)) THEN 
+      ALLOCATE(DstTwrPropsParmsData%TwrHtFr(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsttwrpropsparmsData%TwrHtFr.', ErrStat, ErrMsg,'AD_Copytwrpropsparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstTwrPropsParmsData%TwrHtFr.', ErrStat, ErrMsg,'AD_CopyTwrPropsParms')
          RETURN
       END IF
    END IF
-   DsttwrpropsparmsData%TwrHtFr = SrctwrpropsparmsData%TwrHtFr
+   DstTwrPropsParmsData%TwrHtFr = SrcTwrPropsParmsData%TwrHtFr
 ENDIF
-IF (ALLOCATED(SrctwrpropsparmsData%TwrWid)) THEN
-   i1_l = LBOUND(SrctwrpropsparmsData%TwrWid,1)
-   i1_u = UBOUND(SrctwrpropsparmsData%TwrWid,1)
-   IF (.NOT. ALLOCATED(DsttwrpropsparmsData%TwrWid)) THEN 
-      ALLOCATE(DsttwrpropsparmsData%TwrWid(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcTwrPropsParmsData%TwrWid)) THEN
+   i1_l = LBOUND(SrcTwrPropsParmsData%TwrWid,1)
+   i1_u = UBOUND(SrcTwrPropsParmsData%TwrWid,1)
+   IF (.NOT. ALLOCATED(DstTwrPropsParmsData%TwrWid)) THEN 
+      ALLOCATE(DstTwrPropsParmsData%TwrWid(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsttwrpropsparmsData%TwrWid.', ErrStat, ErrMsg,'AD_Copytwrpropsparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstTwrPropsParmsData%TwrWid.', ErrStat, ErrMsg,'AD_CopyTwrPropsParms')
          RETURN
       END IF
    END IF
-   DsttwrpropsparmsData%TwrWid = SrctwrpropsparmsData%TwrWid
+   DstTwrPropsParmsData%TwrWid = SrcTwrPropsParmsData%TwrWid
 ENDIF
-IF (ALLOCATED(SrctwrpropsparmsData%TwrCD)) THEN
-   i1_l = LBOUND(SrctwrpropsparmsData%TwrCD,1)
-   i1_u = UBOUND(SrctwrpropsparmsData%TwrCD,1)
-   i2_l = LBOUND(SrctwrpropsparmsData%TwrCD,2)
-   i2_u = UBOUND(SrctwrpropsparmsData%TwrCD,2)
-   IF (.NOT. ALLOCATED(DsttwrpropsparmsData%TwrCD)) THEN 
-      ALLOCATE(DsttwrpropsparmsData%TwrCD(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcTwrPropsParmsData%TwrCD)) THEN
+   i1_l = LBOUND(SrcTwrPropsParmsData%TwrCD,1)
+   i1_u = UBOUND(SrcTwrPropsParmsData%TwrCD,1)
+   i2_l = LBOUND(SrcTwrPropsParmsData%TwrCD,2)
+   i2_u = UBOUND(SrcTwrPropsParmsData%TwrCD,2)
+   IF (.NOT. ALLOCATED(DstTwrPropsParmsData%TwrCD)) THEN 
+      ALLOCATE(DstTwrPropsParmsData%TwrCD(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsttwrpropsparmsData%TwrCD.', ErrStat, ErrMsg,'AD_Copytwrpropsparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstTwrPropsParmsData%TwrCD.', ErrStat, ErrMsg,'AD_CopyTwrPropsParms')
          RETURN
       END IF
    END IF
-   DsttwrpropsparmsData%TwrCD = SrctwrpropsparmsData%TwrCD
+   DstTwrPropsParmsData%TwrCD = SrcTwrPropsParmsData%TwrCD
 ENDIF
-IF (ALLOCATED(SrctwrpropsparmsData%TwrRe)) THEN
-   i1_l = LBOUND(SrctwrpropsparmsData%TwrRe,1)
-   i1_u = UBOUND(SrctwrpropsparmsData%TwrRe,1)
-   IF (.NOT. ALLOCATED(DsttwrpropsparmsData%TwrRe)) THEN 
-      ALLOCATE(DsttwrpropsparmsData%TwrRe(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcTwrPropsParmsData%TwrRe)) THEN
+   i1_l = LBOUND(SrcTwrPropsParmsData%TwrRe,1)
+   i1_u = UBOUND(SrcTwrPropsParmsData%TwrRe,1)
+   IF (.NOT. ALLOCATED(DstTwrPropsParmsData%TwrRe)) THEN 
+      ALLOCATE(DstTwrPropsParmsData%TwrRe(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsttwrpropsparmsData%TwrRe.', ErrStat, ErrMsg,'AD_Copytwrpropsparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstTwrPropsParmsData%TwrRe.', ErrStat, ErrMsg,'AD_CopyTwrPropsParms')
          RETURN
       END IF
    END IF
-   DsttwrpropsparmsData%TwrRe = SrctwrpropsparmsData%TwrRe
+   DstTwrPropsParmsData%TwrRe = SrcTwrPropsParmsData%TwrRe
 ENDIF
-   DsttwrpropsparmsData%VTwr = SrctwrpropsparmsData%VTwr
-   DsttwrpropsparmsData%Tower_Wake_Constant = SrctwrpropsparmsData%Tower_Wake_Constant
-IF (ALLOCATED(SrctwrpropsparmsData%NTwrCDCol)) THEN
-   i1_l = LBOUND(SrctwrpropsparmsData%NTwrCDCol,1)
-   i1_u = UBOUND(SrctwrpropsparmsData%NTwrCDCol,1)
-   IF (.NOT. ALLOCATED(DsttwrpropsparmsData%NTwrCDCol)) THEN 
-      ALLOCATE(DsttwrpropsparmsData%NTwrCDCol(i1_l:i1_u),STAT=ErrStat2)
+   DstTwrPropsParmsData%VTwr = SrcTwrPropsParmsData%VTwr
+   DstTwrPropsParmsData%Tower_Wake_Constant = SrcTwrPropsParmsData%Tower_Wake_Constant
+IF (ALLOCATED(SrcTwrPropsParmsData%NTwrCDCol)) THEN
+   i1_l = LBOUND(SrcTwrPropsParmsData%NTwrCDCol,1)
+   i1_u = UBOUND(SrcTwrPropsParmsData%NTwrCDCol,1)
+   IF (.NOT. ALLOCATED(DstTwrPropsParmsData%NTwrCDCol)) THEN 
+      ALLOCATE(DstTwrPropsParmsData%NTwrCDCol(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsttwrpropsparmsData%NTwrCDCol.', ErrStat, ErrMsg,'AD_Copytwrpropsparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstTwrPropsParmsData%NTwrCDCol.', ErrStat, ErrMsg,'AD_CopyTwrPropsParms')
          RETURN
       END IF
    END IF
-   DsttwrpropsparmsData%NTwrCDCol = SrctwrpropsparmsData%NTwrCDCol
+   DstTwrPropsParmsData%NTwrCDCol = SrcTwrPropsParmsData%NTwrCDCol
 ENDIF
-   DsttwrpropsparmsData%NTwrHT = SrctwrpropsparmsData%NTwrHT
-   DsttwrpropsparmsData%NTwrRe = SrctwrpropsparmsData%NTwrRe
-   DsttwrpropsparmsData%NTwrCD = SrctwrpropsparmsData%NTwrCD
-   DsttwrpropsparmsData%TwrPotent = SrctwrpropsparmsData%TwrPotent
-   DsttwrpropsparmsData%TwrShadow = SrctwrpropsparmsData%TwrShadow
-   DsttwrpropsparmsData%ShadHWid = SrctwrpropsparmsData%ShadHWid
-   DsttwrpropsparmsData%TShadC1 = SrctwrpropsparmsData%TShadC1
-   DsttwrpropsparmsData%TShadC2 = SrctwrpropsparmsData%TShadC2
-   DsttwrpropsparmsData%TwrShad = SrctwrpropsparmsData%TwrShad
-   DsttwrpropsparmsData%PJM_Version = SrctwrpropsparmsData%PJM_Version
-   DsttwrpropsparmsData%TwrFile = SrctwrpropsparmsData%TwrFile
-   DsttwrpropsparmsData%T_Shad_Refpt = SrctwrpropsparmsData%T_Shad_Refpt
-   DsttwrpropsparmsData%CalcTwrAero = SrctwrpropsparmsData%CalcTwrAero
-   DsttwrpropsparmsData%NumTwrNodes = SrctwrpropsparmsData%NumTwrNodes
-IF (ALLOCATED(SrctwrpropsparmsData%TwrNodeWidth)) THEN
-   i1_l = LBOUND(SrctwrpropsparmsData%TwrNodeWidth,1)
-   i1_u = UBOUND(SrctwrpropsparmsData%TwrNodeWidth,1)
-   IF (.NOT. ALLOCATED(DsttwrpropsparmsData%TwrNodeWidth)) THEN 
-      ALLOCATE(DsttwrpropsparmsData%TwrNodeWidth(i1_l:i1_u),STAT=ErrStat2)
+   DstTwrPropsParmsData%NTwrHT = SrcTwrPropsParmsData%NTwrHT
+   DstTwrPropsParmsData%NTwrRe = SrcTwrPropsParmsData%NTwrRe
+   DstTwrPropsParmsData%NTwrCD = SrcTwrPropsParmsData%NTwrCD
+   DstTwrPropsParmsData%TwrPotent = SrcTwrPropsParmsData%TwrPotent
+   DstTwrPropsParmsData%TwrShadow = SrcTwrPropsParmsData%TwrShadow
+   DstTwrPropsParmsData%ShadHWid = SrcTwrPropsParmsData%ShadHWid
+   DstTwrPropsParmsData%TShadC1 = SrcTwrPropsParmsData%TShadC1
+   DstTwrPropsParmsData%TShadC2 = SrcTwrPropsParmsData%TShadC2
+   DstTwrPropsParmsData%TwrShad = SrcTwrPropsParmsData%TwrShad
+   DstTwrPropsParmsData%PJM_Version = SrcTwrPropsParmsData%PJM_Version
+   DstTwrPropsParmsData%TwrFile = SrcTwrPropsParmsData%TwrFile
+   DstTwrPropsParmsData%T_Shad_Refpt = SrcTwrPropsParmsData%T_Shad_Refpt
+   DstTwrPropsParmsData%CalcTwrAero = SrcTwrPropsParmsData%CalcTwrAero
+   DstTwrPropsParmsData%NumTwrNodes = SrcTwrPropsParmsData%NumTwrNodes
+IF (ALLOCATED(SrcTwrPropsParmsData%TwrNodeWidth)) THEN
+   i1_l = LBOUND(SrcTwrPropsParmsData%TwrNodeWidth,1)
+   i1_u = UBOUND(SrcTwrPropsParmsData%TwrNodeWidth,1)
+   IF (.NOT. ALLOCATED(DstTwrPropsParmsData%TwrNodeWidth)) THEN 
+      ALLOCATE(DstTwrPropsParmsData%TwrNodeWidth(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsttwrpropsparmsData%TwrNodeWidth.', ErrStat, ErrMsg,'AD_Copytwrpropsparms')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstTwrPropsParmsData%TwrNodeWidth.', ErrStat, ErrMsg,'AD_CopyTwrPropsParms')
          RETURN
       END IF
    END IF
-   DsttwrpropsparmsData%TwrNodeWidth = SrctwrpropsparmsData%TwrNodeWidth
+   DstTwrPropsParmsData%TwrNodeWidth = SrcTwrPropsParmsData%TwrNodeWidth
 ENDIF
- END SUBROUTINE AD_Copytwrpropsparms
+ END SUBROUTINE AD_CopyTwrPropsParms
 
- SUBROUTINE AD_Destroytwrpropsparms( twrpropsparmsData, ErrStat, ErrMsg )
-  TYPE(twrpropsparms), INTENT(INOUT) :: twrpropsparmsData
+ SUBROUTINE AD_DestroyTwrPropsParms( TwrPropsParmsData, ErrStat, ErrMsg )
+  TYPE(TwrPropsParms), INTENT(INOUT) :: TwrPropsParmsData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(twrpropsparmsData%TwrHtFr)) THEN
-   DEALLOCATE(twrpropsparmsData%TwrHtFr)
+IF (ALLOCATED(TwrPropsParmsData%TwrHtFr)) THEN
+   DEALLOCATE(TwrPropsParmsData%TwrHtFr)
 ENDIF
-IF (ALLOCATED(twrpropsparmsData%TwrWid)) THEN
-   DEALLOCATE(twrpropsparmsData%TwrWid)
+IF (ALLOCATED(TwrPropsParmsData%TwrWid)) THEN
+   DEALLOCATE(TwrPropsParmsData%TwrWid)
 ENDIF
-IF (ALLOCATED(twrpropsparmsData%TwrCD)) THEN
-   DEALLOCATE(twrpropsparmsData%TwrCD)
+IF (ALLOCATED(TwrPropsParmsData%TwrCD)) THEN
+   DEALLOCATE(TwrPropsParmsData%TwrCD)
 ENDIF
-IF (ALLOCATED(twrpropsparmsData%TwrRe)) THEN
-   DEALLOCATE(twrpropsparmsData%TwrRe)
+IF (ALLOCATED(TwrPropsParmsData%TwrRe)) THEN
+   DEALLOCATE(TwrPropsParmsData%TwrRe)
 ENDIF
-IF (ALLOCATED(twrpropsparmsData%NTwrCDCol)) THEN
-   DEALLOCATE(twrpropsparmsData%NTwrCDCol)
+IF (ALLOCATED(TwrPropsParmsData%NTwrCDCol)) THEN
+   DEALLOCATE(TwrPropsParmsData%NTwrCDCol)
 ENDIF
-IF (ALLOCATED(twrpropsparmsData%TwrNodeWidth)) THEN
-   DEALLOCATE(twrpropsparmsData%TwrNodeWidth)
+IF (ALLOCATED(TwrPropsParmsData%TwrNodeWidth)) THEN
+   DEALLOCATE(TwrPropsParmsData%TwrNodeWidth)
 ENDIF
- END SUBROUTINE AD_Destroytwrpropsparms
+ END SUBROUTINE AD_DestroyTwrPropsParms
 
- SUBROUTINE AD_Packtwrpropsparms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackTwrPropsParms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(twrpropsparms),  INTENT(INOUT) :: InData
+  TYPE(TwrPropsParms),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -5933,13 +6062,13 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TwrNodeWidth))-1 ) =  PACK(InData%TwrNodeWidth ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%TwrNodeWidth)
   ENDIF
- END SUBROUTINE AD_Packtwrpropsparms
+ END SUBROUTINE AD_PackTwrPropsParms
 
- SUBROUTINE AD_UnPacktwrpropsparms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackTwrPropsParms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(twrpropsparms), INTENT(INOUT) :: OutData
+  TYPE(TwrPropsParms), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -5969,37 +6098,43 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%TwrHtFr) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%TwrHtFr,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%TwrHtFr,1)))
+  mask1 = .TRUE.
     OutData%TwrHtFr = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TwrHtFr))-1 ),mask1,OutData%TwrHtFr)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%TwrHtFr)
   ENDIF
   IF ( ALLOCATED(OutData%TwrWid) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%TwrWid,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%TwrWid,1)))
+  mask1 = .TRUE.
     OutData%TwrWid = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TwrWid))-1 ),mask1,OutData%TwrWid)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%TwrWid)
   ENDIF
   IF ( ALLOCATED(OutData%TwrCD) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%TwrCD,1),SIZE(OutData%TwrCD,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%TwrCD,1),SIZE(OutData%TwrCD,2)))
+  mask2 = .TRUE.
     OutData%TwrCD = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TwrCD))-1 ),mask2,OutData%TwrCD)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%TwrCD)
   ENDIF
   IF ( ALLOCATED(OutData%TwrRe) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%TwrRe,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%TwrRe,1)))
+  mask1 = .TRUE.
     OutData%TwrRe = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TwrRe))-1 ),mask1,OutData%TwrRe)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%TwrRe)
   ENDIF
-  ALLOCATE(mask1(SIZE(OutData%VTwr,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%VTwr,1)))
+  mask1 = .TRUE.
   OutData%VTwr = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%VTwr))-1 ),mask1,OutData%VTwr)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%VTwr)
   OutData%Tower_Wake_Constant = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%NTwrCDCol) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%NTwrCDCol,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%NTwrCDCol,1)))
+  mask1 = .TRUE.
     OutData%NTwrCDCol = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%NTwrCDCol))-1 ),mask1,OutData%NTwrCDCol)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%NTwrCDCol)
@@ -6023,7 +6158,8 @@ ENDIF
   OutData%NumTwrNodes = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%TwrNodeWidth) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%TwrNodeWidth,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%TwrNodeWidth,1)))
+  mask1 = .TRUE.
     OutData%TwrNodeWidth = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TwrNodeWidth))-1 ),mask1,OutData%TwrNodeWidth)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%TwrNodeWidth)
@@ -6031,46 +6167,47 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPacktwrpropsparms
+ END SUBROUTINE AD_UnPackTwrPropsParms
 
- SUBROUTINE AD_Copywind( SrcwindData, DstwindData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(wind), INTENT(INOUT) :: SrcwindData
-   TYPE(wind), INTENT(INOUT) :: DstwindData
+ SUBROUTINE AD_CopyWind( SrcWindData, DstWindData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Wind), INTENT(IN) :: SrcWindData
+   TYPE(Wind), INTENT(INOUT) :: DstWindData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstwindData%ANGFLW = SrcwindData%ANGFLW
-   DstwindData%CDEL = SrcwindData%CDEL
-   DstwindData%VROTORX = SrcwindData%VROTORX
-   DstwindData%VROTORY = SrcwindData%VROTORY
-   DstwindData%VROTORZ = SrcwindData%VROTORZ
-   DstwindData%SDEL = SrcwindData%SDEL
- END SUBROUTINE AD_Copywind
+   DstWindData%ANGFLW = SrcWindData%ANGFLW
+   DstWindData%CDEL = SrcWindData%CDEL
+   DstWindData%VROTORX = SrcWindData%VROTORX
+   DstWindData%VROTORY = SrcWindData%VROTORY
+   DstWindData%VROTORZ = SrcWindData%VROTORZ
+   DstWindData%SDEL = SrcWindData%SDEL
+ END SUBROUTINE AD_CopyWind
 
- SUBROUTINE AD_Destroywind( windData, ErrStat, ErrMsg )
-  TYPE(wind), INTENT(INOUT) :: windData
+ SUBROUTINE AD_DestroyWind( WindData, ErrStat, ErrMsg )
+  TYPE(Wind), INTENT(INOUT) :: WindData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE AD_Destroywind
+ END SUBROUTINE AD_DestroyWind
 
- SUBROUTINE AD_Packwind( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackWind( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(wind),  INTENT(INOUT) :: InData
+  TYPE(Wind),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -6121,13 +6258,13 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%SDEL )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE AD_Packwind
+ END SUBROUTINE AD_PackWind
 
- SUBROUTINE AD_UnPackwind( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackWind( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(wind), INTENT(INOUT) :: OutData
+  TYPE(Wind), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -6171,42 +6308,43 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackwind
+ END SUBROUTINE AD_UnPackWind
 
- SUBROUTINE AD_Copywindparms( SrcwindparmsData, DstwindparmsData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(windparms), INTENT(INOUT) :: SrcwindparmsData
-   TYPE(windparms), INTENT(INOUT) :: DstwindparmsData
+ SUBROUTINE AD_CopyWindParms( SrcWindParmsData, DstWindParmsData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(WindParms), INTENT(IN) :: SrcWindParmsData
+   TYPE(WindParms), INTENT(INOUT) :: DstWindParmsData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstwindparmsData%Rho = SrcwindparmsData%Rho
-   DstwindparmsData%KinVisc = SrcwindparmsData%KinVisc
- END SUBROUTINE AD_Copywindparms
+   DstWindParmsData%Rho = SrcWindParmsData%Rho
+   DstWindParmsData%KinVisc = SrcWindParmsData%KinVisc
+ END SUBROUTINE AD_CopyWindParms
 
- SUBROUTINE AD_Destroywindparms( windparmsData, ErrStat, ErrMsg )
-  TYPE(windparms), INTENT(INOUT) :: windparmsData
+ SUBROUTINE AD_DestroyWindParms( WindParmsData, ErrStat, ErrMsg )
+  TYPE(WindParms), INTENT(INOUT) :: WindParmsData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE AD_Destroywindparms
+ END SUBROUTINE AD_DestroyWindParms
 
- SUBROUTINE AD_Packwindparms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackWindParms( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(windparms),  INTENT(INOUT) :: InData
+  TYPE(WindParms),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -6245,13 +6383,13 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%KinVisc )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE AD_Packwindparms
+ END SUBROUTINE AD_PackWindParms
 
- SUBROUTINE AD_UnPackwindparms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackWindParms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(windparms), INTENT(INOUT) :: OutData
+  TYPE(WindParms), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -6287,41 +6425,42 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackwindparms
+ END SUBROUTINE AD_UnPackWindParms
 
- SUBROUTINE AD_Copypositiontype( SrcpositiontypeData, DstpositiontypeData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(positiontype), INTENT(INOUT) :: SrcpositiontypeData
-   TYPE(positiontype), INTENT(INOUT) :: DstpositiontypeData
+ SUBROUTINE AD_CopyPositionType( SrcPositionTypeData, DstPositionTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(PositionType), INTENT(IN) :: SrcPositionTypeData
+   TYPE(PositionType), INTENT(INOUT) :: DstPositionTypeData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstpositiontypeData%Pos = SrcpositiontypeData%Pos
- END SUBROUTINE AD_Copypositiontype
+   DstPositionTypeData%Pos = SrcPositionTypeData%Pos
+ END SUBROUTINE AD_CopyPositionType
 
- SUBROUTINE AD_Destroypositiontype( positiontypeData, ErrStat, ErrMsg )
-  TYPE(positiontype), INTENT(INOUT) :: positiontypeData
+ SUBROUTINE AD_DestroyPositionType( PositionTypeData, ErrStat, ErrMsg )
+  TYPE(PositionType), INTENT(INOUT) :: PositionTypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE AD_Destroypositiontype
+ END SUBROUTINE AD_DestroyPositionType
 
- SUBROUTINE AD_Packpositiontype( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackPositionType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(positiontype),  INTENT(INOUT) :: InData
+  TYPE(PositionType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -6357,13 +6496,13 @@ ENDIF
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Pos))-1 ) =  PACK(InData%Pos ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%Pos)
- END SUBROUTINE AD_Packpositiontype
+ END SUBROUTINE AD_PackPositionType
 
- SUBROUTINE AD_UnPackpositiontype( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackPositionType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(positiontype), INTENT(INOUT) :: OutData
+  TYPE(PositionType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -6392,48 +6531,50 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  ALLOCATE(mask1(SIZE(OutData%Pos,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%Pos,1)))
+  mask1 = .TRUE.
   OutData%Pos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Pos))-1 ),mask1,OutData%Pos)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%Pos)
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackpositiontype
+ END SUBROUTINE AD_UnPackPositionType
 
- SUBROUTINE AD_Copyorientationtype( SrcorientationtypeData, DstorientationtypeData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(orientationtype), INTENT(INOUT) :: SrcorientationtypeData
-   TYPE(orientationtype), INTENT(INOUT) :: DstorientationtypeData
+ SUBROUTINE AD_CopyOrientationType( SrcOrientationTypeData, DstOrientationTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(OrientationType), INTENT(IN) :: SrcOrientationTypeData
+   TYPE(OrientationType), INTENT(INOUT) :: DstOrientationTypeData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstorientationtypeData%Orient = SrcorientationtypeData%Orient
- END SUBROUTINE AD_Copyorientationtype
+   DstOrientationTypeData%Orient = SrcOrientationTypeData%Orient
+ END SUBROUTINE AD_CopyOrientationType
 
- SUBROUTINE AD_Destroyorientationtype( orientationtypeData, ErrStat, ErrMsg )
-  TYPE(orientationtype), INTENT(INOUT) :: orientationtypeData
+ SUBROUTINE AD_DestroyOrientationType( OrientationTypeData, ErrStat, ErrMsg )
+  TYPE(OrientationType), INTENT(INOUT) :: OrientationTypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE AD_Destroyorientationtype
+ END SUBROUTINE AD_DestroyOrientationType
 
- SUBROUTINE AD_Packorientationtype( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE AD_PackOrientationType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(orientationtype),  INTENT(INOUT) :: InData
+  TYPE(OrientationType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -6469,13 +6610,13 @@ ENDIF
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Orient))-1 ) =  PACK(InData%Orient ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%Orient)
- END SUBROUTINE AD_Packorientationtype
+ END SUBROUTINE AD_PackOrientationType
 
- SUBROUTINE AD_UnPackorientationtype( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackOrientationType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(orientationtype), INTENT(INOUT) :: OutData
+  TYPE(OrientationType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -6504,25 +6645,27 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  ALLOCATE(mask2(SIZE(OutData%Orient,1),SIZE(OutData%Orient,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%Orient,1),SIZE(OutData%Orient,2)))
+  mask2 = .TRUE.
   OutData%Orient = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Orient))-1 ),mask2,OutData%Orient)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%Orient)
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPackorientationtype
+ END SUBROUTINE AD_UnPackOrientationType
 
  SUBROUTINE AD_CopyInitInput( SrcInitInputData, DstInitInputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(AD_initinputtype), INTENT(INOUT) :: SrcInitInputData
-   TYPE(AD_initinputtype), INTENT(INOUT) :: DstInitInputData
+   TYPE(AD_InitInputType), INTENT(IN) :: SrcInitInputData
+   TYPE(AD_InitInputType), INTENT(INOUT) :: DstInitInputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -6564,7 +6707,7 @@ ENDIF
  END SUBROUTINE AD_CopyInitInput
 
  SUBROUTINE AD_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
-  TYPE(AD_initinputtype), INTENT(INOUT) :: InitInputData
+  TYPE(AD_InitInputType), INTENT(INOUT) :: InitInputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -6583,7 +6726,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(AD_initinputtype),  INTENT(INOUT) :: InData
+  TYPE(AD_InitInputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -6727,7 +6870,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(AD_initinputtype), INTENT(INOUT) :: OutData
+  TYPE(AD_InitInputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -6787,7 +6930,8 @@ ENDIF
   OutData%NumTwrNodes = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%TwrNodeLocs) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%TwrNodeLocs,1),SIZE(OutData%TwrNodeLocs,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%TwrNodeLocs,1),SIZE(OutData%TwrNodeLocs,2)))
+  mask2 = .TRUE.
     OutData%TwrNodeLocs = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TwrNodeLocs))-1 ),mask2,OutData%TwrNodeLocs)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%TwrNodeLocs)
@@ -6828,15 +6972,16 @@ ENDIF
  END SUBROUTINE AD_UnPackInitInput
 
  SUBROUTINE AD_CopyInitOutput( SrcInitOutputData, DstInitOutputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(AD_initoutputtype), INTENT(INOUT) :: SrcInitOutputData
-   TYPE(AD_initoutputtype), INTENT(INOUT) :: DstInitOutputData
+   TYPE(AD_InitOutputType), INTENT(IN) :: SrcInitOutputData
+   TYPE(AD_InitOutputType), INTENT(INOUT) :: DstInitOutputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -6854,7 +6999,7 @@ ENDIF
  END SUBROUTINE AD_CopyInitOutput
 
  SUBROUTINE AD_DestroyInitOutput( InitOutputData, ErrStat, ErrMsg )
-  TYPE(AD_initoutputtype), INTENT(INOUT) :: InitOutputData
+  TYPE(AD_InitOutputType), INTENT(INOUT) :: InitOutputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -6870,7 +7015,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(AD_initoutputtype),  INTENT(INOUT) :: InData
+  TYPE(AD_InitOutputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -6987,7 +7132,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(AD_initoutputtype), INTENT(INOUT) :: OutData
+  TYPE(AD_InitOutputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -7076,15 +7221,16 @@ ENDIF
  END SUBROUTINE AD_UnPackInitOutput
 
  SUBROUTINE AD_CopyContState( SrcContStateData, DstContStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(AD_continuousstatetype), INTENT(INOUT) :: SrcContStateData
-   TYPE(AD_continuousstatetype), INTENT(INOUT) :: DstContStateData
+   TYPE(AD_ContinuousStateType), INTENT(IN) :: SrcContStateData
+   TYPE(AD_ContinuousStateType), INTENT(INOUT) :: DstContStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -7099,7 +7245,7 @@ ENDIF
  END SUBROUTINE AD_CopyContState
 
  SUBROUTINE AD_DestroyContState( ContStateData, ErrStat, ErrMsg )
-  TYPE(AD_continuousstatetype), INTENT(INOUT) :: ContStateData
+  TYPE(AD_ContinuousStateType), INTENT(INOUT) :: ContStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -7114,7 +7260,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(AD_continuousstatetype),  INTENT(INOUT) :: InData
+  TYPE(AD_ContinuousStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -7205,7 +7351,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(AD_continuousstatetype), INTENT(INOUT) :: OutData
+  TYPE(AD_ContinuousStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -7276,15 +7422,16 @@ ENDIF
  END SUBROUTINE AD_UnPackContState
 
  SUBROUTINE AD_CopyDiscState( SrcDiscStateData, DstDiscStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(AD_discretestatetype), INTENT(INOUT) :: SrcDiscStateData
-   TYPE(AD_discretestatetype), INTENT(INOUT) :: DstDiscStateData
+   TYPE(AD_DiscreteStateType), INTENT(IN) :: SrcDiscStateData
+   TYPE(AD_DiscreteStateType), INTENT(INOUT) :: DstDiscStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -7299,7 +7446,7 @@ ENDIF
  END SUBROUTINE AD_CopyDiscState
 
  SUBROUTINE AD_DestroyDiscState( DiscStateData, ErrStat, ErrMsg )
-  TYPE(AD_discretestatetype), INTENT(INOUT) :: DiscStateData
+  TYPE(AD_DiscreteStateType), INTENT(INOUT) :: DiscStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -7314,7 +7461,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(AD_discretestatetype),  INTENT(INOUT) :: InData
+  TYPE(AD_DiscreteStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -7405,7 +7552,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(AD_discretestatetype), INTENT(INOUT) :: OutData
+  TYPE(AD_DiscreteStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -7476,15 +7623,16 @@ ENDIF
  END SUBROUTINE AD_UnPackDiscState
 
  SUBROUTINE AD_CopyConstrState( SrcConstrStateData, DstConstrStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(AD_constraintstatetype), INTENT(INOUT) :: SrcConstrStateData
-   TYPE(AD_constraintstatetype), INTENT(INOUT) :: DstConstrStateData
+   TYPE(AD_ConstraintStateType), INTENT(IN) :: SrcConstrStateData
+   TYPE(AD_ConstraintStateType), INTENT(INOUT) :: DstConstrStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -7499,7 +7647,7 @@ ENDIF
  END SUBROUTINE AD_CopyConstrState
 
  SUBROUTINE AD_DestroyConstrState( ConstrStateData, ErrStat, ErrMsg )
-  TYPE(AD_constraintstatetype), INTENT(INOUT) :: ConstrStateData
+  TYPE(AD_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -7514,7 +7662,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(AD_constraintstatetype),  INTENT(INOUT) :: InData
+  TYPE(AD_ConstraintStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -7605,7 +7753,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(AD_constraintstatetype), INTENT(INOUT) :: OutData
+  TYPE(AD_ConstraintStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -7676,15 +7824,16 @@ ENDIF
  END SUBROUTINE AD_UnPackConstrState
 
  SUBROUTINE AD_CopyOtherState( SrcOtherStateData, DstOtherStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(AD_otherstatetype), INTENT(INOUT) :: SrcOtherStateData
-   TYPE(AD_otherstatetype), INTENT(INOUT) :: DstOtherStateData
+   TYPE(AD_OtherStateType), INTENT(IN) :: SrcOtherStateData
+   TYPE(AD_OtherStateType), INTENT(INOUT) :: DstOtherStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -7789,7 +7938,7 @@ ENDIF
  END SUBROUTINE AD_CopyOtherState
 
  SUBROUTINE AD_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
-  TYPE(AD_otherstatetype), INTENT(INOUT) :: OtherStateData
+  TYPE(AD_OtherStateType), INTENT(INOUT) :: OtherStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -7823,7 +7972,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(AD_otherstatetype),  INTENT(INOUT) :: InData
+  TYPE(AD_OtherStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -8237,7 +8386,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(AD_otherstatetype), INTENT(INOUT) :: OutData
+  TYPE(AD_OtherStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -8305,7 +8454,8 @@ ENDIF
   OutData%DT = DbKiBuf ( Db_Xferred )
   Db_Xferred   = Db_Xferred   + 1
   IF ( ALLOCATED(OutData%ElPrNum) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%ElPrNum,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%ElPrNum,1)))
+  mask1 = .TRUE.
     OutData%ElPrNum = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%ElPrNum))-1 ),mask1,OutData%ElPrNum)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%ElPrNum)
@@ -8458,13 +8608,15 @@ ENDIF
   ENDIF
   CALL AD_UnPackinducedvel( Re_InducedVel_Buf, Db_InducedVel_Buf, Int_InducedVel_Buf, OutData%InducedVel, ErrStat, ErrMsg ) ! InducedVel 
   IF ( ALLOCATED(OutData%StoredForces) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%StoredForces,1),SIZE(OutData%StoredForces,2),SIZE(OutData%StoredForces,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%StoredForces,1),SIZE(OutData%StoredForces,2),SIZE(OutData%StoredForces,3)))
+  mask3 = .TRUE.
     OutData%StoredForces = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%StoredForces))-1 ),mask3,OutData%StoredForces)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%StoredForces)
   ENDIF
   IF ( ALLOCATED(OutData%StoredMoments) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%StoredMoments,1),SIZE(OutData%StoredMoments,2),SIZE(OutData%StoredMoments,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%StoredMoments,1),SIZE(OutData%StoredMoments,2),SIZE(OutData%StoredMoments,3)))
+  mask3 = .TRUE.
     OutData%StoredMoments = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%StoredMoments))-1 ),mask3,OutData%StoredMoments)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%StoredMoments)
@@ -8520,15 +8672,16 @@ ENDIF
  END SUBROUTINE AD_UnPackOtherState
 
  SUBROUTINE AD_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(AD_parametertype), INTENT(INOUT) :: SrcParamData
-   TYPE(AD_parametertype), INTENT(INOUT) :: DstParamData
+   TYPE(AD_ParameterType), INTENT(IN) :: SrcParamData
+   TYPE(AD_ParameterType), INTENT(INOUT) :: DstParamData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -8597,7 +8750,7 @@ ENDIF
  END SUBROUTINE AD_CopyParam
 
  SUBROUTINE AD_DestroyParam( ParamData, ErrStat, ErrMsg )
-  TYPE(AD_parametertype), INTENT(INOUT) :: ParamData
+  TYPE(AD_ParameterType), INTENT(INOUT) :: ParamData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -8621,7 +8774,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(AD_parametertype),  INTENT(INOUT) :: InData
+  TYPE(AD_ParameterType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -9023,7 +9176,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(AD_parametertype), INTENT(INOUT) :: OutData
+  TYPE(AD_ParameterType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -9276,15 +9429,16 @@ ENDIF
  END SUBROUTINE AD_UnPackParam
 
  SUBROUTINE AD_CopyInput( SrcInputData, DstInputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(AD_inputtype), INTENT(INOUT) :: SrcInputData
-   TYPE(AD_inputtype), INTENT(INOUT) :: DstInputData
+   TYPE(AD_InputType), INTENT(INOUT) :: SrcInputData
+   TYPE(AD_InputType), INTENT(INOUT) :: DstInputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -9329,7 +9483,7 @@ ENDIF
  END SUBROUTINE AD_CopyInput
 
  SUBROUTINE AD_DestroyInput( InputData, ErrStat, ErrMsg )
-  TYPE(AD_inputtype), INTENT(INOUT) :: InputData
+  TYPE(AD_InputType), INTENT(INOUT) :: InputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -9353,7 +9507,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(AD_inputtype),  INTENT(INOUT) :: InData
+  TYPE(AD_InputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -9480,7 +9634,7 @@ ENDDO
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(AD_inputtype), INTENT(INOUT) :: OutData
+  TYPE(AD_InputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -9571,7 +9725,8 @@ ENDDO
   ENDIF
   CALL AD_UnPackaeroconfig( Re_TurbineComponents_Buf, Db_TurbineComponents_Buf, Int_TurbineComponents_Buf, OutData%TurbineComponents, ErrStat, ErrMsg ) ! TurbineComponents 
   IF ( ALLOCATED(OutData%MulTabLoc) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%MulTabLoc,1),SIZE(OutData%MulTabLoc,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%MulTabLoc,1),SIZE(OutData%MulTabLoc,2)))
+  mask2 = .TRUE.
     OutData%MulTabLoc = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%MulTabLoc))-1 ),mask2,OutData%MulTabLoc)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%MulTabLoc)
@@ -9582,15 +9737,16 @@ ENDDO
  END SUBROUTINE AD_UnPackInput
 
  SUBROUTINE AD_CopyOutput( SrcOutputData, DstOutputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(AD_outputtype), INTENT(INOUT) :: SrcOutputData
-   TYPE(AD_outputtype), INTENT(INOUT) :: DstOutputData
+   TYPE(AD_OutputType), INTENT(INOUT) :: SrcOutputData
+   TYPE(AD_OutputType), INTENT(INOUT) :: DstOutputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -9624,7 +9780,7 @@ ENDIF
  END SUBROUTINE AD_CopyOutput
 
  SUBROUTINE AD_DestroyOutput( OutputData, ErrStat, ErrMsg )
-  TYPE(AD_outputtype), INTENT(INOUT) :: OutputData
+  TYPE(AD_OutputType), INTENT(INOUT) :: OutputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -9646,7 +9802,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(AD_outputtype),  INTENT(INOUT) :: InData
+  TYPE(AD_OutputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -9794,7 +9950,7 @@ ENDDO
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(AD_outputtype), INTENT(INOUT) :: OutData
+  TYPE(AD_OutputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -9940,64 +10096,10 @@ ENDDO
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: c1       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: b2       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: c2       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: b3       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: c3       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: b4       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
  INTEGER(IntKi)                             :: ErrStat2 ! local errors
  CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i31    ! dim1 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i41    ! dim1 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i51    ! dim1 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i61    ! dim1 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i71    ! dim1 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i81    ! dim1 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i91    ! dim1 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i02    ! dim2 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i12    ! dim2 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i22    ! dim2 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i32    ! dim2 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i42    ! dim2 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i52    ! dim2 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i62    ! dim2 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i72    ! dim2 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i82    ! dim2 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i92    ! dim2 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i03    ! dim3 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i13    ! dim3 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i23    ! dim3 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i33    ! dim3 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i43    ! dim3 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i53    ! dim3 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i63    ! dim3 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i73    ! dim3 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i83    ! dim3 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i93    ! dim3 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i04    ! dim4 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i14    ! dim4 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i24    ! dim4 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i34    ! dim4 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i44    ! dim4 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i54    ! dim4 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i64    ! dim4 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i74    ! dim4 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i84    ! dim4 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i94    ! dim4 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i05    ! dim5 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i15    ! dim5 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i25    ! dim5 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i35    ! dim5 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i45    ! dim5 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i55    ! dim5 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i65    ! dim5 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i75    ! dim5 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i85    ! dim5 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i95    ! dim5 level 9 counter variable for arrays of ddts
     ! Initialize ErrStat
  ErrStat = ErrID_None
  ErrMsg  = ""
@@ -10610,68 +10712,9 @@ END IF ! check if allocated
  INTEGER(IntKi)                 :: order    ! order of polynomial fit (max 2)
  REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: c1       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: b2       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: c2       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: b3       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: c3       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: b4       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
  INTEGER(IntKi)                             :: ErrStat2 ! local errors
  CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i31    ! dim1 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i41    ! dim1 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i51    ! dim1 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i61    ! dim1 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i71    ! dim1 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i81    ! dim1 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i91    ! dim1 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i02    ! dim2 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i12    ! dim2 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i22    ! dim2 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i32    ! dim2 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i42    ! dim2 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i52    ! dim2 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i62    ! dim2 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i72    ! dim2 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i82    ! dim2 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i92    ! dim2 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i03    ! dim3 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i13    ! dim3 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i23    ! dim3 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i33    ! dim3 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i43    ! dim3 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i53    ! dim3 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i63    ! dim3 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i73    ! dim3 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i83    ! dim3 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i93    ! dim3 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i04    ! dim4 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i14    ! dim4 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i24    ! dim4 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i34    ! dim4 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i44    ! dim4 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i54    ! dim4 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i64    ! dim4 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i74    ! dim4 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i84    ! dim4 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i94    ! dim4 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i05    ! dim5 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i15    ! dim5 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i25    ! dim5 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i35    ! dim5 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i45    ! dim5 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i55    ! dim5 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i65    ! dim5 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i75    ! dim5 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i85    ! dim5 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i95    ! dim5 level 9 counter variable for arrays of ddts
     ! Initialize ErrStat
  ErrStat = ErrID_None
  ErrMsg  = ""

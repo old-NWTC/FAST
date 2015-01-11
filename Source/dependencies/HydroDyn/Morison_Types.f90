@@ -3,13 +3,13 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.04.01, 20-Nov-2014)
+! FAST Registry (v2.05.00, 10-Jan-2015)
 !*********************************************************************************************************************************
 ! Morison_Types
 !.................................................................................................................................
 ! This file is part of Morison.
 !
-! Copyright (C) 2012-2014 National Renewable Energy Laboratory
+! Copyright (C) 2012-2015 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -402,45 +402,46 @@ IMPLICIT NONE
   END TYPE Morison_OutputType
 ! =======================
 CONTAINS
- SUBROUTINE Morison_Copyjointtype( SrcjointtypeData, DstjointtypeData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(morison_jointtype), INTENT(INOUT) :: SrcjointtypeData
-   TYPE(morison_jointtype), INTENT(INOUT) :: DstjointtypeData
+ SUBROUTINE Morison_CopyJointType( SrcJointTypeData, DstJointTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Morison_JointType), INTENT(IN) :: SrcJointTypeData
+   TYPE(Morison_JointType), INTENT(INOUT) :: DstJointTypeData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstjointtypeData%JointID = SrcjointtypeData%JointID
-   DstjointtypeData%JointPos = SrcjointtypeData%JointPos
-   DstjointtypeData%JointAxID = SrcjointtypeData%JointAxID
-   DstjointtypeData%JointAxIDIndx = SrcjointtypeData%JointAxIDIndx
-   DstjointtypeData%JointOvrlp = SrcjointtypeData%JointOvrlp
-   DstjointtypeData%NConnections = SrcjointtypeData%NConnections
-   DstjointtypeData%ConnectionList = SrcjointtypeData%ConnectionList
- END SUBROUTINE Morison_Copyjointtype
+   DstJointTypeData%JointID = SrcJointTypeData%JointID
+   DstJointTypeData%JointPos = SrcJointTypeData%JointPos
+   DstJointTypeData%JointAxID = SrcJointTypeData%JointAxID
+   DstJointTypeData%JointAxIDIndx = SrcJointTypeData%JointAxIDIndx
+   DstJointTypeData%JointOvrlp = SrcJointTypeData%JointOvrlp
+   DstJointTypeData%NConnections = SrcJointTypeData%NConnections
+   DstJointTypeData%ConnectionList = SrcJointTypeData%ConnectionList
+ END SUBROUTINE Morison_CopyJointType
 
- SUBROUTINE Morison_Destroyjointtype( jointtypeData, ErrStat, ErrMsg )
-  TYPE(morison_jointtype), INTENT(INOUT) :: jointtypeData
+ SUBROUTINE Morison_DestroyJointType( JointTypeData, ErrStat, ErrMsg )
+  TYPE(Morison_JointType), INTENT(INOUT) :: JointTypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE Morison_Destroyjointtype
+ END SUBROUTINE Morison_DestroyJointType
 
- SUBROUTINE Morison_Packjointtype( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE Morison_PackJointType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(morison_jointtype),  INTENT(INOUT) :: InData
+  TYPE(Morison_JointType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -494,13 +495,13 @@ CONTAINS
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%ConnectionList))-1 ) = PACK(InData%ConnectionList ,.TRUE.)
   Int_Xferred   = Int_Xferred   + SIZE(InData%ConnectionList)
- END SUBROUTINE Morison_Packjointtype
+ END SUBROUTINE Morison_PackJointType
 
- SUBROUTINE Morison_UnPackjointtype( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE Morison_UnPackJointType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(morison_jointtype), INTENT(INOUT) :: OutData
+  TYPE(Morison_JointType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -531,7 +532,8 @@ CONTAINS
   Int_BufSz  = 0
   OutData%JointID = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%JointPos,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%JointPos,1)))
+  mask1 = .TRUE.
   OutData%JointPos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%JointPos))-1 ),mask1,OutData%JointPos)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%JointPos)
@@ -543,50 +545,52 @@ CONTAINS
   Int_Xferred   = Int_Xferred   + 1
   OutData%NConnections = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%ConnectionList,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%ConnectionList,1)))
+  mask1 = .TRUE.
   OutData%ConnectionList = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%ConnectionList))-1 ),mask1,OutData%ConnectionList)
   DEALLOCATE(mask1)
   Int_Xferred   = Int_Xferred   + SIZE(OutData%ConnectionList)
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE Morison_UnPackjointtype
+ END SUBROUTINE Morison_UnPackJointType
 
- SUBROUTINE Morison_Copymemberproptype( SrcmemberproptypeData, DstmemberproptypeData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(morison_memberproptype), INTENT(INOUT) :: SrcmemberproptypeData
-   TYPE(morison_memberproptype), INTENT(INOUT) :: DstmemberproptypeData
+ SUBROUTINE Morison_CopyMemberPropType( SrcMemberPropTypeData, DstMemberPropTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Morison_MemberPropType), INTENT(IN) :: SrcMemberPropTypeData
+   TYPE(Morison_MemberPropType), INTENT(INOUT) :: DstMemberPropTypeData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstmemberproptypeData%PropSetID = SrcmemberproptypeData%PropSetID
-   DstmemberproptypeData%PropD = SrcmemberproptypeData%PropD
-   DstmemberproptypeData%PropThck = SrcmemberproptypeData%PropThck
- END SUBROUTINE Morison_Copymemberproptype
+   DstMemberPropTypeData%PropSetID = SrcMemberPropTypeData%PropSetID
+   DstMemberPropTypeData%PropD = SrcMemberPropTypeData%PropD
+   DstMemberPropTypeData%PropThck = SrcMemberPropTypeData%PropThck
+ END SUBROUTINE Morison_CopyMemberPropType
 
- SUBROUTINE Morison_Destroymemberproptype( memberproptypeData, ErrStat, ErrMsg )
-  TYPE(morison_memberproptype), INTENT(INOUT) :: memberproptypeData
+ SUBROUTINE Morison_DestroyMemberPropType( MemberPropTypeData, ErrStat, ErrMsg )
+  TYPE(Morison_MemberPropType), INTENT(INOUT) :: MemberPropTypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE Morison_Destroymemberproptype
+ END SUBROUTINE Morison_DestroyMemberPropType
 
- SUBROUTINE Morison_Packmemberproptype( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE Morison_PackMemberPropType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(morison_memberproptype),  INTENT(INOUT) :: InData
+  TYPE(Morison_MemberPropType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -628,13 +632,13 @@ CONTAINS
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%PropThck )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE Morison_Packmemberproptype
+ END SUBROUTINE Morison_PackMemberPropType
 
- SUBROUTINE Morison_UnPackmemberproptype( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE Morison_UnPackMemberPropType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(morison_memberproptype), INTENT(INOUT) :: OutData
+  TYPE(Morison_MemberPropType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -672,59 +676,60 @@ CONTAINS
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE Morison_UnPackmemberproptype
+ END SUBROUTINE Morison_UnPackMemberPropType
 
- SUBROUTINE Morison_Copyfilledgrouptype( SrcfilledgrouptypeData, DstfilledgrouptypeData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(morison_filledgrouptype), INTENT(INOUT) :: SrcfilledgrouptypeData
-   TYPE(morison_filledgrouptype), INTENT(INOUT) :: DstfilledgrouptypeData
+ SUBROUTINE Morison_CopyFilledGroupType( SrcFilledGroupTypeData, DstFilledGroupTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Morison_FilledGroupType), INTENT(IN) :: SrcFilledGroupTypeData
+   TYPE(Morison_FilledGroupType), INTENT(INOUT) :: DstFilledGroupTypeData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstfilledgrouptypeData%FillNumM = SrcfilledgrouptypeData%FillNumM
-IF (ALLOCATED(SrcfilledgrouptypeData%FillMList)) THEN
-   i1_l = LBOUND(SrcfilledgrouptypeData%FillMList,1)
-   i1_u = UBOUND(SrcfilledgrouptypeData%FillMList,1)
-   IF (.NOT. ALLOCATED(DstfilledgrouptypeData%FillMList)) THEN 
-      ALLOCATE(DstfilledgrouptypeData%FillMList(i1_l:i1_u),STAT=ErrStat2)
+   DstFilledGroupTypeData%FillNumM = SrcFilledGroupTypeData%FillNumM
+IF (ALLOCATED(SrcFilledGroupTypeData%FillMList)) THEN
+   i1_l = LBOUND(SrcFilledGroupTypeData%FillMList,1)
+   i1_u = UBOUND(SrcFilledGroupTypeData%FillMList,1)
+   IF (.NOT. ALLOCATED(DstFilledGroupTypeData%FillMList)) THEN 
+      ALLOCATE(DstFilledGroupTypeData%FillMList(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstfilledgrouptypeData%FillMList.', ErrStat, ErrMsg,'Morison_Copyfilledgrouptype')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFilledGroupTypeData%FillMList.', ErrStat, ErrMsg,'Morison_CopyFilledGroupType')
          RETURN
       END IF
    END IF
-   DstfilledgrouptypeData%FillMList = SrcfilledgrouptypeData%FillMList
+   DstFilledGroupTypeData%FillMList = SrcFilledGroupTypeData%FillMList
 ENDIF
-   DstfilledgrouptypeData%FillFSLoc = SrcfilledgrouptypeData%FillFSLoc
-   DstfilledgrouptypeData%FillDensChr = SrcfilledgrouptypeData%FillDensChr
-   DstfilledgrouptypeData%FillDens = SrcfilledgrouptypeData%FillDens
- END SUBROUTINE Morison_Copyfilledgrouptype
+   DstFilledGroupTypeData%FillFSLoc = SrcFilledGroupTypeData%FillFSLoc
+   DstFilledGroupTypeData%FillDensChr = SrcFilledGroupTypeData%FillDensChr
+   DstFilledGroupTypeData%FillDens = SrcFilledGroupTypeData%FillDens
+ END SUBROUTINE Morison_CopyFilledGroupType
 
- SUBROUTINE Morison_Destroyfilledgrouptype( filledgrouptypeData, ErrStat, ErrMsg )
-  TYPE(morison_filledgrouptype), INTENT(INOUT) :: filledgrouptypeData
+ SUBROUTINE Morison_DestroyFilledGroupType( FilledGroupTypeData, ErrStat, ErrMsg )
+  TYPE(Morison_FilledGroupType), INTENT(INOUT) :: FilledGroupTypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(filledgrouptypeData%FillMList)) THEN
-   DEALLOCATE(filledgrouptypeData%FillMList)
+IF (ALLOCATED(FilledGroupTypeData%FillMList)) THEN
+   DEALLOCATE(FilledGroupTypeData%FillMList)
 ENDIF
- END SUBROUTINE Morison_Destroyfilledgrouptype
+ END SUBROUTINE Morison_DestroyFilledGroupType
 
- SUBROUTINE Morison_Packfilledgrouptype( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE Morison_PackFilledGroupType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(morison_filledgrouptype),  INTENT(INOUT) :: InData
+  TYPE(Morison_FilledGroupType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -772,13 +777,13 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%FillDens )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE Morison_Packfilledgrouptype
+ END SUBROUTINE Morison_PackFilledGroupType
 
- SUBROUTINE Morison_UnPackfilledgrouptype( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE Morison_UnPackFilledGroupType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(morison_filledgrouptype), INTENT(INOUT) :: OutData
+  TYPE(Morison_FilledGroupType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -810,7 +815,8 @@ ENDIF
   OutData%FillNumM = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%FillMList) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%FillMList,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%FillMList,1)))
+  mask1 = .TRUE.
     OutData%FillMList = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%FillMList))-1 ),mask1,OutData%FillMList)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%FillMList)
@@ -822,51 +828,52 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE Morison_UnPackfilledgrouptype
+ END SUBROUTINE Morison_UnPackFilledGroupType
 
- SUBROUTINE Morison_Copycoefdpths( SrccoefdpthsData, DstcoefdpthsData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(morison_coefdpths), INTENT(INOUT) :: SrccoefdpthsData
-   TYPE(morison_coefdpths), INTENT(INOUT) :: DstcoefdpthsData
+ SUBROUTINE Morison_CopyCoefDpths( SrcCoefDpthsData, DstCoefDpthsData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Morison_CoefDpths), INTENT(IN) :: SrcCoefDpthsData
+   TYPE(Morison_CoefDpths), INTENT(INOUT) :: DstCoefDpthsData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstcoefdpthsData%Dpth = SrccoefdpthsData%Dpth
-   DstcoefdpthsData%DpthCd = SrccoefdpthsData%DpthCd
-   DstcoefdpthsData%DpthCdMG = SrccoefdpthsData%DpthCdMG
-   DstcoefdpthsData%DpthCa = SrccoefdpthsData%DpthCa
-   DstcoefdpthsData%DpthCaMG = SrccoefdpthsData%DpthCaMG
-   DstcoefdpthsData%DpthCp = SrccoefdpthsData%DpthCp
-   DstcoefdpthsData%DpthCpMG = SrccoefdpthsData%DpthCpMG
-   DstcoefdpthsData%DpthAxCa = SrccoefdpthsData%DpthAxCa
-   DstcoefdpthsData%DpthAxCaMG = SrccoefdpthsData%DpthAxCaMG
-   DstcoefdpthsData%DpthAxCp = SrccoefdpthsData%DpthAxCp
-   DstcoefdpthsData%DpthAxCpMG = SrccoefdpthsData%DpthAxCpMG
- END SUBROUTINE Morison_Copycoefdpths
+   DstCoefDpthsData%Dpth = SrcCoefDpthsData%Dpth
+   DstCoefDpthsData%DpthCd = SrcCoefDpthsData%DpthCd
+   DstCoefDpthsData%DpthCdMG = SrcCoefDpthsData%DpthCdMG
+   DstCoefDpthsData%DpthCa = SrcCoefDpthsData%DpthCa
+   DstCoefDpthsData%DpthCaMG = SrcCoefDpthsData%DpthCaMG
+   DstCoefDpthsData%DpthCp = SrcCoefDpthsData%DpthCp
+   DstCoefDpthsData%DpthCpMG = SrcCoefDpthsData%DpthCpMG
+   DstCoefDpthsData%DpthAxCa = SrcCoefDpthsData%DpthAxCa
+   DstCoefDpthsData%DpthAxCaMG = SrcCoefDpthsData%DpthAxCaMG
+   DstCoefDpthsData%DpthAxCp = SrcCoefDpthsData%DpthAxCp
+   DstCoefDpthsData%DpthAxCpMG = SrcCoefDpthsData%DpthAxCpMG
+ END SUBROUTINE Morison_CopyCoefDpths
 
- SUBROUTINE Morison_Destroycoefdpths( coefdpthsData, ErrStat, ErrMsg )
-  TYPE(morison_coefdpths), INTENT(INOUT) :: coefdpthsData
+ SUBROUTINE Morison_DestroyCoefDpths( CoefDpthsData, ErrStat, ErrMsg )
+  TYPE(Morison_CoefDpths), INTENT(INOUT) :: CoefDpthsData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE Morison_Destroycoefdpths
+ END SUBROUTINE Morison_DestroyCoefDpths
 
- SUBROUTINE Morison_Packcoefdpths( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE Morison_PackCoefDpths( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(morison_coefdpths),  INTENT(INOUT) :: InData
+  TYPE(Morison_CoefDpths),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -932,13 +939,13 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DpthAxCpMG )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE Morison_Packcoefdpths
+ END SUBROUTINE Morison_PackCoefDpths
 
- SUBROUTINE Morison_UnPackcoefdpths( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE Morison_UnPackCoefDpths( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(morison_coefdpths), INTENT(INOUT) :: OutData
+  TYPE(Morison_CoefDpths), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -992,44 +999,45 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE Morison_UnPackcoefdpths
+ END SUBROUTINE Morison_UnPackCoefDpths
 
- SUBROUTINE Morison_Copyaxialcoeftype( SrcaxialcoeftypeData, DstaxialcoeftypeData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(morison_axialcoeftype), INTENT(INOUT) :: SrcaxialcoeftypeData
-   TYPE(morison_axialcoeftype), INTENT(INOUT) :: DstaxialcoeftypeData
+ SUBROUTINE Morison_CopyAxialCoefType( SrcAxialCoefTypeData, DstAxialCoefTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Morison_AxialCoefType), INTENT(IN) :: SrcAxialCoefTypeData
+   TYPE(Morison_AxialCoefType), INTENT(INOUT) :: DstAxialCoefTypeData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstaxialcoeftypeData%AxCoefID = SrcaxialcoeftypeData%AxCoefID
-   DstaxialcoeftypeData%AxCd = SrcaxialcoeftypeData%AxCd
-   DstaxialcoeftypeData%AxCa = SrcaxialcoeftypeData%AxCa
-   DstaxialcoeftypeData%AxCp = SrcaxialcoeftypeData%AxCp
- END SUBROUTINE Morison_Copyaxialcoeftype
+   DstAxialCoefTypeData%AxCoefID = SrcAxialCoefTypeData%AxCoefID
+   DstAxialCoefTypeData%AxCd = SrcAxialCoefTypeData%AxCd
+   DstAxialCoefTypeData%AxCa = SrcAxialCoefTypeData%AxCa
+   DstAxialCoefTypeData%AxCp = SrcAxialCoefTypeData%AxCp
+ END SUBROUTINE Morison_CopyAxialCoefType
 
- SUBROUTINE Morison_Destroyaxialcoeftype( axialcoeftypeData, ErrStat, ErrMsg )
-  TYPE(morison_axialcoeftype), INTENT(INOUT) :: axialcoeftypeData
+ SUBROUTINE Morison_DestroyAxialCoefType( AxialCoefTypeData, ErrStat, ErrMsg )
+  TYPE(Morison_AxialCoefType), INTENT(INOUT) :: AxialCoefTypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE Morison_Destroyaxialcoeftype
+ END SUBROUTINE Morison_DestroyAxialCoefType
 
- SUBROUTINE Morison_Packaxialcoeftype( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE Morison_PackAxialCoefType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(morison_axialcoeftype),  INTENT(INOUT) :: InData
+  TYPE(Morison_AxialCoefType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1074,13 +1082,13 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCp )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE Morison_Packaxialcoeftype
+ END SUBROUTINE Morison_PackAxialCoefType
 
- SUBROUTINE Morison_UnPackaxialcoeftype( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE Morison_UnPackAxialCoefType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(morison_axialcoeftype), INTENT(INOUT) :: OutData
+  TYPE(Morison_AxialCoefType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1120,57 +1128,58 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE Morison_UnPackaxialcoeftype
+ END SUBROUTINE Morison_UnPackAxialCoefType
 
- SUBROUTINE Morison_Copymemberinputtype( SrcmemberinputtypeData, DstmemberinputtypeData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(morison_memberinputtype), INTENT(INOUT) :: SrcmemberinputtypeData
-   TYPE(morison_memberinputtype), INTENT(INOUT) :: DstmemberinputtypeData
+ SUBROUTINE Morison_CopyMemberInputType( SrcMemberInputTypeData, DstMemberInputTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Morison_MemberInputType), INTENT(IN) :: SrcMemberInputTypeData
+   TYPE(Morison_MemberInputType), INTENT(INOUT) :: DstMemberInputTypeData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstmemberinputtypeData%MemberID = SrcmemberinputtypeData%MemberID
-   DstmemberinputtypeData%MJointID1 = SrcmemberinputtypeData%MJointID1
-   DstmemberinputtypeData%MJointID2 = SrcmemberinputtypeData%MJointID2
-   DstmemberinputtypeData%MJointID1Indx = SrcmemberinputtypeData%MJointID1Indx
-   DstmemberinputtypeData%MJointID2Indx = SrcmemberinputtypeData%MJointID2Indx
-   DstmemberinputtypeData%MPropSetID1 = SrcmemberinputtypeData%MPropSetID1
-   DstmemberinputtypeData%MPropSetID2 = SrcmemberinputtypeData%MPropSetID2
-   DstmemberinputtypeData%MPropSetID1Indx = SrcmemberinputtypeData%MPropSetID1Indx
-   DstmemberinputtypeData%MPropSetID2Indx = SrcmemberinputtypeData%MPropSetID2Indx
-   DstmemberinputtypeData%MDivSize = SrcmemberinputtypeData%MDivSize
-   DstmemberinputtypeData%MCoefMod = SrcmemberinputtypeData%MCoefMod
-   DstmemberinputtypeData%MmbrCoefIDIndx = SrcmemberinputtypeData%MmbrCoefIDIndx
-   DstmemberinputtypeData%MmbrFilledIDIndx = SrcmemberinputtypeData%MmbrFilledIDIndx
-   DstmemberinputtypeData%PropWAMIT = SrcmemberinputtypeData%PropWAMIT
-   DstmemberinputtypeData%NumSplits = SrcmemberinputtypeData%NumSplits
-   DstmemberinputtypeData%Splits = SrcmemberinputtypeData%Splits
-   DstmemberinputtypeData%R_LToG = SrcmemberinputtypeData%R_LToG
- END SUBROUTINE Morison_Copymemberinputtype
+   DstMemberInputTypeData%MemberID = SrcMemberInputTypeData%MemberID
+   DstMemberInputTypeData%MJointID1 = SrcMemberInputTypeData%MJointID1
+   DstMemberInputTypeData%MJointID2 = SrcMemberInputTypeData%MJointID2
+   DstMemberInputTypeData%MJointID1Indx = SrcMemberInputTypeData%MJointID1Indx
+   DstMemberInputTypeData%MJointID2Indx = SrcMemberInputTypeData%MJointID2Indx
+   DstMemberInputTypeData%MPropSetID1 = SrcMemberInputTypeData%MPropSetID1
+   DstMemberInputTypeData%MPropSetID2 = SrcMemberInputTypeData%MPropSetID2
+   DstMemberInputTypeData%MPropSetID1Indx = SrcMemberInputTypeData%MPropSetID1Indx
+   DstMemberInputTypeData%MPropSetID2Indx = SrcMemberInputTypeData%MPropSetID2Indx
+   DstMemberInputTypeData%MDivSize = SrcMemberInputTypeData%MDivSize
+   DstMemberInputTypeData%MCoefMod = SrcMemberInputTypeData%MCoefMod
+   DstMemberInputTypeData%MmbrCoefIDIndx = SrcMemberInputTypeData%MmbrCoefIDIndx
+   DstMemberInputTypeData%MmbrFilledIDIndx = SrcMemberInputTypeData%MmbrFilledIDIndx
+   DstMemberInputTypeData%PropWAMIT = SrcMemberInputTypeData%PropWAMIT
+   DstMemberInputTypeData%NumSplits = SrcMemberInputTypeData%NumSplits
+   DstMemberInputTypeData%Splits = SrcMemberInputTypeData%Splits
+   DstMemberInputTypeData%R_LToG = SrcMemberInputTypeData%R_LToG
+ END SUBROUTINE Morison_CopyMemberInputType
 
- SUBROUTINE Morison_Destroymemberinputtype( memberinputtypeData, ErrStat, ErrMsg )
-  TYPE(morison_memberinputtype), INTENT(INOUT) :: memberinputtypeData
+ SUBROUTINE Morison_DestroyMemberInputType( MemberInputTypeData, ErrStat, ErrMsg )
+  TYPE(Morison_MemberInputType), INTENT(INOUT) :: MemberInputTypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE Morison_Destroymemberinputtype
+ END SUBROUTINE Morison_DestroyMemberInputType
 
- SUBROUTINE Morison_Packmemberinputtype( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE Morison_PackMemberInputType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(morison_memberinputtype),  INTENT(INOUT) :: InData
+  TYPE(Morison_MemberInputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1254,13 +1263,13 @@ ENDIF
   Re_Xferred   = Re_Xferred   + SIZE(InData%Splits)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%R_LToG))-1 ) =  PACK(InData%R_LToG ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%R_LToG)
- END SUBROUTINE Morison_Packmemberinputtype
+ END SUBROUTINE Morison_PackMemberInputType
 
- SUBROUTINE Morison_UnPackmemberinputtype( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE Morison_UnPackMemberInputType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(morison_memberinputtype), INTENT(INOUT) :: OutData
+  TYPE(Morison_MemberInputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1317,84 +1326,87 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   OutData%NumSplits = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%Splits,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%Splits,1)))
+  mask1 = .TRUE.
   OutData%Splits = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Splits))-1 ),mask1,OutData%Splits)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%Splits)
-  ALLOCATE(mask2(SIZE(OutData%R_LToG,1),SIZE(OutData%R_LToG,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%R_LToG,1),SIZE(OutData%R_LToG,2)))
+  mask2 = .TRUE.
   OutData%R_LToG = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%R_LToG))-1 ),mask2,OutData%R_LToG)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%R_LToG)
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE Morison_UnPackmemberinputtype
+ END SUBROUTINE Morison_UnPackMemberInputType
 
- SUBROUTINE Morison_Copynodetype( SrcnodetypeData, DstnodetypeData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(morison_nodetype), INTENT(INOUT) :: SrcnodetypeData
-   TYPE(morison_nodetype), INTENT(INOUT) :: DstnodetypeData
+ SUBROUTINE Morison_CopyNodeType( SrcNodeTypeData, DstNodeTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Morison_NodeType), INTENT(IN) :: SrcNodeTypeData
+   TYPE(Morison_NodeType), INTENT(INOUT) :: DstNodeTypeData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstnodetypeData%NodeType = SrcnodetypeData%NodeType
-   DstnodetypeData%JointIndx = SrcnodetypeData%JointIndx
-   DstnodetypeData%JointPos = SrcnodetypeData%JointPos
-   DstnodetypeData%JointOvrlp = SrcnodetypeData%JointOvrlp
-   DstnodetypeData%JointAxIDIndx = SrcnodetypeData%JointAxIDIndx
-   DstnodetypeData%NConnections = SrcnodetypeData%NConnections
-   DstnodetypeData%ConnectionList = SrcnodetypeData%ConnectionList
-   DstnodetypeData%NConnectPreSplit = SrcnodetypeData%NConnectPreSplit
-   DstnodetypeData%Cd = SrcnodetypeData%Cd
-   DstnodetypeData%CdMG = SrcnodetypeData%CdMG
-   DstnodetypeData%Ca = SrcnodetypeData%Ca
-   DstnodetypeData%CaMG = SrcnodetypeData%CaMG
-   DstnodetypeData%Cp = SrcnodetypeData%Cp
-   DstnodetypeData%CpMG = SrcnodetypeData%CpMG
-   DstnodetypeData%JAxCd = SrcnodetypeData%JAxCd
-   DstnodetypeData%JAxCa = SrcnodetypeData%JAxCa
-   DstnodetypeData%JAxCp = SrcnodetypeData%JAxCp
-   DstnodetypeData%AxCa = SrcnodetypeData%AxCa
-   DstnodetypeData%AxCp = SrcnodetypeData%AxCp
-   DstnodetypeData%AxCaMG = SrcnodetypeData%AxCaMG
-   DstnodetypeData%AxCpMG = SrcnodetypeData%AxCpMG
-   DstnodetypeData%R = SrcnodetypeData%R
-   DstnodetypeData%t = SrcnodetypeData%t
-   DstnodetypeData%tMG = SrcnodetypeData%tMG
-   DstnodetypeData%dRdz = SrcnodetypeData%dRdz
-   DstnodetypeData%MGdensity = SrcnodetypeData%MGdensity
-   DstnodetypeData%FillFSLoc = SrcnodetypeData%FillFSLoc
-   DstnodetypeData%FillFlag = SrcnodetypeData%FillFlag
-   DstnodetypeData%FillDensity = SrcnodetypeData%FillDensity
-   DstnodetypeData%InpMbrIndx = SrcnodetypeData%InpMbrIndx
-   DstnodetypeData%InpMbrDist = SrcnodetypeData%InpMbrDist
-   DstnodetypeData%PropWAMIT = SrcnodetypeData%PropWAMIT
-   DstnodetypeData%R_LToG = SrcnodetypeData%R_LToG
- END SUBROUTINE Morison_Copynodetype
+   DstNodeTypeData%NodeType = SrcNodeTypeData%NodeType
+   DstNodeTypeData%JointIndx = SrcNodeTypeData%JointIndx
+   DstNodeTypeData%JointPos = SrcNodeTypeData%JointPos
+   DstNodeTypeData%JointOvrlp = SrcNodeTypeData%JointOvrlp
+   DstNodeTypeData%JointAxIDIndx = SrcNodeTypeData%JointAxIDIndx
+   DstNodeTypeData%NConnections = SrcNodeTypeData%NConnections
+   DstNodeTypeData%ConnectionList = SrcNodeTypeData%ConnectionList
+   DstNodeTypeData%NConnectPreSplit = SrcNodeTypeData%NConnectPreSplit
+   DstNodeTypeData%Cd = SrcNodeTypeData%Cd
+   DstNodeTypeData%CdMG = SrcNodeTypeData%CdMG
+   DstNodeTypeData%Ca = SrcNodeTypeData%Ca
+   DstNodeTypeData%CaMG = SrcNodeTypeData%CaMG
+   DstNodeTypeData%Cp = SrcNodeTypeData%Cp
+   DstNodeTypeData%CpMG = SrcNodeTypeData%CpMG
+   DstNodeTypeData%JAxCd = SrcNodeTypeData%JAxCd
+   DstNodeTypeData%JAxCa = SrcNodeTypeData%JAxCa
+   DstNodeTypeData%JAxCp = SrcNodeTypeData%JAxCp
+   DstNodeTypeData%AxCa = SrcNodeTypeData%AxCa
+   DstNodeTypeData%AxCp = SrcNodeTypeData%AxCp
+   DstNodeTypeData%AxCaMG = SrcNodeTypeData%AxCaMG
+   DstNodeTypeData%AxCpMG = SrcNodeTypeData%AxCpMG
+   DstNodeTypeData%R = SrcNodeTypeData%R
+   DstNodeTypeData%t = SrcNodeTypeData%t
+   DstNodeTypeData%tMG = SrcNodeTypeData%tMG
+   DstNodeTypeData%dRdz = SrcNodeTypeData%dRdz
+   DstNodeTypeData%MGdensity = SrcNodeTypeData%MGdensity
+   DstNodeTypeData%FillFSLoc = SrcNodeTypeData%FillFSLoc
+   DstNodeTypeData%FillFlag = SrcNodeTypeData%FillFlag
+   DstNodeTypeData%FillDensity = SrcNodeTypeData%FillDensity
+   DstNodeTypeData%InpMbrIndx = SrcNodeTypeData%InpMbrIndx
+   DstNodeTypeData%InpMbrDist = SrcNodeTypeData%InpMbrDist
+   DstNodeTypeData%PropWAMIT = SrcNodeTypeData%PropWAMIT
+   DstNodeTypeData%R_LToG = SrcNodeTypeData%R_LToG
+ END SUBROUTINE Morison_CopyNodeType
 
- SUBROUTINE Morison_Destroynodetype( nodetypeData, ErrStat, ErrMsg )
-  TYPE(morison_nodetype), INTENT(INOUT) :: nodetypeData
+ SUBROUTINE Morison_DestroyNodeType( NodeTypeData, ErrStat, ErrMsg )
+  TYPE(Morison_NodeType), INTENT(INOUT) :: NodeTypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE Morison_Destroynodetype
+ END SUBROUTINE Morison_DestroyNodeType
 
- SUBROUTINE Morison_Packnodetype( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE Morison_PackNodeType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(morison_nodetype),  INTENT(INOUT) :: InData
+  TYPE(Morison_NodeType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1526,13 +1538,13 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%R_LToG))-1 ) =  PACK(InData%R_LToG ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%R_LToG)
- END SUBROUTINE Morison_Packnodetype
+ END SUBROUTINE Morison_PackNodeType
 
- SUBROUTINE Morison_UnPacknodetype( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE Morison_UnPackNodeType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(morison_nodetype), INTENT(INOUT) :: OutData
+  TYPE(Morison_NodeType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1565,7 +1577,8 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   OutData%JointIndx = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%JointPos,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%JointPos,1)))
+  mask1 = .TRUE.
   OutData%JointPos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%JointPos))-1 ),mask1,OutData%JointPos)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%JointPos)
@@ -1575,7 +1588,8 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   OutData%NConnections = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%ConnectionList,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%ConnectionList,1)))
+  mask1 = .TRUE.
   OutData%ConnectionList = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%ConnectionList))-1 ),mask1,OutData%ConnectionList)
   DEALLOCATE(mask1)
   Int_Xferred   = Int_Xferred   + SIZE(OutData%ConnectionList)
@@ -1625,90 +1639,92 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   OutData%InpMbrDist = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  ALLOCATE(mask2(SIZE(OutData%R_LToG,1),SIZE(OutData%R_LToG,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%R_LToG,1),SIZE(OutData%R_LToG,2)))
+  mask2 = .TRUE.
   OutData%R_LToG = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%R_LToG))-1 ),mask2,OutData%R_LToG)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%R_LToG)
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE Morison_UnPacknodetype
+ END SUBROUTINE Morison_UnPackNodeType
 
- SUBROUTINE Morison_Copymembertype( SrcmembertypeData, DstmembertypeData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(morison_membertype), INTENT(INOUT) :: SrcmembertypeData
-   TYPE(morison_membertype), INTENT(INOUT) :: DstmembertypeData
+ SUBROUTINE Morison_CopyMemberType( SrcMemberTypeData, DstMemberTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Morison_MemberType), INTENT(IN) :: SrcMemberTypeData
+   TYPE(Morison_MemberType), INTENT(INOUT) :: DstMemberTypeData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstmembertypeData%Node1Indx = SrcmembertypeData%Node1Indx
-   DstmembertypeData%Node2Indx = SrcmembertypeData%Node2Indx
-   DstmembertypeData%R1 = SrcmembertypeData%R1
-   DstmembertypeData%t1 = SrcmembertypeData%t1
-   DstmembertypeData%R2 = SrcmembertypeData%R2
-   DstmembertypeData%t2 = SrcmembertypeData%t2
-   DstmembertypeData%Cd1 = SrcmembertypeData%Cd1
-   DstmembertypeData%CdMG1 = SrcmembertypeData%CdMG1
-   DstmembertypeData%Ca1 = SrcmembertypeData%Ca1
-   DstmembertypeData%CaMG1 = SrcmembertypeData%CaMG1
-   DstmembertypeData%Cp1 = SrcmembertypeData%Cp1
-   DstmembertypeData%CpMG1 = SrcmembertypeData%CpMG1
-   DstmembertypeData%AxCa1 = SrcmembertypeData%AxCa1
-   DstmembertypeData%AxCaMG1 = SrcmembertypeData%AxCaMG1
-   DstmembertypeData%AxCp1 = SrcmembertypeData%AxCp1
-   DstmembertypeData%AxCpMG1 = SrcmembertypeData%AxCpMG1
-   DstmembertypeData%Cd2 = SrcmembertypeData%Cd2
-   DstmembertypeData%CdMG2 = SrcmembertypeData%CdMG2
-   DstmembertypeData%Ca2 = SrcmembertypeData%Ca2
-   DstmembertypeData%CaMG2 = SrcmembertypeData%CaMG2
-   DstmembertypeData%Cp2 = SrcmembertypeData%Cp2
-   DstmembertypeData%CpMG2 = SrcmembertypeData%CpMG2
-   DstmembertypeData%AxCa2 = SrcmembertypeData%AxCa2
-   DstmembertypeData%AxCaMG2 = SrcmembertypeData%AxCaMG2
-   DstmembertypeData%AxCp2 = SrcmembertypeData%AxCp2
-   DstmembertypeData%AxCpMG2 = SrcmembertypeData%AxCpMG2
-   DstmembertypeData%InpMbrDist1 = SrcmembertypeData%InpMbrDist1
-   DstmembertypeData%InpMbrDist2 = SrcmembertypeData%InpMbrDist2
-   DstmembertypeData%InpMbrLen = SrcmembertypeData%InpMbrLen
-   DstmembertypeData%InpMbrIndx = SrcmembertypeData%InpMbrIndx
-   DstmembertypeData%R_LToG = SrcmembertypeData%R_LToG
-   DstmembertypeData%NumSplits = SrcmembertypeData%NumSplits
-   DstmembertypeData%Splits = SrcmembertypeData%Splits
-   DstmembertypeData%MGvolume = SrcmembertypeData%MGvolume
-   DstmembertypeData%MDivSize = SrcmembertypeData%MDivSize
-   DstmembertypeData%MCoefMod = SrcmembertypeData%MCoefMod
-   DstmembertypeData%MmbrCoefIDIndx = SrcmembertypeData%MmbrCoefIDIndx
-   DstmembertypeData%MmbrFilledIDIndx = SrcmembertypeData%MmbrFilledIDIndx
-   DstmembertypeData%FillFSLoc = SrcmembertypeData%FillFSLoc
-   DstmembertypeData%FillDens = SrcmembertypeData%FillDens
-   DstmembertypeData%F_Bouy = SrcmembertypeData%F_Bouy
-   DstmembertypeData%F_DP = SrcmembertypeData%F_DP
-   DstmembertypeData%PropWAMIT = SrcmembertypeData%PropWAMIT
- END SUBROUTINE Morison_Copymembertype
+   DstMemberTypeData%Node1Indx = SrcMemberTypeData%Node1Indx
+   DstMemberTypeData%Node2Indx = SrcMemberTypeData%Node2Indx
+   DstMemberTypeData%R1 = SrcMemberTypeData%R1
+   DstMemberTypeData%t1 = SrcMemberTypeData%t1
+   DstMemberTypeData%R2 = SrcMemberTypeData%R2
+   DstMemberTypeData%t2 = SrcMemberTypeData%t2
+   DstMemberTypeData%Cd1 = SrcMemberTypeData%Cd1
+   DstMemberTypeData%CdMG1 = SrcMemberTypeData%CdMG1
+   DstMemberTypeData%Ca1 = SrcMemberTypeData%Ca1
+   DstMemberTypeData%CaMG1 = SrcMemberTypeData%CaMG1
+   DstMemberTypeData%Cp1 = SrcMemberTypeData%Cp1
+   DstMemberTypeData%CpMG1 = SrcMemberTypeData%CpMG1
+   DstMemberTypeData%AxCa1 = SrcMemberTypeData%AxCa1
+   DstMemberTypeData%AxCaMG1 = SrcMemberTypeData%AxCaMG1
+   DstMemberTypeData%AxCp1 = SrcMemberTypeData%AxCp1
+   DstMemberTypeData%AxCpMG1 = SrcMemberTypeData%AxCpMG1
+   DstMemberTypeData%Cd2 = SrcMemberTypeData%Cd2
+   DstMemberTypeData%CdMG2 = SrcMemberTypeData%CdMG2
+   DstMemberTypeData%Ca2 = SrcMemberTypeData%Ca2
+   DstMemberTypeData%CaMG2 = SrcMemberTypeData%CaMG2
+   DstMemberTypeData%Cp2 = SrcMemberTypeData%Cp2
+   DstMemberTypeData%CpMG2 = SrcMemberTypeData%CpMG2
+   DstMemberTypeData%AxCa2 = SrcMemberTypeData%AxCa2
+   DstMemberTypeData%AxCaMG2 = SrcMemberTypeData%AxCaMG2
+   DstMemberTypeData%AxCp2 = SrcMemberTypeData%AxCp2
+   DstMemberTypeData%AxCpMG2 = SrcMemberTypeData%AxCpMG2
+   DstMemberTypeData%InpMbrDist1 = SrcMemberTypeData%InpMbrDist1
+   DstMemberTypeData%InpMbrDist2 = SrcMemberTypeData%InpMbrDist2
+   DstMemberTypeData%InpMbrLen = SrcMemberTypeData%InpMbrLen
+   DstMemberTypeData%InpMbrIndx = SrcMemberTypeData%InpMbrIndx
+   DstMemberTypeData%R_LToG = SrcMemberTypeData%R_LToG
+   DstMemberTypeData%NumSplits = SrcMemberTypeData%NumSplits
+   DstMemberTypeData%Splits = SrcMemberTypeData%Splits
+   DstMemberTypeData%MGvolume = SrcMemberTypeData%MGvolume
+   DstMemberTypeData%MDivSize = SrcMemberTypeData%MDivSize
+   DstMemberTypeData%MCoefMod = SrcMemberTypeData%MCoefMod
+   DstMemberTypeData%MmbrCoefIDIndx = SrcMemberTypeData%MmbrCoefIDIndx
+   DstMemberTypeData%MmbrFilledIDIndx = SrcMemberTypeData%MmbrFilledIDIndx
+   DstMemberTypeData%FillFSLoc = SrcMemberTypeData%FillFSLoc
+   DstMemberTypeData%FillDens = SrcMemberTypeData%FillDens
+   DstMemberTypeData%F_Bouy = SrcMemberTypeData%F_Bouy
+   DstMemberTypeData%F_DP = SrcMemberTypeData%F_DP
+   DstMemberTypeData%PropWAMIT = SrcMemberTypeData%PropWAMIT
+ END SUBROUTINE Morison_CopyMemberType
 
- SUBROUTINE Morison_Destroymembertype( membertypeData, ErrStat, ErrMsg )
-  TYPE(morison_membertype), INTENT(INOUT) :: membertypeData
+ SUBROUTINE Morison_DestroyMemberType( MemberTypeData, ErrStat, ErrMsg )
+  TYPE(Morison_MemberType), INTENT(INOUT) :: MemberTypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE Morison_Destroymembertype
+ END SUBROUTINE Morison_DestroyMemberType
 
- SUBROUTINE Morison_Packmembertype( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE Morison_PackMemberType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(morison_membertype),  INTENT(INOUT) :: InData
+  TYPE(Morison_MemberType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1870,13 +1886,13 @@ ENDIF
   Re_Xferred   = Re_Xferred   + SIZE(InData%F_DP)
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%PropWAMIT ), IntKiBuf(1), 1)
   Int_Xferred   = Int_Xferred   + 1
- END SUBROUTINE Morison_Packmembertype
+ END SUBROUTINE Morison_PackMemberType
 
- SUBROUTINE Morison_UnPackmembertype( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE Morison_UnPackMemberType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(morison_membertype), INTENT(INOUT) :: OutData
+  TYPE(Morison_MemberType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1965,13 +1981,15 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%InpMbrIndx = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  ALLOCATE(mask2(SIZE(OutData%R_LToG,1),SIZE(OutData%R_LToG,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%R_LToG,1),SIZE(OutData%R_LToG,2)))
+  mask2 = .TRUE.
   OutData%R_LToG = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%R_LToG))-1 ),mask2,OutData%R_LToG)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%R_LToG)
   OutData%NumSplits = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%Splits,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%Splits,1)))
+  mask1 = .TRUE.
   OutData%Splits = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Splits))-1 ),mask1,OutData%Splits)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%Splits)
@@ -1989,72 +2007,75 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%FillDens = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%F_Bouy,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%F_Bouy,1)))
+  mask1 = .TRUE.
   OutData%F_Bouy = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%F_Bouy))-1 ),mask1,OutData%F_Bouy)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%F_Bouy)
-  ALLOCATE(mask1(SIZE(OutData%F_DP,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%F_DP,1)))
+  mask1 = .TRUE.
   OutData%F_DP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%F_DP))-1 ),mask1,OutData%F_DP)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%F_DP)
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE Morison_UnPackmembertype
+ END SUBROUTINE Morison_UnPackMemberType
 
- SUBROUTINE Morison_Copycoefmembers( SrccoefmembersData, DstcoefmembersData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(morison_coefmembers), INTENT(INOUT) :: SrccoefmembersData
-   TYPE(morison_coefmembers), INTENT(INOUT) :: DstcoefmembersData
+ SUBROUTINE Morison_CopyCoefMembers( SrcCoefMembersData, DstCoefMembersData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Morison_CoefMembers), INTENT(IN) :: SrcCoefMembersData
+   TYPE(Morison_CoefMembers), INTENT(INOUT) :: DstCoefMembersData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstcoefmembersData%MemberID = SrccoefmembersData%MemberID
-   DstcoefmembersData%MemberCd1 = SrccoefmembersData%MemberCd1
-   DstcoefmembersData%MemberCd2 = SrccoefmembersData%MemberCd2
-   DstcoefmembersData%MemberCdMG1 = SrccoefmembersData%MemberCdMG1
-   DstcoefmembersData%MemberCdMG2 = SrccoefmembersData%MemberCdMG2
-   DstcoefmembersData%MemberCa1 = SrccoefmembersData%MemberCa1
-   DstcoefmembersData%MemberCa2 = SrccoefmembersData%MemberCa2
-   DstcoefmembersData%MemberCaMG1 = SrccoefmembersData%MemberCaMG1
-   DstcoefmembersData%MemberCaMG2 = SrccoefmembersData%MemberCaMG2
-   DstcoefmembersData%MemberCp1 = SrccoefmembersData%MemberCp1
-   DstcoefmembersData%MemberCp2 = SrccoefmembersData%MemberCp2
-   DstcoefmembersData%MemberCpMG1 = SrccoefmembersData%MemberCpMG1
-   DstcoefmembersData%MemberCpMG2 = SrccoefmembersData%MemberCpMG2
-   DstcoefmembersData%MemberAxCa1 = SrccoefmembersData%MemberAxCa1
-   DstcoefmembersData%MemberAxCa2 = SrccoefmembersData%MemberAxCa2
-   DstcoefmembersData%MemberAxCaMG1 = SrccoefmembersData%MemberAxCaMG1
-   DstcoefmembersData%MemberAxCaMG2 = SrccoefmembersData%MemberAxCaMG2
-   DstcoefmembersData%MemberAxCp1 = SrccoefmembersData%MemberAxCp1
-   DstcoefmembersData%MemberAxCp2 = SrccoefmembersData%MemberAxCp2
-   DstcoefmembersData%MemberAxCpMG1 = SrccoefmembersData%MemberAxCpMG1
-   DstcoefmembersData%MemberAxCpMG2 = SrccoefmembersData%MemberAxCpMG2
- END SUBROUTINE Morison_Copycoefmembers
+   DstCoefMembersData%MemberID = SrcCoefMembersData%MemberID
+   DstCoefMembersData%MemberCd1 = SrcCoefMembersData%MemberCd1
+   DstCoefMembersData%MemberCd2 = SrcCoefMembersData%MemberCd2
+   DstCoefMembersData%MemberCdMG1 = SrcCoefMembersData%MemberCdMG1
+   DstCoefMembersData%MemberCdMG2 = SrcCoefMembersData%MemberCdMG2
+   DstCoefMembersData%MemberCa1 = SrcCoefMembersData%MemberCa1
+   DstCoefMembersData%MemberCa2 = SrcCoefMembersData%MemberCa2
+   DstCoefMembersData%MemberCaMG1 = SrcCoefMembersData%MemberCaMG1
+   DstCoefMembersData%MemberCaMG2 = SrcCoefMembersData%MemberCaMG2
+   DstCoefMembersData%MemberCp1 = SrcCoefMembersData%MemberCp1
+   DstCoefMembersData%MemberCp2 = SrcCoefMembersData%MemberCp2
+   DstCoefMembersData%MemberCpMG1 = SrcCoefMembersData%MemberCpMG1
+   DstCoefMembersData%MemberCpMG2 = SrcCoefMembersData%MemberCpMG2
+   DstCoefMembersData%MemberAxCa1 = SrcCoefMembersData%MemberAxCa1
+   DstCoefMembersData%MemberAxCa2 = SrcCoefMembersData%MemberAxCa2
+   DstCoefMembersData%MemberAxCaMG1 = SrcCoefMembersData%MemberAxCaMG1
+   DstCoefMembersData%MemberAxCaMG2 = SrcCoefMembersData%MemberAxCaMG2
+   DstCoefMembersData%MemberAxCp1 = SrcCoefMembersData%MemberAxCp1
+   DstCoefMembersData%MemberAxCp2 = SrcCoefMembersData%MemberAxCp2
+   DstCoefMembersData%MemberAxCpMG1 = SrcCoefMembersData%MemberAxCpMG1
+   DstCoefMembersData%MemberAxCpMG2 = SrcCoefMembersData%MemberAxCpMG2
+ END SUBROUTINE Morison_CopyCoefMembers
 
- SUBROUTINE Morison_Destroycoefmembers( coefmembersData, ErrStat, ErrMsg )
-  TYPE(morison_coefmembers), INTENT(INOUT) :: coefmembersData
+ SUBROUTINE Morison_DestroyCoefMembers( CoefMembersData, ErrStat, ErrMsg )
+  TYPE(Morison_CoefMembers), INTENT(INOUT) :: CoefMembersData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE Morison_Destroycoefmembers
+ END SUBROUTINE Morison_DestroyCoefMembers
 
- SUBROUTINE Morison_Packcoefmembers( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE Morison_PackCoefMembers( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(morison_coefmembers),  INTENT(INOUT) :: InData
+  TYPE(Morison_CoefMembers),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -2150,13 +2171,13 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%MemberAxCpMG2 )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE Morison_Packcoefmembers
+ END SUBROUTINE Morison_PackCoefMembers
 
- SUBROUTINE Morison_UnPackcoefmembers( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE Morison_UnPackCoefMembers( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(morison_coefmembers), INTENT(INOUT) :: OutData
+  TYPE(Morison_CoefMembers), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -2230,43 +2251,44 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE Morison_UnPackcoefmembers
+ END SUBROUTINE Morison_UnPackCoefMembers
 
- SUBROUTINE Morison_Copymgdepthstype( SrcmgdepthstypeData, DstmgdepthstypeData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(morison_mgdepthstype), INTENT(INOUT) :: SrcmgdepthstypeData
-   TYPE(morison_mgdepthstype), INTENT(INOUT) :: DstmgdepthstypeData
+ SUBROUTINE Morison_CopyMGDepthsType( SrcMGDepthsTypeData, DstMGDepthsTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Morison_MGDepthsType), INTENT(IN) :: SrcMGDepthsTypeData
+   TYPE(Morison_MGDepthsType), INTENT(INOUT) :: DstMGDepthsTypeData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstmgdepthstypeData%MGDpth = SrcmgdepthstypeData%MGDpth
-   DstmgdepthstypeData%MGThck = SrcmgdepthstypeData%MGThck
-   DstmgdepthstypeData%MGDens = SrcmgdepthstypeData%MGDens
- END SUBROUTINE Morison_Copymgdepthstype
+   DstMGDepthsTypeData%MGDpth = SrcMGDepthsTypeData%MGDpth
+   DstMGDepthsTypeData%MGThck = SrcMGDepthsTypeData%MGThck
+   DstMGDepthsTypeData%MGDens = SrcMGDepthsTypeData%MGDens
+ END SUBROUTINE Morison_CopyMGDepthsType
 
- SUBROUTINE Morison_Destroymgdepthstype( mgdepthstypeData, ErrStat, ErrMsg )
-  TYPE(morison_mgdepthstype), INTENT(INOUT) :: mgdepthstypeData
+ SUBROUTINE Morison_DestroyMGDepthsType( MGDepthsTypeData, ErrStat, ErrMsg )
+  TYPE(Morison_MGDepthsType), INTENT(INOUT) :: MGDepthsTypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE Morison_Destroymgdepthstype
+ END SUBROUTINE Morison_DestroyMGDepthsType
 
- SUBROUTINE Morison_Packmgdepthstype( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE Morison_PackMGDepthsType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(morison_mgdepthstype),  INTENT(INOUT) :: InData
+  TYPE(Morison_MGDepthsType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -2308,13 +2330,13 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%MGDens )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE Morison_Packmgdepthstype
+ END SUBROUTINE Morison_PackMGDepthsType
 
- SUBROUTINE Morison_UnPackmgdepthstype( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE Morison_UnPackMGDepthsType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(morison_mgdepthstype), INTENT(INOUT) :: OutData
+  TYPE(Morison_MGDepthsType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -2352,103 +2374,104 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE Morison_UnPackmgdepthstype
+ END SUBROUTINE Morison_UnPackMGDepthsType
 
- SUBROUTINE Morison_Copymoutput( SrcmoutputData, DstmoutputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(morison_moutput), INTENT(INOUT) :: SrcmoutputData
-   TYPE(morison_moutput), INTENT(INOUT) :: DstmoutputData
+ SUBROUTINE Morison_CopyMOutput( SrcMOutputData, DstMOutputData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Morison_MOutput), INTENT(IN) :: SrcMOutputData
+   TYPE(Morison_MOutput), INTENT(INOUT) :: DstMOutputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstmoutputData%MemberID = SrcmoutputData%MemberID
-   DstmoutputData%NOutLoc = SrcmoutputData%NOutLoc
-IF (ALLOCATED(SrcmoutputData%NodeLocs)) THEN
-   i1_l = LBOUND(SrcmoutputData%NodeLocs,1)
-   i1_u = UBOUND(SrcmoutputData%NodeLocs,1)
-   IF (.NOT. ALLOCATED(DstmoutputData%NodeLocs)) THEN 
-      ALLOCATE(DstmoutputData%NodeLocs(i1_l:i1_u),STAT=ErrStat2)
+   DstMOutputData%MemberID = SrcMOutputData%MemberID
+   DstMOutputData%NOutLoc = SrcMOutputData%NOutLoc
+IF (ALLOCATED(SrcMOutputData%NodeLocs)) THEN
+   i1_l = LBOUND(SrcMOutputData%NodeLocs,1)
+   i1_u = UBOUND(SrcMOutputData%NodeLocs,1)
+   IF (.NOT. ALLOCATED(DstMOutputData%NodeLocs)) THEN 
+      ALLOCATE(DstMOutputData%NodeLocs(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstmoutputData%NodeLocs.', ErrStat, ErrMsg,'Morison_Copymoutput')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMOutputData%NodeLocs.', ErrStat, ErrMsg,'Morison_CopyMOutput')
          RETURN
       END IF
    END IF
-   DstmoutputData%NodeLocs = SrcmoutputData%NodeLocs
+   DstMOutputData%NodeLocs = SrcMOutputData%NodeLocs
 ENDIF
-   DstmoutputData%MemberIDIndx = SrcmoutputData%MemberIDIndx
-IF (ALLOCATED(SrcmoutputData%Marker1)) THEN
-   i1_l = LBOUND(SrcmoutputData%Marker1,1)
-   i1_u = UBOUND(SrcmoutputData%Marker1,1)
-   IF (.NOT. ALLOCATED(DstmoutputData%Marker1)) THEN 
-      ALLOCATE(DstmoutputData%Marker1(i1_l:i1_u),STAT=ErrStat2)
+   DstMOutputData%MemberIDIndx = SrcMOutputData%MemberIDIndx
+IF (ALLOCATED(SrcMOutputData%Marker1)) THEN
+   i1_l = LBOUND(SrcMOutputData%Marker1,1)
+   i1_u = UBOUND(SrcMOutputData%Marker1,1)
+   IF (.NOT. ALLOCATED(DstMOutputData%Marker1)) THEN 
+      ALLOCATE(DstMOutputData%Marker1(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstmoutputData%Marker1.', ErrStat, ErrMsg,'Morison_Copymoutput')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMOutputData%Marker1.', ErrStat, ErrMsg,'Morison_CopyMOutput')
          RETURN
       END IF
    END IF
-   DstmoutputData%Marker1 = SrcmoutputData%Marker1
+   DstMOutputData%Marker1 = SrcMOutputData%Marker1
 ENDIF
-IF (ALLOCATED(SrcmoutputData%Marker2)) THEN
-   i1_l = LBOUND(SrcmoutputData%Marker2,1)
-   i1_u = UBOUND(SrcmoutputData%Marker2,1)
-   IF (.NOT. ALLOCATED(DstmoutputData%Marker2)) THEN 
-      ALLOCATE(DstmoutputData%Marker2(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcMOutputData%Marker2)) THEN
+   i1_l = LBOUND(SrcMOutputData%Marker2,1)
+   i1_u = UBOUND(SrcMOutputData%Marker2,1)
+   IF (.NOT. ALLOCATED(DstMOutputData%Marker2)) THEN 
+      ALLOCATE(DstMOutputData%Marker2(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstmoutputData%Marker2.', ErrStat, ErrMsg,'Morison_Copymoutput')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMOutputData%Marker2.', ErrStat, ErrMsg,'Morison_CopyMOutput')
          RETURN
       END IF
    END IF
-   DstmoutputData%Marker2 = SrcmoutputData%Marker2
+   DstMOutputData%Marker2 = SrcMOutputData%Marker2
 ENDIF
-IF (ALLOCATED(SrcmoutputData%s)) THEN
-   i1_l = LBOUND(SrcmoutputData%s,1)
-   i1_u = UBOUND(SrcmoutputData%s,1)
-   IF (.NOT. ALLOCATED(DstmoutputData%s)) THEN 
-      ALLOCATE(DstmoutputData%s(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcMOutputData%s)) THEN
+   i1_l = LBOUND(SrcMOutputData%s,1)
+   i1_u = UBOUND(SrcMOutputData%s,1)
+   IF (.NOT. ALLOCATED(DstMOutputData%s)) THEN 
+      ALLOCATE(DstMOutputData%s(i1_l:i1_u),STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstmoutputData%s.', ErrStat, ErrMsg,'Morison_Copymoutput')
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMOutputData%s.', ErrStat, ErrMsg,'Morison_CopyMOutput')
          RETURN
       END IF
    END IF
-   DstmoutputData%s = SrcmoutputData%s
+   DstMOutputData%s = SrcMOutputData%s
 ENDIF
- END SUBROUTINE Morison_Copymoutput
+ END SUBROUTINE Morison_CopyMOutput
 
- SUBROUTINE Morison_Destroymoutput( moutputData, ErrStat, ErrMsg )
-  TYPE(morison_moutput), INTENT(INOUT) :: moutputData
+ SUBROUTINE Morison_DestroyMOutput( MOutputData, ErrStat, ErrMsg )
+  TYPE(Morison_MOutput), INTENT(INOUT) :: MOutputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(moutputData%NodeLocs)) THEN
-   DEALLOCATE(moutputData%NodeLocs)
+IF (ALLOCATED(MOutputData%NodeLocs)) THEN
+   DEALLOCATE(MOutputData%NodeLocs)
 ENDIF
-IF (ALLOCATED(moutputData%Marker1)) THEN
-   DEALLOCATE(moutputData%Marker1)
+IF (ALLOCATED(MOutputData%Marker1)) THEN
+   DEALLOCATE(MOutputData%Marker1)
 ENDIF
-IF (ALLOCATED(moutputData%Marker2)) THEN
-   DEALLOCATE(moutputData%Marker2)
+IF (ALLOCATED(MOutputData%Marker2)) THEN
+   DEALLOCATE(MOutputData%Marker2)
 ENDIF
-IF (ALLOCATED(moutputData%s)) THEN
-   DEALLOCATE(moutputData%s)
+IF (ALLOCATED(MOutputData%s)) THEN
+   DEALLOCATE(MOutputData%s)
 ENDIF
- END SUBROUTINE Morison_Destroymoutput
+ END SUBROUTINE Morison_DestroyMOutput
 
- SUBROUTINE Morison_Packmoutput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE Morison_PackMOutput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(morison_moutput),  INTENT(INOUT) :: InData
+  TYPE(Morison_MOutput),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -2510,13 +2533,13 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%s))-1 ) =  PACK(InData%s ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%s)
   ENDIF
- END SUBROUTINE Morison_Packmoutput
+ END SUBROUTINE Morison_PackMOutput
 
- SUBROUTINE Morison_UnPackmoutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE Morison_UnPackMOutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(morison_moutput), INTENT(INOUT) :: OutData
+  TYPE(Morison_MOutput), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -2550,7 +2573,8 @@ ENDIF
   OutData%NOutLoc = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%NodeLocs) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%NodeLocs,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%NodeLocs,1)))
+  mask1 = .TRUE.
     OutData%NodeLocs = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%NodeLocs))-1 ),mask1,OutData%NodeLocs)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%NodeLocs)
@@ -2558,19 +2582,22 @@ ENDIF
   OutData%MemberIDIndx = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%Marker1) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%Marker1,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%Marker1,1)))
+  mask1 = .TRUE.
     OutData%Marker1 = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%Marker1))-1 ),mask1,OutData%Marker1)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%Marker1)
   ENDIF
   IF ( ALLOCATED(OutData%Marker2) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%Marker2,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%Marker2,1)))
+  mask1 = .TRUE.
     OutData%Marker2 = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%Marker2))-1 ),mask1,OutData%Marker2)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%Marker2)
   ENDIF
   IF ( ALLOCATED(OutData%s) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%s,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%s,1)))
+  mask1 = .TRUE.
     OutData%s = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%s))-1 ),mask1,OutData%s)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%s)
@@ -2578,44 +2605,45 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE Morison_UnPackmoutput
+ END SUBROUTINE Morison_UnPackMOutput
 
- SUBROUTINE Morison_Copyjoutput( SrcjoutputData, DstjoutputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(morison_joutput), INTENT(INOUT) :: SrcjoutputData
-   TYPE(morison_joutput), INTENT(INOUT) :: DstjoutputData
+ SUBROUTINE Morison_CopyJOutput( SrcJOutputData, DstJOutputData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(Morison_JOutput), INTENT(IN) :: SrcJOutputData
+   TYPE(Morison_JOutput), INTENT(INOUT) :: DstJOutputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstjoutputData%JointID = SrcjoutputData%JointID
-   DstjoutputData%JointIDIndx = SrcjoutputData%JointIDIndx
-   DstjoutputData%NumMarkers = SrcjoutputData%NumMarkers
-   DstjoutputData%Markers = SrcjoutputData%Markers
- END SUBROUTINE Morison_Copyjoutput
+   DstJOutputData%JointID = SrcJOutputData%JointID
+   DstJOutputData%JointIDIndx = SrcJOutputData%JointIDIndx
+   DstJOutputData%NumMarkers = SrcJOutputData%NumMarkers
+   DstJOutputData%Markers = SrcJOutputData%Markers
+ END SUBROUTINE Morison_CopyJOutput
 
- SUBROUTINE Morison_Destroyjoutput( joutputData, ErrStat, ErrMsg )
-  TYPE(morison_joutput), INTENT(INOUT) :: joutputData
+ SUBROUTINE Morison_DestroyJOutput( JOutputData, ErrStat, ErrMsg )
+  TYPE(Morison_JOutput), INTENT(INOUT) :: JOutputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE Morison_Destroyjoutput
+ END SUBROUTINE Morison_DestroyJOutput
 
- SUBROUTINE Morison_Packjoutput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE Morison_PackJOutput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(morison_joutput),  INTENT(INOUT) :: InData
+  TYPE(Morison_JOutput),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -2660,13 +2688,13 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%Markers))-1 ) = PACK(InData%Markers ,.TRUE.)
   Int_Xferred   = Int_Xferred   + SIZE(InData%Markers)
- END SUBROUTINE Morison_Packjoutput
+ END SUBROUTINE Morison_PackJOutput
 
- SUBROUTINE Morison_UnPackjoutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE Morison_UnPackJOutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(morison_joutput), INTENT(INOUT) :: OutData
+  TYPE(Morison_JOutput), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -2701,25 +2729,27 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   OutData%NumMarkers = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%Markers,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%Markers,1)))
+  mask1 = .TRUE.
   OutData%Markers = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%Markers))-1 ),mask1,OutData%Markers)
   DEALLOCATE(mask1)
   Int_Xferred   = Int_Xferred   + SIZE(OutData%Markers)
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE Morison_UnPackjoutput
+ END SUBROUTINE Morison_UnPackJOutput
 
  SUBROUTINE Morison_CopyInitInput( SrcInitInputData, DstInitInputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(Morison_initinputtype), INTENT(INOUT) :: SrcInitInputData
-   TYPE(Morison_initinputtype), INTENT(INOUT) :: DstInitInputData
+   TYPE(Morison_InitInputType), INTENT(IN) :: SrcInitInputData
+   TYPE(Morison_InitInputType), INTENT(INOUT) :: DstInitInputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -3027,7 +3057,7 @@ ENDIF
  END SUBROUTINE Morison_CopyInitInput
 
  SUBROUTINE Morison_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
-  TYPE(Morison_initinputtype), INTENT(INOUT) :: InitInputData
+  TYPE(Morison_InitInputType), INTENT(INOUT) :: InitInputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -3127,7 +3157,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Morison_initinputtype),  INTENT(INOUT) :: InData
+  TYPE(Morison_InitInputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -3658,7 +3688,7 @@ ENDDO
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(Morison_initinputtype), INTENT(INOUT) :: OutData
+  TYPE(Morison_InitInputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -3998,25 +4028,29 @@ ENDDO
   OutData%NStepWave = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%WaveAcc0) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%WaveAcc0,1),SIZE(OutData%WaveAcc0,2),SIZE(OutData%WaveAcc0,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%WaveAcc0,1),SIZE(OutData%WaveAcc0,2),SIZE(OutData%WaveAcc0,3)))
+  mask3 = .TRUE.
     OutData%WaveAcc0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveAcc0))-1 ),mask3,OutData%WaveAcc0)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveAcc0)
   ENDIF
   IF ( ALLOCATED(OutData%WaveTime) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WaveTime,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%WaveTime,1)))
+  mask1 = .TRUE.
     OutData%WaveTime = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ),mask1,OutData%WaveTime)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveTime)
   ENDIF
   IF ( ALLOCATED(OutData%WaveDynP0) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveDynP0,1),SIZE(OutData%WaveDynP0,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%WaveDynP0,1),SIZE(OutData%WaveDynP0,2)))
+  mask2 = .TRUE.
     OutData%WaveDynP0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveDynP0))-1 ),mask2,OutData%WaveDynP0)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveDynP0)
   ENDIF
   IF ( ALLOCATED(OutData%WaveVel0) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%WaveVel0,1),SIZE(OutData%WaveVel0,2),SIZE(OutData%WaveVel0,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%WaveVel0,1),SIZE(OutData%WaveVel0,2),SIZE(OutData%WaveVel0,3)))
+  mask3 = .TRUE.
     OutData%WaveVel0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveVel0))-1 ),mask3,OutData%WaveVel0)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveVel0)
@@ -4027,15 +4061,16 @@ ENDDO
  END SUBROUTINE Morison_UnPackInitInput
 
  SUBROUTINE Morison_CopyInitOutput( SrcInitOutputData, DstInitOutputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(Morison_initoutputtype), INTENT(INOUT) :: SrcInitOutputData
-   TYPE(Morison_initoutputtype), INTENT(INOUT) :: DstInitOutputData
+   TYPE(Morison_InitOutputType), INTENT(INOUT) :: SrcInitOutputData
+   TYPE(Morison_InitOutputType), INTENT(INOUT) :: DstInitOutputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -4074,7 +4109,7 @@ ENDIF
  END SUBROUTINE Morison_CopyInitOutput
 
  SUBROUTINE Morison_DestroyInitOutput( InitOutputData, ErrStat, ErrMsg )
-  TYPE(Morison_initoutputtype), INTENT(INOUT) :: InitOutputData
+  TYPE(Morison_InitOutputType), INTENT(INOUT) :: InitOutputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -4095,7 +4130,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Morison_initoutputtype),  INTENT(INOUT) :: InData
+  TYPE(Morison_InitOutputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -4189,7 +4224,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(Morison_initoutputtype), INTENT(INOUT) :: OutData
+  TYPE(Morison_InitOutputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -4265,15 +4300,16 @@ ENDIF
  END SUBROUTINE Morison_UnPackInitOutput
 
  SUBROUTINE Morison_CopyContState( SrcContStateData, DstContStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(Morison_continuousstatetype), INTENT(INOUT) :: SrcContStateData
-   TYPE(Morison_continuousstatetype), INTENT(INOUT) :: DstContStateData
+   TYPE(Morison_ContinuousStateType), INTENT(IN) :: SrcContStateData
+   TYPE(Morison_ContinuousStateType), INTENT(INOUT) :: DstContStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -4283,7 +4319,7 @@ ENDIF
  END SUBROUTINE Morison_CopyContState
 
  SUBROUTINE Morison_DestroyContState( ContStateData, ErrStat, ErrMsg )
-  TYPE(Morison_continuousstatetype), INTENT(INOUT) :: ContStateData
+  TYPE(Morison_ContinuousStateType), INTENT(INOUT) :: ContStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -4296,7 +4332,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Morison_continuousstatetype),  INTENT(INOUT) :: InData
+  TYPE(Morison_ContinuousStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -4338,7 +4374,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(Morison_continuousstatetype), INTENT(INOUT) :: OutData
+  TYPE(Morison_ContinuousStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -4375,15 +4411,16 @@ ENDIF
  END SUBROUTINE Morison_UnPackContState
 
  SUBROUTINE Morison_CopyDiscState( SrcDiscStateData, DstDiscStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(Morison_discretestatetype), INTENT(INOUT) :: SrcDiscStateData
-   TYPE(Morison_discretestatetype), INTENT(INOUT) :: DstDiscStateData
+   TYPE(Morison_DiscreteStateType), INTENT(IN) :: SrcDiscStateData
+   TYPE(Morison_DiscreteStateType), INTENT(INOUT) :: DstDiscStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -4393,7 +4430,7 @@ ENDIF
  END SUBROUTINE Morison_CopyDiscState
 
  SUBROUTINE Morison_DestroyDiscState( DiscStateData, ErrStat, ErrMsg )
-  TYPE(Morison_discretestatetype), INTENT(INOUT) :: DiscStateData
+  TYPE(Morison_DiscreteStateType), INTENT(INOUT) :: DiscStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -4406,7 +4443,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Morison_discretestatetype),  INTENT(INOUT) :: InData
+  TYPE(Morison_DiscreteStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -4448,7 +4485,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(Morison_discretestatetype), INTENT(INOUT) :: OutData
+  TYPE(Morison_DiscreteStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -4485,15 +4522,16 @@ ENDIF
  END SUBROUTINE Morison_UnPackDiscState
 
  SUBROUTINE Morison_CopyConstrState( SrcConstrStateData, DstConstrStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(Morison_constraintstatetype), INTENT(INOUT) :: SrcConstrStateData
-   TYPE(Morison_constraintstatetype), INTENT(INOUT) :: DstConstrStateData
+   TYPE(Morison_ConstraintStateType), INTENT(IN) :: SrcConstrStateData
+   TYPE(Morison_ConstraintStateType), INTENT(INOUT) :: DstConstrStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -4503,7 +4541,7 @@ ENDIF
  END SUBROUTINE Morison_CopyConstrState
 
  SUBROUTINE Morison_DestroyConstrState( ConstrStateData, ErrStat, ErrMsg )
-  TYPE(Morison_constraintstatetype), INTENT(INOUT) :: ConstrStateData
+  TYPE(Morison_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -4516,7 +4554,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Morison_constraintstatetype),  INTENT(INOUT) :: InData
+  TYPE(Morison_ConstraintStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -4558,7 +4596,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(Morison_constraintstatetype), INTENT(INOUT) :: OutData
+  TYPE(Morison_ConstraintStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -4595,15 +4633,16 @@ ENDIF
  END SUBROUTINE Morison_UnPackConstrState
 
  SUBROUTINE Morison_CopyOtherState( SrcOtherStateData, DstOtherStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(Morison_otherstatetype), INTENT(INOUT) :: SrcOtherStateData
-   TYPE(Morison_otherstatetype), INTENT(INOUT) :: DstOtherStateData
+   TYPE(Morison_OtherStateType), INTENT(IN) :: SrcOtherStateData
+   TYPE(Morison_OtherStateType), INTENT(INOUT) :: DstOtherStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -4847,7 +4886,7 @@ ENDIF
  END SUBROUTINE Morison_CopyOtherState
 
  SUBROUTINE Morison_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
-  TYPE(Morison_otherstatetype), INTENT(INOUT) :: OtherStateData
+  TYPE(Morison_OtherStateType), INTENT(INOUT) :: OtherStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -4911,7 +4950,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Morison_otherstatetype),  INTENT(INOUT) :: InData
+  TYPE(Morison_OtherStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -5038,7 +5077,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(Morison_otherstatetype), INTENT(INOUT) :: OutData
+  TYPE(Morison_OtherStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -5068,103 +5107,120 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%D_F_D) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%D_F_D,1),SIZE(OutData%D_F_D,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%D_F_D,1),SIZE(OutData%D_F_D,2)))
+  mask2 = .TRUE.
     OutData%D_F_D = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_F_D))-1 ),mask2,OutData%D_F_D)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_F_D)
   ENDIF
   IF ( ALLOCATED(OutData%D_F_I) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%D_F_I,1),SIZE(OutData%D_F_I,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%D_F_I,1),SIZE(OutData%D_F_I,2)))
+  mask2 = .TRUE.
     OutData%D_F_I = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_F_I))-1 ),mask2,OutData%D_F_I)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_F_I)
   ENDIF
   IF ( ALLOCATED(OutData%D_F_DP) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%D_F_DP,1),SIZE(OutData%D_F_DP,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%D_F_DP,1),SIZE(OutData%D_F_DP,2)))
+  mask2 = .TRUE.
     OutData%D_F_DP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_F_DP))-1 ),mask2,OutData%D_F_DP)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_F_DP)
   ENDIF
   IF ( ALLOCATED(OutData%D_F_AM) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%D_F_AM,1),SIZE(OutData%D_F_AM,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%D_F_AM,1),SIZE(OutData%D_F_AM,2)))
+  mask2 = .TRUE.
     OutData%D_F_AM = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_F_AM))-1 ),mask2,OutData%D_F_AM)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_F_AM)
   ENDIF
   IF ( ALLOCATED(OutData%D_F_AM_M) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%D_F_AM_M,1),SIZE(OutData%D_F_AM_M,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%D_F_AM_M,1),SIZE(OutData%D_F_AM_M,2)))
+  mask2 = .TRUE.
     OutData%D_F_AM_M = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_F_AM_M))-1 ),mask2,OutData%D_F_AM_M)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_F_AM_M)
   ENDIF
   IF ( ALLOCATED(OutData%D_F_AM_MG) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%D_F_AM_MG,1),SIZE(OutData%D_F_AM_MG,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%D_F_AM_MG,1),SIZE(OutData%D_F_AM_MG,2)))
+  mask2 = .TRUE.
     OutData%D_F_AM_MG = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_F_AM_MG))-1 ),mask2,OutData%D_F_AM_MG)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_F_AM_MG)
   ENDIF
   IF ( ALLOCATED(OutData%D_F_AM_F) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%D_F_AM_F,1),SIZE(OutData%D_F_AM_F,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%D_F_AM_F,1),SIZE(OutData%D_F_AM_F,2)))
+  mask2 = .TRUE.
     OutData%D_F_AM_F = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_F_AM_F))-1 ),mask2,OutData%D_F_AM_F)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_F_AM_F)
   ENDIF
   IF ( ALLOCATED(OutData%D_FV) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%D_FV,1),SIZE(OutData%D_FV,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%D_FV,1),SIZE(OutData%D_FV,2)))
+  mask2 = .TRUE.
     OutData%D_FV = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_FV))-1 ),mask2,OutData%D_FV)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_FV)
   ENDIF
   IF ( ALLOCATED(OutData%D_FA) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%D_FA,1),SIZE(OutData%D_FA,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%D_FA,1),SIZE(OutData%D_FA,2)))
+  mask2 = .TRUE.
     OutData%D_FA = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_FA))-1 ),mask2,OutData%D_FA)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_FA)
   ENDIF
   IF ( ALLOCATED(OutData%D_FDynP) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%D_FDynP,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%D_FDynP,1)))
+  mask1 = .TRUE.
     OutData%D_FDynP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_FDynP))-1 ),mask1,OutData%D_FDynP)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_FDynP)
   ENDIF
   IF ( ALLOCATED(OutData%L_F_D) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%L_F_D,1),SIZE(OutData%L_F_D,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%L_F_D,1),SIZE(OutData%L_F_D,2)))
+  mask2 = .TRUE.
     OutData%L_F_D = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_F_D))-1 ),mask2,OutData%L_F_D)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%L_F_D)
   ENDIF
   IF ( ALLOCATED(OutData%L_F_I) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%L_F_I,1),SIZE(OutData%L_F_I,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%L_F_I,1),SIZE(OutData%L_F_I,2)))
+  mask2 = .TRUE.
     OutData%L_F_I = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_F_I))-1 ),mask2,OutData%L_F_I)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%L_F_I)
   ENDIF
   IF ( ALLOCATED(OutData%L_F_DP) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%L_F_DP,1),SIZE(OutData%L_F_DP,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%L_F_DP,1),SIZE(OutData%L_F_DP,2)))
+  mask2 = .TRUE.
     OutData%L_F_DP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_F_DP))-1 ),mask2,OutData%L_F_DP)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%L_F_DP)
   ENDIF
   IF ( ALLOCATED(OutData%L_F_AM) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%L_F_AM,1),SIZE(OutData%L_F_AM,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%L_F_AM,1),SIZE(OutData%L_F_AM,2)))
+  mask2 = .TRUE.
     OutData%L_F_AM = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_F_AM))-1 ),mask2,OutData%L_F_AM)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%L_F_AM)
   ENDIF
   IF ( ALLOCATED(OutData%L_FV) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%L_FV,1),SIZE(OutData%L_FV,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%L_FV,1),SIZE(OutData%L_FV,2)))
+  mask2 = .TRUE.
     OutData%L_FV = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_FV))-1 ),mask2,OutData%L_FV)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%L_FV)
   ENDIF
   IF ( ALLOCATED(OutData%L_FA) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%L_FA,1),SIZE(OutData%L_FA,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%L_FA,1),SIZE(OutData%L_FA,2)))
+  mask2 = .TRUE.
     OutData%L_FA = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_FA))-1 ),mask2,OutData%L_FA)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%L_FA)
   ENDIF
   IF ( ALLOCATED(OutData%L_FDynP) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%L_FDynP,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%L_FDynP,1)))
+  mask1 = .TRUE.
     OutData%L_FDynP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_FDynP))-1 ),mask1,OutData%L_FDynP)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%L_FDynP)
@@ -5177,15 +5233,16 @@ ENDIF
  END SUBROUTINE Morison_UnPackOtherState
 
  SUBROUTINE Morison_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(Morison_parametertype), INTENT(INOUT) :: SrcParamData
-   TYPE(Morison_parametertype), INTENT(INOUT) :: DstParamData
+   TYPE(Morison_ParameterType), INTENT(IN) :: SrcParamData
+   TYPE(Morison_ParameterType), INTENT(INOUT) :: DstParamData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -5591,7 +5648,7 @@ ENDIF
  END SUBROUTINE Morison_CopyParam
 
  SUBROUTINE Morison_DestroyParam( ParamData, ErrStat, ErrMsg )
-  TYPE(Morison_parametertype), INTENT(INOUT) :: ParamData
+  TYPE(Morison_ParameterType), INTENT(INOUT) :: ParamData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -5694,7 +5751,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Morison_parametertype),  INTENT(INOUT) :: InData
+  TYPE(Morison_ParameterType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -6002,7 +6059,7 @@ ENDDO
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(Morison_parametertype), INTENT(INOUT) :: OutData
+  TYPE(Morison_ParameterType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -6067,97 +6124,113 @@ DO i1 = LBOUND(OutData%Nodes,1), UBOUND(OutData%Nodes,1)
   CALL Morison_UnPacknodetype( Re_Nodes_Buf, Db_Nodes_Buf, Int_Nodes_Buf, OutData%Nodes(i1), ErrStat, ErrMsg ) ! Nodes 
 ENDDO
   IF ( ALLOCATED(OutData%D_F_I) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%D_F_I,1),SIZE(OutData%D_F_I,2),SIZE(OutData%D_F_I,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%D_F_I,1),SIZE(OutData%D_F_I,2),SIZE(OutData%D_F_I,3)))
+  mask3 = .TRUE.
     OutData%D_F_I = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_F_I))-1 ),mask3,OutData%D_F_I)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_F_I)
   ENDIF
   IF ( ALLOCATED(OutData%D_F_B) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%D_F_B,1),SIZE(OutData%D_F_B,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%D_F_B,1),SIZE(OutData%D_F_B,2)))
+  mask2 = .TRUE.
     OutData%D_F_B = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_F_B))-1 ),mask2,OutData%D_F_B)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_F_B)
   ENDIF
   IF ( ALLOCATED(OutData%D_F_DP) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%D_F_DP,1),SIZE(OutData%D_F_DP,2),SIZE(OutData%D_F_DP,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%D_F_DP,1),SIZE(OutData%D_F_DP,2),SIZE(OutData%D_F_DP,3)))
+  mask3 = .TRUE.
     OutData%D_F_DP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_F_DP))-1 ),mask3,OutData%D_F_DP)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_F_DP)
   ENDIF
   IF ( ALLOCATED(OutData%D_F_MG) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%D_F_MG,1),SIZE(OutData%D_F_MG,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%D_F_MG,1),SIZE(OutData%D_F_MG,2)))
+  mask2 = .TRUE.
     OutData%D_F_MG = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_F_MG))-1 ),mask2,OutData%D_F_MG)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_F_MG)
   ENDIF
   IF ( ALLOCATED(OutData%D_F_BF) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%D_F_BF,1),SIZE(OutData%D_F_BF,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%D_F_BF,1),SIZE(OutData%D_F_BF,2)))
+  mask2 = .TRUE.
     OutData%D_F_BF = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_F_BF))-1 ),mask2,OutData%D_F_BF)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_F_BF)
   ENDIF
   IF ( ALLOCATED(OutData%D_AM_M) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%D_AM_M,1),SIZE(OutData%D_AM_M,2),SIZE(OutData%D_AM_M,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%D_AM_M,1),SIZE(OutData%D_AM_M,2),SIZE(OutData%D_AM_M,3)))
+  mask3 = .TRUE.
     OutData%D_AM_M = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_AM_M))-1 ),mask3,OutData%D_AM_M)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_AM_M)
   ENDIF
   IF ( ALLOCATED(OutData%D_AM_MG) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%D_AM_MG,1),SIZE(OutData%D_AM_MG,2),SIZE(OutData%D_AM_MG,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%D_AM_MG,1),SIZE(OutData%D_AM_MG,2),SIZE(OutData%D_AM_MG,3)))
+  mask3 = .TRUE.
     OutData%D_AM_MG = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_AM_MG))-1 ),mask3,OutData%D_AM_MG)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_AM_MG)
   ENDIF
   IF ( ALLOCATED(OutData%D_AM_F) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%D_AM_F,1),SIZE(OutData%D_AM_F,2),SIZE(OutData%D_AM_F,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%D_AM_F,1),SIZE(OutData%D_AM_F,2),SIZE(OutData%D_AM_F,3)))
+  mask3 = .TRUE.
     OutData%D_AM_F = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_AM_F))-1 ),mask3,OutData%D_AM_F)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_AM_F)
   ENDIF
   IF ( ALLOCATED(OutData%D_dragConst) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%D_dragConst,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%D_dragConst,1)))
+  mask1 = .TRUE.
     OutData%D_dragConst = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D_dragConst))-1 ),mask1,OutData%D_dragConst)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D_dragConst)
   ENDIF
   IF ( ALLOCATED(OutData%L_An) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%L_An,1),SIZE(OutData%L_An,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%L_An,1),SIZE(OutData%L_An,2)))
+  mask2 = .TRUE.
     OutData%L_An = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_An))-1 ),mask2,OutData%L_An)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%L_An)
   ENDIF
   IF ( ALLOCATED(OutData%L_F_B) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%L_F_B,1),SIZE(OutData%L_F_B,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%L_F_B,1),SIZE(OutData%L_F_B,2)))
+  mask2 = .TRUE.
     OutData%L_F_B = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_F_B))-1 ),mask2,OutData%L_F_B)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%L_F_B)
   ENDIF
   IF ( ALLOCATED(OutData%L_F_I) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%L_F_I,1),SIZE(OutData%L_F_I,2),SIZE(OutData%L_F_I,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%L_F_I,1),SIZE(OutData%L_F_I,2),SIZE(OutData%L_F_I,3)))
+  mask3 = .TRUE.
     OutData%L_F_I = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_F_I))-1 ),mask3,OutData%L_F_I)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%L_F_I)
   ENDIF
   IF ( ALLOCATED(OutData%L_F_DP) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%L_F_DP,1),SIZE(OutData%L_F_DP,2),SIZE(OutData%L_F_DP,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%L_F_DP,1),SIZE(OutData%L_F_DP,2),SIZE(OutData%L_F_DP,3)))
+  mask3 = .TRUE.
     OutData%L_F_DP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_F_DP))-1 ),mask3,OutData%L_F_DP)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%L_F_DP)
   ENDIF
   IF ( ALLOCATED(OutData%L_F_BF) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%L_F_BF,1),SIZE(OutData%L_F_BF,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%L_F_BF,1),SIZE(OutData%L_F_BF,2)))
+  mask2 = .TRUE.
     OutData%L_F_BF = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_F_BF))-1 ),mask2,OutData%L_F_BF)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%L_F_BF)
   ENDIF
   IF ( ALLOCATED(OutData%L_AM_M) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%L_AM_M,1),SIZE(OutData%L_AM_M,2),SIZE(OutData%L_AM_M,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%L_AM_M,1),SIZE(OutData%L_AM_M,2),SIZE(OutData%L_AM_M,3)))
+  mask3 = .TRUE.
     OutData%L_AM_M = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_AM_M))-1 ),mask3,OutData%L_AM_M)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%L_AM_M)
   ENDIF
   IF ( ALLOCATED(OutData%L_dragConst) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%L_dragConst,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%L_dragConst,1)))
+  mask1 = .TRUE.
     OutData%L_dragConst = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_dragConst))-1 ),mask1,OutData%L_dragConst)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%L_dragConst)
@@ -6165,7 +6238,8 @@ ENDDO
   OutData%NDistribMarkers = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%distribToNodeIndx) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%distribToNodeIndx,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%distribToNodeIndx,1)))
+  mask1 = .TRUE.
     OutData%distribToNodeIndx = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%distribToNodeIndx))-1 ),mask1,OutData%distribToNodeIndx)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%distribToNodeIndx)
@@ -6173,31 +6247,36 @@ ENDDO
   OutData%NLumpedMarkers = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%lumpedToNodeIndx) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%lumpedToNodeIndx,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%lumpedToNodeIndx,1)))
+  mask1 = .TRUE.
     OutData%lumpedToNodeIndx = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%lumpedToNodeIndx))-1 ),mask1,OutData%lumpedToNodeIndx)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%lumpedToNodeIndx)
   ENDIF
   IF ( ALLOCATED(OutData%WaveVel0) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%WaveVel0,1),SIZE(OutData%WaveVel0,2),SIZE(OutData%WaveVel0,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%WaveVel0,1),SIZE(OutData%WaveVel0,2),SIZE(OutData%WaveVel0,3)))
+  mask3 = .TRUE.
     OutData%WaveVel0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveVel0))-1 ),mask3,OutData%WaveVel0)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveVel0)
   ENDIF
   IF ( ALLOCATED(OutData%WaveAcc0) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%WaveAcc0,1),SIZE(OutData%WaveAcc0,2),SIZE(OutData%WaveAcc0,3))); mask3 = .TRUE.
+  ALLOCATE(mask3(SIZE(OutData%WaveAcc0,1),SIZE(OutData%WaveAcc0,2),SIZE(OutData%WaveAcc0,3)))
+  mask3 = .TRUE.
     OutData%WaveAcc0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveAcc0))-1 ),mask3,OutData%WaveAcc0)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveAcc0)
   ENDIF
   IF ( ALLOCATED(OutData%WaveDynP0) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveDynP0,1),SIZE(OutData%WaveDynP0,2))); mask2 = .TRUE.
+  ALLOCATE(mask2(SIZE(OutData%WaveDynP0,1),SIZE(OutData%WaveDynP0,2)))
+  mask2 = .TRUE.
     OutData%WaveDynP0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveDynP0))-1 ),mask2,OutData%WaveDynP0)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveDynP0)
   ENDIF
   IF ( ALLOCATED(OutData%WaveTime) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WaveTime,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%WaveTime,1)))
+  mask1 = .TRUE.
     OutData%WaveTime = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ),mask1,OutData%WaveTime)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveTime)
@@ -6273,15 +6352,16 @@ ENDDO
  END SUBROUTINE Morison_UnPackParam
 
  SUBROUTINE Morison_CopyInput( SrcInputData, DstInputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(Morison_inputtype), INTENT(INOUT) :: SrcInputData
-   TYPE(Morison_inputtype), INTENT(INOUT) :: DstInputData
+   TYPE(Morison_InputType), INTENT(INOUT) :: SrcInputData
+   TYPE(Morison_InputType), INTENT(INOUT) :: DstInputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -6296,7 +6376,7 @@ ENDDO
  END SUBROUTINE Morison_CopyInput
 
  SUBROUTINE Morison_DestroyInput( InputData, ErrStat, ErrMsg )
-  TYPE(Morison_inputtype), INTENT(INOUT) :: InputData
+  TYPE(Morison_InputType), INTENT(INOUT) :: InputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -6311,7 +6391,7 @@ ENDDO
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Morison_inputtype),  INTENT(INOUT) :: InData
+  TYPE(Morison_InputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -6403,7 +6483,7 @@ ENDDO
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(Morison_inputtype), INTENT(INOUT) :: OutData
+  TYPE(Morison_InputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -6479,15 +6559,16 @@ ENDDO
  END SUBROUTINE Morison_UnPackInput
 
  SUBROUTINE Morison_CopyOutput( SrcOutputData, DstOutputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(Morison_outputtype), INTENT(INOUT) :: SrcOutputData
-   TYPE(Morison_outputtype), INTENT(INOUT) :: DstOutputData
+   TYPE(Morison_OutputType), INTENT(INOUT) :: SrcOutputData
+   TYPE(Morison_OutputType), INTENT(INOUT) :: DstOutputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -6514,7 +6595,7 @@ ENDIF
  END SUBROUTINE Morison_CopyOutput
 
  SUBROUTINE Morison_DestroyOutput( OutputData, ErrStat, ErrMsg )
-  TYPE(Morison_outputtype), INTENT(INOUT) :: OutputData
+  TYPE(Morison_OutputType), INTENT(INOUT) :: OutputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -6532,7 +6613,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Morison_outputtype),  INTENT(INOUT) :: InData
+  TYPE(Morison_OutputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -6629,7 +6710,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(Morison_outputtype), INTENT(INOUT) :: OutData
+  TYPE(Morison_OutputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -6700,7 +6781,8 @@ ENDIF
   IF( ALLOCATED(Db_LumpedMesh_Buf) )  DEALLOCATE(Db_LumpedMesh_Buf)
   IF( ALLOCATED(Int_LumpedMesh_Buf) ) DEALLOCATE(Int_LumpedMesh_Buf)
   IF ( ALLOCATED(OutData%WriteOutput) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WriteOutput,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%WriteOutput,1)))
+  mask1 = .TRUE.
     OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ),mask1,OutData%WriteOutput)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WriteOutput)
@@ -6739,68 +6821,8 @@ ENDIF
  INTEGER(IntKi)                 :: order    ! order of polynomial fit (max 2)
  REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: c1       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: b2       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: c2       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: b3       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: c3       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: b4       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
  INTEGER(IntKi)                             :: ErrStat2 ! local errors
  CHARACTER(1024)                            :: ErrMsg2  ! local errors
- INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i31    ! dim1 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i41    ! dim1 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i51    ! dim1 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i61    ! dim1 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i71    ! dim1 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i81    ! dim1 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i91    ! dim1 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i02    ! dim2 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i12    ! dim2 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i22    ! dim2 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i32    ! dim2 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i42    ! dim2 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i52    ! dim2 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i62    ! dim2 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i72    ! dim2 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i82    ! dim2 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i92    ! dim2 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i03    ! dim3 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i13    ! dim3 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i23    ! dim3 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i33    ! dim3 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i43    ! dim3 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i53    ! dim3 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i63    ! dim3 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i73    ! dim3 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i83    ! dim3 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i93    ! dim3 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i04    ! dim4 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i14    ! dim4 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i24    ! dim4 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i34    ! dim4 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i44    ! dim4 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i54    ! dim4 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i64    ! dim4 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i74    ! dim4 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i84    ! dim4 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i94    ! dim4 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i05    ! dim5 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i15    ! dim5 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i25    ! dim5 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i35    ! dim5 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i45    ! dim5 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i55    ! dim5 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i65    ! dim5 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i75    ! dim5 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i85    ! dim5 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i95    ! dim5 level 9 counter variable for arrays of ddts
     ! Initialize ErrStat
  ErrStat = ErrID_None
  ErrMsg  = ""
@@ -6899,66 +6921,8 @@ ENDIF
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: c1       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: b2       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: c2       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: b3       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: c3       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: b4       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
  INTEGER(IntKi)                             :: ErrStat2 ! local errors
  CHARACTER(1024)                            :: ErrMsg2  ! local errors
- INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i31    ! dim1 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i41    ! dim1 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i51    ! dim1 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i61    ! dim1 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i71    ! dim1 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i81    ! dim1 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i91    ! dim1 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i02    ! dim2 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i12    ! dim2 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i22    ! dim2 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i32    ! dim2 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i42    ! dim2 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i52    ! dim2 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i62    ! dim2 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i72    ! dim2 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i82    ! dim2 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i92    ! dim2 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i03    ! dim3 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i13    ! dim3 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i23    ! dim3 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i33    ! dim3 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i43    ! dim3 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i53    ! dim3 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i63    ! dim3 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i73    ! dim3 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i83    ! dim3 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i93    ! dim3 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i04    ! dim4 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i14    ! dim4 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i24    ! dim4 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i34    ! dim4 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i44    ! dim4 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i54    ! dim4 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i64    ! dim4 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i74    ! dim4 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i84    ! dim4 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i94    ! dim4 level 9 counter variable for arrays of ddts
- INTEGER                                    :: i05    ! dim5 level 0 counter variable for arrays of ddts
- INTEGER                                    :: i15    ! dim5 level 1 counter variable for arrays of ddts
- INTEGER                                    :: i25    ! dim5 level 2 counter variable for arrays of ddts
- INTEGER                                    :: i35    ! dim5 level 3 counter variable for arrays of ddts
- INTEGER                                    :: i45    ! dim5 level 4 counter variable for arrays of ddts
- INTEGER                                    :: i55    ! dim5 level 5 counter variable for arrays of ddts
- INTEGER                                    :: i65    ! dim5 level 6 counter variable for arrays of ddts
- INTEGER                                    :: i75    ! dim5 level 7 counter variable for arrays of ddts
- INTEGER                                    :: i85    ! dim5 level 8 counter variable for arrays of ddts
- INTEGER                                    :: i95    ! dim5 level 9 counter variable for arrays of ddts
     ! Initialize ErrStat
  ErrStat = ErrID_None
  ErrMsg  = ""
