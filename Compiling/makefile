@@ -62,6 +62,7 @@ LDFLAGS = -O2 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware
 #FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -g -pg
 #LDFLAGS = -O0 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware -g -pg
 
+# -mthreads
 # some useful gfortran options:
 #  -DFPE_TRAP_ENABLED
 #  -Wl,--large-address-aware   # not necessary when $(BITS) is 64 (64-bit target)
@@ -79,6 +80,7 @@ LDFLAGS = -O2 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware
 
 # Use "SingPrec" for single precision and "DoubPrec" for double precision. You may also need to change an option switch to make constants DP.
 PREC = SingPrec
+
 
 
 

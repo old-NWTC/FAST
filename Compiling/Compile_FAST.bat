@@ -239,6 +239,7 @@ SET IceD_SOURCES=^
 
 
 SET FAST_SOURCES=^
+ "%FAST_LOC%\FAST_Types.f90" ^
  "%FAST_LOC%\FAST_Mods.f90" ^
  "%FAST_LOC%\FAST_IO.f90" ^
  "%FAST_LOC%\FAST_Prog.f90"
@@ -253,6 +254,12 @@ REM note that I'm changing directories, only to put the auto-generated files in 
 ECHO %Lines%
 ECHO Running the FAST Registry to auto-generate source files:
 ECHO.
+
+SET CURR_LOC=%FAST_Loc%
+SET ModuleName=FAST
+%REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD_Loc%" -I^
+ "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc%" -I "%FEAM_Loc%"  -I "%IceF_Loc%" -I "%IceD_Loc%" -noextrap
+
 
 ECHO %Lines%
 SET CURR_LOC=%ED_Loc%
