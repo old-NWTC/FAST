@@ -3,13 +3,13 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.04.01, 8-Dec-2014)
+! FAST Registry (v2.05.00, 10-Jan-2015)
 !*********************************************************************************************************************************
 ! FAST_Types
 !.................................................................................................................................
 ! This file is part of FAST.
 !
-! Copyright (C) 2012-2014 National Renewable Energy Laboratory
+! Copyright (C) 2012-2015 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -74,14 +74,14 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AllOutData      ! Array to contain all the output data (time history of all outputs); Index 1 is NumOuts, Index 2 is Time step [-]
     INTEGER(IntKi)  :: n_Out      ! Time index into the AllOutData array [-]
     INTEGER(IntKi)  :: NOutSteps      ! Maximum number of output steps [-]
-    INTEGER(IntKi) , DIMENSION(0:0)  :: numOuts      ! number of outputs to print from each module [-]
+    INTEGER(IntKi) , DIMENSION(NumModules)  :: numOuts      ! number of outputs to print from each module [-]
     INTEGER(IntKi)  :: UnOu = -1      ! I/O unit number for the tabular output file [-]
     INTEGER(IntKi)  :: UnSum = -1      ! I/O unit number for the summary file [-]
     INTEGER(IntKi)  :: UnGra = -1      ! I/O unit number for mesh graphics [-]
     CHARACTER(1024) , DIMENSION(1:3)  :: FileDescLines      ! Description lines to include in output files (header, time run, plus module names/versions) [-]
     CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: ChannelNames      ! Names of the output channels [-]
     CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: ChannelUnits      ! Units for the output channels [-]
-    TYPE(ProgDesc) , DIMENSION(0:0)  :: Module_Ver      ! version information from all modules [-]
+    TYPE(ProgDesc) , DIMENSION(NumModules)  :: Module_Ver      ! version information from all modules [-]
   END TYPE FAST_OutputFileType
 ! =======================
 ! =========  IceDyn_Data  =======
@@ -272,15 +272,15 @@ IMPLICIT NONE
 ! =======================
 CONTAINS
  SUBROUTINE FAST_CopyOutputFileType( SrcOutputFileTypeData, DstOutputFileTypeData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(FAST_OutputFileType), INTENT(INOUT) :: SrcOutputFileTypeData
+   TYPE(FAST_OutputFileType), INTENT(IN) :: SrcOutputFileTypeData
    TYPE(FAST_OutputFileType), INTENT(INOUT) :: DstOutputFileTypeData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -569,9 +569,9 @@ ENDDO
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -1398,9 +1398,9 @@ ENDDO
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -2081,15 +2081,15 @@ ENDDO
  END SUBROUTINE FAST_UnPackElastoDyn_Data
 
  SUBROUTINE FAST_CopyServoDyn_Data( SrcServoDyn_DataData, DstServoDyn_DataData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(ServoDyn_Data), INTENT(INOUT) :: SrcServoDyn_DataData
+   TYPE(ServoDyn_Data), INTENT(IN) :: SrcServoDyn_DataData
    TYPE(ServoDyn_Data), INTENT(INOUT) :: DstServoDyn_DataData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -2752,9 +2752,9 @@ ENDDO
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -3363,15 +3363,15 @@ ENDDO
  END SUBROUTINE FAST_UnPackAeroDyn_Data
 
  SUBROUTINE FAST_CopyInflowWind_Data( SrcInflowWind_DataData, DstInflowWind_DataData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(InflowWind_Data), INTENT(INOUT) :: SrcInflowWind_DataData
+   TYPE(InflowWind_Data), INTENT(IN) :: SrcInflowWind_DataData
    TYPE(InflowWind_Data), INTENT(INOUT) :: DstInflowWind_DataData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -3482,9 +3482,9 @@ ENDDO
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -4099,9 +4099,9 @@ ENDDO
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -4716,9 +4716,9 @@ ENDDO
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -5333,9 +5333,9 @@ ENDDO
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -5950,9 +5950,9 @@ ENDDO
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -6567,9 +6567,9 @@ ENDDO
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -8400,15 +8400,15 @@ ENDDO
  END SUBROUTINE FAST_UnPackModuleMapType
 
  SUBROUTINE FAST_CopyMiscVarType( SrcMiscVarTypeData, DstMiscVarTypeData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(FAST_MiscVarType), INTENT(INOUT) :: SrcMiscVarTypeData
+   TYPE(FAST_MiscVarType), INTENT(IN) :: SrcMiscVarTypeData
    TYPE(FAST_MiscVarType), INTENT(INOUT) :: DstMiscVarTypeData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
-   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
-   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
-   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
