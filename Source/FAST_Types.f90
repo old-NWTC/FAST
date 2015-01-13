@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.05.00, 10-Jan-2015)
+! FAST Registry (v2.05.00, 12-Jan-2015)
 !*********************************************************************************************************************************
 ! FAST_Types
 !.................................................................................................................................
@@ -68,6 +68,55 @@ IMPLICIT NONE
     INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_IceF = 10      ! IceFloe [-]
     INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_IceD = 11      ! IceDyn [-]
     INTEGER(IntKi), PUBLIC, PARAMETER  :: NumModules = 11      ! The number of modules available in FAST [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxNBlades = 3      ! Maximum number of blades allowed on a turbine [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: IceD_MaxLegs = 4      ! because I don't know how many legs there are before calling IceD_Init and I don't want to copy the data because of sibling mesh issues, I'm going to allocate IceD based on this number [-]
+! =========  FAST_ParameterType  =======
+  TYPE, PUBLIC :: FAST_ParameterType
+    REAL(DbKi)  :: DT      ! Integration time step [global time] [s]
+    REAL(DbKi) , DIMENSION(NumModules)  :: DT_module      ! Integration time step [global time] [s]
+    INTEGER(IntKi) , DIMENSION(NumModules)  :: n_substeps      ! The number of module substeps for advancing states from t_global to t_global_next [-]
+    REAL(DbKi)  :: TMax      ! Total run time [s]
+    INTEGER(IntKi)  :: InterpOrder      ! Interpolation order {0,1,2} [-]
+    INTEGER(IntKi)  :: NumCrctn      ! Number of correction iterations [-]
+    INTEGER(IntKi)  :: KMax      ! Maximum number of input-output-solve iterations (KMax >= 1) [-]
+    INTEGER(IntKi)  :: numIceLegs      ! number of suport-structure legs in contact with ice (IceDyn coupling) [-]
+    LOGICAL , DIMENSION(NumModules)  :: ModuleInitialized      ! An array determining if the module has been initialized [-]
+    REAL(DbKi)  :: DT_Ujac      ! Time between when we need to re-calculate these Jacobians [s]
+    REAL(ReKi)  :: UJacSclFact      ! Scaling factor used to get similar magnitudes between accelerations, forces, and moments in Jacobians [-]
+    INTEGER(IntKi) , DIMENSION(1:4)  :: SizeJac_ED_SD_HD      ! (1)=size of ED portion; (2)=size of SD portion [2 meshes]; (3)=size of HD portion; (4)=size of matrix [-]
+    INTEGER(IntKi)  :: CompElast      ! Compute blade loads (switch) {Module_ED; Module_BD} [-]
+    INTEGER(IntKi)  :: CompAero      ! Compute aerodynamic loads (switch) {Module_None; Module_AD} [-]
+    INTEGER(IntKi)  :: CompServo      ! Compute control and electrical-drive dynamics (switch) {Module_None; Module_SrvD} [-]
+    INTEGER(IntKi)  :: CompHydro      ! Compute hydrodynamic loads (switch) {Module_None; Module_HD} [-]
+    INTEGER(IntKi)  :: CompSub      ! Compute sub-structural dynamics (switch) {Module_None; Module_HD} [-]
+    INTEGER(IntKi)  :: CompMooring      ! Compute mooring system (switch) {Module_None; Module_MAP, Module_FEAM} [-]
+    INTEGER(IntKi)  :: CompIce      ! Compute ice loading (switch) {Module_None; Module_IceF, Module_IceD} [-]
+    LOGICAL  :: CompUserPtfmLd      ! Compute additional platform loading {false: none, true: user-defined from routine UserPtfmLd} (flag) [-]
+    LOGICAL  :: CompUserTwrLd      ! Compute additional tower loading {false: none, true: user-defined from routine UserTwrLd} (flag) [-]
+    LOGICAL  :: UseDWM      ! Use the DWM module in AeroDyn [-]
+    CHARACTER(1024)  :: EDFile      ! The name of the ElastoDyn input file [-]
+    CHARACTER(1024) , DIMENSION(NumModules)  :: BDBldFile      ! Name of files containing BeamDyn inputs for each blade [-]
+    CHARACTER(1024)  :: AeroFile      ! Name of file containing aerodynamic input parameters [-]
+    CHARACTER(1024)  :: ServoFile      ! Name of file containing control and electrical-drive input parameters [-]
+    CHARACTER(1024)  :: HydroFile      ! Name of file containing hydrodynamic input parameters [-]
+    CHARACTER(1024)  :: SubFile      ! Name of file containing sub-structural input parameters [-]
+    CHARACTER(1024)  :: MooringFile      ! Name of file containing mooring system input parameters [-]
+    CHARACTER(1024)  :: IceFile      ! Name of file containing ice loading input parameters [-]
+    REAL(DbKi)  :: SttsTime      ! Amount of time between screen status messages [s]
+    REAL(DbKi)  :: TStart      ! Time to begin tabular output [s]
+    REAL(DbKi)  :: DT_Out      ! Time step for tabular output [s]
+    INTEGER(IntKi)  :: n_SttsTime      ! Number of time steps between screen status messages [-]
+    INTEGER(IntKi)  :: TurbineType      ! Type_LandBased, Type_Offshore_Fixed, or Type_Offshore_Floating [-]
+    LOGICAL  :: WrBinOutFile      ! Write a binary output file? (.outb) [-]
+    LOGICAL  :: WrTxtOutFile      ! Write a text (formatted) output file? (.out) [-]
+    LOGICAL  :: SumPrint      ! Print summary data to file? (.sum) [-]
+    LOGICAL  :: WrGraphics      ! Write binary output files with mesh grahpics information? (.gra, .bin) [-]
+    CHARACTER(1)  :: Delim      ! Delimiter between columns of text output file (.out): space or tab [-]
+    CHARACTER(20)  :: OutFmt      ! Format used for text tabular output (except time); resulting field should be 10 characters [-]
+    CHARACTER(1024)  :: OutFileRoot      ! The rootname of the output files [-]
+    CHARACTER(1024)  :: FTitle      ! The description line from the FAST (glue-code) input file [-]
+  END TYPE FAST_ParameterType
+! =======================
 ! =========  FAST_OutputFileType  =======
   TYPE, PUBLIC :: FAST_OutputFileType
     REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: TimeData      ! Array to contain the time output data for the binary file (first output time and a time [fixed] increment) [-]
@@ -271,6 +320,313 @@ IMPLICIT NONE
   END TYPE FAST_MiscVarType
 ! =======================
 CONTAINS
+ SUBROUTINE FAST_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(FAST_ParameterType), INTENT(IN) :: SrcParamData
+   TYPE(FAST_ParameterType), INTENT(INOUT) :: DstParamData
+   INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
+   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+! Local 
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
+! 
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   DstParamData%DT = SrcParamData%DT
+   DstParamData%DT_module = SrcParamData%DT_module
+   DstParamData%n_substeps = SrcParamData%n_substeps
+   DstParamData%TMax = SrcParamData%TMax
+   DstParamData%InterpOrder = SrcParamData%InterpOrder
+   DstParamData%NumCrctn = SrcParamData%NumCrctn
+   DstParamData%KMax = SrcParamData%KMax
+   DstParamData%numIceLegs = SrcParamData%numIceLegs
+   DstParamData%ModuleInitialized = SrcParamData%ModuleInitialized
+   DstParamData%DT_Ujac = SrcParamData%DT_Ujac
+   DstParamData%UJacSclFact = SrcParamData%UJacSclFact
+   DstParamData%SizeJac_ED_SD_HD = SrcParamData%SizeJac_ED_SD_HD
+   DstParamData%CompElast = SrcParamData%CompElast
+   DstParamData%CompAero = SrcParamData%CompAero
+   DstParamData%CompServo = SrcParamData%CompServo
+   DstParamData%CompHydro = SrcParamData%CompHydro
+   DstParamData%CompSub = SrcParamData%CompSub
+   DstParamData%CompMooring = SrcParamData%CompMooring
+   DstParamData%CompIce = SrcParamData%CompIce
+   DstParamData%CompUserPtfmLd = SrcParamData%CompUserPtfmLd
+   DstParamData%CompUserTwrLd = SrcParamData%CompUserTwrLd
+   DstParamData%UseDWM = SrcParamData%UseDWM
+   DstParamData%EDFile = SrcParamData%EDFile
+   DstParamData%BDBldFile = SrcParamData%BDBldFile
+   DstParamData%AeroFile = SrcParamData%AeroFile
+   DstParamData%ServoFile = SrcParamData%ServoFile
+   DstParamData%HydroFile = SrcParamData%HydroFile
+   DstParamData%SubFile = SrcParamData%SubFile
+   DstParamData%MooringFile = SrcParamData%MooringFile
+   DstParamData%IceFile = SrcParamData%IceFile
+   DstParamData%SttsTime = SrcParamData%SttsTime
+   DstParamData%TStart = SrcParamData%TStart
+   DstParamData%DT_Out = SrcParamData%DT_Out
+   DstParamData%n_SttsTime = SrcParamData%n_SttsTime
+   DstParamData%TurbineType = SrcParamData%TurbineType
+   DstParamData%WrBinOutFile = SrcParamData%WrBinOutFile
+   DstParamData%WrTxtOutFile = SrcParamData%WrTxtOutFile
+   DstParamData%SumPrint = SrcParamData%SumPrint
+   DstParamData%WrGraphics = SrcParamData%WrGraphics
+   DstParamData%Delim = SrcParamData%Delim
+   DstParamData%OutFmt = SrcParamData%OutFmt
+   DstParamData%OutFileRoot = SrcParamData%OutFileRoot
+   DstParamData%FTitle = SrcParamData%FTitle
+ END SUBROUTINE FAST_CopyParam
+
+ SUBROUTINE FAST_DestroyParam( ParamData, ErrStat, ErrMsg )
+  TYPE(FAST_ParameterType), INTENT(INOUT) :: ParamData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
+! 
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+ END SUBROUTINE FAST_DestroyParam
+
+ SUBROUTINE FAST_PackParam( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+  REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
+  REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
+  INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
+  TYPE(FAST_ParameterType),  INTENT(INOUT) :: InData
+  INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
+  CHARACTER(*),     INTENT(  OUT) :: ErrMsg
+  LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
+ ! buffers to store meshes, if any
+  OnlySize = .FALSE.
+  IF ( PRESENT(SizeOnly) ) THEN
+    OnlySize = SizeOnly
+  ENDIF
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+  Db_BufSz   = Db_BufSz   + 1  ! DT
+  Db_BufSz    = Db_BufSz    + SIZE( InData%DT_module )  ! DT_module 
+  Int_BufSz   = Int_BufSz   + SIZE( InData%n_substeps )  ! n_substeps 
+  Db_BufSz   = Db_BufSz   + 1  ! TMax
+  Int_BufSz  = Int_BufSz  + 1  ! InterpOrder
+  Int_BufSz  = Int_BufSz  + 1  ! NumCrctn
+  Int_BufSz  = Int_BufSz  + 1  ! KMax
+  Int_BufSz  = Int_BufSz  + 1  ! numIceLegs
+  Int_BufSz   = Int_BufSz   + SIZE( InData%ModuleInitialized )  ! ModuleInitialized 
+  Db_BufSz   = Db_BufSz   + 1  ! DT_Ujac
+  Re_BufSz   = Re_BufSz   + 1  ! UJacSclFact
+  Int_BufSz   = Int_BufSz   + SIZE( InData%SizeJac_ED_SD_HD )  ! SizeJac_ED_SD_HD 
+  Int_BufSz  = Int_BufSz  + 1  ! CompElast
+  Int_BufSz  = Int_BufSz  + 1  ! CompAero
+  Int_BufSz  = Int_BufSz  + 1  ! CompServo
+  Int_BufSz  = Int_BufSz  + 1  ! CompHydro
+  Int_BufSz  = Int_BufSz  + 1  ! CompSub
+  Int_BufSz  = Int_BufSz  + 1  ! CompMooring
+  Int_BufSz  = Int_BufSz  + 1  ! CompIce
+  Int_BufSz  = Int_BufSz  + 1  ! CompUserPtfmLd
+  Int_BufSz  = Int_BufSz  + 1  ! CompUserTwrLd
+  Int_BufSz  = Int_BufSz  + 1  ! UseDWM
+!  missing buffer for EDFile
+!  missing buffer for BDBldFile
+!  missing buffer for AeroFile
+!  missing buffer for ServoFile
+!  missing buffer for HydroFile
+!  missing buffer for SubFile
+!  missing buffer for MooringFile
+!  missing buffer for IceFile
+  Db_BufSz   = Db_BufSz   + 1  ! SttsTime
+  Db_BufSz   = Db_BufSz   + 1  ! TStart
+  Db_BufSz   = Db_BufSz   + 1  ! DT_Out
+  Int_BufSz  = Int_BufSz  + 1  ! n_SttsTime
+  Int_BufSz  = Int_BufSz  + 1  ! TurbineType
+  Int_BufSz  = Int_BufSz  + 1  ! WrBinOutFile
+  Int_BufSz  = Int_BufSz  + 1  ! WrTxtOutFile
+  Int_BufSz  = Int_BufSz  + 1  ! SumPrint
+  Int_BufSz  = Int_BufSz  + 1  ! WrGraphics
+!  missing buffer for Delim
+!  missing buffer for OutFmt
+!  missing buffer for OutFileRoot
+!  missing buffer for FTitle
+  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
+  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
+  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
+  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%DT )
+  Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%DT_module))-1 ) =  PACK(InData%DT_module ,.TRUE.)
+  Db_Xferred   = Db_Xferred   + SIZE(InData%DT_module)
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%n_substeps))-1 ) = PACK(InData%n_substeps ,.TRUE.)
+  Int_Xferred   = Int_Xferred   + SIZE(InData%n_substeps)
+  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%TMax )
+  Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%InterpOrder )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumCrctn )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%KMax )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%numIceLegs )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%ModuleInitialized))-1 ) = TRANSFER( PACK(InData%ModuleInitialized ,.TRUE.), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + SIZE(InData%ModuleInitialized)
+  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%DT_Ujac )
+  Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%UJacSclFact )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%SizeJac_ED_SD_HD))-1 ) = PACK(InData%SizeJac_ED_SD_HD ,.TRUE.)
+  Int_Xferred   = Int_Xferred   + SIZE(InData%SizeJac_ED_SD_HD)
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%CompElast )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%CompAero )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%CompServo )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%CompHydro )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%CompSub )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%CompMooring )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%CompIce )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%CompUserPtfmLd ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%CompUserTwrLd ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%UseDWM ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%SttsTime )
+  Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%TStart )
+  Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%DT_Out )
+  Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%n_SttsTime )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%TurbineType )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%WrBinOutFile ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%WrTxtOutFile ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%SumPrint ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%WrGraphics ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+ END SUBROUTINE FAST_PackParam
+
+ SUBROUTINE FAST_UnPackParam( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+  REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
+  REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
+  INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
+  TYPE(FAST_ParameterType), INTENT(INOUT) :: OutData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  LOGICAL, ALLOCATABLE           :: mask1(:)
+  LOGICAL, ALLOCATABLE           :: mask2(:,:)
+  LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+ ! buffers to store meshes, if any
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+  OutData%DT = DbKiBuf ( Db_Xferred )
+  Db_Xferred   = Db_Xferred   + 1
+  ALLOCATE(mask1(SIZE(OutData%DT_module,1)))
+  mask1 = .TRUE.
+  OutData%DT_module = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%DT_module))-1 ),mask1,OutData%DT_module)
+  DEALLOCATE(mask1)
+  Db_Xferred   = Db_Xferred   + SIZE(OutData%DT_module)
+  ALLOCATE(mask1(SIZE(OutData%n_substeps,1)))
+  mask1 = .TRUE.
+  OutData%n_substeps = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%n_substeps))-1 ),mask1,OutData%n_substeps)
+  DEALLOCATE(mask1)
+  Int_Xferred   = Int_Xferred   + SIZE(OutData%n_substeps)
+  OutData%TMax = DbKiBuf ( Db_Xferred )
+  Db_Xferred   = Db_Xferred   + 1
+  OutData%InterpOrder = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%NumCrctn = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%KMax = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%numIceLegs = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%DT_Ujac = DbKiBuf ( Db_Xferred )
+  Db_Xferred   = Db_Xferred   + 1
+  OutData%UJacSclFact = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  ALLOCATE(mask1(SIZE(OutData%SizeJac_ED_SD_HD,1)))
+  mask1 = .TRUE.
+  OutData%SizeJac_ED_SD_HD = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%SizeJac_ED_SD_HD))-1 ),mask1,OutData%SizeJac_ED_SD_HD)
+  DEALLOCATE(mask1)
+  Int_Xferred   = Int_Xferred   + SIZE(OutData%SizeJac_ED_SD_HD)
+  OutData%CompElast = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%CompAero = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%CompServo = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%CompHydro = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%CompSub = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%CompMooring = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%CompIce = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%SttsTime = DbKiBuf ( Db_Xferred )
+  Db_Xferred   = Db_Xferred   + 1
+  OutData%TStart = DbKiBuf ( Db_Xferred )
+  Db_Xferred   = Db_Xferred   + 1
+  OutData%DT_Out = DbKiBuf ( Db_Xferred )
+  Db_Xferred   = Db_Xferred   + 1
+  OutData%n_SttsTime = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%TurbineType = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  Re_Xferred   = Re_Xferred-1
+  Db_Xferred   = Db_Xferred-1
+  Int_Xferred  = Int_Xferred-1
+ END SUBROUTINE FAST_UnPackParam
+
  SUBROUTINE FAST_CopyOutputFileType( SrcOutputFileTypeData, DstOutputFileTypeData, CtrlCode, ErrStat, ErrMsg )
    TYPE(FAST_OutputFileType), INTENT(IN) :: SrcOutputFileTypeData
    TYPE(FAST_OutputFileType), INTENT(INOUT) :: DstOutputFileTypeData
@@ -1400,7 +1756,6 @@ ENDDO
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
-   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -2089,7 +2444,6 @@ ENDDO
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
-   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -2754,7 +3108,6 @@ ENDDO
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
-   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -3371,7 +3724,6 @@ ENDDO
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
-   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -3484,7 +3836,6 @@ ENDDO
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
-   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -4101,7 +4452,6 @@ ENDDO
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
-   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -4718,7 +5068,6 @@ ENDDO
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
-   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -5335,7 +5684,6 @@ ENDDO
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
-   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -5952,7 +6300,6 @@ ENDDO
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
-   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -8408,7 +8755,6 @@ ENDDO
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
-   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 

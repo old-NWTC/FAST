@@ -97,7 +97,7 @@ SUBROUTINE FAST_End( p_FAST, y_FAST, ErrStat, ErrMsg )
 !----------------------------------------------------------------------------------------------------
 
    TYPE(FAST_ParameterType), INTENT(INOUT) :: p_FAST                    ! FAST Parameters
-   TYPE(FAST_OutputType),    INTENT(INOUT) :: y_FAST                    ! FAST Output
+   TYPE(FAST_OutputFileType),INTENT(INOUT) :: y_FAST                    ! FAST Output
 
    INTEGER(IntKi),           INTENT(OUT)   :: ErrStat                   ! Error status
    CHARACTER(*),             INTENT(OUT)   :: ErrMsg                    ! Message associated with errro status
@@ -168,7 +168,7 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
    ! Passed variables
 
    TYPE(FAST_ParameterType), INTENT(INOUT)         :: p                 ! The parameter data for the FAST (glue-code) simulation
-   TYPE(FAST_OutputType),    INTENT(INOUT)         :: y_FAST            ! The output data for the FAST (glue-code) simulation
+   TYPE(FAST_OutputFileType),INTENT(INOUT)         :: y_FAST            ! The output data for the FAST (glue-code) simulation
    INTEGER(IntKi),           INTENT(OUT)           :: ErrStat           ! Error status
    CHARACTER(*),             INTENT(OUT)           :: ErrMsg            ! Error message
    CHARACTER(*),             INTENT(IN), OPTIONAL  :: InFile            ! A CHARACTER string containing the name of the primary FAST input file (if not present, we'll get it from the command line)
@@ -413,7 +413,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
 
       ! Passed variables
    TYPE(FAST_ParameterType),       INTENT(IN)           :: p_FAST                                ! Glue-code simulation parameters
-   TYPE(FAST_OutputType),          INTENT(INOUT)        :: y_FAST                                ! Glue-code simulation outputs
+   TYPE(FAST_OutputFileType),      INTENT(INOUT)        :: y_FAST                                ! Glue-code simulation outputs
 
    TYPE(ED_InitOutputType),        INTENT(IN)           :: InitOutData_ED                        ! Initialization output for ElastoDyn
    TYPE(SrvD_InitOutputType),      INTENT(IN)           :: InitOutData_SrvD                      ! Initialization output for ServoDyn
@@ -685,7 +685,7 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
 !..................................................................................................................................
 
    TYPE(FAST_ParameterType), INTENT(IN)    :: p_FAST                             ! Glue-code simulation parameters
-   TYPE(FAST_OutputType),    INTENT(INOUT) :: y_FAST                             ! Glue-code simulation outputs (changes value of UnSum)
+   TYPE(FAST_OutputFileType),INTENT(INOUT) :: y_FAST                             ! Glue-code simulation outputs (changes value of UnSum)
    TYPE(FAST_ModuleMapType), INTENT(IN)    :: MeshMapData                        ! Data for mapping between modules
    INTEGER(IntKi),           INTENT(OUT)   :: ErrStat                            ! Error status (level)
    CHARACTER(*),             INTENT(OUT)   :: ErrMsg                             ! Message describing error reported in ErrStat
@@ -1551,7 +1551,7 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDO
       ! Passed variables
    REAL(DbKi), INTENT(IN)                  :: t                                  ! Current simulation time, in seconds
    TYPE(FAST_ParameterType), INTENT(IN)    :: p_FAST                             ! Glue-code simulation parameters
-   TYPE(FAST_OutputType),    INTENT(INOUT) :: y_FAST                             ! Glue-code simulation outputs
+   TYPE(FAST_OutputFileType),INTENT(INOUT) :: y_FAST                             ! Glue-code simulation outputs
 
 
    REAL(ReKi),               INTENT(IN)    :: IfWOutput (:)                      ! InflowWind WriteOutput values
@@ -4618,7 +4618,7 @@ SUBROUTINE SetModuleSubstepTime(ModuleID, p_FAST, y_FAST, ErrStat, ErrMsg)
 !...............................................................................................................................
    INTEGER(IntKi),           INTENT(IN   ) :: ModuleID            ! ID of the module to check time step and set
    TYPE(FAST_ParameterType), INTENT(INOUT) :: p_FAST              ! Parameters for the glue code
-   TYPE(FAST_OutputType),    INTENT(IN   ) :: y_FAST              ! Output variables for the glue code
+   TYPE(FAST_OutputFileType),INTENT(IN   ) :: y_FAST              ! Output variables for the glue code
    INTEGER(IntKi),           INTENT(  OUT) :: ErrStat             ! Error status of the operation
    CHARACTER(*),             INTENT(  OUT) :: ErrMsg              ! Error message if ErrStat /= ErrID_None
 
@@ -4965,7 +4965,7 @@ SUBROUTINE WriteOutputToFile(t_global, p_FAST, y_FAST, ED, AD, IfW, HD, SD, SrvD
 !...............................................................................................................................
    REAL(DbKi),               INTENT(IN   ) :: t_global            ! Current global (glue) time step
    TYPE(FAST_ParameterType), INTENT(IN   ) :: p_FAST              ! Parameters for the glue code
-   TYPE(FAST_OutputType),    INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
+   TYPE(FAST_OutputFileType),INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
 
    TYPE(ElastoDyn_Data),     INTENT(IN   ) :: ED                  ! ElastoDyn data
    TYPE(ServoDyn_Data),      INTENT(IN   ) :: SrvD                ! ServoDyn data
@@ -5396,7 +5396,7 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
 
    REAL(DbKi),               INTENT(IN   ) :: t_initial           ! initial time
    TYPE(FAST_ParameterType), INTENT(INOUT) :: p_FAST              ! Parameters for the glue code
-   TYPE(FAST_OutputType),    INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
+   TYPE(FAST_OutputFileType),INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
    TYPE(FAST_MiscVarType),   INTENT(INOUT) :: m_FAST              ! Miscellaneous variables
      
    TYPE(ElastoDyn_Data),     INTENT(INOUT) :: ED                  ! ElastoDyn data
@@ -5986,7 +5986,7 @@ SUBROUTINE FAST_ExtrapInterpMods( t_global_next, p_FAST, y_FAST, m_FAST, ED, Srv
 
    REAL(DbKi),               INTENT(IN   ) :: t_global_next       ! next global time step (t + dt), at which we're extrapolating inputs (and ED outputs)
    TYPE(FAST_ParameterType), INTENT(IN   ) :: p_FAST              ! Parameters for the glue code
-   TYPE(FAST_OutputType),    INTENT(IN   ) :: y_FAST              ! Output variables for the glue code
+   TYPE(FAST_OutputFileType),INTENT(IN   ) :: y_FAST              ! Output variables for the glue code
    TYPE(FAST_MiscVarType),   INTENT(IN   ) :: m_FAST              ! Miscellaneous variables
      
    TYPE(ElastoDyn_Data),     INTENT(INOUT) :: ED                  ! ElastoDyn data
@@ -6287,7 +6287,7 @@ SUBROUTINE FAST_InitIOarrays( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, I
 
    REAL(DbKi),               INTENT(IN   ) :: t_initial           ! start time of the simulation 
    TYPE(FAST_ParameterType), INTENT(IN   ) :: p_FAST              ! Parameters for the glue code
-   TYPE(FAST_OutputType),    INTENT(IN   ) :: y_FAST              ! Output variables for the glue code
+   TYPE(FAST_OutputFileType),INTENT(IN   ) :: y_FAST              ! Output variables for the glue code
    TYPE(FAST_MiscVarType),   INTENT(IN   ) :: m_FAST              ! Miscellaneous variables
      
    TYPE(ElastoDyn_Data),     INTENT(INOUT) :: ED                  ! ElastoDyn data
@@ -6605,7 +6605,7 @@ SUBROUTINE FAST_AdvanceStates( t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED
    REAL(DbKi),               INTENT(IN   ) :: t_initial           ! initial simulation time (almost always 0)
    INTEGER(IntKi),           INTENT(IN   ) :: n_t_global          ! integer time step   
    TYPE(FAST_ParameterType), INTENT(IN   ) :: p_FAST              ! Parameters for the glue code
-   TYPE(FAST_OutputType),    INTENT(IN   ) :: y_FAST              ! Output variables for the glue code
+   TYPE(FAST_OutputFileType),INTENT(IN   ) :: y_FAST              ! Output variables for the glue code
    TYPE(FAST_MiscVarType),   INTENT(IN   ) :: m_FAST              ! Miscellaneous variables
      
    TYPE(ElastoDyn_Data),     INTENT(INOUT) :: ED                  ! ElastoDyn data
@@ -6863,7 +6863,7 @@ END SUBROUTINE FAST_AdvanceStates
 SUBROUTINE FAST_EndMods( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, ErrStat, ErrMsg )
 
    TYPE(FAST_ParameterType), INTENT(INOUT) :: p_FAST              ! Parameters for the glue code
-   TYPE(FAST_OutputType),    INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
+   TYPE(FAST_OutputFileType),INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
    TYPE(FAST_MiscVarType),   INTENT(INOUT) :: m_FAST              ! Miscellaneous variables
      
    TYPE(ElastoDyn_Data),     INTENT(INOUT) :: ED                  ! ElastoDyn data
@@ -6957,7 +6957,7 @@ END SUBROUTINE FAST_EndMods
 SUBROUTINE FAST_DestroyAll( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
 
    TYPE(FAST_ParameterType), INTENT(INOUT) :: p_FAST              ! Parameters for the glue code
-   TYPE(FAST_OutputType),    INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
+   TYPE(FAST_OutputFileType),INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
    TYPE(FAST_MiscVarType),   INTENT(INOUT) :: m_FAST              ! Miscellaneous variables
      
    TYPE(ElastoDyn_Data),     INTENT(INOUT) :: ED                  ! ElastoDyn data
@@ -6994,15 +6994,12 @@ SUBROUTINE FAST_DestroyAll( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, M
    
    
    ! FAST
+      
+   CALL FAST_DestroyParam( p_FAST, ErrStat2, ErrMsg2 )
+      CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
    
-   !bjj todo: fix me: (these are commented out until the destroy routines get placed in the registry types file.... which
-   ! requires a fix to the registry to allow dimensions (dimspec) to be specified as parameters and not integers
-   
-   !CALL FAST_DestroyParameterType( p_FAST, ErrStat2, ErrMsg2 )
-   !   CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
-   !
-   !CALL FAST_DestroyOutputFileType( y_FAST, ErrStat2, ErrMsg2 )
-   !   CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+   CALL FAST_DestroyOutputFileType( y_FAST, ErrStat2, ErrMsg2 )
+      CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
    
    CALL FAST_DestroyMiscVarType( m_FAST, ErrStat2, ErrMsg2 )
       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
@@ -7063,7 +7060,7 @@ SUBROUTINE ExitThisProgram( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, M
 
       ! Passed arguments
    TYPE(FAST_ParameterType), INTENT(INOUT) :: p_FAST              ! Parameters for the glue code
-   TYPE(FAST_OutputType),    INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
+   TYPE(FAST_OutputFileType),INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
    TYPE(FAST_MiscVarType),   INTENT(INOUT) :: m_FAST              ! Miscellaneous variables
      
    TYPE(ElastoDyn_Data),     INTENT(INOUT) :: ED                  ! ElastoDyn data
@@ -7141,7 +7138,7 @@ END SUBROUTINE ExitThisProgram
 SUBROUTINE FAST_Solution0(p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
 
    TYPE(FAST_ParameterType), INTENT(IN   ) :: p_FAST              ! Parameters for the glue code
-   TYPE(FAST_OutputType),    INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
+   TYPE(FAST_OutputFileType),INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
    TYPE(FAST_MiscVarType),   INTENT(INOUT) :: m_FAST              ! Miscellaneous variables
      
    TYPE(ElastoDyn_Data),     INTENT(INOUT) :: ED                  ! ElastoDyn data
@@ -7238,7 +7235,7 @@ SUBROUTINE FAST_Solution(t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD
    INTEGER(IntKi),           INTENT(IN   ) :: n_t_global          ! loop counter
 
    TYPE(FAST_ParameterType), INTENT(IN   ) :: p_FAST              ! Parameters for the glue code
-   TYPE(FAST_OutputType),    INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
+   TYPE(FAST_OutputFileType),INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
    TYPE(FAST_MiscVarType),   INTENT(INOUT) :: m_FAST              ! Miscellaneous variables
      
    TYPE(ElastoDyn_Data),     INTENT(INOUT) :: ED                  ! ElastoDyn data
