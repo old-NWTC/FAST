@@ -3,13 +3,13 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.05.00, 10-Jan-2015)
+! FAST Registry (v2.05.00, 14-Jan-2015)
 !*********************************************************************************************************************************
 ! MAP_Types
 !.................................................................................................................................
 ! This file is part of MAP.
 !
-! Copyright (C) 2012-2014 National Renewable Energy Laboratory
+! Copyright (C) 2012-2015 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -587,7 +587,6 @@ ENDIF
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
-   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -705,7 +704,6 @@ ENDIF
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
-   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -839,7 +837,7 @@ IF (ASSOCIATED(SrcOtherStateData%H)) THEN
          RETURN
       END IF
       DstOtherStateData%c_obj%H_Len = SIZE(DstOtherStateData%H)
-      DstOtherStateData%c_obj%H = C_LOC( DstOtherStateData%H ) 
+      DstOtherStateData%c_obj%H = C_LOC( DstOtherStateData%H(1) ) 
    END IF
    DstOtherStateData%H = SrcOtherStateData%H
 ENDIF
@@ -853,7 +851,7 @@ IF (ASSOCIATED(SrcOtherStateData%V)) THEN
          RETURN
       END IF
       DstOtherStateData%c_obj%V_Len = SIZE(DstOtherStateData%V)
-      DstOtherStateData%c_obj%V = C_LOC( DstOtherStateData%V ) 
+      DstOtherStateData%c_obj%V = C_LOC( DstOtherStateData%V(1) ) 
    END IF
    DstOtherStateData%V = SrcOtherStateData%V
 ENDIF
@@ -867,7 +865,7 @@ IF (ASSOCIATED(SrcOtherStateData%Ha)) THEN
          RETURN
       END IF
       DstOtherStateData%c_obj%Ha_Len = SIZE(DstOtherStateData%Ha)
-      DstOtherStateData%c_obj%Ha = C_LOC( DstOtherStateData%Ha ) 
+      DstOtherStateData%c_obj%Ha = C_LOC( DstOtherStateData%Ha(1) ) 
    END IF
    DstOtherStateData%Ha = SrcOtherStateData%Ha
 ENDIF
@@ -881,7 +879,7 @@ IF (ASSOCIATED(SrcOtherStateData%Va)) THEN
          RETURN
       END IF
       DstOtherStateData%c_obj%Va_Len = SIZE(DstOtherStateData%Va)
-      DstOtherStateData%c_obj%Va = C_LOC( DstOtherStateData%Va ) 
+      DstOtherStateData%c_obj%Va = C_LOC( DstOtherStateData%Va(1) ) 
    END IF
    DstOtherStateData%Va = SrcOtherStateData%Va
 ENDIF
@@ -895,7 +893,7 @@ IF (ASSOCIATED(SrcOtherStateData%x)) THEN
          RETURN
       END IF
       DstOtherStateData%c_obj%x_Len = SIZE(DstOtherStateData%x)
-      DstOtherStateData%c_obj%x = C_LOC( DstOtherStateData%x ) 
+      DstOtherStateData%c_obj%x = C_LOC( DstOtherStateData%x(1) ) 
    END IF
    DstOtherStateData%x = SrcOtherStateData%x
 ENDIF
@@ -909,7 +907,7 @@ IF (ASSOCIATED(SrcOtherStateData%y)) THEN
          RETURN
       END IF
       DstOtherStateData%c_obj%y_Len = SIZE(DstOtherStateData%y)
-      DstOtherStateData%c_obj%y = C_LOC( DstOtherStateData%y ) 
+      DstOtherStateData%c_obj%y = C_LOC( DstOtherStateData%y(1) ) 
    END IF
    DstOtherStateData%y = SrcOtherStateData%y
 ENDIF
@@ -923,7 +921,7 @@ IF (ASSOCIATED(SrcOtherStateData%z)) THEN
          RETURN
       END IF
       DstOtherStateData%c_obj%z_Len = SIZE(DstOtherStateData%z)
-      DstOtherStateData%c_obj%z = C_LOC( DstOtherStateData%z ) 
+      DstOtherStateData%c_obj%z = C_LOC( DstOtherStateData%z(1) ) 
    END IF
    DstOtherStateData%z = SrcOtherStateData%z
 ENDIF
@@ -937,7 +935,7 @@ IF (ASSOCIATED(SrcOtherStateData%xa)) THEN
          RETURN
       END IF
       DstOtherStateData%c_obj%xa_Len = SIZE(DstOtherStateData%xa)
-      DstOtherStateData%c_obj%xa = C_LOC( DstOtherStateData%xa ) 
+      DstOtherStateData%c_obj%xa = C_LOC( DstOtherStateData%xa(1) ) 
    END IF
    DstOtherStateData%xa = SrcOtherStateData%xa
 ENDIF
@@ -951,7 +949,7 @@ IF (ASSOCIATED(SrcOtherStateData%ya)) THEN
          RETURN
       END IF
       DstOtherStateData%c_obj%ya_Len = SIZE(DstOtherStateData%ya)
-      DstOtherStateData%c_obj%ya = C_LOC( DstOtherStateData%ya ) 
+      DstOtherStateData%c_obj%ya = C_LOC( DstOtherStateData%ya(1) ) 
    END IF
    DstOtherStateData%ya = SrcOtherStateData%ya
 ENDIF
@@ -965,7 +963,7 @@ IF (ASSOCIATED(SrcOtherStateData%za)) THEN
          RETURN
       END IF
       DstOtherStateData%c_obj%za_Len = SIZE(DstOtherStateData%za)
-      DstOtherStateData%c_obj%za = C_LOC( DstOtherStateData%za ) 
+      DstOtherStateData%c_obj%za = C_LOC( DstOtherStateData%za(1) ) 
    END IF
    DstOtherStateData%za = SrcOtherStateData%za
 ENDIF
@@ -979,7 +977,7 @@ IF (ASSOCIATED(SrcOtherStateData%Fx_connect)) THEN
          RETURN
       END IF
       DstOtherStateData%c_obj%Fx_connect_Len = SIZE(DstOtherStateData%Fx_connect)
-      DstOtherStateData%c_obj%Fx_connect = C_LOC( DstOtherStateData%Fx_connect ) 
+      DstOtherStateData%c_obj%Fx_connect = C_LOC( DstOtherStateData%Fx_connect(1) ) 
    END IF
    DstOtherStateData%Fx_connect = SrcOtherStateData%Fx_connect
 ENDIF
@@ -993,7 +991,7 @@ IF (ASSOCIATED(SrcOtherStateData%Fy_connect)) THEN
          RETURN
       END IF
       DstOtherStateData%c_obj%Fy_connect_Len = SIZE(DstOtherStateData%Fy_connect)
-      DstOtherStateData%c_obj%Fy_connect = C_LOC( DstOtherStateData%Fy_connect ) 
+      DstOtherStateData%c_obj%Fy_connect = C_LOC( DstOtherStateData%Fy_connect(1) ) 
    END IF
    DstOtherStateData%Fy_connect = SrcOtherStateData%Fy_connect
 ENDIF
@@ -1007,7 +1005,7 @@ IF (ASSOCIATED(SrcOtherStateData%Fz_connect)) THEN
          RETURN
       END IF
       DstOtherStateData%c_obj%Fz_connect_Len = SIZE(DstOtherStateData%Fz_connect)
-      DstOtherStateData%c_obj%Fz_connect = C_LOC( DstOtherStateData%Fz_connect ) 
+      DstOtherStateData%c_obj%Fz_connect = C_LOC( DstOtherStateData%Fz_connect(1) ) 
    END IF
    DstOtherStateData%Fz_connect = SrcOtherStateData%Fz_connect
 ENDIF
@@ -1021,7 +1019,7 @@ IF (ASSOCIATED(SrcOtherStateData%Fx_anchor)) THEN
          RETURN
       END IF
       DstOtherStateData%c_obj%Fx_anchor_Len = SIZE(DstOtherStateData%Fx_anchor)
-      DstOtherStateData%c_obj%Fx_anchor = C_LOC( DstOtherStateData%Fx_anchor ) 
+      DstOtherStateData%c_obj%Fx_anchor = C_LOC( DstOtherStateData%Fx_anchor(1) ) 
    END IF
    DstOtherStateData%Fx_anchor = SrcOtherStateData%Fx_anchor
 ENDIF
@@ -1035,7 +1033,7 @@ IF (ASSOCIATED(SrcOtherStateData%Fy_anchor)) THEN
          RETURN
       END IF
       DstOtherStateData%c_obj%Fy_anchor_Len = SIZE(DstOtherStateData%Fy_anchor)
-      DstOtherStateData%c_obj%Fy_anchor = C_LOC( DstOtherStateData%Fy_anchor ) 
+      DstOtherStateData%c_obj%Fy_anchor = C_LOC( DstOtherStateData%Fy_anchor(1) ) 
    END IF
    DstOtherStateData%Fy_anchor = SrcOtherStateData%Fy_anchor
 ENDIF
@@ -1049,7 +1047,7 @@ IF (ASSOCIATED(SrcOtherStateData%Fz_anchor)) THEN
          RETURN
       END IF
       DstOtherStateData%c_obj%Fz_anchor_Len = SIZE(DstOtherStateData%Fz_anchor)
-      DstOtherStateData%c_obj%Fz_anchor = C_LOC( DstOtherStateData%Fz_anchor ) 
+      DstOtherStateData%c_obj%Fz_anchor = C_LOC( DstOtherStateData%Fz_anchor(1) ) 
    END IF
    DstOtherStateData%Fz_anchor = SrcOtherStateData%Fz_anchor
 ENDIF
@@ -1543,7 +1541,7 @@ IF (ASSOCIATED(SrcConstrStateData%H)) THEN
          RETURN
       END IF
       DstConstrStateData%c_obj%H_Len = SIZE(DstConstrStateData%H)
-      DstConstrStateData%c_obj%H = C_LOC( DstConstrStateData%H ) 
+      DstConstrStateData%c_obj%H = C_LOC( DstConstrStateData%H(1) ) 
    END IF
    DstConstrStateData%H = SrcConstrStateData%H
 ENDIF
@@ -1557,7 +1555,7 @@ IF (ASSOCIATED(SrcConstrStateData%V)) THEN
          RETURN
       END IF
       DstConstrStateData%c_obj%V_Len = SIZE(DstConstrStateData%V)
-      DstConstrStateData%c_obj%V = C_LOC( DstConstrStateData%V ) 
+      DstConstrStateData%c_obj%V = C_LOC( DstConstrStateData%V(1) ) 
    END IF
    DstConstrStateData%V = SrcConstrStateData%V
 ENDIF
@@ -1571,7 +1569,7 @@ IF (ASSOCIATED(SrcConstrStateData%x)) THEN
          RETURN
       END IF
       DstConstrStateData%c_obj%x_Len = SIZE(DstConstrStateData%x)
-      DstConstrStateData%c_obj%x = C_LOC( DstConstrStateData%x ) 
+      DstConstrStateData%c_obj%x = C_LOC( DstConstrStateData%x(1) ) 
    END IF
    DstConstrStateData%x = SrcConstrStateData%x
 ENDIF
@@ -1585,7 +1583,7 @@ IF (ASSOCIATED(SrcConstrStateData%y)) THEN
          RETURN
       END IF
       DstConstrStateData%c_obj%y_Len = SIZE(DstConstrStateData%y)
-      DstConstrStateData%c_obj%y = C_LOC( DstConstrStateData%y ) 
+      DstConstrStateData%c_obj%y = C_LOC( DstConstrStateData%y(1) ) 
    END IF
    DstConstrStateData%y = SrcConstrStateData%y
 ENDIF
@@ -1599,7 +1597,7 @@ IF (ASSOCIATED(SrcConstrStateData%z)) THEN
          RETURN
       END IF
       DstConstrStateData%c_obj%z_Len = SIZE(DstConstrStateData%z)
-      DstConstrStateData%c_obj%z = C_LOC( DstConstrStateData%z ) 
+      DstConstrStateData%c_obj%z = C_LOC( DstConstrStateData%z(1) ) 
    END IF
    DstConstrStateData%z = SrcConstrStateData%z
 ENDIF
@@ -1824,7 +1822,6 @@ ENDIF
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
-   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
@@ -1976,7 +1973,7 @@ IF (ASSOCIATED(SrcInputData%x)) THEN
          RETURN
       END IF
       DstInputData%c_obj%x_Len = SIZE(DstInputData%x)
-      DstInputData%c_obj%x = C_LOC( DstInputData%x ) 
+      DstInputData%c_obj%x = C_LOC( DstInputData%x(1) ) 
    END IF
    DstInputData%x = SrcInputData%x
 ENDIF
@@ -1990,7 +1987,7 @@ IF (ASSOCIATED(SrcInputData%y)) THEN
          RETURN
       END IF
       DstInputData%c_obj%y_Len = SIZE(DstInputData%y)
-      DstInputData%c_obj%y = C_LOC( DstInputData%y ) 
+      DstInputData%c_obj%y = C_LOC( DstInputData%y(1) ) 
    END IF
    DstInputData%y = SrcInputData%y
 ENDIF
@@ -2004,7 +2001,7 @@ IF (ASSOCIATED(SrcInputData%z)) THEN
          RETURN
       END IF
       DstInputData%c_obj%z_Len = SIZE(DstInputData%z)
-      DstInputData%c_obj%z = C_LOC( DstInputData%z ) 
+      DstInputData%c_obj%z = C_LOC( DstInputData%z(1) ) 
    END IF
    DstInputData%z = SrcInputData%z
 ENDIF
@@ -2252,7 +2249,7 @@ IF (ASSOCIATED(SrcOutputData%Fx)) THEN
          RETURN
       END IF
       DstOutputData%c_obj%Fx_Len = SIZE(DstOutputData%Fx)
-      DstOutputData%c_obj%Fx = C_LOC( DstOutputData%Fx ) 
+      DstOutputData%c_obj%Fx = C_LOC( DstOutputData%Fx(1) ) 
    END IF
    DstOutputData%Fx = SrcOutputData%Fx
 ENDIF
@@ -2266,7 +2263,7 @@ IF (ASSOCIATED(SrcOutputData%Fy)) THEN
          RETURN
       END IF
       DstOutputData%c_obj%Fy_Len = SIZE(DstOutputData%Fy)
-      DstOutputData%c_obj%Fy = C_LOC( DstOutputData%Fy ) 
+      DstOutputData%c_obj%Fy = C_LOC( DstOutputData%Fy(1) ) 
    END IF
    DstOutputData%Fy = SrcOutputData%Fy
 ENDIF
@@ -2280,7 +2277,7 @@ IF (ASSOCIATED(SrcOutputData%Fz)) THEN
          RETURN
       END IF
       DstOutputData%c_obj%Fz_Len = SIZE(DstOutputData%Fz)
-      DstOutputData%c_obj%Fz = C_LOC( DstOutputData%Fz ) 
+      DstOutputData%c_obj%Fz = C_LOC( DstOutputData%Fz(1) ) 
    END IF
    DstOutputData%Fz = SrcOutputData%Fz
 ENDIF
@@ -2306,7 +2303,7 @@ IF (ASSOCIATED(SrcOutputData%wrtOutput)) THEN
          RETURN
       END IF
       DstOutputData%c_obj%wrtOutput_Len = SIZE(DstOutputData%wrtOutput)
-      DstOutputData%c_obj%wrtOutput = C_LOC( DstOutputData%wrtOutput ) 
+      DstOutputData%c_obj%wrtOutput = C_LOC( DstOutputData%wrtOutput(1) ) 
    END IF
    DstOutputData%wrtOutput = SrcOutputData%wrtOutput
 ENDIF
