@@ -372,6 +372,10 @@ CONTAINS
     INTEGER(KIND=C_INT)                             :: status_from_MAP 
     CHARACTER(KIND=C_CHAR), DIMENSION(1024)         :: message_from_MAP
     
+    INTEGER(IntKi)                                  :: ErrStat2     ! Error status of the operation
+    CHARACTER(1024)                                 :: ErrMsg2      ! Error message if ErrStat /= ErrID_None
+    CHARACTER(*), PARAMETER                         :: RoutineName = 'MAP_Init'
+    
     INTEGER(IntKi)                                  :: i
     INTEGER(IntKi)                                  :: n
     REAL(ReKi)                                      :: Pos(3)
@@ -454,23 +458,25 @@ CONTAINS
     ! get header information for the FAST output file                  !          | 
     NumNodes = u%C_obj%X_Len                                           !          |    
     ! Create the input mesh                                            !          |
-    CALL MeshCreate(BlankMesh=u%PtFairDisplacement ,IOS= COMPONENT_INPUT, NNodes=NumNodes, TranslationDisp=.TRUE.,ErrStat=ErrStat, ErrMess=ErrMsg)
-    IF(ErrStat/=ErrID_None) CALL WrScr(TRIM(ErrMsg))                   !          |
+    CALL MeshCreate(BlankMesh=u%PtFairDisplacement ,IOS= COMPONENT_INPUT, NNodes=NumNodes, TranslationDisp=.TRUE.,ErrStat=ErrStat2, ErrMess=ErrMsg2)
+       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat,ErrMsg, RoutineName)
+       IF (ErrStat >= AbortErrLev) RETURN
                                                                        !          |
     DO i = 1,NumNodes                                                  !          |
        Pos(1) = u%X(i)                                                 !          |
        Pos(2) = u%Y(i)                                                 !          |
        Pos(3) = u%Z(i)                                                 !          |
                                                                        !          |
-       CALL MeshPositionNode(u%PtFairDisplacement,i,Pos,ErrStat,ErrMsg)!          |
-       IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))             !          |
+       CALL MeshPositionNode(u%PtFairDisplacement,i,Pos,ErrStat2,ErrMsg2)!          |
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat,ErrMsg, RoutineName)
                                                                        !          |
-       CALL MeshConstructElement(u%PtFairDisplacement, ELEMENT_POINT, ErrStat, ErrMsg, i)
-       IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))             !          |
+       CALL MeshConstructElement(u%PtFairDisplacement, ELEMENT_POINT, ErrStat2, ErrMsg2, i)
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat,ErrMsg, RoutineName)
     END DO                                                             !          |
                                                                        !          |
-    CALL MeshCommit ( u%PtFairDisplacement, ErrStat, ErrMsg )          !          |
-    IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))                !          |
+    CALL MeshCommit ( u%PtFairDisplacement, ErrStat2, ErrMsg2 )          !          |
+       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat,ErrMsg, RoutineName)
+       IF (ErrStat >= AbortErrLev) RETURN
                                                                        !          |
     ! now, copy the input PtFairDisplacement to output                 !          |
     ! PtFairleadLoad to complete this                                  !          |
@@ -479,9 +485,10 @@ CONTAINS
                     CtrlCode = MESH_SIBLING         , &                !          |
                     IOS      = COMPONENT_OUTPUT     , &                !          |
                     Force    = .TRUE.               , &                !          |
-                    ErrStat  = ErrStat              , &                !          |
-                    ErrMess  = ErrMsg                 )                !          |
-    IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))                !          |
+                    ErrStat  = ErrStat2              , &                !          |
+                    ErrMess  = ErrMsg2                 )                !          |
+       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat,ErrMsg, RoutineName)
+       IF (ErrStat >= AbortErrLev) RETURN
                                                                        !          |
     ! End mesh initialization                                          !   -------+
     !==============================================================================
@@ -534,12 +541,11 @@ CONTAINS
     CHARACTER(*)                    , INTENT(  OUT) :: ErrMsg     ! Error message if ErrStat /= ErrID_None
   
     ! Local variables
-    INTEGER(KIND=C_INT)                             :: status_from_MAP = 0
-    CHARACTER(KIND=C_CHAR), DIMENSION(1024)         :: message_from_MAP = ' '
-    ! CHARACTER(KIND=C_CHAR,len=1024)                 :: message_from_MAP = ""//CHAR(0)
-    REAL(KIND=C_FLOAT)                              :: time = 0
-    INTEGER(KIND=C_INT)                             :: interval = 0
-    INTEGER(IntKi)                                  :: i=0  
+    INTEGER(KIND=C_INT)                             :: status_from_MAP 
+    CHARACTER(KIND=C_CHAR), DIMENSION(1024)         :: message_from_MAP 
+    REAL(KIND=C_FLOAT)                              :: time 
+    INTEGER(KIND=C_INT)                             :: interval 
+    INTEGER(IntKi)                                  :: i  
     TYPE(MAP_InputType)                             :: u_interp    ! Inputs at t
     
     ! create space for arrays/meshes in u_interp
@@ -552,6 +558,9 @@ CONTAINS
     ! of the native IntKi/DbKi format in FAST)
     time = t
     interval = n
+    
+    status_from_MAP = 0
+    message_from_MAP = ' '
     
     ! Copy the mesh input to the MAP C types
     ! @marco: the Position field is fixed in the initialization routine. TranslationDisp is the displacement from the original position.
@@ -573,9 +582,11 @@ CONTAINS
                             O%C_obj         , &
                             status_from_MAP , &
                             message_from_MAP  )
-    MAP_CHECKERR()
+
+    CALL MAP_DestroyInput(u_interp, ErrStat, ErrMsg) 
+    MAP_CHECKERR() !IF(MAP_ERROR_CHECKER(message_from_MAP,status_from_MAP,ErrMsg,ErrStat)) RETURN
     
-    CALL MAP_DestroyInput(u_interp, ErrStat, ErrMsg)        
+    
   END SUBROUTINE MAP_UpdateStates                                                                !   -------+
   !==========================================================================================================
   
@@ -595,11 +606,12 @@ CONTAINS
   
     ! Local variables
     INTEGER(KIND=C_INT)                             :: status_from_MAP
-    CHARACTER(KIND=C_CHAR), DIMENSION(1024)         :: message_from_MAP = ' '
-    REAL(KIND=C_FLOAT)                              :: time = 0
+    CHARACTER(KIND=C_CHAR), DIMENSION(1024)         :: message_from_MAP 
+    REAL(KIND=C_FLOAT)                              :: time
     integer                                         :: i
   
     time = t
+    message_from_MAP = ' '
     
     DO i = 1,u%PtFairDisplacement%NNodes
        u%X(i) = u%PtFairDisplacement%Position(1,i) + u%PtFairDisplacement%TranslationDisp(1,i)
@@ -698,8 +710,8 @@ CONTAINS
     INTEGER                                :: index_node=0                
     INTEGER                                :: index_elem=0                
     INTEGER                                :: index_optn=0                
-    INTEGER                                :: i = 0
-    INTEGER                                :: N = 0
+    INTEGER                                :: i 
+    INTEGER                                :: N 
     CHARACTER(255)                         :: line
    
     INTEGER                                :: Un
@@ -829,7 +841,7 @@ CONTAINS
     INTEGER(KIND=C_INT),                     INTENT(INOUT) :: stat
     CHARACTER(*),                            INTENT(  OUT) :: ErrMsg 
     INTEGER(IntKi),                          INTENT(  OUT) :: ErrStat    
-    INTEGER                                                :: i = 0                                             
+    INTEGER                                                :: i                                             
 
     MAP_ERROR_CHECKER = .FALSE. ! default warning; does not throw a RETURN
     ErrStat = ErrID_None
@@ -846,7 +858,7 @@ CONTAINS
 
        IF(stat.EQ.1) THEN ! assign warning levels
           ErrStat = ErrID_Warn
-          CALL WrScr(ErrMsg)         
+          ! CALL WrScr(ErrMsg)         
        ELSE ! only the case of a fatal warning returns true; throws a RETURN
           ErrStat = ErrID_Fatal
           MAP_ERROR_CHECKER = .TRUE.
@@ -866,8 +878,8 @@ CONTAINS
     TYPE(MAP_OtherStateType), INTENT(INOUT)  :: Other   
 
     ! Locals
-    INTEGER :: i = 0
-    INTEGER(C_INT)                                  :: numHeaderStr = 0
+    INTEGER :: i 
+    INTEGER(C_INT)                                  :: numHeaderStr 
     CHARACTER(16),DIMENSION(:), ALLOCATABLE, TARGET :: strHdrArray ! Hopefully none of the headers are more than 16 characters long
     TYPE(C_PTR), DIMENSION(:), ALLOCATABLE          :: strHdrPtrs
     CHARACTER(15),DIMENSION(:), ALLOCATABLE, TARGET :: strUntArray ! Hopefully none of the headers are more than 15 characters long

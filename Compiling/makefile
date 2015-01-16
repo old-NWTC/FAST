@@ -496,7 +496,7 @@ IceDyn.obj:                 NWTC_Library.obj IceDyn_Types.obj
 FAST_Types.obj:             NWTC_Library.obj  ElastoDyn_Types.obj  ServoDyn_Types.obj  AeroDyn_Types.obj  SubDyn_Types.obj  HydroDyn_Types.obj  MAP_Types.obj  FEAMooring_Types.obj  IceFloe_Types.obj  IceDyn_Types.obj FAST_Registry.txt
 FAST_Mods.obj:              NWTC_Library.obj  FAST_Types.obj
 FAST_IO.obj:                NWTC_Library.obj  FAST_Mods.obj  NWTC_LAPACK.obj  AeroDyn.obj  InflowWind.obj  ServoDyn.obj  ElastoDyn.obj  SubDyn.obj  HydroDyn.obj  MAP.obj  FEAM.obj  IceFloe.obj  IceDyn.obj
-FAST_Prog.obj:              NWTC_Library.obj  FAST_Mods.obj  FAST_IO.obj
+FAST_Prog.obj:              NWTC_Library.obj  FAST_IO.obj
 
 
 
