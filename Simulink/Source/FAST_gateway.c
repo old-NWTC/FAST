@@ -31,7 +31,7 @@
  */
 
 #define S_FUNCTION_LEVEL 2
-#define S_FUNCTION_NAME  sfuntmpl_gate_fortran
+#define S_FUNCTION_NAME  FAST_SFunc
 
 /*
  * Need to include simstruc.h for the definition of the SimStruct and
@@ -49,7 +49,7 @@
  * manual.
  */
 
-#define VARIABLE_STEP
+#undef VARIABLE_STEP
 
 /* 
  * The interface (function prototype) for your  Fortran subroutine.  
@@ -78,17 +78,11 @@
  * 
  */
 
-#ifdef VARIABLE_STEP
-
-extern void nameofsub_(float *sampleArgs, 
-                       float *states, 
-                       int   *numstates,
-                       float *sampleOutput);
-#else
 
 extern void nameofsub_(float *sampleArgs, float *sampleOutput);
 
-#endif
+
+static int AbortErrLev = 4; // abort error level; compare with NWTC
 
 
 /* Error handling
@@ -132,7 +126,7 @@ static void mdlInitializeSizes(SimStruct *S)
         return;
     }
 
-    ssSetNumContStates(S, 1);  /* how many continuous states? */
+    ssSetNumContStates(S, 0);  /* how many continuous states? */
     ssSetNumDiscStates(S, 0);
 
     if (!ssSetNumInputPorts(S, 1)) return;
@@ -190,18 +184,6 @@ static void mdlInitializeSizes(SimStruct *S)
  */
 static void mdlInitializeSampleTimes(SimStruct *S)
 {
-#ifdef VARIABLE_STEP
-    
-    /* 
-     * For Fortran code with either no states at
-     * all or with continuous states that you want
-     * to support with variable time steps, use
-     * a sample time like this:
-     */
-    ssSetSampleTime(S, 0, CONTINUOUS_SAMPLE_TIME);
-    ssSetOffsetTime(S, 0, 0.0);
-    
-#else
 
     /* 
      * If the Fortran code implicitly steps time
@@ -209,42 +191,14 @@ static void mdlInitializeSampleTimes(SimStruct *S)
      * the code, you need to use a discrete (fixed
      * step) sample time, 1 second is chosen below.
      */
-    ssSetSampleTime(S, 0, 0.01); /* Choose the sample time here if discrete */
+   // bjj: time step from FAST Init
+    ssSetSampleTime(S, 0, 0.01); /* Choose the sample time here if discrete */ 
     ssSetOffsetTime(S, 0, 0.0);
    
-#endif
     ssSetModelReferenceSampleTimeDefaultInheritance(S);
 }
 
-
-
-#define MDL_INITIALIZE_CONDITIONS   /* Change to #undef to remove function */
-#if defined(MDL_INITIALIZE_CONDITIONS)
-  /* Function: mdlInitializeConditions ========================================
-   * Abstract:
-   *    In this function, you should initialize the continuous and discrete
-   *    states for your S-function block.  The initial states are placed
-   *    in the state vector, ssGetContStates(S) or ssGetRealDiscStates(S).
-   *    You can also perform any other initialization activities that your
-   *    S-function may require. Note, this routine will be called at the
-   *    start of simulation and if it is present in an enabled subsystem
-   *    configured to reset states, it will be call when the enabled subsystem
-   *    restarts execution to reset the states.
-   */
-  static void mdlInitializeConditions(SimStruct *S)
-  {
-      /* 
-       * #undef MDL_INITIALIZE_CONDITIONS if you don't have any
-       * continuous states.
-       */
-      real_T *x = ssGetContStates(S);
-
-      /* set the values of the states (x) to start with */
-
-  }
-#endif /* MDL_INITIALIZE_CONDITIONS */
-
-
+#undef MDL_INITIALIZE_CONDITIONS   /* Change to #undef to remove function */
 
 #define MDL_START  /* Change to #undef to remove function */
 #if defined(MDL_START) 
@@ -273,70 +227,6 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 static void mdlOutputs(SimStruct *S, int_T tid)
 {
 
-#ifdef VARIABLE_STEP
-
-    /*
-     *    For Variable Step Code WITH CONTINUOUS STATES
-     *    ---------------------------------------------
-     * For Fortran code that implements continuous states and uses
-     * the mdlDerivatives interface, call your Fortran code's output
-     * routines from here.  If it alters the states, you have to
-     * reset the solver.  Remember, in Simulink the continuous states
-     * must be of type double, so be prepared to copy them to float 
-     * if your Fortran code uses REAL as the datatype for the states.
-     *
-     *                ... or, NO STATES
-     *                -----------------
-     * If your code has no states and you want it to execute in
-     * a continuous model, keep the uPtrs, sampleArgs, y, and
-     * sampleOutput variables and delete x, xf, and nx.  Adjust 
-     * the function call accordingly.
-     */ 
-    InputRealPtrsType uPtrs = ssGetInputPortRealSignalPtrs(S,0);
-    float  *sampleArgs   = (float *) ssGetDWork(S,1);
-    double *y            = ssGetOutputPortRealSignal(S,0);
-    float  *sampleOutput = (float *) ssGetDWork(S,0);
-    double *x            = ssGetContStates(S);
-    float  *xf           = (float *) ssGetDWork(S,2);
-    int     nx           = ssGetNumContStates(S);
-    int k;
-    
-    /* 
-     * If the datatype in the Fortran code is REAL
-     * then you have to downcast the I/O and states from
-     * double to float as copies before sending them 
-     * to your code (or change the Fortran code).
-     */
-
-    for (k=0; k < ssGetDWorkWidth(S,1); k++) {
-        sampleArgs[k] = (float) (*uPtrs[k]);
-    }
-
-    /*
-     * It is recommended to use a DWork vector to 
-     * allocate the space for  the float copy of 
-     * the states (if needed).
-     */
-    for (k=0; k < nx; k++) {
-        xf[k] = (float) x[k];
-    }
-    
-
-    /* ==== Call the Fortran routine (args are pass-by-reference) */
-    
-    /* nameofsub_(sampleArgs, xf, &nx, sampleOutput ); */
-
-   
-    /* 
-     * If needed, convert the float outputs to the 
-     * double (y) output array 
-     */
-    for (k=0; k < ssGetOutputPortWidth(S,0); k++) {
-        y[k] = (double) sampleOutput[k];
-    }
-
-#else
-
     /* 
      *    For Fixed Step Code
      *    -------------------
@@ -361,7 +251,6 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         y[k] = copyOfOutputs[k];
     }
 
-#endif
 
 }
 
@@ -378,8 +267,6 @@ static void mdlOutputs(SimStruct *S, int_T tid)
  */
 static void mdlUpdate(SimStruct *S, int_T tid)
 {
-
-#ifndef VARIABLE_STEP
 
     /* 
      *    For Fixed Step Code Only
@@ -420,38 +307,11 @@ static void mdlUpdate(SimStruct *S, int_T tid)
         y[k] = (double) sampleOutput[k];
     }
 
-#endif
 
 }
 #endif /* MDL_UPDATE */
 
-#define MDL_DERIVATIVES  /* Change to #undef to remove function */
-#if defined(MDL_DERIVATIVES)
-/* Function: mdlDerivatives =================================================
- * Abstract:
- *    In this function, you compute the S-function block's derivatives.
- *    The derivatives are placed in the derivative vector, ssGetdX(S).
- */
-static void mdlDerivatives(SimStruct *S)
-{
-
-#ifdef VARIABLE_STEP
-
-      /* 
-       *    For Variable Step Code Only
-       *    ---------------------------
-       * If your Fortran code needs to support continuous states
-       * with variable timestep solvers, you need to call into
-       * your Fortran routine (or perhaps one that shares a 
-       * common block but only calculates derivatives) here to 
-       * extract/calculate state derivatives WITHOUT ADVANCING TIME.
-       */
-
-#endif
-
-}
-#endif /* MDL_DERIVATIVES */
-
+#undef MDL_DERIVATIVES  /* Change to #undef to remove function */
 
 
 /* Function: mdlTerminate =====================================================
@@ -462,6 +322,8 @@ static void mdlDerivatives(SimStruct *S)
  */
 static void mdlTerminate(SimStruct *S)
 {
+
+   // call FAST_End
 }
 
 
