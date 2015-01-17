@@ -79,10 +79,14 @@
  */
 
 
-extern void nameofsub_(float *sampleArgs, float *sampleOutput);
+// routines in FAST_Library_$(PlatformName).dll
+extern void FAST_Start(int *AbortErrLev, int *ErrStat, char *ErrMsg);
+extern void FAST_Update(double *InputAry, double *OutputAry, int *ErrStat, char *ErrMsg);
+extern void FAST_End();
 
-
-static int AbortErrLev = 4; // abort error level; compare with NWTC
+static int AbortErrLev = 4; // abort error level; compare with NWTC Library
+static int ErrStat = 0;
+static char ErrMsg[1024]; // make sure this is the same size as ErrStrLen in FAST_Library.f90
 
 
 /* Error handling
@@ -136,7 +140,7 @@ static void mdlInitializeSizes(SimStruct *S)
      * A port has direct feedthrough if the input is used in either
      * the mdlOutputs or mdlGetTimeOfNextVarHit functions.
      */
-    ssSetInputPortDirectFeedThrough(S, 0, 1);
+    ssSetInputPortDirectFeedThrough(S, 0, 0); // no direct feedthrough because we're just putting everything in one update routine (acting like a discrete system)
 
     if (!ssSetNumOutputPorts(S, 1)) return;
     ssSetOutputPortWidth(S, 0, 1);
@@ -154,16 +158,13 @@ static void mdlInitializeSizes(SimStruct *S)
      * data when needed. You can use as many DWork vectors as you like 
      * for both input and output (or hard-code local variables).
      */
-    if(!ssSetNumDWork(   S, 3)) return;
+    if(!ssSetNumDWork(   S, 2)) return;
 
     ssSetDWorkWidth(     S, 0, ssGetOutputPortWidth(S,0));
-    ssSetDWorkDataType(  S, 0, SS_SINGLE); /* use SS_DOUBLE if needed */
+    ssSetDWorkDataType(  S, 0, SS_DOUBLE); /* use SS_DOUBLE if needed */
 
     ssSetDWorkWidth(     S, 1, ssGetInputPortWidth(S,0));
-    ssSetDWorkDataType(  S, 1, SS_SINGLE);
-
-    ssSetDWorkWidth(     S, 2, ssGetNumContStates(S));
-    ssSetDWorkDataType(  S, 2, SS_SINGLE);
+    ssSetDWorkDataType(  S, 1, SS_DOUBLE);
 
     ssSetNumNonsampledZCs(S, 0);
 
@@ -210,7 +211,7 @@ static void mdlInitializeSampleTimes(SimStruct *S)
    */
   static void mdlStart(SimStruct *S)
   {
-    
+     FAST_Start(AbortErrLev, ErrStat, ErrMsg);
   }
 #endif /*  MDL_START */
 
@@ -277,9 +278,9 @@ static void mdlUpdate(SimStruct *S, int_T tid)
      * continuous if you call your code from here.
      */
     InputRealPtrsType uPtrs = ssGetInputPortRealSignalPtrs(S,0);
-    float  *sampleArgs   = (float *) ssGetDWork(S,1);
-    double *y            = ssGetOutputPortRealSignal(S,0);
-    float  *sampleOutput = (float *) ssGetDWork(S,0);
+    double *InputAry  = (double *)ssGetDWork(S, 1);
+    double *y         = ssGetOutputPortRealSignal(S,0);
+    double *OutputAry = (double *)ssGetDWork(S, 0);
     int k;
     
     /* 
@@ -290,13 +291,20 @@ static void mdlUpdate(SimStruct *S, int_T tid)
      */
 
     for (k=0; k < ssGetDWorkWidth(S,1); k++) {
-        sampleArgs[k] = (float) (*uPtrs[k]);
+       InputAry[k] = (double)(*uPtrs[k]);
     }
 
 
     /* ==== Call the Fortran routine (args are pass-by-reference) */
     
-    /* nameofsub_(sampleArgs, sampleOutput ); */
+    /* nameofsub_(InputAry, sampleOutput ); */
+    FAST_Update(InputAry, OutputAry, ErrStat, ErrMsg);
+
+    if (ErrStat > AbortErrLev){
+       ssSetErrorStatus(S, ErrMsg);
+       return;
+    }
+
 
    
     /* 
@@ -304,7 +312,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
      * double (y) output array 
      */
     for (k=0; k < ssGetOutputPortWidth(S,0); k++) {
-        y[k] = (double) sampleOutput[k];
+       y[k] = (double)OutputAry[k];
     }
 
 
@@ -323,7 +331,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
 static void mdlTerminate(SimStruct *S)
 {
 
-   // call FAST_End
+   FAST_End();
 }
 
 
