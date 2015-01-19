@@ -80,13 +80,14 @@
 
 
 // routines in FAST_Library_$(PlatformName).dll
-extern void FAST_Start(int *AbortErrLev, int *ErrStat, char *ErrMsg);
+extern void FAST_Start(char *InputFileName, int *AbortErrLev, int *ErrStat, char *ErrMsg);
 extern void FAST_Update(double *InputAry, double *OutputAry, int *ErrStat, char *ErrMsg);
 extern void FAST_End();
 
-static int AbortErrLev = 4; // abort error level; compare with NWTC Library
+static int AbortErrLev = 4;      // abort error level; compare with NWTC Library
 static int ErrStat = 0;
-static char ErrMsg[1024]; // make sure this is the same size as ErrStrLen in FAST_Library.f90
+static char ErrMsg[1024];        // make sure this is the same size as IntfStrLen in FAST_Library.f90
+static char InputFileName[1024]; // make sure this is the same size as IntfStrLen in FAST_Library.f90
 
 
 /* Error handling
@@ -124,17 +125,20 @@ static char ErrMsg[1024]; // make sure this is the same size as ErrStrLen in FAS
  */
 static void mdlInitializeSizes(SimStruct *S)
 {
-    ssSetNumSFcnParams(S, 0);  /* Number of expected parameters */
+    ssSetNumSFcnParams(S, 1);  /* Number of expected parameters */ // parameter 1 is the input file name from Matlab
     if (ssGetNumSFcnParams(S) != ssGetSFcnParamsCount(S)) {
         /* Return if number of expected != number of actual parameters */
         return;
     }
+    ssSetSFcnParamTunable(S, 0, SS_PRM_NOT_TUNABLE); // the first parameter (0) is the input file name; should not be changed during simulation
 
     ssSetNumContStates(S, 0);  /* how many continuous states? */
     ssSetNumDiscStates(S, 0);
 
-    if (!ssSetNumInputPorts(S, 1)) return;
-    ssSetInputPortWidth(S, 0, 1);
+      // sets one input port
+    if (!ssSetNumInputPorts(S, 1)) return; 
+    ssSetInputPortWidth(S, 0, 1); // width of first input port
+
     /*
      * Set direct feedthrough flag (1=yes, 0=no).
      * A port has direct feedthrough if the input is used in either
@@ -211,7 +215,14 @@ static void mdlInitializeSampleTimes(SimStruct *S)
    */
   static void mdlStart(SimStruct *S)
   {
-     FAST_Start(AbortErrLev, ErrStat, ErrMsg);
+     strcpy(InputFileName, "..\..\CertTest\Test01.fst");
+
+     FAST_Start(InputFileName, AbortErrLev, ErrStat, ErrMsg);
+
+     if (ErrStat >= AbortErrLev){
+        ssSetErrorStatus(S, ErrMsg);
+        return;
+     }
   }
 #endif /*  MDL_START */
 
@@ -300,7 +311,7 @@ static void mdlUpdate(SimStruct *S, int_T tid)
     /* nameofsub_(InputAry, sampleOutput ); */
     FAST_Update(InputAry, OutputAry, ErrStat, ErrMsg);
 
-    if (ErrStat > AbortErrLev){
+    if (ErrStat >= AbortErrLev){
        ssSetErrorStatus(S, ErrMsg);
        return;
     }

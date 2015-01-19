@@ -5392,7 +5392,7 @@ END SUBROUTINE SolveOption2
 
 
 !...............................................................................................................................
-SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
+SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg, InFile )
 
    REAL(DbKi),               INTENT(IN   ) :: t_initial           ! initial time
    TYPE(FAST_ParameterType), INTENT(INOUT) :: p_FAST              ! Parameters for the glue code
@@ -5414,6 +5414,8 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
       
    INTEGER(IntKi),           INTENT(  OUT) :: ErrStat             ! Error status of the operation
    CHARACTER(*),             INTENT(  OUT) :: ErrMsg              ! Error message if ErrStat /= ErrID_None
+   CHARACTER(*), OPTIONAL,   INTENT(IN   ) :: InFile             ! A CHARACTER string containing the name of the primary FAST input file (if not present, we'll get it from the command line)
+   
    
    ! local variables      
    TYPE(ED_InitInputType)                  :: InitInData_ED       ! Initialization input data
@@ -5481,7 +5483,11 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
 
    
       ! ... Open and read input files, initialize global parameters. ...
-   CALL FAST_Init( p_FAST, y_FAST, ErrStat2, ErrMsg2 )
+   IF (PRESENT(InFile)) THEN
+      CALL FAST_Init( p_FAST, y_FAST, ErrStat2, ErrMsg2, InFile )  ! We have the name of the input file from somewhere else (e.g. Simulink)
+   ELSE
+      CALL FAST_Init( p_FAST, y_FAST, ErrStat2, ErrMsg2 )
+   END IF
       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       IF (ErrStat >= AbortErrLev) THEN
          CALL Cleanup()
