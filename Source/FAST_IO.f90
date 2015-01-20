@@ -29,9 +29,7 @@ MODULE FAST_IO_Subs
    USE NWTC_LAPACK
 
    USE FAST_ModTypes
-  
-   !USE ServoDyn  , ONLY: Cmpl4SFun, Cmpl4LV
-    
+      
    USE AeroDyn
    USE ElastoDyn
    USE FEAMooring
@@ -91,7 +89,7 @@ FUNCTION GetVersion()
    RETURN
 END FUNCTION GetVersion
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE FAST_End( p_FAST, y_FAST, ErrStat, ErrMsg )
+SUBROUTINE FAST_EndOutput( p_FAST, y_FAST, ErrStat, ErrMsg )
 ! This subroutine is called at program termination. It writes any additional output files,
 ! deallocates variables and closes files.
 !----------------------------------------------------------------------------------------------------
@@ -156,7 +154,7 @@ SUBROUTINE FAST_End( p_FAST, y_FAST, ErrStat, ErrMsg )
    IF ( ALLOCATED(y_FAST%ChannelUnits                ) ) DEALLOCATE(y_FAST%ChannelUnits                )
 
 
-END SUBROUTINE FAST_End
+END SUBROUTINE FAST_EndOutput
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
 ! This subroutine checks for command-line arguments, gets the root name of the input files
@@ -2380,6 +2378,8 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    INTEGER(IntKi)                                    :: ErrStat2                  ! temporary Error status of the operation
    CHARACTER(LEN(ErrMsg))                            :: ErrMsg2                   ! temporary Error message if ErrStat /= ErrID_None
    
+   CHARACTER(*), PARAMETER                           :: RoutineName = 'ED_HD_InputOutputSolve'
+   
 #ifdef OUTPUT_ADDEDMASS   
    REAL(ReKi)                                        :: AddedMassMatrix(6,6)
    INTEGER                                           :: UnAM
@@ -2741,7 +2741,7 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         CALL WrScr( ' ED_HD_InputOutputSolve: '//TRIM(Msg) )
+         CALL WrScr( RoutineName//':'//TRIM(Msg) )
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -2759,18 +2759,18 @@ CONTAINS
       CHARACTER(1024)            :: ErrMsg3     ! The error message (ErrMsg)
                   
       CALL ED_DestroyOutput(y_ED_input, ErrStat3, ErrMsg3 )
-         IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/ED_DestroyOutput: '//TRIM(ErrMsg3) )
+         IF (ErrStat3 /= ErrID_None) CALL WrScr(RoutineName//'/ED_DestroyOutput: '//TRIM(ErrMsg3) )
          
       IF ( calcJacobian ) THEN
          CALL ED_DestroyInput( u_ED_perturb, ErrStat3, ErrMsg3 )
-            IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/ED_DestroyInput: '//TRIM(ErrMsg3) )
+            IF (ErrStat3 /= ErrID_None) CALL WrScr(RoutineName//'/ED_DestroyInput: '//TRIM(ErrMsg3) )
          CALL ED_DestroyOutput(y_ED_perturb, ErrStat3, ErrMsg3 )
-            IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/ED_DestroyOutput: '//TRIM(ErrMsg3) )
+            IF (ErrStat3 /= ErrID_None) CALL WrScr(RoutineName//'/ED_DestroyOutput: '//TRIM(ErrMsg3) )
          
          CALL HydroDyn_DestroyInput( u_HD_perturb, ErrStat3, ErrMsg3 )
-            IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/HydroDyn_DestroyInput: '//TRIM(ErrMsg3) )
+            IF (ErrStat3 /= ErrID_None) CALL WrScr(RoutineName//'/HydroDyn_DestroyInput: '//TRIM(ErrMsg3) )
          CALL HydroDyn_DestroyOutput(y_HD_perturb, ErrStat3, ErrMsg3 )
-            IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/HydroDyn_DestroyOutput: '//TRIM(ErrMsg3) )                        
+            IF (ErrStat3 /= ErrID_None) CALL WrScr(RoutineName//'/HydroDyn_DestroyOutput: '//TRIM(ErrMsg3) )                        
       END IF
       
    
@@ -6901,7 +6901,7 @@ SUBROUTINE FAST_EndMods( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp
    ErrMsg  = ""
             
       
-   CALL FAST_End( p_FAST, y_FAST, ErrStat2, ErrMsg2 )
+   CALL FAST_EndOutput( p_FAST, y_FAST, ErrStat2, ErrMsg2 )
       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
 
    IF ( p_FAST%ModuleInitialized(Module_ED) ) THEN
