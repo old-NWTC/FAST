@@ -15,24 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Source\FAST_gateway.c">
+    <ClCompile Include="..\Source\Test_FAST_Library.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\..\..\Program Files\MATLAB\R2014b\simulink\include\simstruc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\..\..\..\Program Files\MATLAB\R2014b\simulink\include\simstruc_types.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\..\..\..\Program Files\MATLAB\R2014b\simulink\include\solver_zc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\..\..\..\Program Files\MATLAB\R2014b\extern\include\tmwtypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\..\..\..\Program Files\MATLAB\R2014b\simulink\include\sl_common_types_def.h">
+    <ClInclude Include="..\Source\FAST_Library.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
