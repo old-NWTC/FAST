@@ -181,6 +181,11 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
    CHARACTER(1024)              :: InputFile                            ! A CHARACTER string containing the name of the primary FAST input file
    CHARACTER(1024)              :: CompiledVer                          ! A string describing the FAST version as well as some of the compile options we're using
 
+   CHARACTER(*), PARAMETER      :: RoutineName = "FAST_Init"
+   
+   INTEGER(IntKi)               :: ErrStat2
+   CHARACTER(1024)              :: ErrMsg2
+   
       ! Initialize some variables
    ErrStat = ErrID_None
    ErrMsg = ''
@@ -207,7 +212,7 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
       CALL CheckArgs( InputFile, Stat, LastArg )  ! if Stat /= ErrID_None, we'll ignore and deal with the problem when we try to read the input file
       
       IF (LEN_TRIM(InputFile) == 0) THEN ! no input file was specified
-         CALL SetErrors( ErrID_Fatal, 'The required input file was not specified on the command line.') 
+         CALL SetErrStat( ErrID_Fatal, 'The required input file was not specified on the command line.', ErrStat, ErrMsg, RoutineName ) 
          CALL NWTC_DisplaySyntax( InputFile, 'FAST_Win32.exe' )
                   !bjj: FAST_Win32.exe isn't correct for x64 or other versions of the executable, but it IS the only full version we
                   ! distribute, and if people have compiled for other architectures, they should be able to figure that out, right?
@@ -240,7 +245,7 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
    !IF ( PathIsRelative(p%DirRoot) ) THEN
    !   CALL Get_CWD  ( DirName, Stat )
    !   IF (Stat /= 0) THEN
-   !      CALL SetErrors( ErrID_Warn, 'Error retreiving current working directory. DirRoot will contain a relative path.' )
+   !      CALL SetErrStat( ErrID_Warn, 'Error retreiving current working directory. DirRoot will contain a relative path.', ErrStat, ErrMsg, RoutineName )
    !      IF ( ErrStat >= AbortErrLev ) RETURN
    !   ELSE
    !      p%DirRoot = TRIM( DirName )//PathSep//TRIM( p%DirRoot )
@@ -272,7 +277,9 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
    !...............................................................................................................................
    ! Read the primary file for the glue code:
    !...............................................................................................................................
-   CALL FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
+   CALL FAST_ReadPrimaryFile( InputFile, p, ErrStat2, ErrMsg2 )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName ) 
+   
    IF ( ErrStat >= AbortErrLev ) RETURN
 
 
@@ -302,60 +309,60 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
    ! Do some error checking on the inputs (validation):
    !...............................................................................................................................
    IF ( p%TMax < 0.0_DbKi  )  THEN
-      CALL SetErrors( ErrID_Fatal, 'TMax must not be a negative number.' )
+      CALL SetErrStat( ErrID_Fatal, 'TMax must not be a negative number.', ErrStat, ErrMsg, RoutineName )
    ELSE IF ( p%TMax < p%TStart )  THEN
-      CALL SetErrors( ErrID_Fatal, 'TMax must not be less than TStart.' )
+      CALL SetErrStat( ErrID_Fatal, 'TMax must not be less than TStart.', ErrStat, ErrMsg, RoutineName )
    END IF
 
    IF ( p%DT <= 0.0_DbKi )  THEN
-      CALL SetErrors( ErrID_Fatal, 'DT must be greater than 0.' )
+      CALL SetErrStat( ErrID_Fatal, 'DT must be greater than 0.', ErrStat, ErrMsg, RoutineName )
    ELSE ! Test DT and TMax to ensure numerical stability -- HINT: see the use of OnePlusEps
       TmpTime = p%TMax*EPSILON(p%DT)
       IF ( p%DT <= TmpTime ) THEN
-         CALL SetErrors( ErrID_Fatal, 'DT must be greater than '//TRIM ( Num2LStr( TmpTime ) )//' seconds.' )
+         CALL SetErrStat( ErrID_Fatal, 'DT must be greater than '//TRIM ( Num2LStr( TmpTime ) )//' seconds.', ErrStat, ErrMsg, RoutineName )
       END IF
    END IF
 
    IF ( p%WrTxtOutFile .AND. ( p%TMax > 9999.999_DbKi ) )  THEN
-      CALL SetErrors( ErrID_Fatal, 'TMax must not exceed 9999.999 seconds with text tabular (time-marching) output files.' )
+      CALL SetErrStat( ErrID_Fatal, 'TMax must not exceed 9999.999 seconds with text tabular (time-marching) output files.', ErrStat, ErrMsg, RoutineName )
    END IF
 
-   IF ( p%TStart   <  0.0_DbKi     ) CALL SetErrors( ErrID_Fatal, 'TStart must not be less than 0 seconds.' )
-   IF ( p%SttsTime <= 0.0_DbKi     ) CALL SetErrors( ErrID_Fatal, 'SttsTime must be greater than 0 seconds.' )
-   IF ( p%KMax     <   1_IntKi     ) CALL SetErrors( ErrID_Fatal, 'KMax must be greater than 0.' )
+   IF ( p%TStart   <  0.0_DbKi     ) CALL SetErrStat( ErrID_Fatal, 'TStart must not be less than 0 seconds.', ErrStat, ErrMsg, RoutineName )
+   IF ( p%SttsTime <= 0.0_DbKi     ) CALL SetErrStat( ErrID_Fatal, 'SttsTime must be greater than 0 seconds.', ErrStat, ErrMsg, RoutineName )
+   IF ( p%KMax     <   1_IntKi     ) CALL SetErrStat( ErrID_Fatal, 'KMax must be greater than 0.', ErrStat, ErrMsg, RoutineName )
    
-   IF (p%CompElast   == Module_Unknown) CALL SetErrors( ErrID_Fatal, 'CompElast must be 1 (ElastoDyn) or 2 (BeamDyn).' )   
-   IF (p%CompAero    == Module_Unknown) CALL SetErrors( ErrID_Fatal, 'CompAero must be 0 (None) or 1 (AeroDyn).' )
-   IF (p%CompServo   == Module_Unknown) CALL SetErrors( ErrID_Fatal, 'CompServo must be 0 (None) or 1 (ServoDyn).' )
-   IF (p%CompHydro   == Module_Unknown) CALL SetErrors( ErrID_Fatal, 'CompHydro must be 0 (None) or 1 (HydroDyn).' )
-   IF (p%CompSub     == Module_Unknown) CALL SetErrors( ErrID_Fatal, 'CompSub must be 0 (None) or 1 (SubDyn).' )
-   IF (p%CompMooring == Module_Unknown) CALL SetErrors( ErrID_Fatal, 'CompMooring must be 0 (None), 1 (MAP), or 2 (FEAMooring).' )
-   IF (p%CompIce     == Module_Unknown) CALL SetErrors( ErrID_Fatal, 'CompIce must be 0 (None) or 1 (IceFloe).' )
+   IF (p%CompElast   == Module_Unknown) CALL SetErrStat( ErrID_Fatal, 'CompElast must be 1 (ElastoDyn) or 2 (BeamDyn).', ErrStat, ErrMsg, RoutineName )   
+   IF (p%CompAero    == Module_Unknown) CALL SetErrStat( ErrID_Fatal, 'CompAero must be 0 (None) or 1 (AeroDyn).', ErrStat, ErrMsg, RoutineName )
+   IF (p%CompServo   == Module_Unknown) CALL SetErrStat( ErrID_Fatal, 'CompServo must be 0 (None) or 1 (ServoDyn).', ErrStat, ErrMsg, RoutineName )
+   IF (p%CompHydro   == Module_Unknown) CALL SetErrStat( ErrID_Fatal, 'CompHydro must be 0 (None) or 1 (HydroDyn).', ErrStat, ErrMsg, RoutineName )
+   IF (p%CompSub     == Module_Unknown) CALL SetErrStat( ErrID_Fatal, 'CompSub must be 0 (None) or 1 (SubDyn).', ErrStat, ErrMsg, RoutineName )
+   IF (p%CompMooring == Module_Unknown) CALL SetErrStat( ErrID_Fatal, 'CompMooring must be 0 (None), 1 (MAP), or 2 (FEAMooring).', ErrStat, ErrMsg, RoutineName )
+   IF (p%CompIce     == Module_Unknown) CALL SetErrStat( ErrID_Fatal, 'CompIce must be 0 (None) or 1 (IceFloe).', ErrStat, ErrMsg, RoutineName )
    IF (p%CompHydro /= Module_HD) THEN
       IF (p%CompMooring == Module_MAP) THEN
-         CALL SetErrors( ErrID_Fatal, 'HydroDyn must be used when MAP is used. Set CompHydro > 0 or CompMooring = 0 in the FAST input file.' )
+         CALL SetErrStat( ErrID_Fatal, 'HydroDyn must be used when MAP is used. Set CompHydro > 0 or CompMooring = 0 in the FAST input file.', ErrStat, ErrMsg, RoutineName )
       ELSEIF (p%CompMooring == Module_FEAM) THEN
-         CALL SetErrors( ErrID_Fatal, 'HydroDyn must be used when FEAMooring is used. Set CompHydro > 0 or CompMooring = 0 in the FAST input file.' )
+         CALL SetErrStat( ErrID_Fatal, 'HydroDyn must be used when FEAMooring is used. Set CompHydro > 0 or CompMooring = 0 in the FAST input file.', ErrStat, ErrMsg, RoutineName )
       END IF
    END IF
    
    IF (p%CompIce == Module_IceF) THEN
-      IF (p%CompSub   /= Module_SD) CALL SetErrors( ErrID_Fatal, 'SubDyn must be used when IceFloe is used. Set CompSub > 0 or CompIce = 0 in the FAST input file.' )
-      IF (p%CompHydro /= Module_HD) CALL SetErrors( ErrID_Fatal, 'HydroDyn must be used when IceFloe is used. Set CompHydro > 0 or CompIce = 0 in the FAST input file.' )
+      IF (p%CompSub   /= Module_SD) CALL SetErrStat( ErrID_Fatal, 'SubDyn must be used when IceFloe is used. Set CompSub > 0 or CompIce = 0 in the FAST input file.', ErrStat, ErrMsg, RoutineName )
+      IF (p%CompHydro /= Module_HD) CALL SetErrStat( ErrID_Fatal, 'HydroDyn must be used when IceFloe is used. Set CompHydro > 0 or CompIce = 0 in the FAST input file.', ErrStat, ErrMsg, RoutineName )
    ELSEIF (p%CompIce == Module_IceD) THEN
-      IF (p%CompSub   /= Module_SD) CALL SetErrors( ErrID_Fatal, 'SubDyn must be used when IceDyn is used. Set CompSub > 0 or CompIce = 0 in the FAST input file.' )
-      IF (p%CompHydro /= Module_HD) CALL SetErrors( ErrID_Fatal, 'HydroDyn must be used when IceDyn is used. Set CompHydro > 0 or CompIce = 0 in the FAST input file.' )
+      IF (p%CompSub   /= Module_SD) CALL SetErrStat( ErrID_Fatal, 'SubDyn must be used when IceDyn is used. Set CompSub > 0 or CompIce = 0 in the FAST input file.', ErrStat, ErrMsg, RoutineName )
+      IF (p%CompHydro /= Module_HD) CALL SetErrStat( ErrID_Fatal, 'HydroDyn must be used when IceDyn is used. Set CompHydro > 0 or CompIce = 0 in the FAST input file.', ErrStat, ErrMsg, RoutineName )
    END IF
    
    
 !   IF ( p%InterpOrder < 0 .OR. p%InterpOrder > 2 ) THEN
    IF ( p%InterpOrder < 1 .OR. p%InterpOrder > 2 ) THEN
-      CALL SetErrors( ErrID_Fatal, 'InterpOrder must be 1 or 2.' ) ! 5/13/14 bjj: MAS and JMJ compromise for certain integrators is that InterpOrder cannot be 0
+      CALL SetErrStat( ErrID_Fatal, 'InterpOrder must be 1 or 2.', ErrStat, ErrMsg, RoutineName ) ! 5/13/14 bjj: MAS and JMJ compromise for certain integrators is that InterpOrder cannot be 0
       p%InterpOrder = 1    ! Avoid problems in error handling by setting this to 0
    END IF
 
    IF ( p%NumCrctn < 0_IntKi ) THEN
-      CALL SetErrors( ErrID_Fatal, 'NumCrctn must be 0 or greater.' )
+      CALL SetErrStat( ErrID_Fatal, 'NumCrctn must be 0 or greater.', ErrStat, ErrMsg, RoutineName )
    END IF   
    
    
@@ -367,38 +374,24 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
 
    IF ( .NOT. EqualRealNos( p%DT_out, p%DT ) ) THEN
       IF ( p%DT_out < p%DT ) THEN
-         CALL SetErrors( ErrID_Fatal, 'DT_out must be at least DT ('//TRIM(Num2LStr(p%DT))//' s).' )
+         CALL SetErrStat( ErrID_Fatal, 'DT_out must be at least DT ('//TRIM(Num2LStr(p%DT))//' s).', ErrStat, ErrMsg, RoutineName )
       ELSEIF ( .NOT. EqualRealNos( p%DT_out, p%DT * NINT(p%DT_out / p%DT ) )  ) THEN
-         CALL SetErrors( ErrID_Fatal, 'DT_out must currently be an integer multiple of DT.' )
+         CALL SetErrStat( ErrID_Fatal, 'DT_out must currently be an integer multiple of DT.', ErrStat, ErrMsg, RoutineName )
       END IF
    END IF
 
    IF ( p%CompUserTwrLd ) THEN
-      CALL SetErrors( ErrID_Info, 'CompUserTwrLd will be ignored in this version of FAST.' )
+      CALL SetErrStat( ErrID_Info, 'CompUserTwrLd will be ignored in this version of FAST.', ErrStat, ErrMsg, RoutineName )
       p%CompUserTwrLd = .FALSE.
    END IF
 
    IF ( p%CompUserPtfmLd ) THEN
-      CALL SetErrors( ErrID_Info, 'CompUserPtfmLd will be ignored in this version of FAST.' )
+      CALL SetErrStat( ErrID_Info, 'CompUserPtfmLd will be ignored in this version of FAST.', ErrStat, ErrMsg, RoutineName )
       p%CompUserPtfmLd = .FALSE.
    END IF
 
    
    RETURN
-CONTAINS
-   !-------------------------------------------------------------------------------------------------------------------------------
-   SUBROUTINE SetErrors( ErrStat3, ErrMsg3 )
-   ! This routine sets the error message and flag when an error has occurred
-   !...............................................................................................................................
-   INTEGER(IntKi), INTENT(IN) :: ErrStat3     ! Error status for this error
-   CHARACTER(*),   INTENT(IN) :: ErrMsg3      ! Error message for this error
-
-      ErrStat = MAX( ErrStat, ErrStat3 )
-      IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-      ErrMsg = TRIM(ErrMsg)//TRIM(ErrMsg3)
-
-   END SUBROUTINE SetErrors
-   !-------------------------------------------------------------------------------------------------------------------------------
 END SUBROUTINE FAST_Init
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, InitOutData_AD, InitOutData_HD, &
@@ -1281,17 +1274,13 @@ CONTAINS
       INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
       CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
 
+      CHARACTER(*),   PARAMETER  :: RoutineName = 'FAST_ReadPrimaryFile'
 
       !............................................................................................................................
       ! Set error status/message;
       !............................................................................................................................
 
-      IF ( ErrID /= ErrID_None ) THEN
-
-         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//'FAST_ReadPrimaryFile:'//TRIM(Msg)
-         ErrStat = MAX(ErrStat, ErrID)
-
+      CALL SetErrStat( ErrID, Msg, ErrStat, ErrMsg, RoutineName )      
 
          !.........................................................................................................................
          ! Clean up if we're going to return on error: close file, deallocate local arrays
@@ -1301,7 +1290,6 @@ CONTAINS
             IF ( UnEc > 0 ) CLOSE ( UnEc )
          END IF
 
-      END IF
 
 
    END SUBROUTINE CheckError
@@ -1832,41 +1820,7 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_ED, y_AD, y_SrvD, MeshMapData, ErrStat
    END IF
    
    u_ED%PtfmAddedMass = 0.0_ReKi
-   
-         
-   
-CONTAINS
-   !...............................................................................................................................
-   SUBROUTINE CheckError(ErrID,Msg)
-   ! This subroutine sets the error message and level and cleans up if the error is >= AbortErrLev
-   !...............................................................................................................................
-
-         ! Passed arguments
-      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
-      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
-
-      INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
-      CHARACTER(1024)            :: ErrMsg3     ! The error message (ErrMsg)
-
-      !............................................................................................................................
-      ! Set error status/message;
-      !............................................................................................................................
-
-      IF ( ErrID /= ErrID_None ) THEN
-
-         CALL WrScr( ' ED_InputSolve:'//TRIM(Msg) )
-
-         !.........................................................................................................................
-         ! Clean up if we're going to return on error: close files, deallocate local arrays
-         !.........................................................................................................................
-         !IF ( ErrStat >= AbortErrLev ) THEN
-         !END IF
-         !
-      END IF
-
-
-   END SUBROUTINE CheckError
-
+               
 END SUBROUTINE ED_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW, y_SrvD_prev )
@@ -2214,7 +2168,8 @@ SUBROUTINE Transfer_HD_to_SD( u_mapped, u_SD_LMesh, u_mapped_positions, y_HD, u_
    INTEGER(IntKi)                                 :: ErrStat2                  ! temporary Error status of the operation
    CHARACTER(LEN(ErrMsg))                         :: ErrMsg2                   ! temporary Error message if ErrStat /= ErrID_None
 
-      
+   CHARACTER(*), PARAMETER                        :: RoutineName = 'Transfer_HD_to_SD'   
+   
    ErrStat = ErrID_None
    ErrMsg = ""
          
@@ -2223,7 +2178,7 @@ SUBROUTINE Transfer_HD_to_SD( u_mapped, u_SD_LMesh, u_mapped_positions, y_HD, u_
       IF ( y_HD%Morison%LumpedMesh%Committed ) THEN      
          ! we're mapping loads, so we also need the sibling meshes' displacements:
          CALL Transfer_Point_to_Point( y_HD%Morison%LumpedMesh, u_mapped, MeshMapData%HD_M_P_2_SD_P, ErrStat2, ErrMsg2, u_HD_M_LumpedMesh, u_mapped_positions )   
-            CALL CheckError( ErrStat2, ErrMsg2 )
+            CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
             IF (ErrStat >= AbortErrLev) RETURN
          
          u_SD_LMesh%Force  = u_SD_LMesh%Force  + u_mapped%Force
@@ -2246,7 +2201,7 @@ SUBROUTINE Transfer_HD_to_SD( u_mapped, u_SD_LMesh, u_mapped_positions, y_HD, u_
       IF ( y_HD%Morison%DistribMesh%Committed ) THEN      
          ! we're mapping loads, so we also need the sibling meshes' displacements:
          CALL Transfer_Line2_to_Point( y_HD%Morison%DistribMesh, u_mapped, MeshMapData%HD_M_L_2_SD_P, ErrStat2, ErrMsg2, u_HD_M_DistribMesh, u_mapped_positions )   
-            CALL CheckError( ErrStat2, ErrMsg2 )
+            CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
             IF (ErrStat >= AbortErrLev) RETURN
          
          u_SD_LMesh%Force  = u_SD_LMesh%Force  + u_mapped%Force
@@ -2264,38 +2219,7 @@ SUBROUTINE Transfer_HD_to_SD( u_mapped, u_SD_LMesh, u_mapped_positions, y_HD, u_
 #endif         
                   
       END IF
-                                             
-      
-CONTAINS   
-   !...............................................................................................................................
-   SUBROUTINE CheckError(ErrID,Msg)
-   ! This subroutine sets the error message and level and cleans up if the error is >= AbortErrLev
-   !...............................................................................................................................
 
-         ! Passed arguments
-      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
-      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
-
-      INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
-      CHARACTER(1024)            :: ErrMsg3     ! The error message (ErrMsg)
-
-      !............................................................................................................................
-      ! Set error status/message;
-      !............................................................................................................................
-      
-      IF ( ErrID /= ErrID_None ) THEN
-
-         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//'Transfer_HD_to_SD:'//TRIM(Msg)
-         ErrStat = MAX(ErrStat, ErrID)
-         
-         !.........................................................................................................................
-         ! Clean up if we're going to return on error: close files, deallocate local arrays
-         !.........................................................................................................................
-      END IF
-
-   END SUBROUTINE CheckError
-   
 END SUBROUTINE Transfer_HD_to_SD
 !----------------------------------------------------------------------------------------------------------------------------------
 REAL(ReKi) FUNCTION GetPerturb(x)
@@ -2397,41 +2321,32 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
 
    ! note this routine should be called only
    ! IF ( p_FAST%CompHydro == Module_HD .AND. p_FAST%CompSub /= Module_SD ) 
-      
-   
-      !----------------------------------------------------------------------------------------------------
-      ! Copy u_ED%PlatformPtMesh so we have the underlying mesh (nodes/elements)
-      !----------------------------------------------------------------------------------------------------
-      !CALL MeshCopy ( u_ED%PlatformPtMesh, MeshMapData%u_ED_PlatformPtMesh, MESH_NEWCOPY, ErrStat2, ErrMsg2 )      
-      !   CALL CheckError( ErrStat2, 'u_PlatformPtMesh:'//ErrMsg2  )
-      !   IF ( ErrStat >= AbortErrLev ) RETURN
-               
-   
+                           
       !----------------------------------------------------------------------------------------------------
       ! Some more record keeping stuff:
       !---------------------------------------------------------------------------------------------------- 
          
          ! We need to know the outputs that were sent to this routine:
       CALL ED_CopyOutput( y_ED, y_ED_input, MESH_NEWCOPY, ErrStat2, ErrMsg2)
-         CALL CheckError( ErrStat2, ErrMsg2  )
-         IF ( ErrStat >= AbortErrLev ) RETURN
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          
          ! Local copies for perturbing inputs and outputs (computing Jacobian):
       IF ( calcJacobian ) THEN         
          CALL ED_CopyInput(  u_ED, u_ED_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
-            CALL CheckError( ErrStat2, ErrMsg2  )
-            IF ( ErrStat >= AbortErrLev ) RETURN                 
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )                 
          CALL ED_CopyOutput( y_ED, y_ED_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2 )         
-            CALL CheckError( ErrStat2, ErrMsg2  )
-            IF ( ErrStat >= AbortErrLev ) RETURN
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          CALL HydroDyn_CopyInput(  u_HD, u_HD_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2 )           
-            CALL CheckError( ErrStat2, ErrMsg2  )
-            IF ( ErrStat >= AbortErrLev ) RETURN
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          CALL HydroDyn_CopyOutput( y_HD, y_HD_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2 )  
-            CALL CheckError( ErrStat2, ErrMsg2  )
-            IF ( ErrStat >= AbortErrLev ) RETURN
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       END IF
          
+      IF (ErrStat >= AbortErrLev) THEN
+         CALL CleanUp()
+         RETURN
+      END IF
+      
       !----------------------------------------------------------------------------------------------------
       ! set up u vector, using local initial guesses:
       !----------------------------------------------------------------------------------------------------                      
@@ -2439,8 +2354,7 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          ! make hydrodyn inputs consistant with elastodyn outputs 
          ! (do this because we're using outputs in the u vector):
       CALL Transfer_ED_to_HD(y_ED_input,  u_HD, MeshMapData, ErrStat2, ErrMsg2 ) ! get u_HD from y_ED_input
-         CALL CheckError( ErrStat2, ErrMsg2  )
-         IF ( ErrStat >= AbortErrLev ) RETURN
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
             
       
       u( 1: 3) = u_ED%PlatformPtMesh%Force(:,1) / p_FAST%UJacSclFact
@@ -2457,13 +2371,16 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          !-------------------------------------------------------------------------------------------------
          
          CALL ED_CalcOutput( this_time, u_ED, p_ED, x_ED, xd_ED, z_ED, OtherSt_ED, y_ED, ErrStat2, ErrMsg2 )
-            CALL CheckError( ErrStat2, ErrMsg2  )
-            IF ( ErrStat >= AbortErrLev ) RETURN
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
                                  
          CALL HydroDyn_CalcOutput( this_time, u_HD, p_HD, x_HD, xd_HD, z_HD, OtherSt_HD, y_HD, ErrStat2, ErrMsg2 )
-            CALL CheckError( ErrStat2, ErrMsg2  )
-            IF ( ErrStat >= AbortErrLev ) RETURN      
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )      
             
+         IF (ErrStat >= AbortErrLev) THEN
+            CALL CleanUp()
+            RETURN
+         END IF
+      
          IF ( K >= p_FAST%KMax ) EXIT
          
                                                             
@@ -2472,10 +2389,11 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          ! (note that we don't want to change u_ED or u_HD here)
          !-------------------------------------------------------------------------------------------------
          
-         CALL U_ED_HD_Residual(y_ED, y_HD, u, Fn_U_Resid) 
-            IF ( ErrStat >= AbortErrLev ) RETURN ! U_ED_HD_Residual checks for error
-                        
-         
+         CALL U_ED_HD_Residual(y_ED, y_HD, u, Fn_U_Resid)   ! U_ED_HD_Residual checks for error
+            IF (ErrStat >= AbortErrLev) THEN
+               CALL CleanUp()
+               RETURN
+            END IF         
          
          IF ( calcJacobian ) THEN
             
@@ -2485,19 +2403,23 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
             DO i=1,6 !call ED_CalcOutput
                   
                CALL ED_CopyInput(  u_ED, u_ED_perturb, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-                  CALL CheckError( ErrStat2, ErrMsg2  )
-                  IF ( ErrStat >= AbortErrLev ) RETURN            
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )            
                u_perturb = u            
                CALL Perturb_u( i, u_perturb, u_ED_perturb=u_ED_perturb, perturb=ThisPerturb ) ! perturb u and u_ED by ThisPerturb [routine sets ThisPerturb]
                   
                ! calculate outputs with perturbed inputs:
                CALL ED_CalcOutput( this_time, u_ED_perturb, p_ED, x_ED, xd_ED, z_ED, OtherSt_ED, y_ED_perturb, ErrStat2, ErrMsg2 ) !calculate y_ED_perturb
-                  CALL CheckError( ErrStat2, ErrMsg2  )
-                  IF ( ErrStat >= AbortErrLev ) RETURN            
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )            
                   
                   
                CALL U_ED_HD_Residual(y_ED_perturb, y_HD, u_perturb, Fn_U_perturb) ! get this perturbation, U_perturb
                   IF ( ErrStat >= AbortErrLev ) RETURN ! U_ED_HD_Residual checks for error
+                  
+               IF (ErrStat >= AbortErrLev) THEN
+                  CALL CleanUp()
+                  RETURN
+               END IF         
+                  
                   
                MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
                   
@@ -2510,22 +2432,22 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                   
                ! we want to perturb u_HD, but we're going to perturb the input y_ED and transfer that to HD to get u_HD
                CALL ED_CopyOutput( y_ED_input, y_ED_perturb, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )         
-                  CALL CheckError( ErrStat2, ErrMsg2  )
-                  IF ( ErrStat >= AbortErrLev ) RETURN                                   
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )                                   
                u_perturb = u            
                CALL Perturb_u( i, u_perturb, y_ED_perturb=y_ED_perturb, perturb=ThisPerturb ) ! perturb u and y_ED by ThisPerturb [routine sets ThisPerturb]
                CALL Transfer_ED_to_HD( y_ED_perturb, u_HD_perturb, MeshMapData, ErrStat2, ErrMsg2 ) ! get u_HD_perturb
-                  CALL CheckError( ErrStat2, ErrMsg2  )
-                  IF ( ErrStat >= AbortErrLev ) RETURN                                   
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )                                   
                   
                ! calculate outputs with perturbed inputs:
                CALL HydroDyn_CalcOutput( this_time, u_HD_perturb, p_HD, x_HD, xd_HD, z_HD, OtherSt_HD, y_HD_perturb, ErrStat2, ErrMsg2 )
-                  CALL CheckError( ErrStat2, ErrMsg2  )
-                  IF ( ErrStat >= AbortErrLev ) RETURN
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
                   
                   
-               CALL U_ED_HD_Residual(y_ED, y_HD_perturb, u_perturb, Fn_U_perturb) ! get this perturbation                        
-                  IF ( ErrStat >= AbortErrLev ) RETURN ! U_ED_HD_Residual checks for error
+               CALL U_ED_HD_Residual(y_ED, y_HD_perturb, u_perturb, Fn_U_perturb) ! get this perturbation  ! U_ED_HD_Residual checks for error                      
+                  IF ( ErrStat >= AbortErrLev ) THEN
+                     CALL CleanUp()
+                     RETURN 
+                  END IF
                   
                MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
                                                                   
@@ -2535,8 +2457,11 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    UnAM = -1
    CALL GetNewUnit( UnAM, ErrStat, ErrMsg )
    CALL OpenFOutFile( UnAM, TRIM(p_FAST%OutFileRoot)//'.AddedMassMatrix', ErrStat2, ErrMsg2)
-      CALL CheckError( ErrStat2, ErrMsg2  )
-      IF ( ErrStat >= AbortErrLev ) RETURN               
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )               
+      IF ( ErrStat >= AbortErrLev ) THEN
+         CALL CleanUp()
+         RETURN 
+      END IF
 
    AddedMassMatrix = MeshMapData%Jacobian_ED_SD_HD(1:6,7:12) * p_FAST%UJacSclFact   
    CALL WrMatrix(AddedMassMatrix,UnAM, p_FAST%OutFmt)
@@ -2546,8 +2471,11 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    UnJac = -1
    CALL GetNewUnit( UnJac, ErrStat2, ErrMsg2 )
    CALL OpenFOutFile( UnJac, TRIM(p_FAST%OutFileRoot)//'.'//TRIM(num2lstr(this_time))//'.Jacobian2', ErrStat2, ErrMsg2)
-      CALL CheckError( ErrStat2, ErrMsg2  )
-      IF ( ErrStat >= AbortErrLev ) RETURN               
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )               
+      IF ( ErrStat >= AbortErrLev ) THEN
+         CALL CleanUp()
+         RETURN 
+      END IF
       
    CALL WrFileNR(UnJac, '  ')
       CALL WrFileNR(UnJac, ' ElastoDyn_Force_X') 
@@ -2574,9 +2502,12 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                ! The result is of the form MeshMapDat%Jacobian_ED_SD_HD = P * L * U 
 
             CALL LAPACK_getrf( M=NumInputs, N=NumInputs, A=MeshMapData%Jacobian_ED_SD_HD, IPIV=MeshMapData%Jacobian_pivot, ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
-               CALL CheckError( ErrStat2, ErrMsg2  )
-               IF ( ErrStat >= AbortErrLev ) RETURN
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
             
+               IF ( ErrStat >= AbortErrLev ) THEN
+                  CALL CleanUp()
+                  RETURN 
+               END IF               
          END IF         
             
          !-------------------------------------------------------------------------------------------------
@@ -2587,9 +2518,12 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          u_delta = -Fn_U_Resid
          CALL LAPACK_getrs( TRANS='N', N=NumInputs, A=MeshMapData%Jacobian_ED_SD_HD, IPIV=MeshMapData%Jacobian_pivot, B=u_delta, &
                             ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
-               CALL CheckError( ErrStat2, ErrMsg2  )
-               IF ( ErrStat >= AbortErrLev ) RETURN 
-                           
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName ) 
+               IF ( ErrStat >= AbortErrLev ) THEN
+                  CALL CleanUp()
+                  RETURN 
+               END IF
+      
          !-------------------------------------------------------------------------------------------------
          ! check for error, update inputs (u_ED and u_HD), and iterate again
          !-------------------------------------------------------------------------------------------------
@@ -2604,8 +2538,7 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          y_ED_input%PlatformPtMesh%RotationAcc(   :,1) = y_ED_input%PlatformPtMesh%RotationAcc(   :,1) + u_delta(10:12)
                   
          CALL Transfer_ED_to_HD( y_ED_input, u_HD, MeshMapData, ErrStat2, ErrMsg2 ) ! get u_HD with u_delta changes
-            CALL CheckError( ErrStat2, ErrMsg2  )
-            IF ( ErrStat >= AbortErrLev ) RETURN
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          
          
          K = K + 1
@@ -2675,23 +2608,19 @@ CONTAINS
          
          ! note: MAP_InputSolve must be called before setting ED loads inputs (so that motions are known for loads [moment] mapping)      
          CALL MAP_InputSolve( u_map, y_ED2, MeshMapData, ErrStat2, ErrMsg2 )
-            CALL CheckError(ErrStat2,ErrMsg2)
-            IF (ErrStat >= AbortErrLev) RETURN       
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )       
                                  
          CALL Transfer_Point_to_Point( y_MAP%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%MAP_P_2_ED_P, ErrStat2, ErrMsg2, u_MAP%PtFairDisplacement, y_ED2%PlatformPtMesh ) !u_MAP and y_ED contain the displacements needed for moment calculations
-            CALL CheckError( ErrStat2, ErrMsg2 )
-            IF (ErrStat >= AbortErrLev) RETURN               
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )               
                         
       ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
          
          ! note: FEAM_InputSolve must be called before setting ED loads inputs (so that motions are known for loads [moment] mapping)      
          CALL FEAM_InputSolve( u_FEAM, y_ED2, MeshMapData, ErrStat2, ErrMsg2 )
-            CALL CheckError(ErrStat2,ErrMsg2)
-            IF (ErrStat >= AbortErrLev) RETURN       
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )       
                  
          CALL Transfer_Point_to_Point( y_FEAM%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%FEAM_P_2_ED_P, ErrStat2, ErrMsg2, u_FEAM%PtFairleadDisplacement, y_ED2%PlatformPtMesh ) !u_FEAM and y_ED contain the displacements needed for moment calculations
-            CALL CheckError( ErrStat2, ErrMsg2 )
-            IF (ErrStat >= AbortErrLev) RETURN              
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )              
             
       ELSE
          
@@ -2705,14 +2634,12 @@ CONTAINS
 !bjj: why don't we update u_HD2 here? shouldn't we update before using it to transfer the loads?
    
       CALL Transfer_Point_to_Point( y_ED2%PlatformPtMesh, MeshMapData%u_HD_Mesh, MeshMapData%ED_P_2_HD_W_P, ErrStat2, ErrMsg2) 
-         CALL CheckError( ErrStat2, ErrMsg2 )
-         IF (ErrStat >= AbortErrLev) RETURN         
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )         
   
          
          ! we're mapping loads, so we also need the sibling meshes' displacements:
       CALL Transfer_Point_to_Point( y_HD2%AllHdroOrigin, MeshMapData%u_ED_PlatformPtMesh, MeshMapData%HD_W_P_2_ED_P, ErrStat2, ErrMsg2, MeshMapData%u_HD_Mesh, y_ED2%PlatformPtMesh) !u_HD and u_mapped_positions contain the displaced positions for load calculations
-         CALL CheckError( ErrStat2, ErrMsg2 )
-         IF (ErrStat >= AbortErrLev) RETURN
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
       MeshMapData%u_ED_PlatformPtMesh%Force  = MeshMapData%u_ED_PlatformPtMesh%Force  + MeshMapData%u_ED_PlatformPtMesh_2%Force
       MeshMapData%u_ED_PlatformPtMesh%Moment = MeshMapData%u_ED_PlatformPtMesh%Moment + MeshMapData%u_ED_PlatformPtMesh_2%Moment
@@ -2725,34 +2652,6 @@ CONTAINS
    
             
    END SUBROUTINE U_ED_HD_Residual   
-   !...............................................................................................................................
-   SUBROUTINE CheckError(ErrID,Msg)
-   ! This subroutine sets the error message and level and cleans up if the error is >= AbortErrLev
-   !...............................................................................................................................
-
-         ! Passed arguments
-      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
-      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
-
-
-      !............................................................................................................................
-      ! Set error status/message;
-      !............................................................................................................................
-
-      IF ( ErrID /= ErrID_None ) THEN
-
-         CALL WrScr( RoutineName//':'//TRIM(Msg) )
-         ErrStat = MAX(ErrStat, ErrID)
-
-         !.........................................................................................................................
-         ! Clean up if we're going to return on error: close files, deallocate local arrays
-         !.........................................................................................................................
-         IF ( ErrStat >= AbortErrLev ) CALL CleanUp()
-
-      END IF
-
-
-   END SUBROUTINE CheckError   
    !...............................................................................................................................
    SUBROUTINE CleanUp()
       INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
@@ -2847,6 +2746,8 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    REAL(ReKi),                             PARAMETER :: TOL_Squared = (1.0E-4)**2 !not currently used because KMax = 1
    REAL(ReKi)                                        :: ThisPerturb               ! an arbitrary perturbation (these are linear, so it shouldn't matter)
    
+   CHARACTER(*),                           PARAMETER :: RoutineName = 'ED_SD_HD_InputOutputSolve'
+   
 !bjj: store these so that we don't reallocate every time?   
    REAL(ReKi)                                        :: u(           p_FAST%SizeJac_ED_SD_HD(4))   ! size of loads/accelerations passed between the 3 modules
    REAL(ReKi)                                        :: u_perturb(   p_FAST%SizeJac_ED_SD_HD(4))   ! size of loads/accelerations passed between the 3 modules
@@ -2891,69 +2792,34 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
       !----------------------------------------------------------------------------------------------------
       ! Some record keeping stuff:
       !----------------------------------------------------------------------------------------------------      
-
-      ! if remap flag or
-
-         ! Temporary meshes for transfering inputs to ED, HD, and SD
-         
-      !CALL MeshCopy ( u_SD%TPMesh, MeshMapData%u_SD_TPMesh, MESH_UPDATEREFERENCE, ErrStat2, ErrMsg2 )      
-      !   CALL CheckError( ErrStat2, 'u_SD_TPMesh:'//ErrMsg2  )
-      !   IF ( ErrStat >= AbortErrLev ) RETURN
-         
-      !CALL MeshCopy ( u_SD%LMesh, MeshMapData%u_SD_LMesh, MESH_UPDATEREFERENCE, ErrStat2, ErrMsg2 )      
-      !   CALL CheckError( ErrStat2, 'u_SD_LMesh:'//ErrMsg2  )
-      !   IF ( ErrStat >= AbortErrLev ) RETURN
-         
-      !CALL MeshCopy ( u_HD%Morison%LumpedMesh, MeshMapData%u_HD_M_LumpedMesh, MESH_UPDATEREFERENCE, ErrStat2, ErrMsg2 )      
-      !   CALL CheckError( ErrStat2, 'u_HD_M_LumpedMesh:'//ErrMsg2  )
-      !   IF ( ErrStat >= AbortErrLev ) RETURN
-
-      !CALL MeshCopy ( u_HD%Morison%DistribMesh, MeshMapData%u_HD_M_DistribMesh, MESH_UPDATEREFERENCE, ErrStat2, ErrMsg2 )      
-      !   CALL CheckError( ErrStat2, 'u_HD_M_DistribMesh:'//ErrMsg2  )
-      !   IF ( ErrStat >= AbortErrLev ) RETURN
-         
-      !CALL MeshCopy ( u_HD%Mesh, MeshMapData%u_HD_Mesh, MESH_UPDATEREFERENCE, ErrStat2, ErrMsg2 )      
-      !   CALL CheckError( ErrStat2, 'u_HD_Mesh:'//ErrMsg2  )
-      !   IF ( ErrStat >= AbortErrLev ) RETURN
-         
-      !CALL MeshCopy ( u_ED%PlatformPtMesh, MeshMapData%u_ED_PlatformPtMesh_2, MESH_UPDATEREFERENCE, ErrStat2, ErrMsg2 )      
-      !   CALL CheckError( ErrStat2, 'MeshMapData%u_ED_PlatformPtMesh_2:'//ErrMsg2  )
-      !   IF ( ErrStat >= AbortErrLev ) RETURN         
-         
-      !CALL MeshCopy ( u_SD%LMesh, MeshMapData%u_SD_LMesh_2, MESH_UPDATEREFERENCEY, ErrStat2, ErrMsg2 )      
-      !   CALL CheckError( ErrStat2, 'u_LMesh_mapped:'//ErrMsg2  )
-      !   IF ( ErrStat >= AbortErrLev ) RETURN         
-         
-               
                   
          ! Local copies for perturbing inputs and outputs (computing Jacobian):
       IF ( calcJacobian ) THEN         
          
          CALL ED_CopyInput(  u_ED, u_ED_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
-            CALL CheckError( ErrStat2, 'u_ED_perturb:'//ErrMsg2  )
-            IF ( ErrStat >= AbortErrLev ) RETURN                 
+            CALL SetErrStat( ErrStat2, 'u_ED_perturb:'//ErrMsg2, ErrStat, ErrMsg, RoutineName  )
          CALL ED_CopyOutput( y_ED, y_ED_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2 )         
-            CALL CheckError( ErrStat2, 'y_ED_perturb:'//ErrMsg2  )
-            IF ( ErrStat >= AbortErrLev ) RETURN
+            CALL SetErrStat( ErrStat2, 'y_ED_perturb:'//ErrMsg2, ErrStat, ErrMsg, RoutineName  )
             
          IF ( p_FAST%CompSub == Module_SD ) THEN   
             CALL SD_CopyInput(  u_SD, u_SD_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2 )           
-               CALL CheckError( ErrStat2, 'u_SD_perturb:'//ErrMsg2  )
-               IF ( ErrStat >= AbortErrLev ) RETURN
+               CALL SetErrStat( ErrStat2, 'u_SD_perturb:'//ErrMsg2, ErrStat, ErrMsg, RoutineName  )
             CALL SD_CopyOutput( y_SD, y_SD_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2 )  
-               CALL CheckError( ErrStat2, 'y_SD_perturb:'//ErrMsg2  )
-               IF ( ErrStat >= AbortErrLev ) RETURN
+               CALL SetErrStat( ErrStat2, 'y_SD_perturb:'//ErrMsg2, ErrStat, ErrMsg, RoutineName  )
          END IF
             
          IF ( p_FAST%CompHydro == Module_HD ) THEN            
             CALL HydroDyn_CopyInput(  u_HD, u_HD_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2 )           
-               CALL CheckError( ErrStat2, 'u_HD_perturb:'//ErrMsg2  )
-               IF ( ErrStat >= AbortErrLev ) RETURN
+               CALL SetErrStat( ErrStat2, 'u_HD_perturb:'//ErrMsg2, ErrStat, ErrMsg, RoutineName  )
             CALL HydroDyn_CopyOutput( y_HD, y_HD_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2 )  
-               CALL CheckError( ErrStat2, 'y_HD_perturb:'//ErrMsg2  )
-               IF ( ErrStat >= AbortErrLev ) RETURN                        
+               CALL SetErrStat( ErrStat2, 'y_HD_perturb:'//ErrMsg2, ErrStat, ErrMsg, RoutineName  )
          END IF
 
+         IF (ErrStat >= AbortErrLev) THEN
+            CALL CleanUp()
+            RETURN
+         END IF
+         
       END IF
          
       !----------------------------------------------------------------------------------------------------
@@ -2971,20 +2837,23 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          !-------------------------------------------------------------------------------------------------
          
          CALL ED_CalcOutput( this_time, u_ED, p_ED, x_ED, xd_ED, z_ED, OtherSt_ED, y_ED, ErrStat2, ErrMsg2 )
-            CALL CheckError( ErrStat2, ErrMsg2  )
-            IF ( ErrStat >= AbortErrLev ) RETURN
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
                                  
          IF ( p_FAST%CompSub == Module_SD ) THEN            
             CALL SD_CalcOutput( this_time, u_SD, p_SD, x_SD, xd_SD, z_SD, OtherSt_SD, y_SD, ErrStat2, ErrMsg2 )
-               CALL CheckError( ErrStat2, ErrMsg2  )
-               IF ( ErrStat >= AbortErrLev ) RETURN      
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
          END IF
             
          IF ( p_FAST%CompHydro == Module_HD ) THEN 
             CALL HydroDyn_CalcOutput( this_time, u_HD, p_HD, x_HD, xd_HD, z_HD, OtherSt_HD, y_HD, ErrStat2, ErrMsg2 )
-               CALL CheckError( ErrStat2, ErrMsg2  )
-               IF ( ErrStat >= AbortErrLev ) RETURN      
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
          END IF
+         
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN      
+         END IF
+                  
          
          IF ( K >= p_FAST%KMax ) EXIT
          
@@ -2994,8 +2863,11 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          ! (note that we don't want to change u_ED, u_SD, or u_HD here)
          !-------------------------------------------------------------------------------------------------
          
-         CALL U_ED_SD_HD_Residual(y_ED, y_SD, y_HD, u, Fn_U_Resid)                  
-            IF ( ErrStat >= AbortErrLev ) RETURN
+         CALL U_ED_SD_HD_Residual(y_ED, y_SD, y_HD, u, Fn_U_Resid)    !May set errors here...              
+            IF ( ErrStat >= AbortErrLev ) THEN
+               CALL CleanUp()
+               RETURN      
+            END IF
          
          IF ( calcJacobian ) THEN
             
@@ -3006,20 +2878,23 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                   
                ! perturb u_ED:
                CALL ED_CopyInput(  u_ED, u_ED_perturb, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-                  CALL CheckError( ErrStat2, ErrMsg2  )
-                  IF ( ErrStat >= AbortErrLev ) RETURN            
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
                u_perturb = u            
                CALL Perturb_u_ED_SD_HD( p_FAST, MeshMapData%Jac_u_indx, i, u_perturb, u_ED_perturb=u_ED_perturb, perturb=ThisPerturb ) ! perturb u and u_ED by ThisPerturb [routine sets ThisPerturb]
                   
                ! calculate outputs with perturbed inputs:
                CALL ED_CalcOutput( this_time, u_ED_perturb, p_ED, x_ED, xd_ED, z_ED, OtherSt_ED, y_ED_perturb, ErrStat2, ErrMsg2 ) !calculate y_ED_perturb
-                  CALL CheckError( ErrStat2, ErrMsg2  )
-                  IF ( ErrStat >= AbortErrLev ) RETURN            
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
                   
                   
                CALL U_ED_SD_HD_Residual(y_ED_perturb, y_SD, y_HD, u_perturb, Fn_U_perturb) ! get this perturbation, U_perturb
-                  IF ( ErrStat >= AbortErrLev ) RETURN    
                
+               
+               IF ( ErrStat >= AbortErrLev ) THEN
+                  CALL CleanUp()
+                  RETURN      
+               END IF
+            
                 MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
                   
             END DO ! ElastoDyn contribution ( columns 1-6 )
@@ -3033,21 +2908,23 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                               
                ! perturb u_SD:
                CALL SD_CopyInput(  u_SD, u_SD_perturb, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-                  CALL CheckError( ErrStat2, ErrMsg2  )
-                  IF ( ErrStat >= AbortErrLev ) RETURN
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
                u_perturb = u            
                CALL Perturb_u_ED_SD_HD( p_FAST, MeshMapData%Jac_u_indx, i, u_perturb, u_SD_perturb=u_SD_perturb, perturb=ThisPerturb ) ! perturb u and u_SD by ThisPerturb [routine sets ThisPerturb]
                   
                ! calculate outputs with perturbed inputs:
                CALL SD_CalcOutput( this_time, u_SD_perturb, p_SD, x_SD, xd_SD, z_SD, OtherSt_SD, y_SD_perturb, ErrStat2, ErrMsg2 )
-                  CALL CheckError( ErrStat2, ErrMsg2  )
-                  IF ( ErrStat >= AbortErrLev ) RETURN
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
                   
                   
-               CALL U_ED_SD_HD_Residual(y_ED, y_SD_perturb, y_HD, u_perturb, Fn_U_perturb) ! get this perturbation                        
-                  IF ( ErrStat >= AbortErrLev ) RETURN
-                  
-                MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
+               CALL U_ED_SD_HD_Residual(y_ED, y_SD_perturb, y_HD, u_perturb, Fn_U_perturb) ! get this perturbation    
+               
+               IF ( ErrStat >= AbortErrLev ) THEN
+                  CALL CleanUp()
+                  RETURN      
+               END IF                  
+               
+               MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
                                     
             END DO ! SubDyn contribution
             
@@ -3060,20 +2937,22 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
 
                ! perturb u_HD:
                CALL HydroDyn_CopyInput(  u_HD, u_HD_perturb, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-                  CALL CheckError( ErrStat2, ErrMsg2  )
-                  IF ( ErrStat >= AbortErrLev ) RETURN
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
                u_perturb = u            
                CALL Perturb_u_ED_SD_HD( p_FAST, MeshMapData%Jac_u_indx, i, u_perturb, u_HD_perturb=u_HD_perturb, perturb=ThisPerturb ) ! perturb u and u_HD by ThisPerturb [routine sets ThisPerturb]
                   
                ! calculate outputs with perturbed inputs:
                CALL HydroDyn_CalcOutput( this_time, u_HD_perturb, p_HD, x_HD, xd_HD, z_HD, OtherSt_HD, y_HD_perturb, ErrStat2, ErrMsg2 )
-                  CALL CheckError( ErrStat2, ErrMsg2  )
-                  IF ( ErrStat >= AbortErrLev ) RETURN               
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
                   
-               CALL U_ED_SD_HD_Residual(y_ED, y_SD, y_HD_perturb, u_perturb, Fn_U_perturb) ! get this perturbation                        
-                  IF ( ErrStat >= AbortErrLev ) RETURN               
-                  
-                MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
+               CALL U_ED_SD_HD_Residual(y_ED, y_SD, y_HD_perturb, u_perturb, Fn_U_perturb) ! get this perturbation  
+               
+               IF ( ErrStat >= AbortErrLev ) THEN
+                  CALL CleanUp()
+                  RETURN      
+               END IF                  
+               
+               MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
                                              
             END DO !HydroDyn contribution
             
@@ -3083,7 +2962,7 @@ IF (p_FAST%CompHydro == Module_HD ) THEN
    UnAM = -1
    CALL GetNewUnit( UnAM, ErrStat2, ErrMsg2 )
    CALL OpenFOutFile( UnAM, TRIM(p_FAST%OutFileRoot)//'.AddedMassMatrix', ErrStat2, ErrMsg2)
-      CALL CheckError( ErrStat2, ErrMsg2  )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
       IF ( ErrStat >= AbortErrLev ) RETURN               
    
    AMIndx = p_FAST%SizeJac_ED_SD_HD(4) - 5 !the start of the HydroDyn Mesh inputs in the Jacobian
@@ -3096,7 +2975,7 @@ END IF
    UnJac = -1
    CALL GetNewUnit( UnJac, ErrStat2, ErrMsg2 )
    CALL OpenFOutFile( UnJac, TRIM(p_FAST%OutFileRoot)//'.'//TRIM(num2lstr(this_time))//'.Jacobian', ErrStat2, ErrMsg2)
-      CALL CheckError( ErrStat2, ErrMsg2  )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
       IF ( ErrStat >= AbortErrLev ) RETURN               
       
    CALL WrFileNR(UnJac, '  ')
@@ -3177,8 +3056,11 @@ END IF
 
             CALL LAPACK_getrf( M=p_FAST%SizeJac_ED_SD_HD(4), N=p_FAST%SizeJac_ED_SD_HD(4), A=MeshMapData%Jacobian_ED_SD_HD, IPIV=MeshMapData%Jacobian_pivot, &
                               ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
-               CALL CheckError( ErrStat2, ErrMsg2  )
-               IF ( ErrStat >= AbortErrLev ) RETURN 
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
+               IF ( ErrStat >= AbortErrLev ) THEN
+                  CALL CleanUp()
+                  RETURN 
+               END IF
             
          END IF         
             
@@ -3190,8 +3072,11 @@ END IF
          u_delta = -Fn_U_Resid
          CALL LAPACK_getrs( TRANS="N", N=p_FAST%SizeJac_ED_SD_HD(4), A=MeshMapData%Jacobian_ED_SD_HD, &
                             IPIV=MeshMapData%Jacobian_pivot, B=u_delta, ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
-               CALL CheckError( ErrStat2, ErrMsg2  )
-               IF ( ErrStat >= AbortErrLev ) RETURN 
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
+               IF ( ErrStat >= AbortErrLev ) THEN
+                  CALL CleanUp()
+                  RETURN 
+               END IF
 
          !-------------------------------------------------------------------------------------------------
          ! check for error, update inputs (u_ED and u_HD), and iterate again
@@ -3228,20 +3113,17 @@ END IF
                ! Map SD outputs to HD inputs (keeping the accelerations we just calculated)
          
             CALL Transfer_SD_to_HD( y_SD, u_HD%Morison%LumpedMesh, u_HD%Morison%DistribMesh, MeshMapData, ErrStat2, ErrMsg2 )      
-               CALL CheckError( ErrStat2, ErrMsg2  )
-               IF ( ErrStat >= AbortErrLev ) RETURN     
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
                
                ! Map ED outputs to HD inputs (keeping the accelerations we just calculated):
                
             CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_HD%Mesh, MeshMapData%ED_P_2_HD_W_P, ErrStat2, ErrMsg2 ) 
-               CALL CheckError(ErrStat2,ErrMsg2)
-               IF (ErrStat >= AbortErrLev) RETURN      
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
                                              
          ELSE
             
             CALL Transfer_ED_to_HD( y_ED, u_HD, MeshMapData, ErrStat2, ErrMsg2 )
-               CALL CheckError(ErrStat2,ErrMsg2)
-               IF (ErrStat >= AbortErrLev) RETURN      
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
          
          END IF
 
@@ -3268,8 +3150,8 @@ END IF
          MeshMapData%u_SD_TPMesh%TranslationAcc = u_SD%TPMesh%TranslationAcc
          
          CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_SD%TPMesh, MeshMapData%ED_P_2_SD_TP, ErrStat2, ErrMsg2 ) 
-            CALL CheckError(ErrStat2,ErrMsg2)
-            IF (ErrStat >= AbortErrLev) RETURN      
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName  )
+                  
                
          u_SD%TPMesh%RotationAcc    = MeshMapData%u_SD_TPMesh%RotationAcc    
          u_SD%TPMesh%TranslationAcc = MeshMapData%u_SD_TPMesh%TranslationAcc    
@@ -3303,15 +3185,13 @@ CONTAINS
          
          ! note: MAP_InputSolve must be called before setting ED loads inputs (so that motions are known for loads [moment] mapping)      
          CALL MAP_InputSolve( u_map, y_ED2, MeshMapData, ErrStat2, ErrMsg2 )
-            CALL CheckError(ErrStat2,ErrMsg2)
-            IF (ErrStat >= AbortErrLev) RETURN       
+            CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)
                                  
       ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
          
          ! note: FEAM_InputSolve must be called before setting ED loads inputs (so that motions are known for loads [moment] mapping)      
          CALL FEAM_InputSolve( u_FEAM, y_ED2, MeshMapData, ErrStat2, ErrMsg2 )
-            CALL CheckError(ErrStat2,ErrMsg2)
-            IF (ErrStat >= AbortErrLev) RETURN       
+            CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)       
                         
       END IF     
    
@@ -3319,16 +3199,14 @@ CONTAINS
       IF ( p_FAST%CompIce == Module_IceF ) THEN
          
          CALL IceFloe_InputSolve(  u_IceF, y_SD2, MeshMapData, ErrStat2, ErrMsg2 )
-            CALL CheckError(ErrStat2,ErrMsg2)
-            IF (ErrStat >= AbortErrLev) RETURN       
+            CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)       
                                  
       ELSEIF ( p_FAST%CompIce == Module_IceD ) THEN
          
          DO i=1,p_FAST%numIceLegs
             
             CALL IceD_InputSolve(  u_IceD(i), y_SD2, MeshMapData, i, ErrStat2, ErrMsg2 )
-               CALL CheckError(ErrStat2,ErrMsg2)
-               IF (ErrStat >= AbortErrLev) RETURN  
+               CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)  
                
          END DO
          
@@ -3350,14 +3228,12 @@ CONTAINS
    
                ! SD motions to HD:
             CALL Transfer_SD_to_HD( y_SD2, MeshMapData%u_HD_M_LumpedMesh, MeshMapData%u_HD_M_DistribMesh, MeshMapData, ErrStat2, ErrMsg2 )
-               CALL CheckError(ErrStat2,ErrMsg2)
-               IF (ErrStat >= AbortErrLev) RETURN       
+               CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)       
       
    
                ! Map ED motion output to HD inputs:
             CALL Transfer_Point_to_Point( y_ED2%PlatformPtMesh, MeshMapData%u_HD_Mesh, MeshMapData%ED_P_2_HD_W_P, ErrStat2, ErrMsg2 ) 
-               CALL CheckError(ErrStat2,ErrMsg2)
-               IF (ErrStat >= AbortErrLev) RETURN      
+               CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)      
                
       !..................
       ! Get SD loads inputs (MeshMapData%u_HD_M_LumpedMesh and MeshMapData%u_HD_M_DistribMesh meshes must be set first)
@@ -3366,8 +3242,7 @@ CONTAINS
             ! Loads (outputs) from HD meshes transfered to SD LMesh (zero them out first because they get summed in Transfer_HD_to_SD)
          
             CALL Transfer_HD_to_SD( MeshMapData%u_SD_LMesh_2, MeshMapData%u_SD_LMesh, y_SD2%Y2Mesh, y_HD2, MeshMapData%u_HD_M_LumpedMesh, MeshMapData%u_HD_M_DistribMesh, MeshMapData, ErrStat2, ErrMsg2 )
-               CALL CheckError(ErrStat2,ErrMsg2)
-               IF (ErrStat >= AbortErrLev) RETURN               
+               CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)               
          
 
             IF ( p_FAST%CompIce == Module_IceF ) THEN
@@ -3376,8 +3251,7 @@ CONTAINS
                IF ( y_IceF%iceMesh%Committed ) THEN      
                   ! we're mapping loads, so we also need the sibling meshes' displacements:
                   CALL Transfer_Point_to_Point( y_IceF%iceMesh, MeshMapData%u_SD_LMesh_2, MeshMapData%IceF_P_2_SD_P, ErrStat2, ErrMsg2, u_IceF%iceMesh, y_SD2%Y2Mesh )   
-                     CALL CheckError( ErrStat2, ErrMsg2 )
-                     IF (ErrStat >= AbortErrLev) RETURN
+                     CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)
 
                   MeshMapData%u_SD_LMesh%Force  = MeshMapData%u_SD_LMesh%Force  + MeshMapData%u_SD_LMesh_2%Force
                   MeshMapData%u_SD_LMesh%Moment = MeshMapData%u_SD_LMesh%Moment + MeshMapData%u_SD_LMesh_2%Moment    
@@ -3406,8 +3280,7 @@ CONTAINS
                   IF ( y_IceD(i)%PointMesh%Committed ) THEN      
                      ! we're mapping loads, so we also need the sibling meshes' displacements:
                      CALL Transfer_Point_to_Point( y_IceD(i)%PointMesh, MeshMapData%u_SD_LMesh_2, MeshMapData%IceD_P_2_SD_P(i), ErrStat2, ErrMsg2, u_IceD(i)%PointMesh, y_SD2%Y2Mesh )   
-                        CALL CheckError( ErrStat2, ErrMsg2 )
-                        IF (ErrStat >= AbortErrLev) RETURN
+                        CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)
 
                      MeshMapData%u_SD_LMesh%Force  = MeshMapData%u_SD_LMesh%Force  + MeshMapData%u_SD_LMesh_2%Force
                      MeshMapData%u_SD_LMesh%Moment = MeshMapData%u_SD_LMesh%Moment + MeshMapData%u_SD_LMesh_2%Moment    
@@ -3428,8 +3301,7 @@ CONTAINS
          
          ! Motions (outputs) at ED platform ref point transfered to SD transition piece (input):
          CALL Transfer_Point_to_Point( y_ED2%PlatformPtMesh, MeshMapData%u_SD_TPMesh, MeshMapData%ED_P_2_SD_TP, ErrStat2, ErrMsg2 )   
-            CALL CheckError( ErrStat2, ErrMsg2 )
-            IF (ErrStat >= AbortErrLev) RETURN
+            CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)
             
       !..................
       ! Get ED loads input (from SD and possibly HD)
@@ -3438,16 +3310,14 @@ CONTAINS
          ! Loads (outputs) on the SD transition piece transfered to ED input location/mesh:
             ! we're mapping loads, so we also need the sibling meshes' displacements:
          CALL Transfer_Point_to_Point( y_SD2%Y1Mesh, MeshMapData%u_ED_PlatformPtMesh, MeshMapData%SD_TP_2_ED_P, ErrStat2, ErrMsg2, MeshMapData%u_SD_TPMesh, y_ED2%PlatformPtMesh ) !MeshMapData%u_SD_TPMesh contains the orientations needed for moment calculations
-            CALL CheckError( ErrStat2, ErrMsg2 )
-            IF (ErrStat >= AbortErrLev) RETURN
+            CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)
                         
                ! WAMIT loads from HD get added to this load:
          IF ( y_HD2%Mesh%Committed  ) THEN
    
             ! we're mapping loads, so we also need the sibling meshes' displacements:
             CALL Transfer_Point_to_Point( y_HD2%Mesh, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%HD_W_P_2_ED_P, ErrStat2, ErrMsg2, MeshMapData%u_HD_Mesh, y_ED2%PlatformPtMesh ) !u_SD contains the orientations needed for moment calculations
-               CALL CheckError( ErrStat2, ErrMsg2 )
-               IF (ErrStat >= AbortErrLev) RETURN
+               CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)
          
             MeshMapData%u_ED_PlatformPtMesh%Force  = MeshMapData%u_ED_PlatformPtMesh%Force  + MeshMapData%u_ED_PlatformPtMesh_2%Force
             MeshMapData%u_ED_PlatformPtMesh%Moment = MeshMapData%u_ED_PlatformPtMesh%Moment + MeshMapData%u_ED_PlatformPtMesh_2%Moment
@@ -3468,18 +3338,15 @@ CONTAINS
          
          ! These are the motions for the lumped point loads associated the WAMIT body:
          CALL Transfer_Point_to_Point( y_ED2%PlatformPtMesh, MeshMapData%u_HD_Mesh, MeshMapData%ED_P_2_HD_W_P, ErrStat2, ErrMsg2 )
-            CALL CheckError( ErrStat2, ErrMsg2 )
-            IF (ErrStat >= AbortErrLev) RETURN
+            CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)
    
          ! These are the motions for the lumped point loads associated viscous drag on the WAMIT body and/or filled/flooded lumped forces of the WAMIT body
          CALL Transfer_Point_to_Point( y_ED2%PlatformPtMesh, MeshMapData%u_HD_M_LumpedMesh, MeshMapData%ED_P_2_HD_M_P, ErrStat2, ErrMsg2 )
-            CALL CheckError( ErrStat2, ErrMsg2 )
-            IF (ErrStat >= AbortErrLev) RETURN
+            CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)
                   
          ! These are the motions for the line2 (distributed) loads associated viscous drag on the WAMIT body and/or filled/flooded distributed forces of the WAMIT body
          CALL Transfer_Point_to_Line2( y_ED2%PlatformPtMesh, MeshMapData%u_HD_M_DistribMesh, MeshMapData%ED_P_2_HD_M_L, ErrStat2, ErrMsg2 )
-            CALL CheckError( ErrStat2, ErrMsg2 )
-            IF (ErrStat >= AbortErrLev) RETURN
+            CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)
             
       !..................
       ! Get ED loads input (from HD only)
@@ -3487,8 +3354,7 @@ CONTAINS
             
             ! we're mapping loads, so we also need the sibling meshes' displacements:
          CALL Transfer_Point_to_Point( y_HD2%AllHdroOrigin, MeshMapData%u_ED_PlatformPtMesh, MeshMapData%HD_W_P_2_ED_P, ErrStat2, ErrMsg2, MeshMapData%u_HD_Mesh, y_ED2%PlatformPtMesh) !u_HD and u_mapped_positions contain the displaced positions for load calculations
-            CALL CheckError( ErrStat2, ErrMsg2 )
-            IF (ErrStat >= AbortErrLev) RETURN
+            CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)
                                                                            
       END IF
       
@@ -3501,16 +3367,14 @@ CONTAINS
          ! Get the loads for ED from a mooring module and add them:
       IF ( p_FAST%CompMooring == Module_MAP ) THEN
          CALL Transfer_Point_to_Point( y_MAP%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%MAP_P_2_ED_P, ErrStat2, ErrMsg2, u_MAP%PtFairDisplacement, y_ED2%PlatformPtMesh ) !u_MAP and y_ED contain the displacements needed for moment calculations
-            CALL CheckError( ErrStat2, ErrMsg2 )
-            IF (ErrStat >= AbortErrLev) RETURN               
+            CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)               
             
          MeshMapData%u_ED_PlatformPtMesh%Force  = MeshMapData%u_ED_PlatformPtMesh%Force  + MeshMapData%u_ED_PlatformPtMesh_2%Force
          MeshMapData%u_ED_PlatformPtMesh%Moment = MeshMapData%u_ED_PlatformPtMesh%Moment + MeshMapData%u_ED_PlatformPtMesh_2%Moment
             
       ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
          CALL Transfer_Point_to_Point( y_FEAM%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%FEAM_P_2_ED_P, ErrStat2, ErrMsg2, u_FEAM%PtFairleadDisplacement, y_ED2%PlatformPtMesh ) !u_FEAM and y_ED contain the displacements needed for moment calculations
-            CALL CheckError( ErrStat2, ErrMsg2 )
-            IF (ErrStat >= AbortErrLev) RETURN  
+            CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)  
             
          MeshMapData%u_ED_PlatformPtMesh%Force  = MeshMapData%u_ED_PlatformPtMesh%Force  + MeshMapData%u_ED_PlatformPtMesh_2%Force
          MeshMapData%u_ED_PlatformPtMesh%Moment = MeshMapData%u_ED_PlatformPtMesh%Moment + MeshMapData%u_ED_PlatformPtMesh_2%Moment            
@@ -3527,34 +3391,6 @@ CONTAINS
    
             
    END SUBROUTINE U_ED_SD_HD_Residual   
-   !...............................................................................................................................
-   SUBROUTINE CheckError(ErrID,Msg)
-   ! This subroutine sets the error message and level and cleans up if the error is >= AbortErrLev
-   !...............................................................................................................................
-
-         ! Passed arguments
-      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
-      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
-
-
-      !............................................................................................................................
-      ! Set error status/message;
-      !............................................................................................................................
-
-      IF ( ErrID /= ErrID_None ) THEN
-
-         CALL WrScr( ' ED_SD_HD_InputOutputSolve:'//TRIM(Msg) )
-         ErrStat = MAX(ErrStat, ErrID)
-
-         !.........................................................................................................................
-         ! Clean up if we're going to return on error: close files, deallocate local arrays
-         !.........................................................................................................................
-         IF ( ErrStat >= AbortErrLev ) CALL CleanUp()
-
-      END IF
-
-
-   END SUBROUTINE CheckError   
    !...............................................................................................................................
    SUBROUTINE CleanUp()
       INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
@@ -5209,8 +5045,8 @@ SUBROUTINE SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD,
    !!
    !!      ! Ensure that the platform added mass matrix returned by UserPtfmLd, PtfmAM, is symmetric; Abort if necessary:
    !!   IF ( .NOT. IsSymmetric( y_UsrPtfm%AddedMass ) ) THEN
-   !!      CALL CheckError ( ErrID_Fatal, ' The user-defined platform added mass matrix is unsymmetric.'// &
-   !!                        '  Make sure AddedMass returned by UserPtfmLd() is symmetric.'        )
+   !!      CALL SetErrStat ( ErrID_Fatal, ' The user-defined platform added mass matrix is unsymmetric.'// &
+   !!                        '  Make sure AddedMass returned by UserPtfmLd() is symmetric.', ErrStat, ErrMsg, RoutineName )
    !!   END IF
    !!
    !END IF
@@ -7306,6 +7142,7 @@ SUBROUTINE FAST_Solution(t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD
       
       CALL FAST_AdvanceStates( t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, ErrStat2, ErrMsg2 )               
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         IF (ErrStat >= AbortErrLev) RETURN
          
    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    ! Step 1.c: Input-Output Solve      
@@ -7322,39 +7159,50 @@ SUBROUTINE FAST_Solution(t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD
                   
          IF ( p_FAST%n_substeps( Module_ED ) > 1 ) THEN
             CALL ED_CopyOtherState( ED%OtherSt_old, ED%OtherSt, MESH_UPDATECOPY, Errstat2, ErrMsg2)
+            CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          END IF
             
          IF ( p_FAST%n_substeps( Module_AD ) > 1 ) THEN
             CALL AD_CopyOtherState( AD%OtherSt_old, AD%OtherSt, MESH_UPDATECOPY, Errstat2, ErrMsg2)
+            CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          END IF
             
          IF ( p_FAST%n_substeps( Module_SrvD ) > 1 ) THEN
             CALL SrvD_CopyOtherState( SrvD%OtherSt_old, SrvD%OtherSt, MESH_UPDATECOPY, Errstat2, ErrMsg2)
+            CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          END IF
             
          IF ( p_FAST%n_substeps( Module_HD ) > 1 ) THEN
             CALL HydroDyn_CopyOtherState( HD%OtherSt_old, HD%OtherSt, MESH_UPDATECOPY, Errstat2, ErrMsg2)
+            CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          END IF
             
          IF ( p_FAST%n_substeps( Module_SD ) > 1 ) THEN
             CALL SD_CopyOtherState( SD%OtherSt_old, SD%OtherSt, MESH_UPDATECOPY, Errstat2, ErrMsg2)
+            CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          END IF
 
          IF ( p_FAST%n_substeps( Module_MAP ) > 1 ) THEN
             CALL MAP_CopyOtherState( MAPp%OtherSt_old, MAPp%OtherSt, MESH_UPDATECOPY, Errstat2, ErrMsg2)
+            CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          ELSEIF ( p_FAST%n_substeps( Module_FEAM ) > 1 ) THEN
             CALL FEAM_CopyOtherState( FEAM%OtherSt_old, FEAM%OtherSt, MESH_UPDATECOPY, Errstat2, ErrMsg2)
+            CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          END IF
          
          IF ( p_FAST%n_substeps( Module_IceF ) > 1 ) THEN
             CALL IceFloe_CopyOtherState( IceF%OtherSt_old, IceF%OtherSt, MESH_UPDATECOPY, Errstat2, ErrMsg2)
+            CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          ELSEIF ( p_FAST%n_substeps( Module_IceD ) > 1 ) THEN
             DO i=1,p_FAST%numIceLegs
                CALL IceD_CopyOtherState( IceD%OtherSt_old(i), IceD%OtherSt(i), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+               CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
             END DO
          END IF
             
       END IF
+      
+      IF (ErrStat >= AbortErrLev) RETURN
                               
    enddo ! j_pc
       
@@ -7368,62 +7216,88 @@ SUBROUTINE FAST_Solution(t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD
       
    ! ElastoDyn: copy final predictions to actual states
    CALL ED_CopyContState   (ED%x( STATE_PRED), ED%x( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+      CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL ED_CopyDiscState   (ED%xd(STATE_PRED), ED%xd(STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)  
+      CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL ED_CopyConstrState (ED%z( STATE_PRED), ED%z( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)      
+      CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       
       
    ! AeroDyn: copy final predictions to actual states; copy current outputs to next 
    IF ( p_FAST%CompAero == Module_AD ) THEN
       CALL AD_CopyContState   (AD%x( STATE_PRED), AD%x( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       CALL AD_CopyDiscState   (AD%xd(STATE_PRED), AD%xd(STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)  
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       CALL AD_CopyConstrState (AD%z( STATE_PRED), AD%z( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)      
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    END IF
             
       
    ! ServoDyn: copy final predictions to actual states; copy current outputs to next 
    IF ( p_FAST%CompServo == Module_SrvD ) THEN
       CALL SrvD_CopyContState   (SrvD%x( STATE_PRED), SrvD%x( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       CALL SrvD_CopyDiscState   (SrvD%xd(STATE_PRED), SrvD%xd(STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)  
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       CALL SrvD_CopyConstrState (SrvD%z( STATE_PRED), SrvD%z( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)      
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    END IF
       
       
    ! HydroDyn: copy final predictions to actual states
    IF ( p_FAST%CompHydro == Module_HD ) THEN         
       CALL HydroDyn_CopyContState   (HD%x( STATE_PRED), HD%x( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       CALL HydroDyn_CopyDiscState   (HD%xd(STATE_PRED), HD%xd(STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)  
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       CALL HydroDyn_CopyConstrState (HD%z( STATE_PRED), HD%z( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    END IF
             
             
    ! SubDyn: copy final predictions to actual states
    IF ( p_FAST%CompSub == Module_SD ) THEN
       CALL SD_CopyContState   (SD%x( STATE_PRED), SD%x( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       CALL SD_CopyDiscState   (SD%xd(STATE_PRED), SD%xd(STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)  
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       CALL SD_CopyConstrState (SD%z( STATE_PRED), SD%z( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    END IF
          
       
    ! MAP: copy final predictions to actual states
    IF (p_FAST%CompMooring == Module_MAP) THEN
       CALL MAP_CopyContState   (MAPp%x( STATE_PRED), MAPp%x( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       CALL MAP_CopyDiscState   (MAPp%xd(STATE_PRED), MAPp%xd(STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)  
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       CALL MAP_CopyConstrState (MAPp%z( STATE_PRED), MAPp%z( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    ELSEIF (p_FAST%CompMooring == Module_FEAM) THEN
       CALL FEAM_CopyContState   (FEAM%x( STATE_PRED), FEAM%x( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       CALL FEAM_CopyDiscState   (FEAM%xd(STATE_PRED), FEAM%xd(STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)  
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       CALL FEAM_CopyConstrState (FEAM%z( STATE_PRED), FEAM%z( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    END IF
              
          ! IceFloe: copy final predictions to actual states
    IF ( p_FAST%CompIce == Module_IceF ) THEN
       CALL IceFloe_CopyContState   (IceF%x( STATE_PRED), IceF%x( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       CALL IceFloe_CopyDiscState   (IceF%xd(STATE_PRED), IceF%xd(STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)  
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       CALL IceFloe_CopyConstrState (IceF%z( STATE_PRED), IceF%z( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    ELSEIF ( p_FAST%CompIce == Module_IceD ) THEN
       DO i=1,p_FAST%numIceLegs
          CALL IceD_CopyContState   (IceD%x( i,STATE_PRED), IceD%x( i,STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+            CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          CALL IceD_CopyDiscState   (IceD%xd(i,STATE_PRED), IceD%xd(i,STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)  
+            CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          CALL IceD_CopyConstrState (IceD%z( i,STATE_PRED), IceD%z( i,STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
       END DO
    END IF
@@ -7442,8 +7316,9 @@ SUBROUTINE FAST_Solution(t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD
    ! Check to see if we should output data this time step:
    !----------------------------------------------------------------------------------------
 
-   CALL WriteOutputToFile(m_FAST%t_global, p_FAST, y_FAST, ED, AD, IfW, HD, SD, SrvD, MAPp, FEAM, IceF, IceD, ErrStat, ErrMsg)
-      
+   CALL WriteOutputToFile(m_FAST%t_global, p_FAST, y_FAST, ED, AD, IfW, HD, SD, SrvD, MAPp, FEAM, IceF, IceD, ErrStat2, ErrMsg2)
+      CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+
    !----------------------------------------------------------------------------------------
    ! Display simulation status every SttsTime-seconds (i.e., n_SttsTime steps):
    !----------------------------------------------------------------------------------------   
