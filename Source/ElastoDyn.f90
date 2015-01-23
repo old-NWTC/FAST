@@ -9004,7 +9004,7 @@ SUBROUTINE Coeff(p,InputFileData, ErrStat, ErrMsg)
    TYPE(ED_ParameterType),        INTENT(INOUT)    :: p                             ! Parameters of the structural dynamics module
    TYPE(ED_InputFile),            INTENT(IN)       :: InputFileData                 ! all the data in the ElastoDyn input file
    INTEGER(IntKi),                INTENT(OUT)      :: ErrStat                       ! Error status
-   CHARACTER(1024),               INTENT(OUT)      :: ErrMsg                        ! Error message when ErrStat =/ ErrID_None
+   CHARACTER(*),                  INTENT(OUT)      :: ErrMsg                        ! Error message when ErrStat =/ ErrID_None
 
 
       ! Local variables.
