@@ -18,23 +18,56 @@ int
 main(int argc, char *argv[], char *env[])
 {
    int n_t_global = 0;
+   int i = 0;
+   int j = 0;
+   int k = 0;
+   char ChannelNames[CHANNEL_LENGTH*MAXIMUM_OUTPUTS + 1];
+   char OutList[MAXIMUM_OUTPUTS][CHANNEL_LENGTH+1];
 
       // initialization
    
 
+
    strcpy(InputFileName, "../../CertTest/Test01.fst");
-   FAST_Sizes(InputFileName, &AbortErrLev, &NumOutputs, &dt, &ErrStat, ErrMsg);
+   FAST_Sizes(InputFileName, &AbortErrLev, &NumOutputs, &dt, &ErrStat, ErrMsg, ChannelNames);
 
    checkError(ErrStat, ErrMsg);
 
-   FAST_Start(&ErrStat, ErrMsg);
+   /*
+   // put the names of the output channels in a variable called "OutList" in the base matlab workspace
+   for (i = 0; i < NumOutputs; i++){
+      strncpy(&OutList[i][0], &ChannelNames[i*CHANNEL_LENGTH], CHANNEL_LENGTH);
+      OutList[i][CHANNEL_LENGTH] = '\0'; // null terminator
+      for (j = CHANNEL_LENGTH - 1; j > 0; j--){
+         if (OutList[i][j] == ' ') OutList[i][j] = '\0'; // null terminator
+      }
+
+      fprintf(stderr, "%d %s\n", i, OutList[i]);
+   }
+   */
+
+   for (i = 0; i < NumOutputs; i++){
+      //strncpy(&OutList[i][0], &ChannelNames[i*CHANNEL_LENGTH], CHANNEL_LENGTH);
+      OutList[i][CHANNEL_LENGTH] = '\0'; // null terminator
+      for (j = CHANNEL_LENGTH - 1; j >= 0; j--){ // remove trailing spaces (not sure this is necessary)
+         if (ChannelNames[i*CHANNEL_LENGTH + j] == ' ') {
+            OutList[i][j] = '\0'; // null terminator
+         }
+         else{
+            for (k = j; k >= 0; k--){
+               OutList[i][k] = ChannelNames[i*CHANNEL_LENGTH + k];
+            }
+            break;
+         }
+      }
+   }
+
+
+   FAST_Start(&NumOutputs, &OutputAry[0], &ErrStat, ErrMsg);
    if (checkError(ErrStat, ErrMsg)) return 1;
 
    // update
-   NumOutputs = 2;
-   //NumInputs = 2;
-
-   for (n_t_global = 0; n_t_global < 2; n_t_global++){
+   for (n_t_global = 0; n_t_global < 5001; n_t_global++){
       FAST_Update(&NumInputs, &NumOutputs, &InputAry[0], &OutputAry[0], &ErrStat, ErrMsg);
       if (checkError(ErrStat, ErrMsg)) return 1;
    }
