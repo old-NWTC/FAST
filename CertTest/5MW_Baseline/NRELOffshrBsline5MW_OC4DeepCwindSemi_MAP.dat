@@ -4,7 +4,7 @@ LineType     Diam     MassDenInAir    EA        CB   CIntDamp  Ca   Cdn  Cdt
 Material     0.0766    113.35      7.536E8      1.0    0        0    0    0
 ---------------------- NODE PROPERTIES ---------------------------------------
 Node Type       X        Y        Z     M     B     FX    FY    FZ
-(-)  (-)       (m)      (m)      (m)   (kg)  (mˆ3) (kN)  (kN)  (kN)
+(-)  (-)       (m)      (m)      (m)   (kg)  (mˆ3)  (N)   (N)   (N)
 1    fix     418.8    725.383    depth   0     0     #     #     #
 2    Vessel   20.434   35.393    -14.0   0     0     #     #     #
 ---------------------- LINE PROPERTIES ---------------------------------------

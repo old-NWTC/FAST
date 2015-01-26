@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-01-19 11:01:28 -0700 (Mon, 19 Jan 2015) $
-! (File) Revision #: $Rev: 873 $
+! File last committed: $Date: 2015-01-26 09:50:57 -0700 (Mon, 26 Jan 2015) $
+! (File) Revision #: $Rev: 884 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceDyn/source/IceDyn.f90 $
 !..................................................................................................................................
 ! LICENSING
@@ -606,25 +606,29 @@ CONTAINS
       
       IF ( OtherState%Splitf == 0 ) THEN
           
-        IF ((x%q - u%PointMesh%TranslationDisp(1,1)) >= OtherState%dxc .AND. (x%q - u%PointMesh%TranslationDisp(1,1)) < OtherState%dxc+R ) THEN
+       IF ((x%q - u%PointMesh%TranslationDisp(1,1)) < OtherState%dxc) THEN
+          
+           IceForce = 0
+
+       ELSE IF ((x%q - u%PointMesh%TranslationDisp(1,1)) >= OtherState%dxc) THEN
+
+           IF (x%q - u%PointMesh%TranslationDisp(1,1) < R) THEN
       
-             IceForce =  p%Cpa * ( 2 * p%h * ( R**2 - (R - x%q + u%PointMesh%TranslationDisp(1,1))**2 )**0.5 )**( p%dpa + 1 ) * 1.0e6 
-         
-        ELSE IF (  (x%q - u%PointMesh%TranslationDisp(1,1)) >= OtherState%dxc+R ) THEN
-          
-             IceForce = p%Cpa * ( 2 * R *  p%h )**( p%dpa + 1 ) * 1.0e6 
-          
-        ELSE
-          
-             IceForce = 0 
+              IceForce =  p%Cpa * ( 2 * p%h * ( R**2 - (R - x%q + u%PointMesh%TranslationDisp(1,1))**2 )**0.5 )**( p%dpa + 1 ) * 1.0e6
            
-        ENDIF
-        
-      ELSE 
-          
-           IceForce = 0 
-        
-      ENDIF
+           ELSE
+
+              IceForce = p%Cpa * ( 2 * R *  p%h )**( p%dpa + 1 ) * 1.0e6 
+
+           ENDIF
+
+       ENDIF
+
+    ELSE
+
+      IceForce = 0 
+
+    ENDIF
       
       IF ( IceForce >= p%Fsp ) THEN
           OtherState%Splitf = 1
@@ -937,27 +941,31 @@ SUBROUTINE IceD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       
            R = p%StrWd/2
       
-         IF (OtherState%Splitf == 0 ) THEN
-             
-           IF ((x%q - u%PointMesh%TranslationDisp(1,1)) >= OtherState%dxc .AND. (x%q - u%PointMesh%TranslationDisp(1,1)) < OtherState%dxc+R ) THEN
-         
-                y%PointMesh%Force(1,1) =  p%Cpa * ( 2 * p%h * ( R**2 - (R - x%q + u%PointMesh%TranslationDisp(1,1))**2 )**0.5 )**( p%dpa + 1 ) * 1.0e6 
-            
-           ELSE IF (  (x%q - u%PointMesh%TranslationDisp(1,1)) >= OtherState%dxc+R ) THEN
-             
-               y%PointMesh%Force(1,1) = p%Cpa * ( 2 * R *  p%h )**( p%dpa + 1 ) * 1.0e6 
-             
-           ELSE
-             
-               y%PointMesh%Force(1,1) = 0 
-              
-           ENDIF
+          IF ( OtherState%Splitf == 0 ) THEN
+          
+              IF ((x%q - u%PointMesh%TranslationDisp(1,1)) < OtherState%dxc) THEN
+          
+                 y%PointMesh%Force(1,1) = 0
+
+              ELSE IF ((x%q - u%PointMesh%TranslationDisp(1,1)) >= OtherState%dxc) THEN
+
+                   IF (x%q - u%PointMesh%TranslationDisp(1,1) < R) THEN
+      
+                        y%PointMesh%Force(1,1) =  p%Cpa * ( 2 * p%h * ( R**2 - (R - x%q + u%PointMesh%TranslationDisp(1,1))**2 )**0.5 )**( p%dpa + 1 ) * 1.0e6
            
-         ELSE 
-             
-              y%PointMesh%Force(1,1) = 0 
-           
-         ENDIF
+                   ELSE
+
+                        y%PointMesh%Force(1,1) = p%Cpa * ( 2 * R *  p%h )**( p%dpa + 1 ) * 1.0e6 
+
+                   ENDIF
+
+              ENDIF
+
+          ELSE
+
+                 y%PointMesh%Force(1,1) = 0 
+
+          ENDIF
       
       ENDIF
       
@@ -1006,29 +1014,32 @@ SUBROUTINE IceD_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, xdot, ErrStat
 
         R = p%StrWd/2 
         
-        IF ( OtherState%Splitf == 0 ) THEN
-   
-           IF ((x%q - u%PointMesh%TranslationDisp(1,1)) >= OtherState%dxc .AND. (x%q - u%PointMesh%TranslationDisp(1,1)) < OtherState%dxc+R ) THEN
-   
-!bjj: force is NaN sometimes because  R**2 - (R - x%q + u%PointMesh%TranslationDisp(1,1))**2 < 0             
-                force = -p%Cpa * ( 2 * p%h * ( R**2 - (R - x%q + u%PointMesh%TranslationDisp(1,1))**2 )**0.5 )**( p%dpa + 1 ) * 1.0e6 + p%FdrN
-         
-           ELSE IF (  (x%q - u%PointMesh%TranslationDisp(1,1)) >= OtherState%dxc+R ) THEN
-             
-                force = -p%Cpa * ( 2 * R *  p%h )**( p%dpa + 1 ) * 1.0e6  + p%FdrN
-            
-           ELSE
-   
-               force = 0. + p%FdrN
-   
-           ENDIF
+       IF ( OtherState%Splitf == 0 ) THEN
+          
+           IF ((x%q - u%PointMesh%TranslationDisp(1,1)) < OtherState%dxc) THEN
+          
+               force = 0 + p%FdrN
+
+           ELSE IF ((x%q - u%PointMesh%TranslationDisp(1,1)) >= OtherState%dxc) THEN
+
+                IF (x%q - u%PointMesh%TranslationDisp(1,1) < R) THEN
+      
+                    force = -p%Cpa * ( 2 * p%h * ( R**2 - (R - x%q + u%PointMesh%TranslationDisp(1,1))**2 )**0.5 )**( p%dpa + 1 ) * 1.0e6 + p%FdrN
            
-         ELSE
-             
-             force = 0
-             
-         ENDIF
-         
+                ELSE
+
+                    force = -p%Cpa * ( 2 * R *  p%h )**( p%dpa + 1 ) * 1.0e6 + p%FdrN
+
+                ENDIF
+ 
+           ENDIF
+
+        ELSE
+
+              force = 0 
+ 
+        ENDIF
+        
          xdot%q = x%dqdt
    
          xdot%dqdt = force / p%Mice

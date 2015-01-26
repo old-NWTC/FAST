@@ -20,8 +20,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-12-08 13:02:39 -0700 (Mon, 08 Dec 2014) $
-! (File) Revision #: $Rev: 828 $
+! File last committed: $Date: 2015-01-23 12:40:23 -0700 (Fri, 23 Jan 2015) $
+! (File) Revision #: $Rev: 882 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn.f90 $
 !**********************************************************************************************************************************
 
@@ -8212,13 +8212,13 @@ SUBROUTINE Init_OtherStates( OtherState, p, x, InputFileData, ErrStat, ErrMsg  )
       ! First allocate the arrays stored here:
 
    CALL Alloc_RtHS( OtherState%RtHS, p, ErrStat, ErrMsg  )
-      IF (ErrStat /= ErrID_None ) RETURN
+      IF ( ErrStat >= AbortErrLev ) RETURN
 
    CALL Alloc_CoordSys( OtherState%CoordSys, p, ErrStat, ErrMsg )
-      IF (ErrStat /= ErrID_None ) RETURN
+      IF ( ErrStat >= AbortErrLev ) RETURN
    
    CALL AllocAry( OtherState%QD2T, p%NDOF,   'OtherState%QD2T',  ErrStat, ErrMsg )
-      IF ( ErrStat /= ErrID_None ) RETURN
+      IF ( ErrStat >= AbortErrLev ) RETURN
 
    
    ALLOCATE ( OtherState%AllOuts(0:MaxOutPts) , STAT=ErrStat )
@@ -8231,24 +8231,24 @@ SUBROUTINE Init_OtherStates( OtherState, p, x, InputFileData, ErrStat, ErrMsg  )
    
       ! for loose coupling:
    CALL AllocAry( OtherState%IC,  NMX,   'IC',   ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
+      IF ( ErrStat >= AbortErrLev ) RETURN
    
    
    
    CALL AllocAry(OtherState%BlPitch, p%NumBl, 'BlPitch', ErrStat, ErrMsg )
-      IF (ErrStat /= ErrID_None) RETURN
+      IF ( ErrStat >= AbortErrLev ) RETURN
    OtherState%BlPitch = InputFileData%BlPitch(1:p%NumBl)
 
    CALL AllocAry( OtherState%AugMat,       p%NDOF,          p%NAug,          'AugMat',       ErrStat, ErrMsg )
-      IF ( ErrStat /= ErrID_None ) RETURN                                    
+      IF ( ErrStat >= AbortErrLev ) RETURN
 !   CALL AllocAry( OtherState%AugMatOut,    p%NDOF,          p%NAug,          'AugMatOut',    ErrStat, ErrMsg )
 !      IF ( ErrStat /= ErrID_None ) RETURN 
    CALL AllocAry( OtherState%SolnVec,      p%DOFs%NActvDOF,                  'SolnVec',      ErrStat, ErrMsg )
-      IF ( ErrStat /= ErrID_None ) RETURN
+      IF ( ErrStat >= AbortErrLev ) RETURN
    CALL AllocAry( OtherState%AugMat_pivot, p%DOFs%NActvDOF,                  'AugMat_pivot', ErrStat, ErrMsg )
-      IF ( ErrStat /= ErrID_None ) RETURN
+      IF ( ErrStat >= AbortErrLev ) RETURN
    CALL AllocAry( OtherState%AugMat_factor,p%DOFs%NActvDOF, p%DOFs%NActvDOF, 'AugMat_factor',ErrStat, ErrMsg )
-      IF ( ErrStat /= ErrID_None ) RETURN
+      IF ( ErrStat >= AbortErrLev ) RETURN
 
    
       ! Now initialize the IC array = (/NMX, NMX-1, ... , 1 /)
@@ -8264,10 +8264,13 @@ SUBROUTINE Init_OtherStates( OtherState, p, x, InputFileData, ErrStat, ErrMsg  )
    !
    !OtherState%QD2 = 0.0_ReKi
 
-   !   ! Initialize the first OtherState%xdot with initial states (?)      
-   !CALL ED_CopyContState(x, OtherState%xdot(1), MESH_NEWCOPY, ErrStat, ErrMsg)
 
    OtherState%n   = -1  ! we haven't updated OtherState%xdot, yet
+   
+   DO i = LBOUND(OtherState%xdot,1), UBOUND(OtherState%xdot,1)
+      CALL ED_CopyContState( x, OtherState%xdot(i), MESH_NEWCOPY, ErrStat, ErrMsg)
+         IF ( ErrStat >= AbortErrLev ) RETURN 
+   ENDDO
    
  
    
@@ -9001,7 +9004,7 @@ SUBROUTINE Coeff(p,InputFileData, ErrStat, ErrMsg)
    TYPE(ED_ParameterType),        INTENT(INOUT)    :: p                             ! Parameters of the structural dynamics module
    TYPE(ED_InputFile),            INTENT(IN)       :: InputFileData                 ! all the data in the ElastoDyn input file
    INTEGER(IntKi),                INTENT(OUT)      :: ErrStat                       ! Error status
-   CHARACTER(1024),               INTENT(OUT)      :: ErrMsg                        ! Error message when ErrStat =/ ErrID_None
+   CHARACTER(*),                  INTENT(OUT)      :: ErrMsg                        ! Error message when ErrStat =/ ErrID_None
 
 
       ! Local variables.
@@ -13756,7 +13759,9 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
       ! local variables
       TYPE(ED_InputType)                             :: u_interp
+      TYPE(ED_ContinuousStateType)                   :: xdot
          
+      INTEGER(IntKi)                                 :: tmp    
       INTEGER(IntKi)                                 :: ErrStat2    ! local error status
       CHARACTER(LEN(ErrMsg))                         :: ErrMsg2     ! local error message (ErrMsg)
 
@@ -13795,7 +13800,11 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
          CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
          
-      CALL ED_CalcContStateDeriv( t, u_interp, p, x, xd, z, OtherState, OtherState%xdot ( OtherState%IC(1) ), ErrStat2, ErrMsg2 )
+      CALL ED_CalcContStateDeriv( t, u_interp, p, x, xd, z, OtherState, xdot, ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         
+         tmp=OtherState%IC(1)
+         CALL ED_CopyContState(xdot, OtherState%xdot ( tmp ), MESH_NEWCOPY, ErrStat2, ErrMsg2)
          CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -13832,7 +13841,8 @@ CONTAINS
    
    
       CALL ED_DestroyInput(     u_interp, ErrStat3, ErrMsg3 )
-         
+      CALL ED_DestroyContState( xdot,     ErrStat2, ErrMsg3 )
+      
    END SUBROUTINE ExitThisRoutine    
    !...............................................................................................................................
    SUBROUTINE CheckError(ErrID,Msg)
