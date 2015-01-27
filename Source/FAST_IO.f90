@@ -58,8 +58,16 @@ FUNCTION GetVersion()
 
 
 
-   GetVersion = TRIM(GetNVD(FAST_Ver))//', compiled for '//TRIM(Num2LStr(BITS_IN_ADDR))//'-bit systems using'
+   GetVersion = TRIM(GetNVD(FAST_Ver))//', compiled'
 
+   IF ( Cmpl4SFun )  THEN     ! FAST has been compiled as an S-Function for Simulink
+      GetVersion = TRIM(GetVersion)//' as a DLL S-Function for Simulink'
+   ELSEIF ( Cmpl4LV )  THEN     ! FAST has been compiled as a DLL for Labview
+      GetVersion = TRIM(GetVersion)//' as a DLL for LabVIEW'
+   ENDIF   
+   
+   GetVersion = TRIM(GetVersion)//' using '//TRIM(Num2LStr(BITS_IN_ADDR))//'-bit addresses and'
+   
    ! determine precision
 
       IF ( ReKi == SiKi )  THEN     ! Single precision
@@ -72,18 +80,6 @@ FUNCTION GetVersion()
 
 !   GetVersion = TRIM(GetVersion)//' precision with '//OS_Desc
    GetVersion = TRIM(GetVersion)//' precision'
-
-
-   ! determine if we've done some other modifications
-      IF ( Cmpl4SFun )  THEN     ! FAST has been compiled as an S-Function for Simulink
-         GetVersion = TRIM(GetVersion)//' as S-Function for Simulink'
-      ELSEIF ( Cmpl4LV )  THEN     ! FAST has been compiled as a DLL for Labview
-         GetVersion = TRIM(GetVersion)//' as a DLL for LabVIEW'
-      ENDIF
-
-      !IF ( OC3HywindMods ) THEN
-      !   GetVersion = TRIM(GetVersion)//' with OC3 Hywind Modifications'
-      !END IF
 
 
    RETURN
@@ -156,7 +152,7 @@ SUBROUTINE FAST_EndOutput( p_FAST, y_FAST, ErrStat, ErrMsg )
 
 END SUBROUTINE FAST_EndOutput
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
+SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile, TMax  )
 ! This subroutine checks for command-line arguments, gets the root name of the input files
 ! (including full path name), and creates the names of the output files.
 !..................................................................................................................................
@@ -170,7 +166,7 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
    INTEGER(IntKi),           INTENT(OUT)           :: ErrStat           ! Error status
    CHARACTER(*),             INTENT(OUT)           :: ErrMsg            ! Error message
    CHARACTER(*),             INTENT(IN), OPTIONAL  :: InFile            ! A CHARACTER string containing the name of the primary FAST input file (if not present, we'll get it from the command line)
-
+   REAL(DbKi),               INTENT(IN), OPTIONAL  :: TMax              ! the length of the simulation (from Simulink)
       ! Local variables
 
    REAL(DbKi)                   :: TmpTime                              ! A temporary variable for error checking
@@ -212,10 +208,17 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
       CALL CheckArgs( InputFile, Stat, LastArg )  ! if Stat /= ErrID_None, we'll ignore and deal with the problem when we try to read the input file
       
       IF (LEN_TRIM(InputFile) == 0) THEN ! no input file was specified
-         CALL SetErrStat( ErrID_Fatal, 'The required input file was not specified on the command line.', ErrStat, ErrMsg, RoutineName ) 
-         CALL NWTC_DisplaySyntax( InputFile, 'FAST_Win32.exe' )
-                  !bjj: FAST_Win32.exe isn't correct for x64 or other versions of the executable, but it IS the only full version we
-                  ! distribute, and if people have compiled for other architectures, they should be able to figure that out, right?
+         CALL SetErrStat( ErrID_Fatal, 'The required input file was not specified on the command line.', ErrStat, ErrMsg, RoutineName )
+
+            !bjj:  if people have compiled themselves, they should be able to figure out the file name, right?         
+         IF (BITS_IN_ADDR==32) THEN
+            CALL NWTC_DisplaySyntax( InputFile, 'FAST_Win32.exe' )
+         ELSEIF( BITS_IN_ADDR == 64) THEN
+            CALL NWTC_DisplaySyntax( InputFile, 'FAST_x64.exe' )
+         ELSE
+            CALL NWTC_DisplaySyntax( InputFile, 'FAST.exe' )
+         END IF
+         
          RETURN
       END IF            
       
@@ -227,31 +230,12 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
       END IF
             
    END IF
-   
-
-   
+      
 
       ! Determine the root name of the primary file (will be used for output files)
    CALL GetRoot( InputFile, p%OutFileRoot )
-   !IF ( ErrStat >= AbortErrLev ) RETURN
    IF ( Cmpl4SFun )  p%OutFileRoot = TRIM( p%OutFileRoot )//'.SFunc'
-
-
-   !! Let's create a root file name variable, DirRoot, which includes the full path to the current working directory.
-   !! bjj: not really sure this is necessary... why can't we use a relative path?
-   !
-   !p%DirRoot  = p%OutFileRoot
-   !
-   !IF ( PathIsRelative(p%DirRoot) ) THEN
-   !   CALL Get_CWD  ( DirName, Stat )
-   !   IF (Stat /= 0) THEN
-   !      CALL SetErrStat( ErrID_Warn, 'Error retreiving current working directory. DirRoot will contain a relative path.', ErrStat, ErrMsg, RoutineName )
-   !      IF ( ErrStat >= AbortErrLev ) RETURN
-   !   ELSE
-   !      p%DirRoot = TRIM( DirName )//PathSep//TRIM( p%DirRoot )
-   !   END IF
-   !END IF
-
+   
    !...............................................................................................................................
    ! Initialize the module name/date/version info:
    !...............................................................................................................................
@@ -279,6 +263,11 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
    !...............................................................................................................................
    CALL FAST_ReadPrimaryFile( InputFile, p, ErrStat2, ErrMsg2 )
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName ) 
+      
+      ! overwrite TMax if necessary)
+   IF (PRESENT(TMax)) THEN
+      p%TMax = MAX( TMax, p%TMax )
+   END IF
    
    IF ( ErrStat >= AbortErrLev ) RETURN
 

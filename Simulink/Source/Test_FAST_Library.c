@@ -4,6 +4,7 @@
 #include <string.h>
 
 static double dt;
+static double TMax = 1.0;
 static double InputAry[2];
 static double OutputAry[2];
 static int NumInputs = 2;
@@ -22,16 +23,39 @@ main(int argc, char *argv[], char *env[])
    int j = 0;
    int k = 0;
    char ChannelNames[CHANNEL_LENGTH*MAXIMUM_OUTPUTS + 1];
-   char OutList[MAXIMUM_OUTPUTS][CHANNEL_LENGTH+1];
+  // char OutList[MAXIMUM_OUTPUTS][CHANNEL_LENGTH + 1];
+   char OutList[CHANNEL_LENGTH + 1];
 
       // initialization
    
 
 
    strcpy(InputFileName, "../../CertTest/Test01.fst");
-   FAST_Sizes(InputFileName, &AbortErrLev, &NumOutputs, &dt, &ErrStat, ErrMsg, ChannelNames);
+   FAST_Sizes(&TMax, InputFileName, &AbortErrLev, &NumOutputs, &dt, &ErrStat, ErrMsg, ChannelNames);
 
    checkError(ErrStat, ErrMsg);
+
+   fprintf(stderr, "DT = %f;", dt);
+   sprintf(ErrMsg, "DT = %f;", dt);
+   fprintf(stderr, "%s\n", ErrMsg);
+
+
+   for (i = 0; i < NumOutputs; i++){
+      j = CHANNEL_LENGTH - 1;
+      while (ChannelNames[i*CHANNEL_LENGTH + j] == ' '){
+         j--;
+      }
+      strncpy(&OutList[0], &ChannelNames[i*CHANNEL_LENGTH], j + 1);
+      OutList[j + 1] = '\0';
+
+      fprintf(stderr, "%d %s\n", i, OutList);
+
+      /*chrAry = mxCreateString(OutList);
+      mxSetCell(pm, i, chrAry);
+      mxDestroyArray(chrAry);*/
+   }
+
+
 
    /*
    // put the names of the output channels in a variable called "OutList" in the base matlab workspace
@@ -46,6 +70,9 @@ main(int argc, char *argv[], char *env[])
    }
    */
 
+
+
+   /*
    for (i = 0; i < NumOutputs; i++){
       //strncpy(&OutList[i][0], &ChannelNames[i*CHANNEL_LENGTH], CHANNEL_LENGTH);
       OutList[i][CHANNEL_LENGTH] = '\0'; // null terminator
@@ -62,12 +89,16 @@ main(int argc, char *argv[], char *env[])
       }
    }
 
+   for (i = 0; i < NumOutputs; i++){
+      fprintf(stderr, "%s\n", OutList[i]);
+   }
+   */
 
    FAST_Start(&NumOutputs, &OutputAry[0], &ErrStat, ErrMsg);
    if (checkError(ErrStat, ErrMsg)) return 1;
 
    // update
-   for (n_t_global = 0; n_t_global < 5001; n_t_global++){
+   for (n_t_global = 0; n_t_global < 2 ; n_t_global++){
       FAST_Update(&NumInputs, &NumOutputs, &InputAry[0], &OutputAry[0], &ErrStat, ErrMsg);
       if (checkError(ErrStat, ErrMsg)) return 1;
    }
