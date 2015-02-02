@@ -25,6 +25,7 @@ SET FAST_Loc=..\..\Source
 SET NWTC_Lib_Loc=%FAST_Loc%\dependencies\NWTC_Library
 SET ED_Loc=%FAST_Loc%\dependencies\ElastoDyn
 SET SrvD_Loc=%FAST_Loc%\dependencies\ServoDyn
+SET TMD_Loc=%SrvD_Loc%
 SET AD_Loc=%FAST_Loc%\dependencies\AeroDyn
 SET DWM_Loc=%AD_Loc%
 SET IfW_Loc=%FAST_Loc%\dependencies\InflowWind
@@ -69,6 +70,11 @@ GOTO checkError
 
 :ServoDyn
 SET CURR_LOC=%SrvD_Loc%
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%"
+GOTO checkError
+
+:TMD
+SET CURR_LOC=%TMD_Loc%
 %REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%"
 GOTO checkError
 

@@ -20,6 +20,7 @@ SET NWTC_Lib_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc
 SET NETLIB_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\branches\NetLib\NWTC_source
 SET ED_Loc=%FAST_Loc%
 SET SrvD_Loc=%FAST_Loc%
+SET TMD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\TMD\SVNdirectory\Source
 
 SET AD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\trunk\Source
 rem SET AD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\branches\DWM_fromOct3\Source
@@ -69,6 +70,7 @@ SET SrvD_Loc=%FAST_Loc%
 SET HD_Loc=C:\Users\bjonkman\Documents\CAETools\HydroDyn\Source
 SET HD_Reg_Loc=%HD_Loc%\RegistryFiles
 
+SET TMD_Loc=C:\Users\bjonkman\Documents\CAETools\TMD\Source
 :: SET MAP_DLL=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\SVNdirectory\trunk\executable\MAP_win32.dll
 
 
