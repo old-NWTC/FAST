@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.05.00, 12-Jan-2015)
+! FAST Registry (v2.05.00, 14-Jan-2015)
 !*********************************************************************************************************************************
 ! ElastoDyn_Types
 !.................................................................................................................................
@@ -776,6 +776,7 @@ IMPLICIT NONE
     TYPE(MeshType) , DIMENSION(:), ALLOCATABLE  :: BladeLn2Mesh      ! A mesh on each blade, containing aerodynamic forces and moments (formerly AeroBladeForce and AeroBladeMoment) [-]
     TYPE(MeshType)  :: PlatformPtMesh      ! A mesh at the platform reference (point Z), containing force: surge/xi (1), sway/yi (2), and heave/zi (3)-components; and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()s [N]
     TYPE(MeshType)  :: TowerLn2Mesh      ! Tower line2 mesh with forces: surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the tower force at the current tower node (point T); and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components of the portion of the tower moment acting at the current tower node [N/m]
+    TYPE(MeshType)  :: NacelleLoads      ! From ServoDyn/TMD: loads on the nacelle. [-]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: TwrAddedMass      ! 6-by-6 added mass matrix of the tower elements, per unit length-bjj: place on a mesh [per unit length]
     REAL(ReKi) , DIMENSION(1:6,1:6)  :: PtfmAddedMass      ! Platform added mass matrix [kg, kg-m, kg-m^2]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitchCom      ! Commanded blade pitch angles [radians]
@@ -792,7 +793,7 @@ IMPLICIT NONE
     TYPE(MeshType)  :: HubPtMotion      ! For AeroDyn: motions of the hub [-]
     TYPE(MeshType)  :: BladeRootMotions      ! For AeroDyn: motions of the blade roots [-]
     TYPE(MeshType)  :: RotorFurlMotion      ! For AeroDyn: motions of the rotor furl point. [-]
-    TYPE(MeshType)  :: NacelleMotion      ! For AeroDyn: motions of the nacelle. [-]
+    TYPE(MeshType)  :: NacelleMotion      ! For AeroDyn & ServoDyn/TMD: motions of the nacelle. [-]
     TYPE(MeshType)  :: TowerMotion      ! For AeroDyn: motions of the tower [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      ! Data to be written to an output file: see WriteOutputHdr for names of each variable [see WriteOutputUnt]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch      ! Current blade pitch angles [radians]
@@ -12070,6 +12071,9 @@ ENDIF
      CALL MeshCopy( SrcInputData%TowerLn2Mesh, DstInputData%TowerLn2Mesh, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_CopyInput:TowerLn2Mesh')
          IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcInputData%NacelleLoads, DstInputData%NacelleLoads, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_CopyInput:NacelleLoads')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcInputData%TwrAddedMass)) THEN
    i1_l = LBOUND(SrcInputData%TwrAddedMass,1)
    i1_u = UBOUND(SrcInputData%TwrAddedMass,1)
@@ -12120,6 +12124,7 @@ ENDDO
 ENDIF
   CALL MeshDestroy( InputData%PlatformPtMesh, ErrStat, ErrMsg )
   CALL MeshDestroy( InputData%TowerLn2Mesh, ErrStat, ErrMsg )
+  CALL MeshDestroy( InputData%NacelleLoads, ErrStat, ErrMsg )
 IF (ALLOCATED(InputData%TwrAddedMass)) THEN
    DEALLOCATE(InputData%TwrAddedMass)
 ENDIF
@@ -12158,6 +12163,9 @@ ENDIF
   REAL(ReKi),     ALLOCATABLE :: Re_TowerLn2Mesh_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_TowerLn2Mesh_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_TowerLn2Mesh_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_NacelleLoads_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_NacelleLoads_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_NacelleLoads_Buf(:)
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -12195,6 +12203,13 @@ ENDDO
   IF(ALLOCATED(Re_TowerLn2Mesh_Buf))  DEALLOCATE(Re_TowerLn2Mesh_Buf)
   IF(ALLOCATED(Db_TowerLn2Mesh_Buf))  DEALLOCATE(Db_TowerLn2Mesh_Buf)
   IF(ALLOCATED(Int_TowerLn2Mesh_Buf)) DEALLOCATE(Int_TowerLn2Mesh_Buf)
+  CALL MeshPack( InData%NacelleLoads, Re_NacelleLoads_Buf, Db_NacelleLoads_Buf, Int_NacelleLoads_Buf, ErrStat, ErrMsg, .TRUE. ) ! NacelleLoads 
+  IF(ALLOCATED(Re_NacelleLoads_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_NacelleLoads_Buf  ) ! NacelleLoads
+  IF(ALLOCATED(Db_NacelleLoads_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_NacelleLoads_Buf  ) ! NacelleLoads
+  IF(ALLOCATED(Int_NacelleLoads_Buf))Int_BufSz = Int_BufSz + SIZE( Int_NacelleLoads_Buf ) ! NacelleLoads
+  IF(ALLOCATED(Re_NacelleLoads_Buf))  DEALLOCATE(Re_NacelleLoads_Buf)
+  IF(ALLOCATED(Db_NacelleLoads_Buf))  DEALLOCATE(Db_NacelleLoads_Buf)
+  IF(ALLOCATED(Int_NacelleLoads_Buf)) DEALLOCATE(Int_NacelleLoads_Buf)
   IF ( ALLOCATED(InData%TwrAddedMass) )   Re_BufSz    = Re_BufSz    + SIZE( InData%TwrAddedMass )  ! TwrAddedMass 
   Re_BufSz    = Re_BufSz    + SIZE( InData%PtfmAddedMass )  ! PtfmAddedMass 
   IF ( ALLOCATED(InData%BlPitchCom) )   Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitchCom )  ! BlPitchCom 
@@ -12254,6 +12269,22 @@ ENDDO
   IF( ALLOCATED(Re_TowerLn2Mesh_Buf) )  DEALLOCATE(Re_TowerLn2Mesh_Buf)
   IF( ALLOCATED(Db_TowerLn2Mesh_Buf) )  DEALLOCATE(Db_TowerLn2Mesh_Buf)
   IF( ALLOCATED(Int_TowerLn2Mesh_Buf) ) DEALLOCATE(Int_TowerLn2Mesh_Buf)
+  CALL MeshPack( InData%NacelleLoads, Re_NacelleLoads_Buf, Db_NacelleLoads_Buf, Int_NacelleLoads_Buf, ErrStat, ErrMsg, OnlySize ) ! NacelleLoads 
+  IF(ALLOCATED(Re_NacelleLoads_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_NacelleLoads_Buf)-1 ) = Re_NacelleLoads_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_NacelleLoads_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_NacelleLoads_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_NacelleLoads_Buf)-1 ) = Db_NacelleLoads_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_NacelleLoads_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_NacelleLoads_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_NacelleLoads_Buf)-1 ) = Int_NacelleLoads_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_NacelleLoads_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_NacelleLoads_Buf) )  DEALLOCATE(Re_NacelleLoads_Buf)
+  IF( ALLOCATED(Db_NacelleLoads_Buf) )  DEALLOCATE(Db_NacelleLoads_Buf)
+  IF( ALLOCATED(Int_NacelleLoads_Buf) ) DEALLOCATE(Int_NacelleLoads_Buf)
   IF ( ALLOCATED(InData%TwrAddedMass) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TwrAddedMass))-1 ) =  PACK(InData%TwrAddedMass ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%TwrAddedMass)
@@ -12305,6 +12336,9 @@ ENDDO
   REAL(ReKi),    ALLOCATABLE :: Re_TowerLn2Mesh_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_TowerLn2Mesh_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_TowerLn2Mesh_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_NacelleLoads_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_NacelleLoads_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_NacelleLoads_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
@@ -12368,6 +12402,23 @@ ENDDO
   IF( ALLOCATED(Re_TowerLn2Mesh_Buf) )  DEALLOCATE(Re_TowerLn2Mesh_Buf)
   IF( ALLOCATED(Db_TowerLn2Mesh_Buf) )  DEALLOCATE(Db_TowerLn2Mesh_Buf)
   IF( ALLOCATED(Int_TowerLn2Mesh_Buf) ) DEALLOCATE(Int_TowerLn2Mesh_Buf)
+  CALL MeshPack( OutData%NacelleLoads, Re_NacelleLoads_Buf, Db_NacelleLoads_Buf, Int_NacelleLoads_Buf, ErrStat, ErrMsg , .TRUE. ) ! NacelleLoads 
+  IF(ALLOCATED(Re_NacelleLoads_Buf)) THEN
+    Re_NacelleLoads_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_NacelleLoads_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_NacelleLoads_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_NacelleLoads_Buf)) THEN
+    Db_NacelleLoads_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_NacelleLoads_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_NacelleLoads_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_NacelleLoads_Buf)) THEN
+    Int_NacelleLoads_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_NacelleLoads_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_NacelleLoads_Buf)
+  ENDIF
+  CALL MeshUnPack( OutData%NacelleLoads, Re_NacelleLoads_Buf, Db_NacelleLoads_Buf, Int_NacelleLoads_Buf, ErrStat, ErrMsg ) ! NacelleLoads 
+  IF( ALLOCATED(Re_NacelleLoads_Buf) )  DEALLOCATE(Re_NacelleLoads_Buf)
+  IF( ALLOCATED(Db_NacelleLoads_Buf) )  DEALLOCATE(Db_NacelleLoads_Buf)
+  IF( ALLOCATED(Int_NacelleLoads_Buf) ) DEALLOCATE(Int_NacelleLoads_Buf)
   IF ( ALLOCATED(OutData%TwrAddedMass) ) THEN
   ALLOCATE(mask3(SIZE(OutData%TwrAddedMass,1),SIZE(OutData%TwrAddedMass,2),SIZE(OutData%TwrAddedMass,3)))
   mask3 = .TRUE.
@@ -13190,6 +13241,9 @@ END IF ! check if allocated
   CALL MeshCopy(u(1)%TowerLn2Mesh, u_out%TowerLn2Mesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_Input_ExtrapInterp:%TowerLn2Mesh')
          IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshCopy(u(1)%NacelleLoads, u_out%NacelleLoads, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_Input_ExtrapInterp:%NacelleLoads')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(u_out%TwrAddedMass) .AND. ALLOCATED(u(1)%TwrAddedMass)) THEN
   u_out%TwrAddedMass = u(1)%TwrAddedMass
 END IF ! check if allocated
@@ -13218,6 +13272,9 @@ END IF ! check if allocated
          IF (ErrStat>=AbortErrLev) RETURN
   CALL MeshExtrapInterp1(u(1)%TowerLn2Mesh, u(2)%TowerLn2Mesh, tin, u_out%TowerLn2Mesh, tin_out, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_Input_ExtrapInterp:%TowerLn2Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp1(u(1)%NacelleLoads, u(2)%NacelleLoads, tin, u_out%NacelleLoads, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_Input_ExtrapInterp:%NacelleLoads')
          IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(u_out%TwrAddedMass) .AND. ALLOCATED(u(1)%TwrAddedMass)) THEN
   ALLOCATE(b3(SIZE(u_out%TwrAddedMass,1),SIZE(u_out%TwrAddedMass,2), &
@@ -13277,6 +13334,9 @@ END IF ! check if allocated
          IF (ErrStat>=AbortErrLev) RETURN
   CALL MeshExtrapInterp2(u(1)%TowerLn2Mesh, u(2)%TowerLn2Mesh, u(3)%TowerLn2Mesh, tin, u_out%TowerLn2Mesh, tin_out, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_Input_ExtrapInterp:%TowerLn2Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp2(u(1)%NacelleLoads, u(2)%NacelleLoads, u(3)%NacelleLoads, tin, u_out%NacelleLoads, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_Input_ExtrapInterp:%NacelleLoads')
          IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(u_out%TwrAddedMass) .AND. ALLOCATED(u(1)%TwrAddedMass)) THEN
   ALLOCATE(b3(SIZE(u_out%TwrAddedMass,1),SIZE(u_out%TwrAddedMass,2), &

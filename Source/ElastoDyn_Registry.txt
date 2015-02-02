@@ -779,6 +779,7 @@ typedef	^	ParameterType	LOGICAL	BD4Blades	-	-	-	"flag to determine if BeamDyn is
 typedef	^	InputType	MeshType	BladeLn2Mesh	{:}	-	-	"A mesh on each blade, containing aerodynamic forces and moments (formerly AeroBladeForce and AeroBladeMoment)"
 typedef	^	InputType	MeshType	PlatformPtMesh	-	-	-	"A mesh at the platform reference (point Z), containing force: surge/xi (1), sway/yi (2), and heave/zi (3)-components; and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()s"	N
 typedef	^	InputType	MeshType	TowerLn2Mesh	-	-	-	"Tower line2 mesh with forces: surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the tower force at the current tower node (point T); and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components of the portion of the tower moment acting at the current tower node"	N/m
+typedef	^	InputType	MeshType	NacelleLoads	-	-	-	"From ServoDyn/TMD: loads on the nacelle."
 # Define inputs that are not on a mesh here:
 typedef	^	InputType	ReKi	TwrAddedMass	{:}{:}{:}	-	-	"6-by-6 added mass matrix of the tower elements, per unit length-bjj: place on a mesh" 	"per unit length"
 typedef	^	InputType	ReKi	PtfmAddedMass	{6}{6}	-	-	"Platform added mass matrix"	"kg, kg-m, kg-m^2"
@@ -796,7 +797,7 @@ typedef	^	OutputType	MeshType	TowerLn2Mesh	-	-	-	"Tower line2 mesh with position
 typedef	^	OutputType	MeshType	HubPtMotion	-	-	-	"For AeroDyn: motions of the hub"
 typedef	^	OutputType	MeshType	BladeRootMotions	-	-	-	"For AeroDyn: motions of the blade roots"
 typedef	^	OutputType	MeshType	RotorFurlMotion	-	-	-	"For AeroDyn: motions of the rotor furl point."
-typedef	^	OutputType	MeshType	NacelleMotion	-	-	-	"For AeroDyn: motions of the nacelle."
+typedef	^	OutputType	MeshType	NacelleMotion	-	-	-	"For AeroDyn & ServoDyn/TMD: motions of the nacelle."
 typedef	^	OutputType	MeshType	TowerMotion	-	-	-	"For AeroDyn: motions of the tower"
 
 # Define outputs that are not on this mesh here:

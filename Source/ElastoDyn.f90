@@ -1430,7 +1430,8 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    
    u%TwrAddedMass          = 0.0_ReKi  
 
-   
+   u%NacelleLoads%Force    = 0.0_ReKi
+   u%NacelleLoads%Moment   = 0.0_ReKi
    
    
    u%BlPitchCom      = InputFileData%BlPitch(1:p%NumBl)
@@ -1679,6 +1680,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       ! Local variables:
 
    REAL(ReKi)                   :: AngAccEB  (3)                                   ! Angular acceleration of the base plate                                                (body B) in the inertia frame (body E for earth).
+   REAL(ReKi)                   :: AngAccEN  (3)                                   ! Angular acceleration of the nacelle                                                   (body N) in the inertia frame (body E for earth).
    REAL(ReKi)                   :: AngAccER  (3)                                   ! Angular acceleration of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame (body E for earth).
    REAL(ReKi)                   :: AngAccEX  (3)                                   ! Angular acceleration of the platform                                                  (body X) in the inertia frame (body E for earth).
 !   REAL(ReKi)                   :: ComDenom                                        ! Common denominator used in several expressions.
@@ -1775,6 +1777,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    !...............................................................................................................................
 
    AngAccEB   = OtherState%RtHS%AngAccEBt
+   AngAccEN   = OtherState%RtHS%AngAccENt
    AngAccER   = OtherState%RtHS%AngAccERt
    AngAccEX   = OtherState%RtHS%AngAccEXt
    LinAccEIMU = OtherState%RtHS%LinAccEIMUt
@@ -1802,6 +1805,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
    DO I = 1,p%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
       AngAccEB   = AngAccEB   + OtherState%RtHS%PAngVelEB  (p%DOFs%SrtPS(I),0,:)*OtherState%QD2T(p%DOFs%SrtPS(I))
+      AngAccEN   = AngAccEN   + OtherState%RtHS%PAngVelEN  (p%DOFs%SrtPS(I),0,:)*OtherState%QD2T(p%DOFs%SrtPS(I))      
       AngAccER   = AngAccER   + OtherState%RtHS%PAngVelER  (p%DOFs%SrtPS(I),0,:)*OtherState%QD2T(p%DOFs%SrtPS(I))
       LinAccEIMU = LinAccEIMU + OtherState%RtHS%PLinVelEIMU(p%DOFs%SrtPS(I),0,:)*OtherState%QD2T(p%DOFs%SrtPS(I))
       LinAccEO   = LinAccEO   + OtherState%RtHS%PLinVelEO  (p%DOFs%SrtPS(I),0,:)*OtherState%QD2T(p%DOFs%SrtPS(I))
@@ -2634,6 +2638,19 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    y%NacelleMotion%RotationVel(1,1)   =     OtherState%RtHS%AngVelEN(1)
    y%NacelleMotion%RotationVel(2,1)   = -1.*OtherState%RtHS%AngVelEN(3)
    y%NacelleMotion%RotationVel(3,1)   =     OtherState%RtHS%AngVelEN(2) 
+      
+   y%NacelleMotion%TranslationVel(1,1)  =     OtherState%RtHS%LinVelEO(1)
+   y%NacelleMotion%TranslationVel(2,1)  = -1.*OtherState%RtHS%LinVelEO(3)
+   y%NacelleMotion%TranslationVel(3,1)  =     OtherState%RtHS%LinVelEO(2)
+      
+   y%NacelleMotion%RotationAcc(   1,1)  =      AngAccEN(1) 
+   y%NacelleMotion%RotationAcc(   2,1)  =  -1.*AngAccEN(3) 
+   y%NacelleMotion%RotationAcc(   3,1)  =      AngAccEN(2)
+   
+   y%NacelleMotion%TranslationAcc(1,1)  =      LinAccEO(1)
+   y%NacelleMotion%TranslationAcc(2,1)  =  -1.*LinAccEO(3)
+   y%NacelleMotion%TranslationAcc(3,1)  =      LinAccEO(2)
+   
    
    !...........
    ! Tower :
@@ -11944,7 +11961,7 @@ SUBROUTINE CalculateForcesMoments( p, x, CoordSys, u, RtHSdat )
    TYPE(ED_ParameterType),       INTENT(IN   )  :: p           ! Parameters
    TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
    TYPE(ED_CoordSys),            INTENT(IN   )  :: CoordSys    ! The coordinate systems that have been set for these states/time
-   TYPE(ED_InputType),           INTENT(IN   )  :: u           ! The aero blade forces/moments
+   TYPE(ED_InputType),           INTENT(IN   )  :: u           ! The aero (blade) & nacelle forces/moments
    TYPE(ED_RtHndSide),           INTENT(INOUT)  :: RtHSdat     ! data from the RtHndSid module (contains positions to be set)
 
       ! Local variables
@@ -12285,13 +12302,13 @@ DO K = 1,p%NumBl ! Loop through all blades
    TmpVec3 = CROSS_PRODUCT( RtHSdat%rOV, RtHSdat%FrcVGnRtt )                         ! The portion of MomBNcRtt associated with the FrcVGnRtt
    TmpVec4 = CROSS_PRODUCT( RtHSdat%rOW, RtHSdat%FrcWTailt )                         ! The portion of MomBNcRtt associated with the FrcWTailt
    TmpVec  = p%Nacd2Iner*CoordSys%d2*DOT_PRODUCT( CoordSys%d2, RtHSdat%AngVelEN )    ! = ( Nacelle inertia dyadic ) dot ( angular velocity of nacelle in the inertia frame )
-
-   RtHSdat%FrcONcRtt = RtHSdat%FrcVGnRtt + RtHSdat%FrcWTailt + TmpVec1
+    
+   RtHSdat%FrcONcRtt = RtHSdat%FrcVGnRtt + RtHSdat%FrcWTailt + TmpVec1 + (/ u%NacelleLoads%Force(1,1), u%NacelleLoads%Force(3,1), -u%NacelleLoads%Force(2,1) /)
+   
    RtHSdat%MomBNcRtt = RtHSdat%MomNGnRtt + RtHSdat%MomNTailt + TmpVec2 + TmpVec3 + TmpVec4  &
                         + CROSS_PRODUCT( -RtHSdat%AngVelEN, TmpVec    )                     &    ! = ( -angular velocity of nacelle in the inertia frame ) cross ( TmpVec ) &
-                        - p%Nacd2Iner*CoordSys%d2*DOT_PRODUCT( CoordSys%d2, RtHSdat%AngAccENt )
-
-
+                        - p%Nacd2Iner*CoordSys%d2*DOT_PRODUCT( CoordSys%d2, RtHSdat%AngAccENt ) &
+                        + (/ u%NacelleLoads%Moment(1,1), u%NacelleLoads%Moment(3,1), -u%NacelleLoads%Moment(2,1) /)
 
 !.....................................
 ! PFTHydro and PMFHydro   
@@ -13096,7 +13113,7 @@ SUBROUTINE ED_AllocOutput( u, y, p, ErrStat, ErrMsg )
    CALL MeshPositionNode ( y%HubPtMotion, 1, (/0.0_ReKi, 0.0_ReKi, p%HubHt /), ErrStat, ErrMsg ) !orientation is identity by default
       CALL CheckError(ErrStat2,ErrMsg2)
       IF (ErrStat >= AbortErrLev) RETURN
-      
+            
    CALL CommitPointMesh( y%HubPtMotion )
       IF (ErrStat >= AbortErrLev) RETURN
  
@@ -13158,27 +13175,23 @@ SUBROUTINE ED_AllocOutput( u, y, p, ErrStat, ErrMsg )
    CALL CommitPointMesh( y%RotorFurlMotion )
       IF (ErrStat >= AbortErrLev) RETURN      
       
-   ! -------------- Nacelle -----------------------------------
-   CALL MeshCreate( BlankMesh          = y%NacelleMotion        &
-                     ,IOS              = COMPONENT_OUTPUT       &
-                     ,NNodes           = 1                      &
-                     , TranslationDisp = .TRUE.                 &
-                     , Orientation     = .TRUE.                 &
-                     , RotationVel     = .TRUE.                 &
-                     ,ErrStat          = ErrStat2               &
-                     ,ErrMess          = ErrMsg2                )
-      CALL CheckError(ErrStat2,ErrMsg2)
-      IF (ErrStat >= AbortErrLev) RETURN
-
-!bjj: FIX THIS>>>>     
-!call wrscr(newline//'fix NacelleMotion initialization')
-   CALL MeshPositionNode ( y%NacelleMotion, 1, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat, ErrMsg ) !orientation is identity by default
-!<<<<<FIX THIS
-      CALL CheckError(ErrStat2,ErrMsg2)
+   ! -------------- Nacelle -----------------------------------      
+   CALL MeshCopy ( SrcMesh  = u%NacelleLoads   &
+                 , DestMesh = y%NacelleMotion  &
+                 , CtrlCode = MESH_SIBLING     &
+                 , IOS      = COMPONENT_OUTPUT &
+                 , TranslationDisp = .TRUE.    &
+                 , Orientation     = .TRUE.    &
+                 , TranslationVel  = .TRUE.    &
+                 , RotationVel     = .TRUE.    &
+                 , TranslationAcc  = .TRUE.    &
+                 , RotationAcc     = .TRUE.    &   
+                 , ErrStat         = ErrStat2  &
+                 , ErrMess         = ErrMsg2   )      ! automatically sets    y%NacelleMotion%RemapFlag   = .TRUE.
+   
+      CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
       
-   CALL CommitPointMesh( y%NacelleMotion )
-      IF (ErrStat >= AbortErrLev) RETURN      
       
      
    ! -------------- Tower -----------------------------------
@@ -13332,9 +13345,9 @@ SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
          Orientation(2,2) =  p%CAeroTwst(J)
          Orientation(3,2) =  0.0_ReKi
 
-         Orientation(1,3) = 0.0_ReKi
-         Orientation(2,3) = 0.0_ReKi
-         Orientation(3,3) = 1.0_ReKi
+         Orientation(1,3) =  0.0_ReKi
+         Orientation(2,3) =  0.0_ReKi
+         Orientation(3,3) =  1.0_ReKi
                   
          
          CALL MeshPositionNode ( u%BladeLn2Mesh(K), NodeNum, (/0.0_ReKi, 0.0_ReKi, p%RNodes(J) /), ErrStat2, ErrMsg2, Orient=Orientation )
@@ -13428,7 +13441,39 @@ SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
       CALL CheckError(ErrStat2,ErrMsg2)
       IF (ErrStat >= AbortErrLev) RETURN
       
-   
+   !.......................................................
+   ! Create Point Mesh for loads input at nacelle:
+   !.......................................................
+         
+   CALL MeshCreate( BlankMesh          = u%NacelleLoads      &
+                     ,IOS              = COMPONENT_OUTPUT    &
+                     ,NNodes           = 1                   &
+                     ,Force            = .TRUE.              &
+                     ,Moment           = .TRUE.              &   
+                     ,ErrStat          = ErrStat2            &
+                     ,ErrMess          = ErrMsg2             )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+
+   CALL MeshPositionNode ( u%NacelleLoads,  1, (/0.0_ReKi, 0.0_ReKi, p%TowerHt /), ErrStat, ErrMsg ) !orientation is identity by default
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+      
+      ! create an element from this point      
+   CALL MeshConstructElement ( Mesh = u%NacelleLoads          &
+                              , Xelement = ELEMENT_POINT      &
+                              , P1       = 1                  &   ! node number
+                              , ErrStat  = ErrStat            &
+                              , ErrMess  = ErrMsg             )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+      
+      
+   CALL MeshCommit ( u%NacelleLoads, ErrStat2, ErrMsg2 )   
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN      
+            
+      
    !.......................................................
    ! Create Line2 Mesh for loads input on tower:
    !.......................................................
