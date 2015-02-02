@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.05.00, 12-Jan-2015)
+! FAST Registry (v2.05.00, 14-Jan-2015)
 !*********************************************************************************************************************************
 ! AeroDyn_Types
 !.................................................................................................................................
@@ -33,6 +33,7 @@ MODULE AeroDyn_Types
 !---------------------------------------------------------------------------------------------------------------------------------
 USE IfW_FFWind_Types
 USE IfW_HHWind_Types
+USE Lidar_Types
 USE InflowWind_Types
 USE DWM_Types
 USE NWTC_Library

@@ -878,8 +878,8 @@ IF (ErrStat >= AbortErrLev) RETURN
   SUBROUTINE MAP_ERROR_CHECKER(msg, stat, ErrMsg, ErrStat)
     CHARACTER(KIND=C_CHAR), DIMENSION(1024), INTENT(INOUT) :: msg
     INTEGER(KIND=C_INT),                     INTENT(INOUT) :: stat
-    CHARACTER(*),                            INTENT(INOUT) :: ErrMsg 
-    INTEGER(IntKi),                          INTENT(INOUT) :: ErrStat    
+    CHARACTER(*),                            INTENT(  OUT) :: ErrMsg 
+    INTEGER(IntKi),                          INTENT(  OUT) :: ErrStat    
     INTEGER                                                :: i                                             
 
     ErrStat = ErrID_None

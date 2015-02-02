@@ -1,5 +1,5 @@
 !**********************************************************************************************************************************
-! $Id: InflowWind.f90 121 2014-09-24 20:13:00Z bjonkman $
+! $Id: InflowWind.f90 136 2015-01-30 21:58:56Z bjonkman $
 !
 ! This module is used to read and process the (undisturbed) inflow winds.  It must be initialized
 ! using InflowWind_Init() with the name of the file, the file type, and possibly reference height and
@@ -16,8 +16,8 @@
 !    Feb 2013    v2.00.00a-adp   conversion to Framework       A. Platt
 !
 !----------------------------------------------------------------------------------------------------
-! File last committed: $Date: 2014-09-24 14:13:00 -0600 (Wed, 24 Sep 2014) $
-! (File) Revision #: $Rev: 121 $
+! File last committed: $Date: 2015-01-30 14:58:56 -0700 (Fri, 30 Jan 2015) $
+! (File) Revision #: $Rev: 136 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/InflowWind.f90 $
 !..................................................................................................................................
 ! Files with this module:
@@ -44,23 +44,23 @@
 MODULE InflowWind
 
 
-   USE                              InflowWind_Types   
-   !FIXME: this file will replace SharedInflowDefs when I can get it to work with the framework registry generator.
-   USE                              NWTC_Library
+   USE InflowWind_Types   
+   USE NWTC_Library
 
       !-------------------------------------------------------------------------------------------------
-      ! The included wind modules
+      ! The included wind & sensor modules
       !-------------------------------------------------------------------------------------------------
 
-   USE                              IfW_HHWind_Types           ! Types for IfW_HHWind
-   USE                              IfW_HHWind                 ! hub-height text wind files
-   USE                              IfW_FFWind_Types           ! Types for IfW_FFWind
-   USE                              IfW_FFWind                 ! full-field binary wind files
-!   USE                              HAWCWind                   ! full-field binary wind files in HAWC format
-!   USE                              FDWind                     ! 4-D binary wind files
-!   USE                              CTWind                     ! coherent turbulence from KH billow - binary file superimposed on another wind type
-!   USE                              UserWind                   ! user-defined wind module
+   USE IfW_HHWind_Types           ! Types for IfW_HHWind
+   USE IfW_HHWind                 ! hub-height text wind files
+   USE IfW_FFWind_Types           ! Types for IfW_FFWind
+   USE IfW_FFWind                 ! full-field binary wind files
+!  USE HAWCWind                   ! full-field binary wind files in HAWC format
+!  USE FDWind                     ! 4-D binary wind files
+!  USE CTWind                     ! coherent turbulence from KH billow - binary file superimposed on another wind type
+!  USE UserWind                   ! user-defined wind module
 
+   USE Lidar                      ! module for obtaining sensor data
 
       !-------------------------------------------------------------------------------------------------
       ! The subroutines
@@ -74,7 +74,7 @@ MODULE InflowWind
    IMPLICIT NONE
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: IfW_Ver = ProgDesc( 'InflowWind', 'v2.00.01c-bjj', '30-Sep-2014' )
+   TYPE(ProgDesc), PARAMETER            :: IfW_Ver = ProgDesc( 'InflowWind', 'v2.01.00a-bjj', '30-Jan-2015' )
 
 
 
@@ -162,10 +162,15 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
       REAL(ReKi)                                         :: Height            ! Retrieved from FF
       REAL(ReKi)                                         :: HalfWidth         ! Retrieved from FF
 
+      INTEGER(IntKi)                                     :: NumOuts_Sensor
+      INTEGER(IntKi)                                     :: NumOuts_Mod
+      INTEGER(IntKi)                                     :: i
+      
          ! Temporary variables for error handling
       INTEGER(IntKi)                                     :: TmpErrStat
       CHARACTER(LEN(ErrMsg))                             :: TmpErrMsg      ! temporary error message
 
+      CHARACTER(*), PARAMETER                            :: RoutineName = 'IfW_Init'
 !NOTE: I may need to revamp how data is passed to the lower modules. Might need to do that before going any further.
 
 
@@ -182,7 +187,7 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
          ! If for some reason a different type of windfile should be used, then call InflowWind_End first, then reinitialize.
 
       IF ( ParamData%Initialized ) THEN
-         CALL SetErrStat( ErrID_Warn, ' InflowWind has already been initialized.', ErrStat, ErrMsg, ' IfW_Init' )                  
+         CALL SetErrStat( ErrID_Warn, ' InflowWind has already been initialized.', ErrStat, ErrMsg, RoutineName )                  
          IF ( ErrStat >= AbortErrLev ) RETURN
       ENDIF
 
@@ -216,13 +221,22 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
 
       IF ( InitData%WindFileType == DEFAULT_WindNumber ) THEN
          CALL GetWindType( ParamData, TmpErrStat, TmpErrMsg )
-            CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, ' IfW_Init' )                  
+            CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, RoutineName )                  
             IF ( ErrStat >= AbortErrLev ) RETURN
       ELSE
          ParamData%WindFileType = InitData%WindFileType
       END IF
 
 
+      IF (InitData%lidar%SensorType == SensorType_None) THEN
+         NumOuts_Sensor = 0
+      ELSEIF (InitData%lidar%SensorType == SensorType_PulsedLidar) THEN
+         NumOuts_Sensor = MAX(0,min(5,InitData%lidar%NumPulseGate))
+      ELSE
+         NumOuts_Sensor = 1      
+      END IF
+      NumOuts_Mod = 0
+      
          !----------------------------------------------------------------------------------------------
          ! Check for coherent turbulence file (KH superimposed on a background wind file)
          ! Initialize the CTWind module and initialize the module of the other wind type.
@@ -231,7 +245,7 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
       IF ( ParamData%WindFileType == CTP_WindNumber ) THEN
 
 !FIXME: remove this error message when we add CTP_Wind in
-            CALL SetErrStat( ErrID_Fatal, ' InflowWind cannot currently handle the CTP_Wind type.', ErrStat, ErrMsg, ' IfW_Init' )                  
+            CALL SetErrStat( ErrID_Fatal, ' InflowWind cannot currently handle the CTP_Wind type.', ErrStat, ErrMsg, RoutineName )                  
             RETURN
 
 !         CALL CT_Init(UnWind, ParamData%WindFileName, BackGrndValues, ErrStat, ErrMsg)
@@ -273,26 +287,28 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
                                  HH_ContStates, HH_DiscStates, HH_ConstrStates,     OtherStates%HHWind,  &
                                  HH_OutData,    TimeInterval,  InitOutData%HHWind,  TmpErrStat,          TmpErrMsg)
 
-               CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, ' IfW_Init' )                  
+               CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, RoutineName )                  
                IF ( ErrStat >= AbortErrLev ) RETURN
             
 
               ! Copy Relevant info over to InitOutData
 
-                  ! Allocate and copy over the WriteOutputHdr info
-               CALL AllocAry( InitOutData%WriteOutputHdr, SIZE(InitOutData%HHWind%WriteOutputHdr,1), &
-                              'Empty array for names of outputable information.', TmpErrStat, TmpErrMsg )
-                  CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, ' IfW_Init' )                  
-                  IF ( ErrStat >= AbortErrLev ) RETURN
-               InitOutData%WriteOutputHdr    =  InitOutData%HHWind%WriteOutputHdr
-
-                  ! Allocate and copy over the WriteOutputUnt info
-               CALL AllocAry( InitOutData%WriteOutputUnt, SIZE(InitOutData%HHWind%WriteOutputUnt,1), &
-                              'Empty array for units of outputable information.', TmpErrStat, TmpErrMsg )
-                  CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, ' IfW_Init' )                  
-                  IF ( ErrStat >= AbortErrLev ) RETURN
-
-               InitOutData%WriteOutputUnt    =  InitOutData%HHWind%WriteOutputUnt
+                  ! Allocate and copy over the WriteOutputHdr and WriteOutputUnt info
+               IF (ALLOCATED(InitOutData%HHWind%WriteOutputHdr)) THEN
+                  NumOuts_Mod = SIZE(InitOutData%HHWind%WriteOutputHdr,1)
+               END IF
+               
+               CALL AllocAry( InitOutData%WriteOutputHdr, NumOuts_Mod+NumOuts_Sensor, 'InitOutData%WriteOutputHdr', TmpErrStat, TmpErrMsg )
+                  CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, RoutineName )                  
+               CALL AllocAry( InitOutData%WriteOutputUnt, NumOuts_Mod+NumOuts_Sensor, 'InitOutData%WriteOutputUnt', TmpErrStat, TmpErrMsg )
+                  CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, RoutineName )                  
+                                    
+               IF ( ErrStat >= AbortErrLev ) RETURN
+               
+               IF (NumOuts_Mod > 0) THEN   
+                  InitOutData%WriteOutputHdr(1:NumOuts_Mod)  =  InitOutData%HHWind%WriteOutputHdr
+                  InitOutData%WriteOutputUnt(1:NumOuts_Mod)  =  InitOutData%HHWind%WriteOutputUnt
+               END IF
 
                   ! Copy the hub height info over
                InitOutData%HubHeight         =  InitOutData%HHWind%HubHeight
@@ -312,27 +328,29 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
                                  FF_ContStates, FF_DiscStates, FF_ConstrStates,     OtherStates%FFWind,  &
                                  FF_OutData,    TimeInterval,  InitOutData%FFWind,  TmpErrStat,          TmpErrMsg)
 
-               CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, ' IfW_Init' )                  
+               CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, RoutineName )                  
                IF ( ErrStat >= AbortErrLev ) RETURN
             
 
               ! Copy Relevant info over to InitOutData
 
-                  ! Allocate and copy over the WriteOutputHdr info
-               CALL AllocAry( InitOutData%WriteOutputHdr, SIZE(InitOutData%FFWind%WriteOutputHdr,1), &
-                              'Empty array for names of outputable information.', TmpErrStat, TmpErrMsg )
-                  CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, ' IfW_Init' )                  
-                  IF ( ErrStat >= AbortErrLev ) RETURN
-
-               InitOutData%WriteOutputHdr    =  InitOutData%FFWind%WriteOutputHdr
-
-                  ! Allocate and copy over the WriteOutputUnt info
-               CALL AllocAry( InitOutData%WriteOutputUnt, SIZE(InitOutData%FFWind%WriteOutputUnt,1), &
-                              'Empty array for units of outputable information.', TmpErrStat, TmpErrMsg )
-                  CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, ' IfW_Init' )                  
-                  IF ( ErrStat >= AbortErrLev ) RETURN
-
-               InitOutData%WriteOutputUnt    =  InitOutData%FFWind%WriteOutputUnt
+                  ! Allocate and copy over the WriteOutputHdr and WriteOutputUnt info
+               IF (ALLOCATED(InitOutData%FFWind%WriteOutputHdr)) THEN
+                  NumOuts_Mod = SIZE(InitOutData%FFWind%WriteOutputHdr,1)
+               END IF
+               
+               CALL AllocAry( InitOutData%WriteOutputHdr, NumOuts_Mod+NumOuts_Sensor, 'InitOutData%WriteOutputHdr', TmpErrStat, TmpErrMsg )
+                  CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, RoutineName )                  
+               CALL AllocAry( InitOutData%WriteOutputUnt, NumOuts_Mod+NumOuts_Sensor, 'InitOutData%WriteOutputUnt', TmpErrStat, TmpErrMsg )
+                  CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, RoutineName )                  
+                                    
+               IF ( ErrStat >= AbortErrLev ) RETURN
+               
+               IF (NumOuts_Mod > 0) THEN   
+                  InitOutData%WriteOutputHdr(1:NumOuts_Mod)  =  InitOutData%FFWind%WriteOutputHdr
+                  InitOutData%WriteOutputUnt(1:NumOuts_Mod)  =  InitOutData%FFWind%WriteOutputUnt
+               END IF              
+                            
 
                   ! Copy the hub height info over
                InitOutData%HubHeight         =  InitOutData%FFWind%HubHeight
@@ -353,7 +371,7 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
          CASE (UD_WindNumber)
 
                !FIXME: remove this error message when we add UD_Wind in
-            CALL SetErrStat( ErrID_Fatal, ' InflowWind cannot currently handle the UD_Wind type.', ErrStat, ErrMsg, ' IfW_Init' )                  
+            CALL SetErrStat( ErrID_Fatal, 'InflowWind cannot currently handle the UD_Wind type.', ErrStat, ErrMsg, RoutineName )                  
             RETURN
 
 !            CALL UsrWnd_Init(ErrStat)
@@ -362,7 +380,7 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
          CASE (FD_WindNumber)
 
                !FIXME: remove this error message when we add FD_Wind in
-            CALL SetErrStat( ErrID_Fatal, ' InflowWind cannot currently handle the FD_Wind type.', ErrStat, ErrMsg, ' IfW_Init' )                  
+            CALL SetErrStat( ErrID_Fatal, 'InflowWind cannot currently handle the FD_Wind type.', ErrStat, ErrMsg, RoutineName )                  
             RETURN
 
 !            CALL IfW_FDWind_Init(UnWind, ParamData%WindFileName, InitData%ReferenceHeight, ErrStat)
@@ -371,7 +389,7 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
          CASE (HAWC_WindNumber)
 
                !FIXME: remove this error message when we add HAWC_Wind in
-            CALL SetErrStat( ErrID_Fatal, ' InflowWind cannot currently handle the HAWC_Wind type.', ErrStat, ErrMsg, ' IfW_Init' )                  
+            CALL SetErrStat( ErrID_Fatal, 'InflowWind cannot currently handle the HAWC_Wind type.', ErrStat, ErrMsg, RoutineName )                  
             RETURN
             
 !            CALL HW_Init( UnWind, ParamData%WindFileName, ErrStat )
@@ -379,11 +397,22 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
 
          CASE DEFAULT
 
-            CALL SetErrStat( ErrID_Fatal, ' Error: Undefined wind type in WindInflow_Init()', ErrStat, ErrMsg, ' IfW_Init' )                  
+            CALL SetErrStat( ErrID_Fatal, 'Undefined wind type.', ErrStat, ErrMsg, RoutineName )                  
             RETURN
 
       END SELECT
 
+         ! initialize sensor data:   
+      CALL Lidar_Init( InitData,   InputGuess,    ParamData,                          &
+                       ContStates, DiscStates,    ConstrStateGuess,    OtherStates,   &
+                       OutData,    TimeInterval,  InitOutData,  TmpErrStat, TmpErrMsg )
+                  CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, RoutineName )      
+         
+      do i=1,NumOuts_Sensor
+         InitOutData%WriteOutputHdr(NumOuts_Mod+i)  =  "WindMeas"//trim(num2lstr(i))
+         InitOutData%WriteOutputUnt(NumOuts_Mod+i)  =  "(m/s)"
+      end do
+      
 
          ! If we've arrived here, we haven't reached an AbortErrLev:         
       ParamData%Initialized = .TRUE.
@@ -417,7 +446,7 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
       TYPE( IfW_DiscreteStateType ),      INTENT(IN   )  :: DiscStates        ! Discrete states at Time
       TYPE( IfW_ConstraintStateType ),    INTENT(IN   )  :: ConstrStates      ! Constraint states at Time
       TYPE( IfW_OtherStateType ),         INTENT(INOUT)  :: OtherStates       ! Other/optimization states at Time
-      TYPE( IfW_OutputType ),             INTENT(  OUT)  :: OutputData        ! Outputs computed at Time (IN for mesh reasons -- not used here)
+      TYPE( IfW_OutputType ),             INTENT(INOUT)  :: OutputData        ! Outputs computed at Time (IN so we don't have to reallocate space for variables all the time)
 
       INTEGER( IntKi ),                   INTENT(  OUT)  :: ErrStat           ! Error status of the operation
       CHARACTER(*),                       INTENT(  OUT)  :: ErrMsg            ! Error message if ErrStat /= ErrID_None
@@ -425,35 +454,7 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
 
          ! Local variables
 
-      TYPE(IfW_HHWind_InitInputType)                     :: HH_InitData       ! initialization info
-      TYPE(IfW_HHWind_InputType)                         :: HH_InData         ! input positions.
-      TYPE(IfW_HHWind_ContinuousStateType)               :: HH_ContStates     ! Unused
-      TYPE(IfW_HHWind_DiscreteStateType)                 :: HH_DiscStates     ! Unused
-      TYPE(IfW_HHWind_ConstraintStateType)               :: HH_ConstrStates   ! Unused
-      TYPE(IfW_HHWind_OutputType)                        :: HH_OutData        ! output velocities
-
-      TYPE(IfW_FFWind_InitInputType)                     :: FF_InitData       ! initialization info
-      TYPE(IfW_FFWind_InputType)                         :: FF_InData         ! input positions.
-      TYPE(IfW_FFWind_ContinuousStateType)               :: FF_ContStates     ! Unused
-      TYPE(IfW_FFWind_DiscreteStateType)                 :: FF_DiscStates     ! Unused
-      TYPE(IfW_FFWind_ConstraintStateType)               :: FF_ConstrStates   ! Unused
-      TYPE(IfW_FFWind_OutputType)                        :: FF_OutData        ! output velocities
-
-
-
-
-!NOTE: It isn't entirely clear what the purpose of Height is. Does it sometimes occur that Height  /= ParamData%ReferenceHeight???
-      REAL(ReKi)                                         :: Height      ! Retrieved from FF
-      REAL(ReKi)                                         :: HalfWidth   ! Retrieved from FF
-
-
-         ! Sub modules use the InflIntrpOut derived type to store the wind information
-!     TYPE(CT_Backgr)                                    :: BackGrndValues
-!      TYPE(InflIntrpOut)                                 :: CTWindSpeed       ! U, V, W velocities to superimpose on background wind
-!      TYPE(InflIntrpOut)                                 :: TempWindSpeed     ! U, V, W velocities returned
-!      REAL(ReKi)                                         :: CTWindSpeed(3)     ! U, V, W velocities to superimpose on background wind
-!      REAL(ReKi)                                         :: TempWindSpeed(3)   ! Temporary U, V, W velocities
-
+      CHARACTER(*), PARAMETER                            :: RoutineName = 'IfW_CalcOutput'
 
 
          ! Temporary variables for error handling
@@ -467,125 +468,22 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
       ErrMsg   = ""
 
 
-         ! Allocate the velocity array to get out
-      CALL AllocAry( OutputData%Velocity, 3, SIZE(InputData%Position,2), &
-                     "Velocity array returned from IfW_CalcOutput", TmpErrStat, TmpErrMsg )
-         CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, ' IfW_CalcOutput' )                  
-         IF ( ErrStat >= AbortErrLev ) RETURN
-
-         ! Compute the wind velocities by stepping through all the data points and calling the appropriate GetWindSpeed routine
-      SELECT CASE ( ParamData%WindFileType )
-         CASE (HH_WindNumber)
-
-               ! Allocate the position array to pass in
-            CALL AllocAry( HH_InData%Position, 3, SIZE(InputData%Position,2), &
-                           "Position grid for passing to IfW_HHWind_CalcOutput", TmpErrStat, TmpErrMsg )
-            CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, ' IfW_CalcOutput' )                  
-            IF ( ErrStat >= AbortErrLev ) RETURN
-
-               ! Copy positions over
-            HH_InData%Position   = InputData%Position
-
-            CALL  IfW_HHWind_CalcOutput(  Time,          HH_InData,     ParamData%HHWind,                         &
-                                          HH_ContStates, HH_DiscStates, HH_ConstrStates,     OtherStates%HHWind,  &
-                                          HH_OutData,    TmpErrStat,    TmpErrMsg)            
-            
-               ! Copy the velocities over
-            OutputData%Velocity  = HH_OutData%Velocity
-
-            CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, ' IfW_CalcOutput' )                  
-            IF ( ErrStat >= AbortErrLev ) RETURN
-            
-
-         CASE (FF_WindNumber)
-
-               ! Allocate the position array to pass in
-            CALL AllocAry( FF_InData%Position, 3, SIZE(InputData%Position,2), &
-                           "Position grid for passing to IfW_FFWind_CalcOutput", TmpErrStat, TmpErrMsg )
-            CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, ' IfW_CalcOutput' )                  
-            IF ( ErrStat >= AbortErrLev ) RETURN
-
-            ! Copy positions over
-            FF_InData%Position   = InputData%Position
-
-            CALL  IfW_FFWind_CalcOutput(  Time,          FF_InData,     ParamData%FFWind,                         &
-                                          FF_ContStates, FF_DiscStates, FF_ConstrStates,     OtherStates%FFWind,  &
-                                          FF_OutData,    TmpErrStat,    TmpErrMsg)
-
-               ! Copy the velocities over
-            OutputData%Velocity  = FF_OutData%Velocity
-
-            CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, ' IfW_CalcOutput' )                  
-            IF ( ErrStat >= AbortErrLev ) RETURN                       
-            
-            
-!               OutputData%Velocity(:,PointCounter) = FF_GetWindSpeed(     Time, InputData%Position(:,PointCounter), ErrStat, ErrMsg)
-
-
-!         CASE (UD_WindNumber)
-
-!               OutputData%Velocity(:,PointCounter) = UsrWnd_GetWindSpeed( Time, InputData%Position(:,PointCounter), ErrStat )!, ErrMsg)
-
-
-!         CASE (FD_WindNumber)
-
-!               OutputData%Velocity(:,PointCounter) = FD_GetWindSpeed(     Time, InputData%Position(:,PointCounter), ErrStat )
-
-
-
-!         CASE (HAWC_WindNumber)
-
-!               OutputData%Velocity(:,PointCounter) = HW_GetWindSpeed(     Time, InputData%Position(:,PointCounter), ErrStat )
-
-
-
-            ! If it isn't one of the above cases, we have a problem and won't be able to continue
-
-         CASE DEFAULT
-
-            CALL SetErrStat( ErrID_Fatal, ' Error: Undefined wind type in IfW_CalcOutput. ' &
-                      //'Call WindInflow_Init() before calling this function.', ErrStat, ErrMsg, ' IfW_CalcOutput' )                  
-            
-            OutputData%Velocity(:,:) = 0.0
-            RETURN
-
-      END SELECT
-
-
-         ! If we had a severe or fatal error, we need to make sure we zero out the result and return.
-!BJJ: not sure we need this anymore... 
-
-      !IF (ErrStat >= ErrID_Severe) THEN 
-      !   OutputData%Velocity(:,:) = 0.0
-      !   RETURN
-      !
-      !ELSE
-
-            ! Add coherent turbulence to background wind
-
-!         IF (ParamData%CT_Flag) THEN
-!
-!            DO PointCounter = 1, SIZE(InputData%Position, 2)
-!
-!               TempWindSpeed = CT_GetWindSpeed(     Time, InputData%Position(:,PointCounter), ErrStat, ErrMsg )
-!
-!                  ! Error Handling -- move ErrMsg inside CT_GetWindSPeed and simplify
-!               IF (ErrStat >= ErrID_Severe) THEN
-!                  ErrMsg   = 'IfW_CalcOutput: Error in CT_GetWindSpeed for point number '//TRIM(Num2LStr(PointCounter))
-!                  EXIT        ! Exit the loop
-!               ENDIF
-!
-!               OutputData%Velocity(:,PointCounter) = OutputData%Velocity(:,PointCounter) + TempWindSpeed
-!
-!            ENDDO
-!
-!               ! If something went badly wrong, Return
-!            IF (ErrStat >= ErrID_Severe ) RETURN
-!
-!         ENDIF
-!
-      !ENDIF
-
+      CALL CalculateOutput( Time, InputData, ParamData, &
+                              ContStates, DiscStates, ConstrStates, OtherStates, &   ! States -- none in this case
+                              OutputData, TmpErrStat, TmpErrMsg )
+      
+         CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, RoutineName )
+         
+      
+         ! return sensor values
+      IF (ParamData%lidar%SensorType /= SensorType_None) THEN
+         
+         CALL Lidar_CalcOutput(Time, InputData, ParamData, &
+                              ContStates, DiscStates, ConstrStates, OtherStates, &  
+                              OutputData, TmpErrStat, TmpErrMsg )
+         CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, RoutineName )
+         
+      END IF      
 
 
 END SUBROUTINE IfW_CalcOutput
@@ -614,13 +512,13 @@ SUBROUTINE IfW_End( InitData, ParamData, ContStates, DiscStates, ConstrStateGues
 
          ! Local variables
 
-      TYPE(IfW_HHWind_InputType)                         :: HH_InitData       ! input positions.
+      TYPE(IfW_HHWind_InputType)                         :: HH_InputData      ! input positions.
       TYPE(IfW_HHWind_ContinuousStateType)               :: HH_ContStates     ! Unused
       TYPE(IfW_HHWind_DiscreteStateType)                 :: HH_DiscStates     ! Unused
       TYPE(IfW_HHWind_ConstraintStateType)               :: HH_ConstrStates   ! Unused
       TYPE(IfW_HHWind_OutputType)                        :: HH_OutData        ! output velocities
 
-      TYPE(IfW_FFWind_InputType)                         :: FF_InitData       ! input positions.
+      TYPE(IfW_FFWind_InputType)                         :: FF_InputData      ! input positions.
       TYPE(IfW_FFWind_ContinuousStateType)               :: FF_ContStates     ! Unused
       TYPE(IfW_FFWind_DiscreteStateType)                 :: FF_DiscStates     ! Unused
       TYPE(IfW_FFWind_ConstraintStateType)               :: FF_ConstrStates   ! Unused
@@ -630,23 +528,17 @@ SUBROUTINE IfW_End( InitData, ParamData, ContStates, DiscStates, ConstrStateGues
 !     TYPE(CT_Backgr)                                    :: BackGrndValues
 
 
-!NOTE: It isn't entirely clear what the purpose of Height is. Does it sometimes occur that Height  /= ParamData%ReferenceHeight???
-      REAL(ReKi)                                         :: Height      ! Retrieved from FF
-      REAL(ReKi)                                         :: HalfWidth   ! Retrieved from FF
-
-
-
          ! End the sub-modules (deallocates their arrays and closes their files):
 
       SELECT CASE ( ParamData%WindFileType )
 
          CASE (HH_WindNumber)
-            CALL IfW_HHWind_End( HH_InitData,   ParamData%HHWind,                                        &
+            CALL IfW_HHWind_End( HH_InputData,  ParamData%HHWind,                                        &
                                  HH_ContStates, HH_DiscStates,    HH_ConstrStates,  OtherStates%HHWind,  &
                                  HH_OutData,    ErrStat,          ErrMsg )
 
          CASE (FF_WindNumber)
-            CALL IfW_FFWind_End( FF_InitData,   ParamData%FFWind,                                        &
+            CALL IfW_FFWind_End( FF_InputData,  ParamData%FFWind,                                        &
                                  FF_ContStates, FF_DiscStates,    FF_ConstrStates,  OtherStates%FFWind,  &
                                  FF_OutData,    ErrStat,          ErrMsg )
 

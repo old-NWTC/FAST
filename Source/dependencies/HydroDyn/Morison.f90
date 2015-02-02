@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-12-05 10:42:44 -0700 (Fri, 05 Dec 2014) $
-! (File) Revision #: $Rev: 588 $
+! File last committed: $Date: 2015-01-05 13:46:53 -0700 (Mon, 05 Jan 2015) $
+! (File) Revision #: $Rev: 598 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Morison.f90 $
 !**********************************************************************************************************************************
 MODULE Morison
@@ -3399,7 +3399,7 @@ SUBROUTINE CreateDistributedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWav
    
    ALLOCATE ( D_F_I( 0:NStepWave, 6, numDistribMarkers ), STAT = ErrStat )
    IF ( ErrStat /= ErrID_None ) THEN
-      ErrMsg  = ' Error allocating space for the distributed intertial forces/moments array.'
+      ErrMsg  = ' Error allocating space for the distributed inertial forces/moments array.'
       ErrStat = ErrID_Fatal
       RETURN
    END IF

@@ -76,13 +76,6 @@ LDFLAGS = -O2 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware
 # --warn-undefined-variables
 
 
-   # Precision.
-
-# Use "SingPrec" for single precision and "DoubPrec" for double precision. You may also need to change an option switch to make constants DP.
-PREC = SingPrec
-
-
-
 
    # Destination and RootName for executable
 
@@ -119,7 +112,7 @@ endif
    # Source files (by module)
 
 LIB_SOURCES =           \
-	$(PREC).f90          \
+	SingPrec.f90          \
 	NWTC_Base.f90        \
 	$(SYS_FILE).f90      \
 	NWTC_Library_Types.f90 \
@@ -146,6 +139,8 @@ IfW_SOURCES =            \
 	IfW_HHWind.f90        \
 	InflowWind_Subs.f90   \
 	InflowWind_Types.f90  \
+	Lidar_Types.f90       \
+	Lidar.f90             \
 	InflowWind.f90
 
 AD_SOURCES =             \
@@ -341,6 +336,9 @@ IfW_HHWind_Types.f90:
 IfW_FFWind_Types.f90:
 	$(Registry) IfW_FFWind.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)
 
+Lidar_Types.f90:
+	$(Registry) Lidar.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)
+
 InflowWind_Types.f90:
 	$(Registry) InflowWind.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)
 
@@ -363,7 +361,7 @@ IceDyn_Types.f90:
 
    #  Dependency rules.
 #NWTC Library dependency rules:
-NWTC_Base.obj:              $(PREC).obj
+NWTC_Base.obj:              SingPrec.obj
 $(SYS_FILE).obj:            NWTC_Base.obj
 NWTC_Library_Types.obj:     $(SYS_FILE).obj
 NWTC_IO.obj:                NWTC_Library_Types.obj
@@ -376,7 +374,7 @@ NWTC_Library.obj:           ModMesh.obj  ModMesh_Mapping.obj
 NWTC_LAPACK.obj:            NWTC_Base.obj
 NWTC_ScaLAPACK.obj:         NWTC_Base.obj dlasrt2.obj slasrt2.obj
 NWTC_FFTPACK.obj:           NWTC_Library.obj fftpack4.1.obj
-fftpack4.1.obj:             $(PREC).obj
+fftpack4.1.obj:             SingPrec.obj
 
 
 #InflowWind dependency rules:
@@ -384,9 +382,11 @@ IfW_HHWind_Types.obj:       NWTC_Library.obj  IfW_HHWind.txt
 IfW_HHWind.obj:             IfW_HHWind_Types.obj
 IfW_FFWind_Types.obj:       NWTC_Library.obj  IfW_FFWind.txt
 IfW_FFWind.obj:             IfW_FFWind_Types.obj
-InflowWind_Types.obj:       NWTC_Library.obj  IfW_FFWind_Types.obj  IfW_HHWind_Types.obj  InflowWind.txt
+InflowWind_Types.obj:       NWTC_Library.obj  IfW_FFWind_Types.obj  IfW_HHWind_Types.obj  Lidar_Types.obj InflowWind.txt
 InflowWind_Subs.obj:        InflowWind_Types.obj IfW_FFWind.obj  IfW_HHWind.obj
-InflowWind.obj:             InflowWind_Subs.obj
+Lidar_Types.obj:            NWTC_Library.obj  Lidar.txt
+Lidar.obj:                  Lidar_Types.obj   InflowWind_Subs.obj
+InflowWind.obj:             InflowWind_Subs.obj  Lidar.obj
 
 
 #AeroDyn dependency rules:

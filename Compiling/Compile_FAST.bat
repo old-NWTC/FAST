@@ -139,8 +139,10 @@ SET IfW_SOURCES=^
  "%IfW_Loc%\IFW_FFWind.f90" ^
  "%IfW_Loc%\IFW_HHWind_Types.f90"^
  "%IfW_Loc%\IFW_HHWind.f90" ^
+ "%IfW_Loc%\Lidar_Types.f90"^
  "%IfW_Loc%\InflowWind_Types.f90"^
  "%IfW_Loc%\InflowWind_Subs.f90"^
+ "%IfW_Loc%\Lidar.f90"^
  "%IfW_Loc%\InflowWind.f90"
 
 
@@ -275,6 +277,7 @@ ECHO %Lines%
 SET CURR_LOC=%IfW_Loc%
 CALL :RunRegistry_IfW IfW_FFWind
 CALL :RunRegistry_IfW IfW_HHWind
+CALL :RunRegistry_IfW Lidar
 CALL :RunRegistry_IfW InflowWind
 
 

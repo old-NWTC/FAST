@@ -3,8 +3,8 @@
 # Module InflowWind_Types contains all of the user-defined types needed in InflowWind. It also contains copy, destroy, pack, and
 # unpack routines associated with each defined data types.
 ###################################################################################################################################
-# File last committed: $Date: 2014-09-17 11:53:11 -0600 (Wed, 17 Sep 2014) $
-# (File) Revision #: $Rev: 118 $
+# File last committed: $Date: 2015-01-30 14:58:56 -0700 (Fri, 30 Jan 2015) $
+# (File) Revision #: $Rev: 136 $
 # URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/Registry/InflowWind.txt $
 ###################################################################################################################################
 # Entries are of the form
@@ -13,6 +13,7 @@
 
 usefrom IfW_FFWind.txt
 usefrom IfW_HHWind.txt
+usefrom Lidar.txt
 include Registry_NWTC_Library.txt
 
 #########################
@@ -31,7 +32,7 @@ typedef  ^                       InitInputType   CHARACTER(1024)  WindFileName  
 typedef  ^                       ^                       ReKi     ReferenceHeight   -     -     -     "Hub height of the turbine"                                    meters
 typedef  ^                       ^                       ReKi     Width             -     -     -     "Width of the wind field to use"                               meters
 typedef  ^                       ^                       IntKi    WindFileType      -     0     -     "Type of windfile"                                             -
-
+typedef  ^                       ^           Lidar_InitInputType  lidar             -     -     -     "InitInput for lidar data"                                             -
 
 
 # Init Output
@@ -49,6 +50,7 @@ typedef  ^                       ^      IfW_HHWind_InitOutputType HHWind        
 typedef  ^                       OtherStateType          IntKi    TimeIndex         -     0     -     "An Index into the TData array"                                -
 typedef  ^                       ^      IfW_FFWind_OtherStateType FFWind            -     -     -     "OtherStates from FFWind"                                      -
 typedef  ^                       ^      IfW_HHWind_OtherStateType HHWind            -     -     -     "OtherStates from HHWind"                                      -
+#typedef  ^                       ^      lidar_OtherStateType      lidar             -     -     -     "An Index into the TData array"                                -
 
 
 
@@ -67,19 +69,27 @@ typedef  ^                       ^                       ReKi     Width         
 typedef  ^                       ^                       ReKi     HalfWidth         -     -     -     "Half the Width of the wind array"                             meters
 typedef  ^                       ^       IfW_FFWind_ParameterType FFWind            -     -     -     "Parameters from FFWind"                                       -
 typedef  ^                       ^       IfW_HHWind_ParameterType HHWind            -     -     -     "Parameters from HHWind"                                       -
+typedef  ^                       ^       lidar_ParameterType      lidar             -     -     -     "Lidar parameter data"                                       -
+#typedef  ^                       ^                       IntKi    SensorType        -     -     -     "type of sensor: SensorType_* parameter"                                       -
+
 
 # ..... Inputs ....................................................................................................................
 # Define inputs that are not on this mesh here:
 typedef  ^                    InputType                  ReKi     Position         ::     -     -     "Array holding the input positions at a given timestep"        meters
+typedef  ^                       ^           lidar_InputType      lidar             -     -     -     "Lidar data"                                       -
 
 
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:
 typedef  ^                    OutputType                 ReKi     Velocity          ::    -     -     "Array holding the U,V,W velocity for a given timestep"        meters/sec
 typedef  ^                    OutputType                 ReKi     WriteOutput       :     -     -     "Array with values to output to file"
+typedef  ^                       ^           lidar_OutputType     lidar             -     -     -     "Lidar data"                                       -
 
 
 # ..... States not used by this module ...................................................................................................................
 typedef  ^                       ContinuousStateType     ReKi     DummyContState    -     -     -     "Remove this variable if you have continuous states"           -
+#typedef  ^                       ^ lidar_ContinuousStateType      lidar    -     -     -     "Remove this variable if you have continuous states"           -
 typedef  ^                       DiscreteStateType       ReKi     DummyDiscState    -     -     -     "Remove this variable if you have discrete states"             -
+#typedef  ^                       ^ lidar_DiscreteStateType        lidar    -     -     -     "Remove this variable if you have discrete states"             -
 typedef  ^                       ConstraintStateType     ReKi     DummyConstrState  -     -     -     "Remove this variable if you have constraint states"           -
+#typedef  ^                       ^ lidar_ConstraintStateType      lidar    -     -     -     "Remove this variable if you have constraint states"           -

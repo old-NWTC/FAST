@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.05.00, 12-Jan-2015)
+! FAST Registry (v2.05.00, 14-Jan-2015)
 !*********************************************************************************************************************************
 ! SS_Radiation_Types
 !.................................................................................................................................

@@ -192,11 +192,18 @@
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat InflowWind" Description="Running Registry for InflowWind" Outputs="..\..\Source\dependencies\InflowWind\InflowWind_Types.f90" AdditionalDependencies="..\..\Source\dependencies\InflowWind\Reg-IfW_FFWind.txt;..\..\Source\dependencies\InflowWind\Reg-IfW_HHWind.txt"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat InflowWind" Description="Running Registry for InflowWind" Outputs="..\..\Source\dependencies\InflowWind\InflowWind_Types.f90" AdditionalDependencies="..\..\Source\dependencies\InflowWind\Reg-IfW_FFWind.txt;..\..\Source\dependencies\InflowWind\Reg-IfW_HHWind.txt"/></FileConfiguration></File>
-		<File RelativePath="..\..\Source\dependencies\InflowWind\InflowWind_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\InflowWind\InflowWind_Types.f90"/>
+		<File RelativePath="..\..\Source\dependencies\InflowWind\Lidar.txt">
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat Lidar" Description="Running Registry for Lidar" Outputs="..\..\Source\dependencies\InflowWind\Lidar_Types.f90"/></FileConfiguration>
+			<FileConfiguration Name="Release|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat Lidar" Description="Running Registry for Lidar" Outputs="..\..\Source\dependencies\InflowWind\Lidar_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\Source\dependencies\InflowWind\Lidar_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_FFWind.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_HHWind.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\InflowWind.f90"/>
-		<File RelativePath="..\..\Source\dependencies\InflowWind\InflowWind_Subs.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\InflowWind\InflowWind_Subs.f90"/>
+		<File RelativePath="..\..\Source\dependencies\InflowWind\Lidar.f90"/></Filter>
 		<Filter Name="Mooring Lines">
 		<Filter Name="FEAMooring">
 		<Filter Name="RegistryFiles">

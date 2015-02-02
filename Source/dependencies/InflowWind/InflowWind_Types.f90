@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.05.00, 12-Jan-2015)
+! FAST Registry (v2.05.00, 14-Jan-2015)
 !*********************************************************************************************************************************
 ! InflowWind_Types
 !.................................................................................................................................
@@ -33,6 +33,7 @@ MODULE InflowWind_Types
 !---------------------------------------------------------------------------------------------------------------------------------
 USE IfW_FFWind_Types
 USE IfW_HHWind_Types
+USE Lidar_Types
 USE NWTC_Library
 IMPLICIT NONE
     INTEGER(IntKi), PUBLIC, PARAMETER  :: DEFAULT_WindNumber = -1      ! Undetermined wind type; calls internal routine to guess what type it is [-]
@@ -49,6 +50,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: ReferenceHeight      ! Hub height of the turbine [meters]
     REAL(ReKi)  :: Width      ! Width of the wind field to use [meters]
     INTEGER(IntKi)  :: WindFileType = 0      ! Type of windfile [-]
+    TYPE(Lidar_InitInputType)  :: lidar      ! InitInput for lidar data [-]
   END TYPE IfW_InitInputType
 ! =======================
 ! =========  IfW_InitOutputType  =======
@@ -82,17 +84,20 @@ IMPLICIT NONE
     REAL(ReKi)  :: HalfWidth      ! Half the Width of the wind array [meters]
     TYPE(IfW_FFWind_ParameterType)  :: FFWind      ! Parameters from FFWind [-]
     TYPE(IfW_HHWind_ParameterType)  :: HHWind      ! Parameters from HHWind [-]
+    TYPE(Lidar_ParameterType)  :: lidar      ! Lidar parameter data [-]
   END TYPE IfW_ParameterType
 ! =======================
 ! =========  IfW_InputType  =======
   TYPE, PUBLIC :: IfW_InputType
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Position      ! Array holding the input positions at a given timestep [meters]
+    TYPE(Lidar_InputType)  :: lidar      ! Lidar data [-]
   END TYPE IfW_InputType
 ! =======================
 ! =========  IfW_OutputType  =======
   TYPE, PUBLIC :: IfW_OutputType
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Velocity      ! Array holding the U,V,W velocity for a given timestep [meters/sec]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      ! Array with values to output to file [-]
+    TYPE(Lidar_OutputType)  :: lidar      ! Lidar data [-]
   END TYPE IfW_OutputType
 ! =======================
 ! =========  IfW_ContinuousStateType  =======
@@ -130,6 +135,9 @@ CONTAINS
    DstInitInputData%ReferenceHeight = SrcInitInputData%ReferenceHeight
    DstInitInputData%Width = SrcInitInputData%Width
    DstInitInputData%WindFileType = SrcInitInputData%WindFileType
+      CALL Lidar_CopyInitInput( SrcInitInputData%lidar, DstInitInputData%lidar, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'IfW_CopyInitInput:lidar')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE IfW_CopyInitInput
 
  SUBROUTINE IfW_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
@@ -140,6 +148,7 @@ CONTAINS
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
+  CALL Lidar_DestroyInitInput( InitInputData%lidar, ErrStat, ErrMsg )
  END SUBROUTINE IfW_DestroyInitInput
 
  SUBROUTINE IfW_PackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -163,6 +172,9 @@ CONTAINS
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
  ! buffers to store meshes, if any
+  REAL(ReKi),     ALLOCATABLE :: Re_lidar_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_lidar_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_lidar_Buf(:)
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -180,6 +192,13 @@ CONTAINS
   Re_BufSz   = Re_BufSz   + 1  ! ReferenceHeight
   Re_BufSz   = Re_BufSz   + 1  ! Width
   Int_BufSz  = Int_BufSz  + 1  ! WindFileType
+  CALL Lidar_PackInitInput( Re_lidar_Buf, Db_lidar_Buf, Int_lidar_Buf, InData%lidar, ErrStat, ErrMsg, .TRUE. ) ! lidar 
+  IF(ALLOCATED(Re_lidar_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_lidar_Buf  ) ! lidar
+  IF(ALLOCATED(Db_lidar_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_lidar_Buf  ) ! lidar
+  IF(ALLOCATED(Int_lidar_Buf))Int_BufSz = Int_BufSz + SIZE( Int_lidar_Buf ) ! lidar
+  IF(ALLOCATED(Re_lidar_Buf))  DEALLOCATE(Re_lidar_Buf)
+  IF(ALLOCATED(Db_lidar_Buf))  DEALLOCATE(Db_lidar_Buf)
+  IF(ALLOCATED(Int_lidar_Buf)) DEALLOCATE(Int_lidar_Buf)
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -189,6 +208,22 @@ CONTAINS
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%WindFileType )
   Int_Xferred   = Int_Xferred   + 1
+  CALL Lidar_PackInitInput( Re_lidar_Buf, Db_lidar_Buf, Int_lidar_Buf, InData%lidar, ErrStat, ErrMsg, OnlySize ) ! lidar 
+  IF(ALLOCATED(Re_lidar_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_lidar_Buf)-1 ) = Re_lidar_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_lidar_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_lidar_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_lidar_Buf)-1 ) = Db_lidar_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_lidar_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_lidar_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_lidar_Buf)-1 ) = Int_lidar_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_lidar_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_lidar_Buf) )  DEALLOCATE(Re_lidar_Buf)
+  IF( ALLOCATED(Db_lidar_Buf) )  DEALLOCATE(Db_lidar_Buf)
+  IF( ALLOCATED(Int_lidar_Buf) ) DEALLOCATE(Int_lidar_Buf)
  END SUBROUTINE IfW_PackInitInput
 
  SUBROUTINE IfW_UnPackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -215,6 +250,9 @@ CONTAINS
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
  ! buffers to store meshes, if any
+  REAL(ReKi),    ALLOCATABLE :: Re_lidar_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_lidar_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_lidar_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
@@ -230,6 +268,21 @@ CONTAINS
   Re_Xferred   = Re_Xferred   + 1
   OutData%WindFileType = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
+ ! first call Lidar_PackInitInput to get correctly sized buffers for unpacking
+  CALL Lidar_PackInitInput( Re_lidar_Buf, Db_lidar_Buf, Int_lidar_Buf, OutData%lidar, ErrStat, ErrMsg, .TRUE. ) ! lidar 
+  IF(ALLOCATED(Re_lidar_Buf)) THEN
+    Re_lidar_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_lidar_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_lidar_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_lidar_Buf)) THEN
+    Db_lidar_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_lidar_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_lidar_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_lidar_Buf)) THEN
+    Int_lidar_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_lidar_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_lidar_Buf)
+  ENDIF
+  CALL Lidar_UnPackInitInput( Re_lidar_Buf, Db_lidar_Buf, Int_lidar_Buf, OutData%lidar, ErrStat, ErrMsg ) ! lidar 
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
@@ -753,6 +806,9 @@ ENDIF
       CALL IfW_HHWind_CopyParam( SrcParamData%HHWind, DstParamData%HHWind, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'IfW_CopyParam:HHWind')
          IF (ErrStat>=AbortErrLev) RETURN
+      CALL Lidar_CopyParam( SrcParamData%lidar, DstParamData%lidar, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'IfW_CopyParam:lidar')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE IfW_CopyParam
 
  SUBROUTINE IfW_DestroyParam( ParamData, ErrStat, ErrMsg )
@@ -765,6 +821,7 @@ ENDIF
   ErrMsg  = ""
   CALL IfW_FFWind_DestroyParam( ParamData%FFWind, ErrStat, ErrMsg )
   CALL IfW_HHWind_DestroyParam( ParamData%HHWind, ErrStat, ErrMsg )
+  CALL Lidar_DestroyParam( ParamData%lidar, ErrStat, ErrMsg )
  END SUBROUTINE IfW_DestroyParam
 
  SUBROUTINE IfW_PackParam( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -794,6 +851,9 @@ ENDIF
   REAL(ReKi),     ALLOCATABLE :: Re_HHWind_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_HHWind_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_HHWind_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_lidar_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_lidar_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_lidar_Buf(:)
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -831,6 +891,13 @@ ENDIF
   IF(ALLOCATED(Re_HHWind_Buf))  DEALLOCATE(Re_HHWind_Buf)
   IF(ALLOCATED(Db_HHWind_Buf))  DEALLOCATE(Db_HHWind_Buf)
   IF(ALLOCATED(Int_HHWind_Buf)) DEALLOCATE(Int_HHWind_Buf)
+  CALL Lidar_PackParam( Re_lidar_Buf, Db_lidar_Buf, Int_lidar_Buf, InData%lidar, ErrStat, ErrMsg, .TRUE. ) ! lidar 
+  IF(ALLOCATED(Re_lidar_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_lidar_Buf  ) ! lidar
+  IF(ALLOCATED(Db_lidar_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_lidar_Buf  ) ! lidar
+  IF(ALLOCATED(Int_lidar_Buf))Int_BufSz = Int_BufSz + SIZE( Int_lidar_Buf ) ! lidar
+  IF(ALLOCATED(Re_lidar_Buf))  DEALLOCATE(Re_lidar_Buf)
+  IF(ALLOCATED(Db_lidar_Buf))  DEALLOCATE(Db_lidar_Buf)
+  IF(ALLOCATED(Int_lidar_Buf)) DEALLOCATE(Int_lidar_Buf)
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -880,6 +947,22 @@ ENDIF
   IF( ALLOCATED(Re_HHWind_Buf) )  DEALLOCATE(Re_HHWind_Buf)
   IF( ALLOCATED(Db_HHWind_Buf) )  DEALLOCATE(Db_HHWind_Buf)
   IF( ALLOCATED(Int_HHWind_Buf) ) DEALLOCATE(Int_HHWind_Buf)
+  CALL Lidar_PackParam( Re_lidar_Buf, Db_lidar_Buf, Int_lidar_Buf, InData%lidar, ErrStat, ErrMsg, OnlySize ) ! lidar 
+  IF(ALLOCATED(Re_lidar_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_lidar_Buf)-1 ) = Re_lidar_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_lidar_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_lidar_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_lidar_Buf)-1 ) = Db_lidar_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_lidar_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_lidar_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_lidar_Buf)-1 ) = Int_lidar_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_lidar_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_lidar_Buf) )  DEALLOCATE(Re_lidar_Buf)
+  IF( ALLOCATED(Db_lidar_Buf) )  DEALLOCATE(Db_lidar_Buf)
+  IF( ALLOCATED(Int_lidar_Buf) ) DEALLOCATE(Int_lidar_Buf)
  END SUBROUTINE IfW_PackParam
 
  SUBROUTINE IfW_UnPackParam( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -912,6 +995,9 @@ ENDIF
   REAL(ReKi),    ALLOCATABLE :: Re_HHWind_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_HHWind_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_HHWind_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_lidar_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_lidar_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_lidar_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
@@ -961,6 +1047,21 @@ ENDIF
     Int_Xferred = Int_Xferred + SIZE(Int_HHWind_Buf)
   ENDIF
   CALL IfW_HHWind_UnPackParam( Re_HHWind_Buf, Db_HHWind_Buf, Int_HHWind_Buf, OutData%HHWind, ErrStat, ErrMsg ) ! HHWind 
+ ! first call Lidar_PackParam to get correctly sized buffers for unpacking
+  CALL Lidar_PackParam( Re_lidar_Buf, Db_lidar_Buf, Int_lidar_Buf, OutData%lidar, ErrStat, ErrMsg, .TRUE. ) ! lidar 
+  IF(ALLOCATED(Re_lidar_Buf)) THEN
+    Re_lidar_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_lidar_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_lidar_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_lidar_Buf)) THEN
+    Db_lidar_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_lidar_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_lidar_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_lidar_Buf)) THEN
+    Int_lidar_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_lidar_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_lidar_Buf)
+  ENDIF
+  CALL Lidar_UnPackParam( Re_lidar_Buf, Db_lidar_Buf, Int_lidar_Buf, OutData%lidar, ErrStat, ErrMsg ) ! lidar 
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
@@ -995,6 +1096,9 @@ IF (ALLOCATED(SrcInputData%Position)) THEN
    END IF
    DstInputData%Position = SrcInputData%Position
 ENDIF
+      CALL Lidar_CopyInput( SrcInputData%lidar, DstInputData%lidar, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'IfW_CopyInput:lidar')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE IfW_CopyInput
 
  SUBROUTINE IfW_DestroyInput( InputData, ErrStat, ErrMsg )
@@ -1008,6 +1112,7 @@ ENDIF
 IF (ALLOCATED(InputData%Position)) THEN
    DEALLOCATE(InputData%Position)
 ENDIF
+  CALL Lidar_DestroyInput( InputData%lidar, ErrStat, ErrMsg )
  END SUBROUTINE IfW_DestroyInput
 
  SUBROUTINE IfW_PackInput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -1031,6 +1136,9 @@ ENDIF
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
  ! buffers to store meshes, if any
+  REAL(ReKi),     ALLOCATABLE :: Re_lidar_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_lidar_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_lidar_Buf(:)
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -1045,6 +1153,13 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   IF ( ALLOCATED(InData%Position) )   Re_BufSz    = Re_BufSz    + SIZE( InData%Position )  ! Position 
+  CALL Lidar_PackInput( Re_lidar_Buf, Db_lidar_Buf, Int_lidar_Buf, InData%lidar, ErrStat, ErrMsg, .TRUE. ) ! lidar 
+  IF(ALLOCATED(Re_lidar_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_lidar_Buf  ) ! lidar
+  IF(ALLOCATED(Db_lidar_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_lidar_Buf  ) ! lidar
+  IF(ALLOCATED(Int_lidar_Buf))Int_BufSz = Int_BufSz + SIZE( Int_lidar_Buf ) ! lidar
+  IF(ALLOCATED(Re_lidar_Buf))  DEALLOCATE(Re_lidar_Buf)
+  IF(ALLOCATED(Db_lidar_Buf))  DEALLOCATE(Db_lidar_Buf)
+  IF(ALLOCATED(Int_lidar_Buf)) DEALLOCATE(Int_lidar_Buf)
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1052,6 +1167,22 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Position))-1 ) =  PACK(InData%Position ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%Position)
   ENDIF
+  CALL Lidar_PackInput( Re_lidar_Buf, Db_lidar_Buf, Int_lidar_Buf, InData%lidar, ErrStat, ErrMsg, OnlySize ) ! lidar 
+  IF(ALLOCATED(Re_lidar_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_lidar_Buf)-1 ) = Re_lidar_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_lidar_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_lidar_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_lidar_Buf)-1 ) = Db_lidar_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_lidar_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_lidar_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_lidar_Buf)-1 ) = Int_lidar_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_lidar_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_lidar_Buf) )  DEALLOCATE(Re_lidar_Buf)
+  IF( ALLOCATED(Db_lidar_Buf) )  DEALLOCATE(Db_lidar_Buf)
+  IF( ALLOCATED(Int_lidar_Buf) ) DEALLOCATE(Int_lidar_Buf)
  END SUBROUTINE IfW_PackInput
 
  SUBROUTINE IfW_UnPackInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1078,6 +1209,9 @@ ENDIF
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
  ! buffers to store meshes, if any
+  REAL(ReKi),    ALLOCATABLE :: Re_lidar_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_lidar_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_lidar_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
@@ -1094,6 +1228,21 @@ ENDIF
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Position)
   ENDIF
+ ! first call Lidar_PackInput to get correctly sized buffers for unpacking
+  CALL Lidar_PackInput( Re_lidar_Buf, Db_lidar_Buf, Int_lidar_Buf, OutData%lidar, ErrStat, ErrMsg, .TRUE. ) ! lidar 
+  IF(ALLOCATED(Re_lidar_Buf)) THEN
+    Re_lidar_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_lidar_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_lidar_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_lidar_Buf)) THEN
+    Db_lidar_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_lidar_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_lidar_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_lidar_Buf)) THEN
+    Int_lidar_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_lidar_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_lidar_Buf)
+  ENDIF
+  CALL Lidar_UnPackInput( Re_lidar_Buf, Db_lidar_Buf, Int_lidar_Buf, OutData%lidar, ErrStat, ErrMsg ) ! lidar 
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
@@ -1140,6 +1289,9 @@ IF (ALLOCATED(SrcOutputData%WriteOutput)) THEN
    END IF
    DstOutputData%WriteOutput = SrcOutputData%WriteOutput
 ENDIF
+      CALL Lidar_CopyOutput( SrcOutputData%lidar, DstOutputData%lidar, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'IfW_CopyOutput:lidar')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE IfW_CopyOutput
 
  SUBROUTINE IfW_DestroyOutput( OutputData, ErrStat, ErrMsg )
@@ -1156,6 +1308,7 @@ ENDIF
 IF (ALLOCATED(OutputData%WriteOutput)) THEN
    DEALLOCATE(OutputData%WriteOutput)
 ENDIF
+  CALL Lidar_DestroyOutput( OutputData%lidar, ErrStat, ErrMsg )
  END SUBROUTINE IfW_DestroyOutput
 
  SUBROUTINE IfW_PackOutput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -1179,6 +1332,9 @@ ENDIF
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
  ! buffers to store meshes, if any
+  REAL(ReKi),     ALLOCATABLE :: Re_lidar_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_lidar_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_lidar_Buf(:)
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -1194,6 +1350,13 @@ ENDIF
   Int_BufSz  = 0
   IF ( ALLOCATED(InData%Velocity) )   Re_BufSz    = Re_BufSz    + SIZE( InData%Velocity )  ! Velocity 
   IF ( ALLOCATED(InData%WriteOutput) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WriteOutput )  ! WriteOutput 
+  CALL Lidar_PackOutput( Re_lidar_Buf, Db_lidar_Buf, Int_lidar_Buf, InData%lidar, ErrStat, ErrMsg, .TRUE. ) ! lidar 
+  IF(ALLOCATED(Re_lidar_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_lidar_Buf  ) ! lidar
+  IF(ALLOCATED(Db_lidar_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_lidar_Buf  ) ! lidar
+  IF(ALLOCATED(Int_lidar_Buf))Int_BufSz = Int_BufSz + SIZE( Int_lidar_Buf ) ! lidar
+  IF(ALLOCATED(Re_lidar_Buf))  DEALLOCATE(Re_lidar_Buf)
+  IF(ALLOCATED(Db_lidar_Buf))  DEALLOCATE(Db_lidar_Buf)
+  IF(ALLOCATED(Int_lidar_Buf)) DEALLOCATE(Int_lidar_Buf)
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1205,6 +1368,22 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WriteOutput))-1 ) =  PACK(InData%WriteOutput ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%WriteOutput)
   ENDIF
+  CALL Lidar_PackOutput( Re_lidar_Buf, Db_lidar_Buf, Int_lidar_Buf, InData%lidar, ErrStat, ErrMsg, OnlySize ) ! lidar 
+  IF(ALLOCATED(Re_lidar_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_lidar_Buf)-1 ) = Re_lidar_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_lidar_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_lidar_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_lidar_Buf)-1 ) = Db_lidar_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_lidar_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_lidar_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_lidar_Buf)-1 ) = Int_lidar_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_lidar_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_lidar_Buf) )  DEALLOCATE(Re_lidar_Buf)
+  IF( ALLOCATED(Db_lidar_Buf) )  DEALLOCATE(Db_lidar_Buf)
+  IF( ALLOCATED(Int_lidar_Buf) ) DEALLOCATE(Int_lidar_Buf)
  END SUBROUTINE IfW_PackOutput
 
  SUBROUTINE IfW_UnPackOutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1231,6 +1410,9 @@ ENDIF
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
  ! buffers to store meshes, if any
+  REAL(ReKi),    ALLOCATABLE :: Re_lidar_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_lidar_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_lidar_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
@@ -1254,6 +1436,21 @@ ENDIF
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WriteOutput)
   ENDIF
+ ! first call Lidar_PackOutput to get correctly sized buffers for unpacking
+  CALL Lidar_PackOutput( Re_lidar_Buf, Db_lidar_Buf, Int_lidar_Buf, OutData%lidar, ErrStat, ErrMsg, .TRUE. ) ! lidar 
+  IF(ALLOCATED(Re_lidar_Buf)) THEN
+    Re_lidar_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_lidar_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_lidar_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_lidar_Buf)) THEN
+    Db_lidar_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_lidar_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_lidar_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_lidar_Buf)) THEN
+    Int_lidar_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_lidar_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_lidar_Buf)
+  ENDIF
+  CALL Lidar_UnPackOutput( Re_lidar_Buf, Db_lidar_Buf, Int_lidar_Buf, OutData%lidar, ErrStat, ErrMsg ) ! lidar 
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
@@ -1641,6 +1838,9 @@ ENDIF
 IF (ALLOCATED(u_out%Position) .AND. ALLOCATED(u(1)%Position)) THEN
   u_out%Position = u(1)%Position
 END IF ! check if allocated
+      CALL Lidar_Input_ExtrapInterp( u%lidar, tin, u_out%lidar, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'IfW_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -1655,6 +1855,9 @@ IF (ALLOCATED(u_out%Position) .AND. ALLOCATED(u(1)%Position)) THEN
   DEALLOCATE(b2)
   DEALLOCATE(c2)
 END IF ! check if allocated
+      CALL Lidar_Input_ExtrapInterp( u%lidar, tin, u_out%lidar, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'IfW_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -1680,6 +1883,9 @@ IF (ALLOCATED(u_out%Position) .AND. ALLOCATED(u(1)%Position)) THEN
   DEALLOCATE(b2)
   DEALLOCATE(c2)
 END IF ! check if allocated
+      CALL Lidar_Input_ExtrapInterp( u%lidar, tin, u_out%lidar, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'IfW_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE 
    ErrStat = ErrID_Fatal
    ErrMsg = ' order must be less than 3 in IfW_Input_ExtrapInterp '
@@ -1748,6 +1954,9 @@ END IF ! check if allocated
 IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   u_out%WriteOutput = u(1)%WriteOutput
 END IF ! check if allocated
+      CALL Lidar_Output_ExtrapInterp( u%lidar, tin, u_out%lidar, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'IfW_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -1770,6 +1979,9 @@ IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
+      CALL Lidar_Output_ExtrapInterp( u%lidar, tin, u_out%lidar, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'IfW_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -1804,6 +2016,9 @@ IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
+      CALL Lidar_Output_ExtrapInterp( u%lidar, tin, u_out%lidar, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'IfW_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE 
    ErrStat = ErrID_Fatal
    ErrMsg = ' order must be less than 3 in IfW_Output_ExtrapInterp '
