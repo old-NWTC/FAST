@@ -7120,7 +7120,7 @@ SUBROUTINE FAST_Solution(t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD
    ! Step 1.c: Input-Output Solve      
    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-      CALL CalcOutputs_And_SolveForInputs( n_t_global, m_FAST%t_global,  STATE_PRED, m_FAST%calcJacobian, m_FAST%NextJacCalcTime, &
+      CALL CalcOutputs_And_SolveForInputs( n_t_global, t_global_next,  STATE_PRED, m_FAST%calcJacobian, m_FAST%NextJacCalcTime, &
                   p_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2 )            
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          

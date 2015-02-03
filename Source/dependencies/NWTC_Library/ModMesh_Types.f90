@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-27 11:08:59 -0600 (Fri, 27 Jun 2014) $
-! (File) Revision #: $Rev: 240 $
+! File last committed: $Date: 2015-02-03 09:04:48 -0700 (Tue, 03 Feb 2015) $
+! (File) Revision #: $Rev: 288 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/ModMesh_Types.f90 $
 !**********************************************************************************************************************************
 MODULE ModMesh_Types
@@ -185,6 +185,7 @@ CONTAINS
        CASE ( ELEMENT_WEDGE15 )
          NumNodes = 15
        CASE DEFAULT
+          NumNodes = 0
          CALL ProgAbort(' NumNodes: invalid argument Xelement = '//TRIM(Num2LStr(Xelement)))
      END SELECT
    END FUNCTION NumNodes

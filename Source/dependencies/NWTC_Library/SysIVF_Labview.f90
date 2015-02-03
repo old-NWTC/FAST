@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-02-02 11:59:40 -0700 (Mon, 02 Feb 2015) $
-! (File) Revision #: $Rev: 286 $
+! File last committed: $Date: 2015-02-02 14:38:46 -0700 (Mon, 02 Feb 2015) $
+! (File) Revision #: $Rev: 287 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/SysIVF_Labview.f90 $
 !**********************************************************************************************************************************
 MODULE SysSubs
@@ -161,7 +161,7 @@ CONTAINS
    INTEGER,      INTENT(OUT)    :: Status                                          ! Status returned by the call to a portability routine.
 
 
-   DirName = '.'//SwChar
+   DirName = '.'//PathSep
    Status  = 0
 
    RETURN
