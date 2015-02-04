@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-01-27 14:07:36 -0700 (Tue, 27 Jan 2015) $
-! (File) Revision #: $Rev: 888 $
+! File last committed: $Date: 2015-02-04 12:37:31 -0700 (Wed, 04 Feb 2015) $
+! (File) Revision #: $Rev: 902 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ServoDyn.f90 $
 !**********************************************************************************************************************************
 MODULE ServoDyn
@@ -104,10 +104,10 @@ MODULE ServoDyn
 
       ! Parameters for type of control
       
-   INTEGER(IntKi), PARAMETER :: ControlMode_None      = 0          ! The (ServoDyn-universal) control code for not using a particular type of control
-   INTEGER(IntKi), PARAMETER :: ControlMode_Simple1   = 1          ! The (ServoDyn-universal) control code for obtaining the control values from a simple built-in controller
-   INTEGER(IntKi), PARAMETER :: ControlMode_Simple2   = 2          ! The (ServoDyn-universal) control code for not using the control values from a simple built-in controller (option 2)
-!  INTEGER(IntKi), PARAMETER :: ControlMode_USER      = 3          ! The (ServoDyn-universal) control code for obtaining the control values from a user-defined routine
+   INTEGER(IntKi), PARAMETER :: ControlMode_NONE      = 0          ! The (ServoDyn-universal) control code for not using a particular type of control
+   INTEGER(IntKi), PARAMETER :: ControlMode_SIMPLE    = 1          ! The (ServoDyn-universal) control code for obtaining the control values from a simple built-in controller
+   INTEGER(IntKi), PARAMETER :: ControlMode_ADVANCED  = 2          ! The (ServoDyn-universal) control code for not using the control values from an advanced built-in controller (or just a different simple model?)
+   INTEGER(IntKi), PARAMETER :: ControlMode_USER      = 3          ! The (ServoDyn-universal) control code for obtaining the control values from a user-defined routine
    INTEGER(IntKi), PARAMETER :: ControlMode_EXTERN    = 4          ! The (ServoDyn-universal) control code for obtaining the control values from Simulink or Labivew
    INTEGER(IntKi), PARAMETER :: ControlMode_DLL       = 5          ! The (ServoDyn-universal) control code for obtaining the control values from a Bladed-Style dynamic-link library
    
@@ -1062,7 +1062,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
       
-      ! VSContrl - Variable-speed control mode {0: none, 1: simple VS, 2: user-defined from routine UserVSCont, 4: user-defined from Simulink/LabVIEW} (-):
+      ! VSContrl - Variable-speed control mode {0: none, 1: simple VS, 3: user-defined from routine UserVSCont, 4: user-defined from Simulink/LabVIEW} (-):
    CALL ReadVar( UnIn, InputFile, InputFileData%VSContrl, "VSContrl", "Variable-speed control mode (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
@@ -1210,8 +1210,8 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
       
-      ! HSSBrMode - HSS brake model {1: simple, 2: user-defined from routine UserHSSBr, 3: user-defined from LabVIEW} (-):
-   CALL ReadVar( UnIn, InputFile, InputFileData%HSSBrMode, "HSSBrMode", "HSS brake model {1: simple, 2: user-defined from routine UserHSSBr, 3: user-defined from LabVIEW} (-)", ErrStat2, ErrMsg2, UnEc)
+      ! HSSBrMode - HSS brake model {1: simple, 3: user-defined from routine UserHSSBr, 4: user-defined from LabVIEW} (-):
+   CALL ReadVar( UnIn, InputFile, InputFileData%HSSBrMode, "HSSBrMode", "HSS brake model {1: simple, 3: user-defined from routine UserHSSBr, 4: user-defined from LabVIEW} (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -1235,7 +1235,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
       
-      ! YCMode - Yaw control mode {0: none, 1: simple, 2: user-defined from routine UserYawCont, 4: user-defined from Simulink/LabVIEW} (-):
+      ! YCMode - Yaw control mode {0: none, 1: simple, 3: user-defined from routine UserYawCont, 4: user-defined from Simulink/LabVIEW} (-):
    CALL ReadVar( UnIn, InputFile, InputFileData%YCMode, "YCMode", "Yaw control mode (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
@@ -1278,6 +1278,24 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       IF ( ErrStat >= AbortErrLev ) RETURN
    InputFileData%NacYawF = InputFileData%NacYawF*D2R
       
+   
+   !---------------------- TUNED MASS DAMPER ----------------------------------------         
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Tuned Mass Damper', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+                  
+      ! CompNTMD - Compute nacelle tuned mass damper {true/false} (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%CompNTMD, "CompNTMD", "Compute nacelle tuned mass damper {true/false} (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN      
+      
+      ! NTMDfile - Name of the file for nacelle tuned mass damper (quoted string) [unused when CompNTMD is false]:
+   CALL ReadVar( UnIn, InputFile, InputFileData%NTMDfile, "NTMDfile", "Name of the file for nacelle tuned mass dampe [unused when CompNTMD is false] (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   IF ( PathIsRelative( InputFileData%NTMDfile ) ) InputFileData%NTMDfile = TRIM(PriPath)//TRIM(InputFileData%NTMDfile)
+      
+   
    !---------------------- BLADED INTERFACE ----------------------------------------         
    CALL ReadCom( UnIn, InputFile, 'Section Header: Bladed Interface', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -1525,7 +1543,7 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
       
       IF ( InputFileData%VSContrl == ControlMode_EXTERN )  THEN
          CALL SetErrors( ErrID_Fatal, 'VSContrl can only equal '//TRIM(Num2LStr(ControlMode_EXTERN))//' when ServoDyn is interfaced with Simulink or LabVIEW.'// &
-                '  Set VSContrl to 0, 1, 2, or 5 or interface ServoDyn with Simulink or LabVIEW.' )
+                '  Set VSContrl to 0, 1, 3, or 5 or interface ServoDyn with Simulink or LabVIEW.' )
       END IF
          
    ELSE
@@ -1534,7 +1552,7 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
          
          IF ( .NOT. InputFileData%GenTiStr .OR. .NOT. EqualRealNos( InputFileData%TimGenOn, 0.0_DbKi ) )  THEN
             CALL SetErrors( ErrID_Fatal, 'Variable-speed, generator torque control must be enabled at time zero when '//&
-               'implemented in Simulink or LabVIEW. Set GenTiStr to True and TimGenOn to 0.0, set VSContrl to 0, 1, 2, or 5,'//&
+               'implemented in Simulink or LabVIEW. Set GenTiStr to True and TimGenOn to 0.0, set VSContrl to 0, 1, 3, or 5,'//&
                ' or use the standard version of ServoDyn.' )
          END IF
          
@@ -1542,7 +1560,7 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
          IF ( .NOT. InputFileData%GenTiStp ) THEN
             CALL SetErrors( ErrID_Fatal, 'Variable-speed, generator torque control must not be disabled during simulation'//&
                 ' when implemented in Simulink or LabVIEW. Set GenTiStp to True and TimGenOf > TMax, '//                    &
-                ' set VSContrl to 0, 1, 2, or 5, or use the standard version of ServoDyn.'   )            
+                ' set VSContrl to 0, 1, 3, or 5, or use the standard version of ServoDyn.'   )            
          END IF         
          
       END IF         
@@ -1561,9 +1579,10 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
          
    
       ! checks for generator and torque control:           
-   IF ( ( InputFileData%VSContrl < 0_IntKi ) .OR. ( InputFileData%VSContrl > 2_IntKi ) )  THEN
+   IF ( InputFileData%VSContrl /= ControlMode_NONE .and. &
+           InputFileData%VSContrl /= ControlMode_SIMPLE .AND. InputFileData%VSContrl /= ControlMode_USER )  THEN
       IF ( InputFileData%VSContrl /= ControlMode_DLL .AND. InputFileData%VSContrl /=ControlMode_EXTERN )  &
-      CALL SetErrors( ErrID_Fatal, 'VSContrl must be either 0, 1, 2, 4, or 5.' )
+      CALL SetErrors( ErrID_Fatal, 'VSContrl must be either 0, 1, 3, 4, or 5.' )
    ENDIF
    
    IF ( InputFileData%SpdGenOn < 0.0_ReKi ) CALL SetErrors( ErrID_Fatal, 'SpdGenOn must not be negative.' )
@@ -1576,7 +1595,7 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
    
    
       ! checks for variable-speed torque control:           
-   IF ( InputFileData%VSContrl == 1_IntKi ) THEN
+   IF ( InputFileData%VSContrl == ControlMode_SIMPLE ) THEN
       IF ( InputFileData%VS_RtGnSp <= 0.0_ReKi )  CALL SetErrors( ErrID_Fatal, 'VS_RtGnSp must be greater than zero.' )
       IF ( InputFileData%VS_RtTq   < 0.0_ReKi  )  CALL SetErrors( ErrID_Fatal, 'VS_RtTq must not be negative.' )
       IF ( InputFileData%VS_Rgn2K  < 0.0_ReKi  )  CALL SetErrors( ErrID_Fatal, 'VS_Rgn2K must not be negative.' )
@@ -1586,14 +1605,14 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
    END IF
 
       ! checks for generator models (VSControl == 0):           
-   IF ( InputFileData%VSContrl == ControlMode_None ) THEN
+   IF ( InputFileData%VSContrl == ControlMode_NONE ) THEN
       
-      IF ( InputFileData%GenModel < 1_IntKi .OR. InputFileData%GenModel > 3_IntKi )  THEN
+      IF ( InputFileData%GenModel /= ControlMode_SIMPLE .AND. InputFileData%GenModel /= ControlMode_ADVANCED .AND. InputFileData%GenModel /= ControlMode_USER )  THEN
          CALL SetErrors( ErrID_Fatal, 'GenModel must be either 1, 2, or 3.' )
       ENDIF            
       
          ! checks for simple induction generator (VSControl=0 & GenModel=1):      
-      IF ( InputFileData%GenModel == 1_IntKi ) THEN
+      IF ( InputFileData%GenModel == ControlMode_SIMPLE ) THEN
          IF ( InputFileData%SIG_SlPc <= 0.0_ReKi )  CALL SetErrors( ErrID_Fatal, 'SIG_SlPc must be greater than zero.' )
          IF ( InputFileData%SIG_SySp <= 0.0_ReKi )  CALL SetErrors( ErrID_Fatal, 'SIG_SySp must be greater than zero.' )
          IF ( InputFileData%SIG_RtTq <= 0.0_ReKi )  CALL SetErrors( ErrID_Fatal, 'SIG_RtTq must be greater than zero.' )
@@ -1601,7 +1620,7 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
       END IF
 
          ! checks for Thevenin-equivalent induction generator (VSControl=0 & GenModel=2):      
-      IF ( InputFileData%GenModel == 2_IntKi ) THEN
+      IF ( InputFileData%GenModel == ControlMode_ADVANCED ) THEN
          IF ( InputFileData%TEC_Freq <= 0.0_ReKi ) CALL SetErrors( ErrID_Fatal, 'TEC_Freq must be greater than zero.' )
          IF ( InputFileData%TEC_NPol <= 0_IntKi .OR. MOD( InputFileData%TEC_NPol, 2_IntKi ) /= 0_IntKi ) &
                                      CALL SetErrors( ErrID_Fatal, 'TEC_NPol must be an even number greater than zero.' )
@@ -1617,9 +1636,9 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
    
       
       ! checks for high-speed shaft brake:       
-   IF ( InputFileData%HSSBrMode < 1_IntKi .OR. InputFileData%HSSBrMode > 2_IntKi )  THEN
+   IF ( InputFileData%HSSBrMode /= ControlMode_SIMPLE .and. InputFileData%HSSBrMode /= ControlMode_USER )  THEN
       IF ( InputFileData%HSSBrMode /= ControlMode_DLL .and. InputFileData%HSSBrMode /= ControlMode_EXTERN ) &      
-                                             CALL SetErrors( ErrID_Fatal, 'HSSBrMode must be 1, 2, 4, or 5.' )
+                                             CALL SetErrors( ErrID_Fatal, 'HSSBrMode must be 1, 3, 4, or 5.' )
    END IF
    IF ( InputFileData%THSSBrDp < 0.0_DbKi )  CALL SetErrors( ErrID_Fatal, 'THSSBrDp must not be negative.' )
    IF ( InputFileData%HSSBrDT  < 0.0_ReKi )  CALL SetErrors( ErrID_Fatal, 'HSSBrDT must not be negative.'  )
@@ -1647,22 +1666,22 @@ CONTAINS
          
          IF ( InputFileData%PCMode == ControlMode_EXTERN )  THEN
             CALL SetErrors( ErrID_Fatal, 'PCMode can only equal '//TRIM(Num2LStr(ControlMode_EXTERN))//' when ServoDyn is interfaced with Simulink or LabVIEW.'// &
-                      '  Set PCMode to 0 or 1 or interface ServoDyn with Simulink or LabVIEW.' )          
+                      '  Set PCMode to 0, 3, or 5 or interface ServoDyn with Simulink or LabVIEW.' )          
          END IF
          
       ELSE
          
          IF ( InputFileData%PCMode == ControlMode_EXTERN .AND. .NOT. EqualRealNos( InputFileData%TPCOn, 0.0_DbKi ) )  THEN
             CALL SetErrors( ErrID_Fatal, 'Pitch control must be enabled at time zero when implemented in Simulink or LabVIEW.'//&
-                   '  Set TPCon to 0.0, set PCMode to 0 or 1, or use the standard version of ServoDyn.' )
+                   '  Set TPCon to 0.0, set PCMode to 0, 3, or 5, or use the standard version of ServoDyn.' )
          END IF           
          
       END IF
    
    
-      IF ( ( InputFileData%PCMode < 0_IntKi ) .OR. ( InputFileData%PCMode > 1_IntKi ) )  THEN
+      IF ( InputFileData%PCMode /= ControlMode_NONE .and. InputFileData%PCMode /= ControlMode_USER )  THEN
          IF ( InputFileData%PCMode /= ControlMode_EXTERN .and. InputFileData%PCMode /= ControlMode_DLL )  &
-         CALL SetErrors( ErrID_Fatal, 'PCMode must be 0, 1, 4, or 5.' )
+         CALL SetErrors( ErrID_Fatal, 'PCMode must be 0, 3, 4, or 5.' )
       ENDIF
          
 
@@ -1700,9 +1719,10 @@ CONTAINS
    !...............................................................................................................................
    
             ! checks for yaw control mode:
-      IF ( ( InputFileData%YCMode < 0_IntKi ) .OR. ( InputFileData%YCMode > 2_IntKi ) )  THEN
+      IF ( InputFileData%YCMode /= ControlMode_NONE .and. &
+           InputFileData%YCMode /= ControlMode_SIMPLE .and. InputFileData%YCMode /= ControlMode_USER   )  THEN
          IF ( InputFileData%YCMode /= ControlMode_DLL .and. InputFileData%YCMode /= ControlMode_EXTERN )  &
-         CALL SetErrors( ErrID_Fatal, 'YCMode must be 0, 1, 2, 4 or 5.' )
+         CALL SetErrors( ErrID_Fatal, 'YCMode must be 0, 1, 3, 4 or 5.' )
       ENDIF
 
             
@@ -1711,14 +1731,14 @@ CONTAINS
          
          IF ( InputFileData%YCMode == ControlMode_EXTERN )  THEN
             CALL SetErrors( ErrID_Fatal, 'YCMode can only equal '//TRIM(Num2LStr(ControlMode_EXTERN))//' when ServoDyn is interfaced with Simulink or LabVIEW.'// &
-                      '  Set YCMode to 0, 1, 2, or 5 or interface ServoDyn with Simulink or LabVIEW.' )          
+                      '  Set YCMode to 0, 1, 3, or 5 or interface ServoDyn with Simulink or LabVIEW.' )          
          END IF
    
       ELSE
       
          IF ( InputFileData%YCMode == ControlMode_EXTERN .AND. .NOT. EqualRealNos( InputFileData%TYCOn, 0.0_DbKi ) )  THEN
             CALL SetErrors( ErrID_Fatal, 'Yaw control must be enabled at time zero when implemented in Simulink or LabVIEW.'//&
-                   '  Set TYCon to 0.0, set YCMode to 0, 1, 2, or 5, or use the standard version of ServoDyn.' )
+                   '  Set TYCon to 0.0, set YCMode to 0, 1, 3, or 5, or use the standard version of ServoDyn.' )
          END IF
       END IF
             
@@ -1850,17 +1870,17 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
    p%THSSBrFl  = InputFileData%THSSBrDp + InputFileData%HSSBrDT   ! Time at which shaft brake is fully deployed
    
    SELECT CASE ( p%VSContrl )      
-   CASE ( ControlMode_None )  ! None
+   CASE ( ControlMode_NONE )  ! None
       
-      IF ( p%GenModel == 1_IntKi )     THEN   ! Simple induction generator
+      IF ( p%GenModel == ControlMode_SIMPLE )     THEN   ! Simple induction generator
 
-           SIG_RtSp  = InputFileData%SIG_SySp*( 1.0 + InputFileData%SIG_SlPc )                                 ! Rated speed
+           SIG_RtSp  = InputFileData%SIG_SySp*( 1.0 + InputFileData%SIG_SlPc )                                      ! Rated speed
          p%SIG_POSl  = InputFileData%SIG_PORt*( SIG_RtSp - InputFileData%SIG_SySp )                                 ! Pullout slip
          p%SIG_POTq  = InputFileData%SIG_RtTq*InputFileData%SIG_PORt                                                ! Pullout torque
          p%SIG_Slop  = InputFileData%SIG_RtTq/( SIG_RtSp - InputFileData%SIG_SySp )                                 ! SIG torque/speed slope
 
          p%SIG_SySp = InputFileData%SIG_SySp
-      ELSEIF ( p%GenModel == 2_IntKi )  THEN   ! Thevenin-equivalent induction generator
+      ELSEIF ( p%GenModel == ControlMode_ADVANCED )  THEN   ! Thevenin-equivalent induction generator
 
          ComDenom    = InputFileData%TEC_SRes**2 + ( InputFileData%TEC_SLR + InputFileData%TEC_MR )**2   ! common denominator used in many of the following equations
          
@@ -1885,7 +1905,7 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
       ENDIF
          
       
-   CASE ( 1_IntKi ) ! Simple variable-speed control
+   CASE ( ControlMode_SIMPLE ) ! Simple variable-speed control
       
       p%VS_SySp   = InputFileData%VS_RtGnSp/( 1.0 +  InputFileData%VS_SlPc )                                            ! Synchronous speed of region 2 1/2 induction generator.
       IF ( InputFileData%VS_SlPc < SQRT(EPSILON(InputFileData%VS_SlPc) ) ) THEN                                         ! We don't have a region 2 so we'll use VS_TrGnSp = VS_RtGnSp
@@ -1935,6 +1955,10 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
    p%NacYawF  = InputFileData%NacYawF   
    ! noted: YawManRate is an OtherState
       
+      !.............................................
+      ! Tuned-mass damper parameters
+      !.............................................   
+   p%CompNTMD = InputFileData%CompNTMD
    
       !.............................................
       ! Determine if the BladedDLL should be called
@@ -2024,9 +2048,6 @@ SUBROUTINE Yaw_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    REAL(ReKi)                   :: YawPosCom                                       ! Commanded yaw angle from user-defined routines, rad.
    REAL(ReKi)                   :: YawRateCom                                      ! Commanded yaw rate  from user-defined routines, rad/s.
 
-
-INTEGER(IntKi), PARAMETER :: ControlMode_Simple = 2 
-INTEGER(IntKi), PARAMETER :: ControlMode_User   = 1
    
 
          ! Initialize ErrStat
@@ -2040,15 +2061,15 @@ INTEGER(IntKi), PARAMETER :: ControlMode_User   = 1
    !...................................................................
 
          
-   IF ( t >= p%TYCOn  .AND.  p%YCMode /= ControlMode_None )  THEN   ! Time now to enable active yaw control.
+   IF ( t >= p%TYCOn  .AND.  p%YCMode /= ControlMode_NONE )  THEN   ! Time now to enable active yaw control.
 
 
       SELECT CASE ( p%YCMode )  ! Which yaw control mode are we using? (we already took care of ControlMode_None)
             
-         CASE ( ControlMode_Simple )            ! Simple ... BJJ: THIS will be NEW
+         CASE ( ControlMode_SIMPLE )            ! Simple ... BJJ: THIS will be NEW
 
             
-         CASE ( ControlMode_User )              ! User-defined from routine UserYawCont().
+         CASE ( ControlMode_USER )              ! User-defined from routine UserYawCont().
          
             CALL UserYawCont ( u%Yaw, u%YawRate, u%WindDir, u%YawErr, p%NumBl, t, p%DT, p%RootName, YawPosCom, YawRateCom )         
 
@@ -2140,8 +2161,6 @@ SUBROUTINE Pitch_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       ! local variables      
    INTEGER(IntKi)                                 :: K           ! counter for blades
 
-INTEGER(IntKi), PARAMETER :: ControlMode_Simple = 3 
-INTEGER(IntKi), PARAMETER :: ControlMode_User   = 1
    
 
          ! Initialize ErrStat
@@ -2155,16 +2174,16 @@ INTEGER(IntKi), PARAMETER :: ControlMode_User   = 1
    !...................................................................
       ! Control pitch if requested:                  
       
-   IF ( t >= p%TPCOn .AND.  p%PCMode /= ControlMode_None )  THEN   ! Time now to enable active pitch control.
+   IF ( t >= p%TPCOn .AND.  p%PCMode /= ControlMode_NONE )  THEN   ! Time now to enable active pitch control.
 
 
       SELECT CASE ( p%PCMode )  ! Which pitch control mode are we using?
 
-         CASE ( ControlMode_Simple )            ! Simple, built-in pitch-control routine.
+         CASE ( ControlMode_SIMPLE )            ! Simple, built-in pitch-control routine.
          
             ! bjj: add this!
             
-         CASE ( ControlMode_User )              ! User-defined from routine PitchCntrl().
+         CASE ( ControlMode_USER )              ! User-defined from routine PitchCntrl().
 
             CALL PitchCntrl ( u%BlPitch, y%ElecPwr, u%LSS_Spd, u%TwrAccel, p%NumBl, t, p%DT, p%RootName, y%BlPitchCom )
 
@@ -2506,9 +2525,6 @@ SUBROUTINE Torque_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg 
    LOGICAL                      :: GenOnLine                                       ! Is the generator online?
 
 
-INTEGER(IntKi), PARAMETER :: ControlMode_Simple = 1
-INTEGER(IntKi), PARAMETER :: ControlMode_User   = 2
-
 
       ! Initialize variables
    ErrStat = ErrID_None
@@ -2562,12 +2578,12 @@ INTEGER(IntKi), PARAMETER :: ControlMode_User   = 2
 
       SELECT CASE ( p%VSContrl )               ! Are we using variable-speed control?
 
-         CASE ( ControlMode_None )                ! No variable-speed control.  Using a generator model.
+         CASE ( ControlMode_NONE )                ! No variable-speed control.  Using a generator model.
 
 
             SELECT CASE ( p%GenModel )            ! Which generator model are we using?
 
-               CASE ( 1_IntKi )                          ! Simple induction-generator model.
+               CASE ( ControlMode_SIMPLE )                          ! Simple induction-generator model.
 
 
                   Slip = u%HSS_Spd - p%SIG_SySp
@@ -2583,7 +2599,7 @@ INTEGER(IntKi), PARAMETER :: ControlMode_User   = 2
                   y%ElecPwr = CalculateElecPwr( y, u, p )
 
 
-               CASE ( 2_IntKi )                          ! Thevenin-equivalent generator model.
+               CASE ( ControlMode_ADVANCED )                          ! Thevenin-equivalent generator model.
 
 
                   SlipRat  = ( u%HSS_Spd - p%TEC_SySp )/p%TEC_SySp
@@ -2602,7 +2618,7 @@ INTEGER(IntKi), PARAMETER :: ControlMode_User   = 2
                   y%ElecPwr = PwrMech - PwrLossS - PwrLossR
 
 
-               CASE ( 3_IntKi )                          ! User-defined generator model.
+               CASE ( ControlMode_USER )                          ! User-defined generator model.
 
 
          !        CALL UserGen ( u%HSS_Spd, u%LSS_Spd, p%NumBl, t, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
@@ -2611,7 +2627,7 @@ INTEGER(IntKi), PARAMETER :: ControlMode_User   = 2
             END SELECT
 
 
-         CASE ( ControlMode_Simple )              ! Simple variable-speed control.
+         CASE ( ControlMode_SIMPLE )              ! Simple variable-speed control.
 
 
          ! Compute the generator torque, which depends on which region we are in:
@@ -2632,7 +2648,7 @@ INTEGER(IntKi), PARAMETER :: ControlMode_User   = 2
             y%ElecPwr = y%GenTrq*u%HSS_Spd*p%GenEff
             !y%ElecPwr = CalculateElecPwr( y, u, p )
 
-         CASE ( ControlMode_User )                              ! User-defined variable-speed control for routine UserVSCont().
+         CASE ( ControlMode_USER )                              ! User-defined variable-speed control for routine UserVSCont().
 
 
       !      CALL UserVSCont ( u%HSS_Spd, u%LSS_Spd, p%NumBl, t, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
@@ -2695,7 +2711,7 @@ INTEGER(IntKi), PARAMETER :: ControlMode_User   = 2
 
       SELECT CASE ( p%HSSBrMode )                 ! Which HSS brake model are we using?
 
-      CASE ( ControlMode_Simple )                 ! Simple built-in HSS brake model with linear ramp.
+      CASE ( ControlMode_SIMPLE )                 ! Simple built-in HSS brake model with linear ramp.
 
          IF ( t < p%THSSBrFl )  THEN ! Linear ramp
             HSSBrFrac = ( t - p%THSSBrDp )/p%HSSBrDT
@@ -2703,7 +2719,7 @@ INTEGER(IntKi), PARAMETER :: ControlMode_User   = 2
             HSSBrFrac = 1.0
          ENDIF
 
-      CASE ( ControlMode_User )                   ! User-defined HSS brake model.
+      CASE ( ControlMode_USER )                   ! User-defined HSS brake model.
 
          CALL UserHSSBr ( y%GenTrq, y%ElecPwr, u%HSS_Spd, p%NumBl, t, p%DT, p%RootName, HSSBrFrac )
 
