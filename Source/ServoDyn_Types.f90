@@ -77,7 +77,7 @@ IMPLICIT NONE
     REAL(DbKi)  :: TYawManS      ! Time to start override yaw maneuver and end standard yaw control [s]
     REAL(ReKi)  :: YawManRat      ! Yaw maneuver rate (in absolute value) [rad/s]
     REAL(ReKi)  :: NacYawF      ! Final yaw angle for override yaw maneuvers [radians]
-    LOGICAL  :: SumPrint      ! Print summary data to <RootName>.fsm? [-]
+    LOGICAL  :: SumPrint      ! Print summary data to <RootName>.sum [-]
     INTEGER(IntKi)  :: OutFile      ! Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both) [-]
     LOGICAL  :: TabDelim      ! Use tab delimiters in text tabular output file? [-]
     CHARACTER(20)  :: OutFmt      ! Format used for text tabular output (except time) [-]
@@ -103,6 +103,8 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: DLL_NumTrq      ! Record 26: No. of points in torque-speed look-up table {0 = none and use the optimal mode PARAMETERs instead, nonzero = ignore the optimal mode PARAMETERs by setting Gain_OM (Record 16) to 0.0} [used only with DLL Interface] [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: GenSpd_TLU      ! Records R:2:R+2*DLL_NumTrq-2: Generator speed values in look-up table [used only with DLL Interface] [rad/s]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: GenTrq_TLU      ! Records R+1:2:R+2*DLL_NumTrq-1: Generator torque values in look-up table [used only with DLL Interface] [Nm]
+    LOGICAL  :: CompNTMD      ! Compute nacelle tuned mass damper {true/false} [-]
+    CHARACTER(1024)  :: NTMDfile      ! File for nacelle tuned mass damper (quoted string) [-]
   END TYPE SrvD_InputFile
 ! =======================
 ! =========  BladedDLLType  =======
@@ -228,6 +230,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: TBDrConN      ! Tip-brake drag constant during normal operation, Cd*Area [-]
     REAL(ReKi)  :: TBDrConD      ! Tip-brake drag constant during fully-deployed operation, Cd*Area [-]
     INTEGER(IntKi)  :: NumBl      ! Number of blades on the turbine [-]
+    LOGICAL  :: CompNTMD      ! Compute nacelle tuned mass damper {true/false} [-]
     INTEGER(IntKi)  :: NumOuts      ! Number of parameters in the output list (number of outputs requested) [-]
     CHARACTER(1024)  :: RootName      ! RootName for writing output files [-]
     TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam      ! Names and units (and other characteristics) of all requested output parameters [-]
@@ -418,6 +421,8 @@ IF (ALLOCATED(SrcInputFileData%GenTrq_TLU)) THEN
    END IF
    DstInputFileData%GenTrq_TLU = SrcInputFileData%GenTrq_TLU
 ENDIF
+   DstInputFileData%CompNTMD = SrcInputFileData%CompNTMD
+   DstInputFileData%NTMDfile = SrcInputFileData%NTMDfile
  END SUBROUTINE SrvD_CopyInputFile
 
  SUBROUTINE SrvD_DestroyInputFile( InputFileData, ErrStat, ErrMsg )
@@ -541,6 +546,8 @@ ENDIF
   Int_BufSz  = Int_BufSz  + 1  ! DLL_NumTrq
   IF ( ALLOCATED(InData%GenSpd_TLU) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GenSpd_TLU )  ! GenSpd_TLU 
   IF ( ALLOCATED(InData%GenTrq_TLU) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GenTrq_TLU )  ! GenTrq_TLU 
+  Int_BufSz  = Int_BufSz  + 1  ! CompNTMD
+!  missing buffer for NTMDfile
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -674,6 +681,8 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%GenTrq_TLU))-1 ) =  PACK(InData%GenTrq_TLU ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%GenTrq_TLU)
   ENDIF
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%CompNTMD ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE SrvD_PackInputFile
 
  SUBROUTINE SrvD_UnPackInputFile( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -2148,6 +2157,7 @@ ENDIF
    DstParamData%TBDrConN = SrcParamData%TBDrConN
    DstParamData%TBDrConD = SrcParamData%TBDrConD
    DstParamData%NumBl = SrcParamData%NumBl
+   DstParamData%CompNTMD = SrcParamData%CompNTMD
    DstParamData%NumOuts = SrcParamData%NumOuts
    DstParamData%RootName = SrcParamData%RootName
 IF (ALLOCATED(SrcParamData%OutParam)) THEN
@@ -2345,6 +2355,7 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! TBDrConN
   Re_BufSz   = Re_BufSz   + 1  ! TBDrConD
   Int_BufSz  = Int_BufSz  + 1  ! NumBl
+  Int_BufSz  = Int_BufSz  + 1  ! CompNTMD
   Int_BufSz  = Int_BufSz  + 1  ! NumOuts
 !  missing buffer for RootName
 DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
@@ -2509,6 +2520,8 @@ ENDDO
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%TBDrConD )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumBl )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%CompNTMD ), IntKiBuf(1), 1)
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumOuts )
   Int_Xferred   = Int_Xferred   + 1

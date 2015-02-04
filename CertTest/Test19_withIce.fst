@@ -1,4 +1,4 @@
-------- FAST v8.09.* INPUT FILE ------------------------------------------------
+------- FAST v8.10.* INPUT FILE ------------------------------------------------
 FAST Certification Test #19: NREL 5.0 MW Baseline Wind Turbine with OC3 Monopile RF Configuration, for use in offshore analysis
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
@@ -29,11 +29,11 @@ False         CompUserTwrLd   - Compute additional tower loading (flag) {false: 
 "5MW_Baseline/NRELOffshrBsline5MW_OC3Monopile_HydroDyn_withIce.dat"    HydroFile       - Name of file containing hydrodynamic input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_OC3Monopile_SubDyn.dat"    SubFile         - Name of file containing sub-structural input parameters (quoted string)
 "unused"      MooringFile     - Name of file containing mooring system input parameters (quoted string)
-"C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\IceDyn\SVNDirectory\test\Test_Mod2Sub1/IceDyn_Input.txt"    IceFile         - Name of file containing ice input parameters (quoted string)
+"C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\IceDyn\SVNDirectory\test\Test_Mod6/case1/IceDyn_Input.txt"    IceFile         - Name of file containing ice input parameters (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime        - Amount of time between screen status messages (s)
-      0.015   DT_Out          - Time step for tabular output (s)
+      0.005   DT_Out          - Time step for tabular output (s)
           0   TStart          - Time to begin tabular output (s)
           2   OutFileFmt      - Format for tabular (time-marching) output file (switch) {1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both}
 True          TabDelim        - Use tab delimiters in text tabular output file? (flag) {uses spaces if false}

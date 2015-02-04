@@ -12,8 +12,8 @@ SUBROUTINE UserGen ( HSS_Spd, LSS_Spd, NumBl, ZTime, DT, GenEff, DelGenTrq, DirR
 
 
    ! This  example UserGen() is used do the same thing as SUBROUTINE
-   !   UserVSCont(), so that setting VSContrl to 0 and GenModel o 3 does
-   !   the same thing as setting VSContrl to 2.
+   !   UserVSCont(), so that setting VSContrl to 0 and GenModel to 3 does
+   !   the same thing as setting VSContrl to 3.
 
 
 USE                            Precision

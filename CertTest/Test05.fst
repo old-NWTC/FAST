@@ -1,4 +1,4 @@
-------- FAST v8.09.* INPUT FILE ------------------------------------------------
+------- FAST v8.10.* INPUT FILE ------------------------------------------------
 FAST Certification Test #05: AWT-27CR2 with many DOFs with startup and shutdown and FF turbulence.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)

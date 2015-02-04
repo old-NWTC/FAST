@@ -1,4 +1,4 @@
-------- FAST v8.09.* INPUT FILE ------------------------------------------------
+------- FAST v8.10.* INPUT FILE ------------------------------------------------
 FAST Certification Test #19: NREL 5.0 MW Baseline Wind Turbine with OC3 Monopile RF Configuration, for use in offshore analysis
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)

@@ -1,4 +1,4 @@
-------- FAST v8.09.* INPUT FILE ------------------------------------------------
+------- FAST v8.10.* INPUT FILE ------------------------------------------------
 FAST Certification Test #01: AWT-27CR2 with many DOFs with fixed yaw error and steady wind
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)

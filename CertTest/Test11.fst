@@ -1,4 +1,4 @@
-------- FAST v8.09.* INPUT FILE ------------------------------------------------
+------- FAST v8.10.* INPUT FILE ------------------------------------------------
 FAST Certification Test #11: WindPACT 1.5 MW Baseline with many DOFs undergoing a pitch failure.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)

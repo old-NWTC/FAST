@@ -23,12 +23,12 @@ for i=1:25
     inputfile = [oldDir filesep baseFileName '.fst'];      
     
     
-    ConvertFAST8_8to9(inputfile,newDir);
+    ConvertFAST8_9to10(inputfile,newDir);
     
 end
-ConvertFAST8_8to9([oldDir filesep 'Test19_noHD.fst'],newDir);
-ConvertFAST8_8to9([oldDir filesep 'Test19_withIce.fst'],newDir);
-ConvertFAST8_8to9([oldDir filesep 'Test21_withIce.fst'],newDir);
+ConvertFAST8_9to10([oldDir filesep 'Test19_noHD.fst'],newDir);
+ConvertFAST8_9to10([oldDir filesep 'Test19_withIce.fst'],newDir);
+ConvertFAST8_9to10([oldDir filesep 'Test21_withIce.fst'],newDir);
 
 return;
 

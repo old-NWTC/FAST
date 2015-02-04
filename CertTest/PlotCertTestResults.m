@@ -34,13 +34,12 @@ end
     for i= 1:25 
         
         fileRoot = ['Test' num2str(i,'%02.0f')];
-% fileRoot = ['Test19_noHD'];
         
-        oldRoot  = strcat( oldPath, filesep, fileRoot, {'_SFunc', '_ADAMS', ''} );
-        newRoot  = strcat( newPath, filesep, fileRoot, {'_SFunc', '_ADAMS', ''} );
+        oldRoot  = strcat( oldPath, filesep, fileRoot, {'.SFunc', '_ADAMS', ''} );
+        newRoot  = strcat( newPath, filesep, fileRoot, {'.SFunc', '_ADAMS', ''} );
         
         if i == 14 % linearization case
-continue; %bjj: linearization not yet available in FAST 8.0.0
+continue; %bjj: linearization not yet available in FAST 8.
             oldFiles = strcat( oldRoot,  {'.eig', '_LIN.out', '.eig'} );
             newFiles = strcat( newRoot,  {'.eig', '_LIN.out', '.eig'} );
             nModes   = 30;
@@ -273,7 +272,9 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
             if nCols ~= nc_Old || nCols ~= nc_New 
 %bjj: we're going to try to match the columns now (before this was an error)                
                 disp(['CompareCertTestResults::number of columns differ in the file comparisons of old and new ' descFiles{iFile} ' files.']);
-                disp( [ iFile, nCols, nc_Old, nc_New, nr_Old, nr_New] )
+                fprintf( '  File %i old: %i rows x %i columns\n         new: %i rows x %i columns\n', ...
+                          iFile, nr_Old, nc_Old, nr_New, nc_New );
+
             end
 
             if nr_Old ~= nr_New
@@ -366,7 +367,7 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
                 anyDiffPlot = true;
                     % absolute difference
                 subplot(6,1,5);
-                AbsDiff = (oldData{iFile}(:,yCol_old)-newData{iFile}(:,yCol_new) );
+                AbsDiff = (oldData{iFile}(:,yCol_old)-newData{iFile}(:,yCol_new)/scaleFactor );
                 plot(oldData{iFile}(:,xCol_old) ,   AbsDiff, ...
                       'Displayname',descFiles{iFile},'Color',LineColors{iFile}, 'LineWidth',LineWidthConst);
                 hold on;
@@ -483,7 +484,15 @@ function [ChannelName_new,scaleFact] = getNewChannelName(ChannelName)
             ChannelName_new = strrep(ChannelName_new,'Wave1A','M1N1A');
             %ChannelName_new = ChannelName_new;              
         end
-                        
+             
+        if strncmpi(ChannelName_new,'TFair[',6)
+            ChannelName_new = strrep(ChannelName_new, 'TFair[','T[');
+            scaleFact = 1000;
+        elseif strncmpi(ChannelName_new,'TAnch[',6)
+            ChannelName_new = strrep(ChannelName_new, 'TAnch[','T_a[');
+            scaleFact = 1000;
+        end
+        
         
 return     
 end 

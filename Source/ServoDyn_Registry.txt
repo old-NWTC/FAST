@@ -64,7 +64,7 @@ typedef	^	SrvD_InputFile	ReKi	YawDamp	-	-	-	"Nacelle-yaw constant"	N-m/(rad/s)
 typedef	^	SrvD_InputFile	DbKi	TYawManS	-	-	-	"Time to start override yaw maneuver and end standard yaw control"	s
 typedef	^	SrvD_InputFile	ReKi	YawManRat	-	-	-	"Yaw maneuver rate (in absolute value)"	rad/s
 typedef	^	SrvD_InputFile	ReKi	NacYawF	-	-	-	"Final yaw angle for override yaw maneuvers"	radians
-typedef	^	SrvD_InputFile	LOGICAL	SumPrint	-	-	-	"Print summary data to <RootName>.fsm?"	-
+typedef	^	SrvD_InputFile	LOGICAL	SumPrint	-	-	-	"Print summary data to <RootName>.sum"	-
 typedef	^	SrvD_InputFile	IntKi	OutFile	-	-	-	"Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both)"	-
 typedef	^	SrvD_InputFile	LOGICAL	TabDelim	-	-	-	"Use tab delimiters in text tabular output file?"	-
 typedef	^	SrvD_InputFile	CHARACTER(20)	OutFmt	-	-	-	"Format used for text tabular output (except time)"	-
@@ -92,6 +92,8 @@ typedef	^	SrvD_InputFile	ReKi	GenPwr_Dem	-	-	-	"Record 13: Demanded power [used 
 typedef	^	SrvD_InputFile	IntKi	DLL_NumTrq	-	-	-	"Record 26: No. of points in torque-speed look-up table {0 = none and use the optimal mode PARAMETERs instead, nonzero = ignore the optimal mode PARAMETERs by setting Gain_OM (Record 16) to 0.0} [used only with DLL Interface]"	-
 typedef	^	SrvD_InputFile	ReKi	GenSpd_TLU	{:}	-	-	"Records R:2:R+2*DLL_NumTrq-2: Generator speed values in look-up table [used only with DLL Interface]"	rad/s
 typedef	^	SrvD_InputFile	ReKi	GenTrq_TLU	{:}	-	-	"Records R+1:2:R+2*DLL_NumTrq-1: Generator torque values in look-up table [used only with DLL Interface]"	Nm
+typedef	^	SrvD_InputFile	LOGICAL	CompNTMD	-	-	-	"Compute nacelle tuned mass damper {true/false}"	-
+typedef	^	SrvD_InputFile	CHARACTER(1024)	NTMDfile	-	-	-	"File for nacelle tuned mass damper (quoted string)"	-
 
 # ..... Data for using Bladed DLLs .......................................................................................................
 typedef	^	BladedDLLType	SiKi	avrSWAP	{:}	-	-	"The swap array: used to pass data to and from the DLL controller"	"see Bladed DLL documentation"
@@ -205,7 +207,8 @@ typedef	^	ParameterType	ReKi	YawDamp	-	-	-	"Nacelle-yaw constant"	N-m/(rad/s)
 typedef	^	ParameterType	DbKi	TpBrDT	-	-	-	"Time for tip-brake to reach full deployment once released"	s
 typedef	^	ParameterType	ReKi	TBDrConN	-	-	-	"Tip-brake drag constant during normal operation, Cd*Area"
 typedef	^	ParameterType	ReKi	TBDrConD	-	-	-	"Tip-brake drag constant during fully-deployed operation, Cd*Area"
-typedef	^	ParameterType	IntKi	NumBl	-	-	-	"Number of blades on the turbine"
+typedef	^	ParameterType	IntKi	NumBl	-	-	-	"Number of blades on the turbine"	-
+typedef	^	ParameterType	LOGICAL	CompNTMD	-	-	-	"Compute nacelle tuned mass damper {true/false}"	-
 # parameters for output
 typedef	^	ParameterType	IntKi	NumOuts	-	-	-	"Number of parameters in the output list (number of outputs requested)"	-
 typedef	^	ParameterType	CHARACTER(1024)	RootName	-	-	-	"RootName for writing output files"	-
