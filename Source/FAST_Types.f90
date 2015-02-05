@@ -35,6 +35,7 @@ USE ElastoDyn_Types
 USE ServoDyn_Types
 USE IfW_FFWind_Types
 USE IfW_HHWind_Types
+USE Lidar_Types
 USE InflowWind_Types
 USE DWM_Types
 USE AeroDyn_Types
@@ -318,6 +319,13 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: n_TMax_m1      ! The time step of TMax - dt (the end time of the simulation) [(-)]
     LOGICAL  :: calcJacobian      ! Should we calculate Jacobians in Option 1? [(flag)]
   END TYPE FAST_MiscVarType
+! =======================
+! =========  FAST_ExternInitType  =======
+  TYPE, PUBLIC :: FAST_ExternInitType
+    REAL(DbKi)  :: Tmax = -1      ! External code specified Tmax [s]
+    INTEGER(IntKi)  :: SensorType = SensorType_None      ! lidar sensor type, which should not be pulsed at the moment; this input should be replaced with a section in the InflowWind input file [-]
+    LOGICAL  :: LidRadialVel      ! TRUE => return radial component, FALSE => return 'x' direction estimate [-]
+  END TYPE FAST_ExternInitType
 ! =======================
 CONTAINS
  SUBROUTINE FAST_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )
@@ -8912,6 +8920,124 @@ ENDDO
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE FAST_UnPackMiscVarType
+
+ SUBROUTINE FAST_CopyExternInitType( SrcExternInitTypeData, DstExternInitTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(FAST_ExternInitType), INTENT(IN) :: SrcExternInitTypeData
+   TYPE(FAST_ExternInitType), INTENT(INOUT) :: DstExternInitTypeData
+   INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
+   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+! Local 
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
+! 
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   DstExternInitTypeData%Tmax = SrcExternInitTypeData%Tmax
+   DstExternInitTypeData%SensorType = SrcExternInitTypeData%SensorType
+   DstExternInitTypeData%LidRadialVel = SrcExternInitTypeData%LidRadialVel
+ END SUBROUTINE FAST_CopyExternInitType
+
+ SUBROUTINE FAST_DestroyExternInitType( ExternInitTypeData, ErrStat, ErrMsg )
+  TYPE(FAST_ExternInitType), INTENT(INOUT) :: ExternInitTypeData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
+! 
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+ END SUBROUTINE FAST_DestroyExternInitType
+
+ SUBROUTINE FAST_PackExternInitType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+  REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
+  REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
+  INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
+  TYPE(FAST_ExternInitType),  INTENT(INOUT) :: InData
+  INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
+  CHARACTER(*),     INTENT(  OUT) :: ErrMsg
+  LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
+ ! buffers to store meshes, if any
+  OnlySize = .FALSE.
+  IF ( PRESENT(SizeOnly) ) THEN
+    OnlySize = SizeOnly
+  ENDIF
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+  Db_BufSz   = Db_BufSz   + 1  ! Tmax
+  Int_BufSz  = Int_BufSz  + 1  ! SensorType
+  Int_BufSz  = Int_BufSz  + 1  ! LidRadialVel
+  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
+  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
+  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
+  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%Tmax )
+  Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%SensorType )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%LidRadialVel ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+ END SUBROUTINE FAST_PackExternInitType
+
+ SUBROUTINE FAST_UnPackExternInitType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+  REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
+  REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
+  INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
+  TYPE(FAST_ExternInitType), INTENT(INOUT) :: OutData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  LOGICAL, ALLOCATABLE           :: mask1(:)
+  LOGICAL, ALLOCATABLE           :: mask2(:,:)
+  LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+ ! buffers to store meshes, if any
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+  OutData%Tmax = DbKiBuf ( Db_Xferred )
+  Db_Xferred   = Db_Xferred   + 1
+  OutData%SensorType = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  Re_Xferred   = Re_Xferred-1
+  Db_Xferred   = Db_Xferred-1
+  Int_Xferred  = Int_Xferred-1
+ END SUBROUTINE FAST_UnPackExternInitType
 
 END MODULE FAST_Types
 !ENDOFREGISTRYGENERATEDFILE

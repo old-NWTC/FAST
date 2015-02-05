@@ -41,8 +41,10 @@ IMPLICIT NONE
   TYPE, PUBLIC :: Lidar_InitInputType
     INTEGER(IntKi)  :: SensorType = SensorType_None      ! SensorType_* parameter [-]
     REAL(DbKi)  :: Tmax      ! the length of the simulation [s]
+    REAL(ReKi) , DIMENSION(1:3)  :: RotorApexOffsetPos      ! position of the lidar unit relative to the rotor apex of rotation [m]
     REAL(ReKi) , DIMENSION(1:3)  :: HubPosition      ! initial position of the hub (lidar mounted on hub) [0,0,HubHeight] [m]
     INTEGER(IntKi)  :: NumPulseGate      ! the number of range gates to return wind speeds at [-]
+    LOGICAL  :: LidRadialVel      ! TRUE => return radial component, FALSE => return 'x' direction estimate [-]
   END TYPE Lidar_InitInputType
 ! =======================
 ! =========  Lidar_InitOutputType  =======
@@ -53,6 +55,7 @@ IMPLICIT NONE
 ! =========  Lidar_ParameterType  =======
   TYPE, PUBLIC :: Lidar_ParameterType
     INTEGER(IntKi)  :: NumPulseGate      ! the number of range gates to return wind speeds at; pulsed lidar only [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: RotorApexOffsetPos      ! position of the lidar unit relative to the rotor apex of rotation [m]
     REAL(ReKi)  :: RayRangeSq      ! Rayleigh Range Squared [-]
     REAL(ReKi)  :: SpatialRes      ! spatial sampling distance of weighting function (1/2)*(avg ws)*dt [-]
     INTEGER(IntKi)  :: SensorType      ! SensorType_* parameter [-]
@@ -115,8 +118,10 @@ CONTAINS
    ErrMsg  = ""
    DstInitInputData%SensorType = SrcInitInputData%SensorType
    DstInitInputData%Tmax = SrcInitInputData%Tmax
+   DstInitInputData%RotorApexOffsetPos = SrcInitInputData%RotorApexOffsetPos
    DstInitInputData%HubPosition = SrcInitInputData%HubPosition
    DstInitInputData%NumPulseGate = SrcInitInputData%NumPulseGate
+   DstInitInputData%LidRadialVel = SrcInitInputData%LidRadialVel
  END SUBROUTINE Lidar_CopyInitInput
 
  SUBROUTINE Lidar_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
@@ -165,8 +170,10 @@ CONTAINS
   Int_BufSz  = 0
   Int_BufSz  = Int_BufSz  + 1  ! SensorType
   Db_BufSz   = Db_BufSz   + 1  ! Tmax
+  Re_BufSz    = Re_BufSz    + SIZE( InData%RotorApexOffsetPos )  ! RotorApexOffsetPos 
   Re_BufSz    = Re_BufSz    + SIZE( InData%HubPosition )  ! HubPosition 
   Int_BufSz  = Int_BufSz  + 1  ! NumPulseGate
+  Int_BufSz  = Int_BufSz  + 1  ! LidRadialVel
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -174,9 +181,13 @@ CONTAINS
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%Tmax )
   Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%RotorApexOffsetPos))-1 ) =  PACK(InData%RotorApexOffsetPos ,.TRUE.)
+  Re_Xferred   = Re_Xferred   + SIZE(InData%RotorApexOffsetPos)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%HubPosition))-1 ) =  PACK(InData%HubPosition ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%HubPosition)
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumPulseGate )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%LidRadialVel ), IntKiBuf(1), 1)
   Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE Lidar_PackInitInput
 
@@ -217,6 +228,11 @@ CONTAINS
   Int_Xferred   = Int_Xferred   + 1
   OutData%Tmax = DbKiBuf ( Db_Xferred )
   Db_Xferred   = Db_Xferred   + 1
+  ALLOCATE(mask1(SIZE(OutData%RotorApexOffsetPos,1)))
+  mask1 = .TRUE.
+  OutData%RotorApexOffsetPos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%RotorApexOffsetPos))-1 ),mask1,OutData%RotorApexOffsetPos)
+  DEALLOCATE(mask1)
+  Re_Xferred   = Re_Xferred   + SIZE(OutData%RotorApexOffsetPos)
   ALLOCATE(mask1(SIZE(OutData%HubPosition,1)))
   mask1 = .TRUE.
   OutData%HubPosition = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%HubPosition))-1 ),mask1,OutData%HubPosition)
@@ -345,12 +361,14 @@ CONTAINS
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
    DstParamData%NumPulseGate = SrcParamData%NumPulseGate
+   DstParamData%RotorApexOffsetPos = SrcParamData%RotorApexOffsetPos
    DstParamData%RayRangeSq = SrcParamData%RayRangeSq
    DstParamData%SpatialRes = SrcParamData%SpatialRes
    DstParamData%SensorType = SrcParamData%SensorType
@@ -407,6 +425,7 @@ CONTAINS
   Db_BufSz  = 0
   Int_BufSz  = 0
   Int_BufSz  = Int_BufSz  + 1  ! NumPulseGate
+  Re_BufSz    = Re_BufSz    + SIZE( InData%RotorApexOffsetPos )  ! RotorApexOffsetPos 
   Re_BufSz   = Re_BufSz   + 1  ! RayRangeSq
   Re_BufSz   = Re_BufSz   + 1  ! SpatialRes
   Int_BufSz  = Int_BufSz  + 1  ! SensorType
@@ -421,6 +440,8 @@ CONTAINS
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumPulseGate )
   Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%RotorApexOffsetPos))-1 ) =  PACK(InData%RotorApexOffsetPos ,.TRUE.)
+  Re_Xferred   = Re_Xferred   + SIZE(InData%RotorApexOffsetPos)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%RayRangeSq )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%SpatialRes )
@@ -476,6 +497,11 @@ CONTAINS
   Int_BufSz  = 0
   OutData%NumPulseGate = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
+  ALLOCATE(mask1(SIZE(OutData%RotorApexOffsetPos,1)))
+  mask1 = .TRUE.
+  OutData%RotorApexOffsetPos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%RotorApexOffsetPos))-1 ),mask1,OutData%RotorApexOffsetPos)
+  DEALLOCATE(mask1)
+  Re_Xferred   = Re_Xferred   + SIZE(OutData%RotorApexOffsetPos)
   OutData%RayRangeSq = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%SpatialRes = ReKiBuf ( Re_Xferred )

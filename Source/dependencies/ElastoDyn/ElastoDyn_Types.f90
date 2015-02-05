@@ -43,13 +43,15 @@ IMPLICIT NONE
 ! =======================
 ! =========  ED_InitOutputType  =======
   TYPE, PUBLIC :: ED_InitOutputType
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! Names of the output-to-file channels [-]
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! Units of the output-to-file channels [-]
+    CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! Names of the output-to-file channels [-]
+    CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! Units of the output-to-file channels [-]
     TYPE(ProgDesc)  :: Ver      ! This module's name, version, and date [-]
     INTEGER(IntKi)  :: NumBl      ! Number of blades on the turbine [-]
     REAL(ReKi)  :: Gravity      ! Gravitational acceleration [m/s^2]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch      ! Initial blade pitch angles [radians]
     REAL(ReKi)  :: BladeLength      ! Blade length (for AeroDyn) [meters]
+    REAL(ReKi)  :: HubHt      ! Height of the hub [meters]
+    REAL(ReKi) , DIMENSION(1:6)  :: PlatformPos      ! Initial platform position (6 DOFs) [-]
   END TYPE ED_InitOutputType
 ! =======================
 ! =========  BladeInputData  =======
@@ -186,7 +188,7 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: NBlGages      ! Number of blade strain gages [-]
     INTEGER(IntKi) , DIMENSION(1:9)  :: BldGagNd      ! Nodes closest to the blade strain gages [-]
     INTEGER(IntKi)  :: NumOuts      ! Number of parameters in the output list (number of outputs requested) [-]
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: OutList      ! List of user-requested output channels [-]
+    CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: OutList      ! List of user-requested output channels [-]
     INTEGER(IntKi)  :: NTwInpSt      ! Number of tower input stations [-]
     REAL(ReKi) , DIMENSION(1:2)  :: TwrFADmp      ! Tower fore-aft structural damping ratios [%]
     REAL(ReKi) , DIMENSION(1:2)  :: TwrSSDmp      ! Tower side-to-side structural damping ratios [%]
@@ -997,6 +999,8 @@ IF (ALLOCATED(SrcInitOutputData%BlPitch)) THEN
    DstInitOutputData%BlPitch = SrcInitOutputData%BlPitch
 ENDIF
    DstInitOutputData%BladeLength = SrcInitOutputData%BladeLength
+   DstInitOutputData%HubHt = SrcInitOutputData%HubHt
+   DstInitOutputData%PlatformPos = SrcInitOutputData%PlatformPos
  END SUBROUTINE ED_CopyInitOutput
 
  SUBROUTINE ED_DestroyInitOutput( InitOutputData, ErrStat, ErrMsg )
@@ -1069,6 +1073,8 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! Gravity
   IF ( ALLOCATED(InData%BlPitch) )   Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitch )  ! BlPitch 
   Re_BufSz   = Re_BufSz   + 1  ! BladeLength
+  Re_BufSz   = Re_BufSz   + 1  ! HubHt
+  Re_BufSz    = Re_BufSz    + SIZE( InData%PlatformPos )  ! PlatformPos 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1098,6 +1104,10 @@ ENDIF
   ENDIF
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%BladeLength )
   Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%HubHt )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%PlatformPos))-1 ) =  PACK(InData%PlatformPos ,.TRUE.)
+  Re_Xferred   = Re_Xferred   + SIZE(InData%PlatformPos)
  END SUBROUTINE ED_PackInitOutput
 
  SUBROUTINE ED_UnPackInitOutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1164,6 +1174,13 @@ ENDIF
   ENDIF
   OutData%BladeLength = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
+  OutData%HubHt = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  ALLOCATE(mask1(SIZE(OutData%PlatformPos,1)))
+  mask1 = .TRUE.
+  OutData%PlatformPos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PlatformPos))-1 ),mask1,OutData%PlatformPos)
+  DEALLOCATE(mask1)
+  Re_Xferred   = Re_Xferred   + SIZE(OutData%PlatformPos)
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1

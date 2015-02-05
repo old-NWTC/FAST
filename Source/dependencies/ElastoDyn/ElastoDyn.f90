@@ -20,8 +20,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-02-02 12:24:02 -0700 (Mon, 02 Feb 2015) $
-! (File) Revision #: $Rev: 895 $
+! File last committed: $Date: 2015-02-04 22:12:31 -0700 (Wed, 04 Feb 2015) $
+! (File) Revision #: $Rev: 904 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn.f90 $
 !**********************************************************************************************************************************
 
@@ -1467,6 +1467,8 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    InitOut%NumBl       = p%NumBl
    InitOut%Gravity     = p%Gravity
    InitOut%BladeLength = p%TipRad - p%HubRad
+   InitOut%PlatformPos = x%QT(1:6)
+   InitOut%HubHt       = p%HubHt
 
    CALL AllocAry(InitOut%BlPitch, p%NumBl, 'BlPitch', ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )

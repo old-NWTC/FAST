@@ -261,6 +261,7 @@ SET CURR_LOC=%FAST_Loc%
 SET ModuleName=FAST
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD_Loc%" -I^
  "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Loc%"  -I "%IceF_Loc%" -I "%IceD_Loc%" -noextrap
+MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 
 
 ECHO %Lines%

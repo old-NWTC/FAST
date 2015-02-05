@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-01-30 15:00:35 -0700 (Fri, 30 Jan 2015) $
-! (File) Revision #: $Rev: 137 $
+! File last committed: $Date: 2015-02-05 12:40:18 -0700 (Thu, 05 Feb 2015) $
+! (File) Revision #: $Rev: 138 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/Lidar.f90 $
 !**********************************************************************************************************************************
 MODULE Lidar
@@ -108,6 +108,9 @@ SUBROUTINE Lidar_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut
       !............................................................................................
       ! Define parameters here:
       !............................................................................................
+      
+   p%lidar%RotorApexOffsetPos = InitInp%lidar%RotorApexOffsetPos
+      
    p%lidar%SensorType = InitInp%lidar%SensorType      
    IF (p%lidar%SensorType == SensorType_None) THEN
       p%lidar%NumPulseGate = 0
@@ -123,7 +126,7 @@ SUBROUTINE Lidar_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut
       p%lidar%SpatialRes     =  0.5_ReKi*TempWindSpeed(1)*Interval      
       p%lidar%RayRangeSq     =  (Pi*(BeamRad**2)/LsrWavLen)**2
    
-      p%lidar%LidRadialVel   = .FALSE.
+      p%lidar%LidRadialVel   = InitInp%lidar%LidRadialVel  !.FALSE.
    
 
       IF (p%lidar%SensorType == SensorType_ContinuousLidar) THEN

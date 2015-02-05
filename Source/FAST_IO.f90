@@ -4032,25 +4032,11 @@ SUBROUTINE AD_SetInitInput(InitInData_AD, InitOutData_ED, y_ED, p_FAST, ErrStat,
    END IF
    
    
-      ! Initialize AeroDyn
-
-
-   !
-   !   ! Check that the hub-heights are Set up other parameters only if we need them
-   !
-   !IF ( p_FAST%CompAero == Module_AD )  THEN
-   !
-   !   ! Let's see if the hub-height in AeroDyn and FAST are within 10%:
-   !   AD_RefHt = AD_GetConstant('RefHt', ErrStat)
-   !
-   !   IF ( ABS( p_ED%HubHt - AD_RefHt ) > 0.1*( p_ED%HubHt ) )  THEN  !bjj: I believe that this should not be done in the future
-   !
-   !      CALL ProgWarn( ' The ElastoDyn hub height ('//TRIM(Num2LStr( p_ED%HubHt ))//') and AeroDyn input'// &
-   !                    ' reference hub height ('//TRIM(Num2LStr(AD_RefHt))//') differ by more than 10%.' )
-   !   ENDIF
-   !
-   !ENDIF
-
+      ! lidar  
+      
+   InitInData_AD%IfW_InitInputs%lidar%Tmax                = p_FAST%TMax
+   InitInData_AD%IfW_InitInputs%lidar%HubPosition         = (/0.0_ReKi, 0.0_ReKi, InitOutData_ED%HubHt /)
+             
 
    RETURN
 END SUBROUTINE AD_SetInitInput
@@ -5200,7 +5186,7 @@ END SUBROUTINE SolveOption2
 
 
 !...............................................................................................................................
-SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg, InFile )
+SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg, InFile, ExternInitData )
 
    REAL(DbKi),               INTENT(IN   ) :: t_initial           ! initial time
    TYPE(FAST_ParameterType), INTENT(INOUT) :: p_FAST              ! Parameters for the glue code
@@ -5222,8 +5208,9 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
       
    INTEGER(IntKi),           INTENT(  OUT) :: ErrStat             ! Error status of the operation
    CHARACTER(*),             INTENT(  OUT) :: ErrMsg              ! Error message if ErrStat /= ErrID_None
-   CHARACTER(*), OPTIONAL,   INTENT(IN   ) :: InFile             ! A CHARACTER string containing the name of the primary FAST input file (if not present, we'll get it from the command line)
+   CHARACTER(*), OPTIONAL,   INTENT(IN   ) :: InFile              ! A CHARACTER string containing the name of the primary FAST input file (if not present, we'll get it from the command line)
    
+   TYPE(FAST_ExternInitType), OPTIONAL, INTENT(IN) :: ExternInitData ! Initialization input data from an external source (Simulink)
    
    ! local variables      
    TYPE(ED_InitInputType)                  :: InitInData_ED       ! Initialization input data
@@ -5292,15 +5279,20 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
    
       ! ... Open and read input files, initialize global parameters. ...
    IF (PRESENT(InFile)) THEN
-      CALL FAST_Init( p_FAST, y_FAST, ErrStat2, ErrMsg2, InFile )  ! We have the name of the input file from somewhere else (e.g. Simulink)
+      IF (PRESENT(ExternInitData)) THEN
+         CALL FAST_Init( p_FAST, y_FAST, ErrStat2, ErrMsg2, InFile, ExternInitData%TMax )  ! We have the name of the input file and the simulation length from somewhere else (e.g. Simulink)         
+      ELSE         
+         CALL FAST_Init( p_FAST, y_FAST, ErrStat2, ErrMsg2, InFile )                       ! We have the name of the input file from somewhere else (e.g. Simulink)
+      END IF
    ELSE
       CALL FAST_Init( p_FAST, y_FAST, ErrStat2, ErrMsg2 )
    END IF
-      CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
-      IF (ErrStat >= AbortErrLev) THEN
-         CALL Cleanup()
-         RETURN
-      END IF
+   
+   CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+   IF (ErrStat >= AbortErrLev) THEN
+      CALL Cleanup()
+      RETURN
+   END IF
       
       
    p_FAST%dt_module = p_FAST%dt ! initialize time steps for each module   
@@ -5395,9 +5387,21 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
       END IF
       
    IF ( p_FAST%CompAero == Module_AD ) THEN
+               
       CALL AD_SetInitInput(InitInData_AD, InitOutData_ED, ED%Output(1), p_FAST, ErrStat2, ErrMsg2)            ! set the values in InitInData_AD
          CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
-            
+         
+         ! bjj: these should come from an InflowWind input file; I'm hard coding them here for now
+      IF ( PRESENT(ExternInitData) ) THEN
+         InitInData_AD%IfW_InitInputs%lidar%SensorType          = ExternInitData%SensorType   
+         InitInData_AD%IfW_InitInputs%lidar%LidRadialVel        = ExternInitData%LidRadialVel   
+         InitInData_AD%IfW_InitInputs%lidar%RotorApexOffsetPos  = 0.0         
+         InitInData_AD%IfW_InitInputs%lidar%NumPulseGate        = 0
+      ELSE
+         InitInData_AD%IfW_InitInputs%lidar%SensorType = SensorType_None
+      END IF
+         
+                     
       CALL AD_Init( InitInData_AD, AD%Input(1), AD%p, AD%x(STATE_CURR), AD%xd(STATE_CURR), AD%z(STATE_CURR), AD%OtherSt, &
                      AD%y, p_FAST%dt_module( MODULE_AD ), InitOutData_AD, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
@@ -5559,8 +5563,7 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
       InitInData_FEAM%InputFile   = p_FAST%MooringFile         ! This needs to be set according to what is in the FAST input file. 
       InitInData_FEAM%RootName    = p_FAST%OutFileRoot
       
-!BJJ: FIX THIS!!!!      
-      InitInData_FEAM%PtfmInit    = ED%x(STATE_CURR)%QT(1:6)   ! initial position of the platform !bjj: this should come from InitOutData_ED, not x_ED
+      InitInData_FEAM%PtfmInit    = InitOutData_ED%PlatformPos !ED%x(STATE_CURR)%QT(1:6)   ! initial position of the platform !bjj: this should come from InitOutData_ED, not x_ED
       InitInData_FEAM%NStepWave   = 1                          ! an arbitrary number > 0 (to set the size of the wave data, which currently contains all zero values)     
       InitInData_FEAM%gravity     = InitOutData_ED%Gravity     ! This need to be according to g used in ElastoDyn 
       InitInData_FEAM%WtrDens     = InitOutData_HD%WtrDens     ! This needs to be set according to seawater density in HydroDyn      

@@ -1467,6 +1467,8 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    InitOut%NumBl       = p%NumBl
    InitOut%Gravity     = p%Gravity
    InitOut%BladeLength = p%TipRad - p%HubRad
+   InitOut%PlatformPos = x%QT(1:6)
+   InitOut%HubHt       = p%HubHt
 
    CALL AllocAry(InitOut%BlPitch, p%NumBl, 'BlPitch', ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
