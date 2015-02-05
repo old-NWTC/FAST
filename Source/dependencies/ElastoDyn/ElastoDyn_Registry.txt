@@ -9,9 +9,9 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed $Date: 2015-02-02 12:24:02 -0700 (Mon, 02 Feb 2015) $
-# (File) Revision #: $Rev: 895 $
-# URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn_Registry.txt $
+# File last committed $Date$
+# (File) Revision #: $Rev$
+# URL: $HeadURL$
 ###################################################################################################################################
 # ...... Include files (definitions from NWTC Library) ............................................................................
 # make sure that the file name does not have any trailing white spaces!
@@ -364,6 +364,7 @@ typedef	^	ED_RtHndSide	ReKi	rVD	3	-	-	"Position vector from specified point on r
 typedef	^	ED_RtHndSide	ReKi	rOW	3	-	-	"Position vector from tower-top / base plate (point O) to specified point on  tail-furl axis (point W)"	m
 typedef	^	ED_RtHndSide	ReKi	rPC	3	-	-	"Position vector from teeter pin (point P) to hub center of mass (point C)"	m
 typedef	^	ED_RtHndSide	ReKi	rPS0	{:}{:}	-	-	"Position vector from teeter pin (point P) to blade root (point S(0))"	m
+typedef	^	ED_RtHndSide	ReKi	rQ	3	-	-	"Position vector from inertial frame origin to apex of rotation (point Q)"	m
 typedef	^	ED_RtHndSide	ReKi	rQC	3	-	-	"Position vector from apex of rotation (point Q) to hub center of mass (point C)"	m
 typedef	^	ED_RtHndSide	ReKi	rVIMU	3	-	-	"Position vector from specified point on rotor-furl axis (point V) to nacelle IMU (point IMU)"	m
 typedef	^	ED_RtHndSide	ReKi	rVP	3	-	-	"Position vector from specified point on rotor-furl axis (point V) to teeter pin (point P)"	m
@@ -793,7 +794,7 @@ typedef	^	InputType	ReKi	HSSBrTrq	-	-	-	"Instantaneous HSS brake torque"	N-m
 typedef	^	OutputType	MeshType	BladeLn2Mesh	{:}	-	-	"A mesh on each blade, containing positions and orientations of the blade elements"
 typedef	^	OutputType	MeshType	PlatformPtMesh	-	-	-	"Platform reference point positions/orientations/velocities/accelerations"	-
 typedef	^	OutputType	MeshType	TowerLn2Mesh	-	-	-	"Tower line2 mesh with positions/orientations/velocities/accelerations"	-
-
+typedef	^	OutputType	MeshType	RotorApexMotion	-	-	-	"For nacelle-mounted lidar; when AeroDyn is fixed, this will be the same as the HubPtMotion mesh"	-
 typedef	^	OutputType	MeshType	HubPtMotion	-	-	-	"For AeroDyn: motions of the hub"
 typedef	^	OutputType	MeshType	BladeRootMotions	-	-	-	"For AeroDyn: motions of the blade roots"
 typedef	^	OutputType	MeshType	RotorFurlMotion	-	-	-	"For AeroDyn: motions of the rotor furl point."

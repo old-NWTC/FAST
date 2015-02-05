@@ -375,6 +375,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(1:3)  :: rOW      ! Position vector from tower-top / base plate (point O) to specified point on  tail-furl axis (point W) [m]
     REAL(ReKi) , DIMENSION(1:3)  :: rPC      ! Position vector from teeter pin (point P) to hub center of mass (point C) [m]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rPS0      ! Position vector from teeter pin (point P) to blade root (point S(0)) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rQ      ! Position vector from inertial frame origin to apex of rotation (point Q) [m]
     REAL(ReKi) , DIMENSION(1:3)  :: rQC      ! Position vector from apex of rotation (point Q) to hub center of mass (point C) [m]
     REAL(ReKi) , DIMENSION(1:3)  :: rVIMU      ! Position vector from specified point on rotor-furl axis (point V) to nacelle IMU (point IMU) [m]
     REAL(ReKi) , DIMENSION(1:3)  :: rVP      ! Position vector from specified point on rotor-furl axis (point V) to teeter pin (point P) [m]
@@ -790,6 +791,7 @@ IMPLICIT NONE
     TYPE(MeshType) , DIMENSION(:), ALLOCATABLE  :: BladeLn2Mesh      ! A mesh on each blade, containing positions and orientations of the blade elements [-]
     TYPE(MeshType)  :: PlatformPtMesh      ! Platform reference point positions/orientations/velocities/accelerations [-]
     TYPE(MeshType)  :: TowerLn2Mesh      ! Tower line2 mesh with positions/orientations/velocities/accelerations [-]
+    TYPE(MeshType)  :: RotorApexMotion      ! For nacelle-mounted lidar; when AeroDyn is fixed, this will be the same as the HubPtMotion mesh [-]
     TYPE(MeshType)  :: HubPtMotion      ! For AeroDyn: motions of the hub [-]
     TYPE(MeshType)  :: BladeRootMotions      ! For AeroDyn: motions of the blade roots [-]
     TYPE(MeshType)  :: RotorFurlMotion      ! For AeroDyn: motions of the rotor furl point. [-]
@@ -5323,6 +5325,7 @@ IF (ALLOCATED(SrcRtHndSideData%rPS0)) THEN
    END IF
    DstRtHndSideData%rPS0 = SrcRtHndSideData%rPS0
 ENDIF
+   DstRtHndSideData%rQ = SrcRtHndSideData%rQ
    DstRtHndSideData%rQC = SrcRtHndSideData%rQC
    DstRtHndSideData%rVIMU = SrcRtHndSideData%rVIMU
    DstRtHndSideData%rVP = SrcRtHndSideData%rVP
@@ -6570,6 +6573,7 @@ ENDIF
   Re_BufSz    = Re_BufSz    + SIZE( InData%rOW )  ! rOW 
   Re_BufSz    = Re_BufSz    + SIZE( InData%rPC )  ! rPC 
   IF ( ALLOCATED(InData%rPS0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%rPS0 )  ! rPS0 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%rQ )  ! rQ 
   Re_BufSz    = Re_BufSz    + SIZE( InData%rQC )  ! rQC 
   Re_BufSz    = Re_BufSz    + SIZE( InData%rVIMU )  ! rVIMU 
   Re_BufSz    = Re_BufSz    + SIZE( InData%rVP )  ! rVP 
@@ -6745,6 +6749,8 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rPS0))-1 ) =  PACK(InData%rPS0 ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%rPS0)
   ENDIF
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rQ))-1 ) =  PACK(InData%rQ ,.TRUE.)
+  Re_Xferred   = Re_Xferred   + SIZE(InData%rQ)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rQC))-1 ) =  PACK(InData%rQC ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%rQC)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rVIMU))-1 ) =  PACK(InData%rVIMU ,.TRUE.)
@@ -7250,6 +7256,11 @@ ENDIF
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%rPS0)
   ENDIF
+  ALLOCATE(mask1(SIZE(OutData%rQ,1)))
+  mask1 = .TRUE.
+  OutData%rQ = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rQ))-1 ),mask1,OutData%rQ)
+  DEALLOCATE(mask1)
+  Re_Xferred   = Re_Xferred   + SIZE(OutData%rQ)
   ALLOCATE(mask1(SIZE(OutData%rQC,1)))
   mask1 = .TRUE.
   OutData%rQC = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rQC))-1 ),mask1,OutData%rQC)
@@ -12485,6 +12496,9 @@ ENDIF
      CALL MeshCopy( SrcOutputData%TowerLn2Mesh, DstOutputData%TowerLn2Mesh, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_CopyOutput:TowerLn2Mesh')
          IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcOutputData%RotorApexMotion, DstOutputData%RotorApexMotion, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_CopyOutput:RotorApexMotion')
+         IF (ErrStat>=AbortErrLev) RETURN
      CALL MeshCopy( SrcOutputData%HubPtMotion, DstOutputData%HubPtMotion, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_CopyOutput:HubPtMotion')
          IF (ErrStat>=AbortErrLev) RETURN
@@ -12564,6 +12578,7 @@ ENDDO
 ENDIF
   CALL MeshDestroy( OutputData%PlatformPtMesh, ErrStat, ErrMsg )
   CALL MeshDestroy( OutputData%TowerLn2Mesh, ErrStat, ErrMsg )
+  CALL MeshDestroy( OutputData%RotorApexMotion, ErrStat, ErrMsg )
   CALL MeshDestroy( OutputData%HubPtMotion, ErrStat, ErrMsg )
   CALL MeshDestroy( OutputData%BladeRootMotions, ErrStat, ErrMsg )
   CALL MeshDestroy( OutputData%RotorFurlMotion, ErrStat, ErrMsg )
@@ -12607,6 +12622,9 @@ ENDIF
   REAL(ReKi),     ALLOCATABLE :: Re_TowerLn2Mesh_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_TowerLn2Mesh_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_TowerLn2Mesh_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_RotorApexMotion_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_RotorApexMotion_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_RotorApexMotion_Buf(:)
   REAL(ReKi),     ALLOCATABLE :: Re_HubPtMotion_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_HubPtMotion_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_HubPtMotion_Buf(:)
@@ -12659,6 +12677,13 @@ ENDDO
   IF(ALLOCATED(Re_TowerLn2Mesh_Buf))  DEALLOCATE(Re_TowerLn2Mesh_Buf)
   IF(ALLOCATED(Db_TowerLn2Mesh_Buf))  DEALLOCATE(Db_TowerLn2Mesh_Buf)
   IF(ALLOCATED(Int_TowerLn2Mesh_Buf)) DEALLOCATE(Int_TowerLn2Mesh_Buf)
+  CALL MeshPack( InData%RotorApexMotion, Re_RotorApexMotion_Buf, Db_RotorApexMotion_Buf, Int_RotorApexMotion_Buf, ErrStat, ErrMsg, .TRUE. ) ! RotorApexMotion 
+  IF(ALLOCATED(Re_RotorApexMotion_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_RotorApexMotion_Buf  ) ! RotorApexMotion
+  IF(ALLOCATED(Db_RotorApexMotion_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_RotorApexMotion_Buf  ) ! RotorApexMotion
+  IF(ALLOCATED(Int_RotorApexMotion_Buf))Int_BufSz = Int_BufSz + SIZE( Int_RotorApexMotion_Buf ) ! RotorApexMotion
+  IF(ALLOCATED(Re_RotorApexMotion_Buf))  DEALLOCATE(Re_RotorApexMotion_Buf)
+  IF(ALLOCATED(Db_RotorApexMotion_Buf))  DEALLOCATE(Db_RotorApexMotion_Buf)
+  IF(ALLOCATED(Int_RotorApexMotion_Buf)) DEALLOCATE(Int_RotorApexMotion_Buf)
   CALL MeshPack( InData%HubPtMotion, Re_HubPtMotion_Buf, Db_HubPtMotion_Buf, Int_HubPtMotion_Buf, ErrStat, ErrMsg, .TRUE. ) ! HubPtMotion 
   IF(ALLOCATED(Re_HubPtMotion_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_HubPtMotion_Buf  ) ! HubPtMotion
   IF(ALLOCATED(Db_HubPtMotion_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_HubPtMotion_Buf  ) ! HubPtMotion
@@ -12771,6 +12796,22 @@ ENDDO
   IF( ALLOCATED(Re_TowerLn2Mesh_Buf) )  DEALLOCATE(Re_TowerLn2Mesh_Buf)
   IF( ALLOCATED(Db_TowerLn2Mesh_Buf) )  DEALLOCATE(Db_TowerLn2Mesh_Buf)
   IF( ALLOCATED(Int_TowerLn2Mesh_Buf) ) DEALLOCATE(Int_TowerLn2Mesh_Buf)
+  CALL MeshPack( InData%RotorApexMotion, Re_RotorApexMotion_Buf, Db_RotorApexMotion_Buf, Int_RotorApexMotion_Buf, ErrStat, ErrMsg, OnlySize ) ! RotorApexMotion 
+  IF(ALLOCATED(Re_RotorApexMotion_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_RotorApexMotion_Buf)-1 ) = Re_RotorApexMotion_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_RotorApexMotion_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_RotorApexMotion_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_RotorApexMotion_Buf)-1 ) = Db_RotorApexMotion_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_RotorApexMotion_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_RotorApexMotion_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_RotorApexMotion_Buf)-1 ) = Int_RotorApexMotion_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_RotorApexMotion_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_RotorApexMotion_Buf) )  DEALLOCATE(Re_RotorApexMotion_Buf)
+  IF( ALLOCATED(Db_RotorApexMotion_Buf) )  DEALLOCATE(Db_RotorApexMotion_Buf)
+  IF( ALLOCATED(Int_RotorApexMotion_Buf) ) DEALLOCATE(Int_RotorApexMotion_Buf)
   CALL MeshPack( InData%HubPtMotion, Re_HubPtMotion_Buf, Db_HubPtMotion_Buf, Int_HubPtMotion_Buf, ErrStat, ErrMsg, OnlySize ) ! HubPtMotion 
   IF(ALLOCATED(Re_HubPtMotion_Buf)) THEN
     IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_HubPtMotion_Buf)-1 ) = Re_HubPtMotion_Buf
@@ -12938,6 +12979,9 @@ ENDDO
   REAL(ReKi),    ALLOCATABLE :: Re_TowerLn2Mesh_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_TowerLn2Mesh_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_TowerLn2Mesh_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_RotorApexMotion_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_RotorApexMotion_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_RotorApexMotion_Buf(:)
   REAL(ReKi),    ALLOCATABLE :: Re_HubPtMotion_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_HubPtMotion_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_HubPtMotion_Buf(:)
@@ -13016,6 +13060,23 @@ ENDDO
   IF( ALLOCATED(Re_TowerLn2Mesh_Buf) )  DEALLOCATE(Re_TowerLn2Mesh_Buf)
   IF( ALLOCATED(Db_TowerLn2Mesh_Buf) )  DEALLOCATE(Db_TowerLn2Mesh_Buf)
   IF( ALLOCATED(Int_TowerLn2Mesh_Buf) ) DEALLOCATE(Int_TowerLn2Mesh_Buf)
+  CALL MeshPack( OutData%RotorApexMotion, Re_RotorApexMotion_Buf, Db_RotorApexMotion_Buf, Int_RotorApexMotion_Buf, ErrStat, ErrMsg , .TRUE. ) ! RotorApexMotion 
+  IF(ALLOCATED(Re_RotorApexMotion_Buf)) THEN
+    Re_RotorApexMotion_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_RotorApexMotion_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_RotorApexMotion_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_RotorApexMotion_Buf)) THEN
+    Db_RotorApexMotion_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_RotorApexMotion_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_RotorApexMotion_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_RotorApexMotion_Buf)) THEN
+    Int_RotorApexMotion_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_RotorApexMotion_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_RotorApexMotion_Buf)
+  ENDIF
+  CALL MeshUnPack( OutData%RotorApexMotion, Re_RotorApexMotion_Buf, Db_RotorApexMotion_Buf, Int_RotorApexMotion_Buf, ErrStat, ErrMsg ) ! RotorApexMotion 
+  IF( ALLOCATED(Re_RotorApexMotion_Buf) )  DEALLOCATE(Re_RotorApexMotion_Buf)
+  IF( ALLOCATED(Db_RotorApexMotion_Buf) )  DEALLOCATE(Db_RotorApexMotion_Buf)
+  IF( ALLOCATED(Int_RotorApexMotion_Buf) ) DEALLOCATE(Int_RotorApexMotion_Buf)
   CALL MeshPack( OutData%HubPtMotion, Re_HubPtMotion_Buf, Db_HubPtMotion_Buf, Int_HubPtMotion_Buf, ErrStat, ErrMsg , .TRUE. ) ! HubPtMotion 
   IF(ALLOCATED(Re_HubPtMotion_Buf)) THEN
     Re_HubPtMotion_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_HubPtMotion_Buf)-1 )
@@ -13448,6 +13509,9 @@ END IF ! check if allocated
   CALL MeshCopy(u(1)%TowerLn2Mesh, u_out%TowerLn2Mesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_Output_ExtrapInterp:%TowerLn2Mesh')
          IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshCopy(u(1)%RotorApexMotion, u_out%RotorApexMotion, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_Output_ExtrapInterp:%RotorApexMotion')
+         IF (ErrStat>=AbortErrLev) RETURN
   CALL MeshCopy(u(1)%HubPtMotion, u_out%HubPtMotion, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_Output_ExtrapInterp:%HubPtMotion')
          IF (ErrStat>=AbortErrLev) RETURN
@@ -13509,6 +13573,9 @@ END IF ! check if allocated
          IF (ErrStat>=AbortErrLev) RETURN
   CALL MeshExtrapInterp1(u(1)%TowerLn2Mesh, u(2)%TowerLn2Mesh, tin, u_out%TowerLn2Mesh, tin_out, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_Output_ExtrapInterp:%TowerLn2Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp1(u(1)%RotorApexMotion, u(2)%RotorApexMotion, tin, u_out%RotorApexMotion, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_Output_ExtrapInterp:%RotorApexMotion')
          IF (ErrStat>=AbortErrLev) RETURN
   CALL MeshExtrapInterp1(u(1)%HubPtMotion, u(2)%HubPtMotion, tin, u_out%HubPtMotion, tin_out, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_Output_ExtrapInterp:%HubPtMotion')
@@ -13621,6 +13688,9 @@ END IF ! check if allocated
          IF (ErrStat>=AbortErrLev) RETURN
   CALL MeshExtrapInterp2(u(1)%TowerLn2Mesh, u(2)%TowerLn2Mesh, u(3)%TowerLn2Mesh, tin, u_out%TowerLn2Mesh, tin_out, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_Output_ExtrapInterp:%TowerLn2Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp2(u(1)%RotorApexMotion, u(2)%RotorApexMotion, u(3)%RotorApexMotion, tin, u_out%RotorApexMotion, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_Output_ExtrapInterp:%RotorApexMotion')
          IF (ErrStat>=AbortErrLev) RETURN
   CALL MeshExtrapInterp2(u(1)%HubPtMotion, u(2)%HubPtMotion, u(3)%HubPtMotion, tin, u_out%HubPtMotion, tin_out, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'ED_Output_ExtrapInterp:%HubPtMotion')

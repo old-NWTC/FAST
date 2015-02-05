@@ -2530,6 +2530,17 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
    
    !...........
+   ! ROtor apex (not necessary when AeroDyn is updated to use rQ):
+   !...........   
+   
+   y%RotorApexMotion%TranslationDisp(1,1)  =     OtherState%RtHS%rQ(1)
+   y%RotorApexMotion%TranslationDisp(2,1)  = -1.*OtherState%RtHS%rQ(3)
+   y%RotorApexMotion%TranslationDisp(3,1)  =     OtherState%RtHS%rQ(2) + p%PtfmRefzt
+   
+   y%RotorApexMotion%TranslationDisp  = y%RotorApexMotion%TranslationDisp - y%RotorApexMotion%Position   
+   
+   
+   !...........
    ! Hub:
    !...........   
 
@@ -11014,7 +11025,7 @@ SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
 
       !Local variables
    REAL(ReKi)                   :: rK        (3)                                   ! Position vector from inertial frame origin to tail fin center of pressure (point K).
-   REAL(ReKi)                   :: rQ        (3)                                   ! Position vector from inertial frame origin to apex of rotation (point Q).
+   !REAL(ReKi)                   :: rQ        (3)                                   ! Position vector from inertial frame origin to apex of rotation (point Q).
 
    INTEGER(IntKi)               :: J                                               ! Counter for elements
    INTEGER(IntKi)               :: K                                               ! Counter for blades
@@ -11054,7 +11065,7 @@ SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
    RtHSdat%rV    = RtHSdat%rO  + RtHSdat%rOV                                                                                  ! Position vector from inertial frame origin to specified point on rotor-furl axis (point V)
    !RtHSdat%rP    = RtHSdat%rO  + RtHSdat%rOV + RtHSdat%rVP                                                                   ! Position vector from inertial frame origin to teeter pin (point P).
    RtHSdat%rP    = RtHSdat%rV  + RtHSdat%rVP                                                                                  ! Position vector from inertial frame origin to teeter pin (point P).
-           rQ    = RtHSdat%rP  + RtHSdat%rPQ                                                                                  ! Position vector from inertial frame origin to apex of rotation (point Q).
+   RtHSdat%rQ    = RtHSdat%rP  + RtHSdat%rPQ                                                                                  ! Position vector from inertial frame origin to apex of rotation (point Q).
            rK    = RtHSdat%rO  + RtHSdat%rOW + RtHSdat%rWK                                                                    ! Position vector from inertial frame origin to tail fin center of pressure (point K).
 
 
@@ -11078,7 +11089,7 @@ SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
                                     + 2.*p%AxRedBld(K,2,3,p%TipNode)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BE(K,1) ) &
                                     + 2.*p%AxRedBld(K,1,3,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BE(K,1) ) ) )*CoordSys%j3(K,:)
       RtHSdat%rQS (:,K,p%TipNode) = RtHSdat%rS0S(:,K,p%TipNode) + p%HubRad*CoordSys%j3(K,:)                                      ! Position vector from apex of rotation (point Q) to the blade tip (point S(p%BldFlexL)).
-      RtHSdat%rS  (:,K,p%TipNode) = RtHSdat%rQS (:,K,p%TipNode) + rQ                                                             ! Position vector from inertial frame origin      to the blade tip (point S(p%BldFlexL)).
+      RtHSdat%rS  (:,K,p%TipNode) = RtHSdat%rQS (:,K,p%TipNode) + RtHSdat%rQ                                                             ! Position vector from inertial frame origin      to the blade tip (point S(p%BldFlexL)).
 
          ! Calculate the position vector from the teeter pin to the blade root:
    
@@ -11104,7 +11115,7 @@ SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
                                + 2.0*p%AxRedBld(K,2,3,J)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BE(K,1) ) &
                                + 2.0*p%AxRedBld(K,1,3,J)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BE(K,1) )    ) )*CoordSys%j3(K,:)
          RtHSdat%rQS (:,K,J) = RtHSdat%rS0S(:,K,J) + p%HubRad*CoordSys%j3(K,:)                                                ! Position vector from apex of rotation (point Q) to the current node (point S(RNodes(J)).
-         RtHSdat%rS  (:,K,J) = RtHSdat%rQS (:,K,J) + rQ                                                                       ! Position vector from inertial frame origin      to the current node (point S(RNodes(J)).
+         RtHSdat%rS  (:,K,J) = RtHSdat%rQS (:,K,J) + RtHSdat%rQ                                                               ! Position vector from inertial frame origin      to the current node (point S(RNodes(J)).
 
 
       END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
@@ -13115,6 +13126,24 @@ SUBROUTINE ED_AllocOutput( u, y, p, ErrStat, ErrMsg )
       IF (ErrStat >= AbortErrLev) RETURN
             
    CALL CommitPointMesh( y%HubPtMotion )
+      IF (ErrStat >= AbortErrLev) RETURN
+ 
+      
+   ! -------------- RotorApex -----------------------------------
+   CALL MeshCreate( BlankMesh          = y%RotorApexMotion      &
+                     ,IOS              = COMPONENT_OUTPUT       &
+                     ,NNodes           = 1                      &
+                     , TranslationDisp = .TRUE.                 &
+                     ,ErrStat          = ErrStat2               &
+                     ,ErrMess          = ErrMsg2                )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+      
+   CALL MeshPositionNode ( y%RotorApexMotion, 1, (/0.0_ReKi, 0.0_ReKi, p%HubHt /), ErrStat, ErrMsg ) !orientation is identity by default
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+            
+   CALL CommitPointMesh( y%RotorApexMotion )
       IF (ErrStat >= AbortErrLev) RETURN
  
       
