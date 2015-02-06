@@ -12,8 +12,8 @@ MODULE InflowWind_Subs
 !  1 Aug 2012    v1.01.00a-bjj                              B. Jonkman
 ! 10 Aug 2012    v1.01.00b-bjj                              B. Jonkman
 !----------------------------------------------------------------------------------------------------
-! File last committed: $Date: 2015-01-30 14:58:56 -0700 (Fri, 30 Jan 2015) $
-! (File) Revision #: $Rev: 136 $
+! File last committed: $Date: 2015-02-06 09:35:46 -0700 (Fri, 06 Feb 2015) $
+! (File) Revision #: $Rev: 139 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/InflowWind_Subs.f90 $
 !----------------------------------------------------------------------------------------------------
 !
@@ -198,7 +198,7 @@ SUBROUTINE CalculateOutput( Time, InputData, ParamData, &
       TYPE( IfW_DiscreteStateType ),      INTENT(IN   )  :: DiscStates        ! Discrete states at Time
       TYPE( IfW_ConstraintStateType ),    INTENT(IN   )  :: ConstrStates      ! Constraint states at Time
       TYPE( IfW_OtherStateType ),         INTENT(INOUT)  :: OtherStates       ! Other/optimization states at Time
-      TYPE( IfW_OutputType ),             INTENT(inOUT)  :: OutputData        ! Outputs computed at Time (IN for mesh reasons -- not used here)
+      TYPE( IfW_OutputType ),             INTENT(INOUT)  :: OutputData        ! Outputs computed at Time (IN for mesh reasons -- not used here)
 
       INTEGER( IntKi ),                   INTENT(  OUT)  :: ErrStat           ! Error status of the operation
       CHARACTER(*),                       INTENT(  OUT)  :: ErrMsg            ! Error message if ErrStat /= ErrID_None

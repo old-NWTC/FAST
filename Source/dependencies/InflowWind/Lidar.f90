@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-02-05 12:40:18 -0700 (Thu, 05 Feb 2015) $
-! (File) Revision #: $Rev: 138 $
+! File last committed: $Date: 2015-02-06 09:35:46 -0700 (Fri, 06 Feb 2015) $
+! (File) Revision #: $Rev: 139 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/Lidar.f90 $
 !**********************************************************************************************************************************
 MODULE Lidar
@@ -47,6 +47,16 @@ MODULE Lidar
    PUBLIC :: Lidar_End                            ! Ending routine (includes clean up)
    PUBLIC :: Lidar_CalcOutput                     ! Routine for computing outputs
  
+   
+!bjj: to do:
+! + add mesh to map nacelle rotor apex position in ElastoDyn to lidar location (possibly an array of lidars) in InflowWind
+! + add input file (part of InflowWind input file)
+!    - number of lidars, type, location, number of pulse range gates, etc
+!    - initial measurement position(s)
+!    - scan pattern & associated values [remove this functionality from Matlab]
+! + add subroutine for scanning patterns
+! future work:
+! + do we want to know if the blade is in front of the lidar so we can return garbage to simulate that scenario, too?
    
 CONTAINS
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -171,7 +181,7 @@ SUBROUTINE Lidar_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut
       !............................................................................................
 
    u%lidar%LidPosition = InitInp%lidar%HubPosition
-   u%lidar%MsrPosition = InitInp%lidar%HubPosition + (/ 50.0, 0.0, 0.0 /)
+   u%lidar%MsrPosition = InitInp%lidar%HubPosition + (/ 50.0, 0.0, 0.0 /) !bjj: todo FIXME  with initial guess of lidar focus.
    u%lidar%PulseLidEl  = 0.0_ReKi
    u%lidar%PulseLidAz  = 0.0_ReKi
    
