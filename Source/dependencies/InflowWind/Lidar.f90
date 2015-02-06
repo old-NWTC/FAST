@@ -171,7 +171,7 @@ SUBROUTINE Lidar_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut
       !............................................................................................
 
    u%lidar%LidPosition = InitInp%lidar%HubPosition
-   u%lidar%MsrPosition = InitInp%lidar%HubPosition
+   u%lidar%MsrPosition = InitInp%lidar%HubPosition + (/ 50.0, 0.0, 0.0 /)
    u%lidar%PulseLidEl  = 0.0_ReKi
    u%lidar%PulseLidAz  = 0.0_ReKi
    

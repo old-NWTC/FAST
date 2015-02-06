@@ -194,7 +194,7 @@ IMPLICIT NONE
 ! =======================
 ! =========  InflowWind_Data  =======
   TYPE, PUBLIC :: InflowWind_Data
-    REAL(ReKi) , DIMENSION(1:3)  :: WriteOutput      ! Temporary hack for getting wind-speed outputs from InflowWind [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      ! Temporary hack for getting wind-speed outputs from InflowWind [-]
   END TYPE InflowWind_Data
 ! =======================
 ! =========  SubDyn_Data  =======
@@ -3737,7 +3737,18 @@ ENDDO
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
+IF (ALLOCATED(SrcInflowWind_DataData%WriteOutput)) THEN
+   i1_l = LBOUND(SrcInflowWind_DataData%WriteOutput,1)
+   i1_u = UBOUND(SrcInflowWind_DataData%WriteOutput,1)
+   IF (.NOT. ALLOCATED(DstInflowWind_DataData%WriteOutput)) THEN 
+      ALLOCATE(DstInflowWind_DataData%WriteOutput(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInflowWind_DataData%WriteOutput.', ErrStat, ErrMsg,'FAST_CopyInflowWind_Data')
+         RETURN
+      END IF
+   END IF
    DstInflowWind_DataData%WriteOutput = SrcInflowWind_DataData%WriteOutput
+ENDIF
  END SUBROUTINE FAST_CopyInflowWind_Data
 
  SUBROUTINE FAST_DestroyInflowWind_Data( InflowWind_DataData, ErrStat, ErrMsg )
@@ -3748,6 +3759,9 @@ ENDDO
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
+IF (ALLOCATED(InflowWind_DataData%WriteOutput)) THEN
+   DEALLOCATE(InflowWind_DataData%WriteOutput)
+ENDIF
  END SUBROUTINE FAST_DestroyInflowWind_Data
 
  SUBROUTINE FAST_PackInflowWind_Data( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -3784,12 +3798,14 @@ ENDDO
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WriteOutput )  ! WriteOutput 
+  IF ( ALLOCATED(InData%WriteOutput) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WriteOutput )  ! WriteOutput 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WriteOutput))-1 ) =  PACK(InData%WriteOutput ,.TRUE.)
-  Re_Xferred   = Re_Xferred   + SIZE(InData%WriteOutput)
+  IF ( ALLOCATED(InData%WriteOutput) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WriteOutput))-1 ) =  PACK(InData%WriteOutput ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%WriteOutput)
+  ENDIF
  END SUBROUTINE FAST_PackInflowWind_Data
 
  SUBROUTINE FAST_UnPackInflowWind_Data( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -3825,11 +3841,13 @@ ENDDO
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
+  IF ( ALLOCATED(OutData%WriteOutput) ) THEN
   ALLOCATE(mask1(SIZE(OutData%WriteOutput,1)))
   mask1 = .TRUE.
-  OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ),mask1,OutData%WriteOutput)
+    OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ),mask1,OutData%WriteOutput)
   DEALLOCATE(mask1)
-  Re_Xferred   = Re_Xferred   + SIZE(OutData%WriteOutput)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%WriteOutput)
+  ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1

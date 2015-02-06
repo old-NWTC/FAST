@@ -198,7 +198,7 @@ SUBROUTINE CalculateOutput( Time, InputData, ParamData, &
       TYPE( IfW_DiscreteStateType ),      INTENT(IN   )  :: DiscStates        ! Discrete states at Time
       TYPE( IfW_ConstraintStateType ),    INTENT(IN   )  :: ConstrStates      ! Constraint states at Time
       TYPE( IfW_OtherStateType ),         INTENT(INOUT)  :: OtherStates       ! Other/optimization states at Time
-      TYPE( IfW_OutputType ),             INTENT(  OUT)  :: OutputData        ! Outputs computed at Time (IN for mesh reasons -- not used here)
+      TYPE( IfW_OutputType ),             INTENT(inOUT)  :: OutputData        ! Outputs computed at Time (IN for mesh reasons -- not used here)
 
       INTEGER( IntKi ),                   INTENT(  OUT)  :: ErrStat           ! Error status of the operation
       CHARACTER(*),                       INTENT(  OUT)  :: ErrMsg            ! Error message if ErrStat /= ErrID_None

@@ -1487,9 +1487,10 @@ SUBROUTINE SimStatus( PrevSimTime, PrevClockTime, ZTime, TMax )
 
    WRITE (ETimeStr,"(I2.2,2(':',I2.2))")  EndHour, EndMin, EndSec
 
+   if (.not. Cmpl4SFun) then   
    CALL WrOver ( ' Timestep: '//TRIM( Num2LStr( NINT( ZTime ) ) )//' of '//TRIM( Num2LStr( TMax ) )// &
                  ' seconds.  Estimated final completion at '//ETimeStr//'.'                             )
-
+   end if
 
       ! Let's save this time as the previous time for the next call to the routine
    PrevClockTime = CurrClockTime
@@ -5385,6 +5386,7 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
          CALL Cleanup()
          RETURN
       END IF
+        
       
    IF ( p_FAST%CompAero == Module_AD ) THEN
                
@@ -5420,10 +5422,20 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
          CALL Cleanup()
          RETURN
       END IF       
-   ELSE
-   !   ED%p%AirDens = 0
-      IfW%WriteOutput = 0.0
+      
    END IF
+   
+   IF (ALLOCATED(InitOutData_AD%IfW_InitOutput%WriteOutputHdr)) THEN
+      CALL AllocAry(IfW%WriteOutput, SIZE(InitOutData_AD%IfW_InitOutput%WriteOutputHdr), 'Ifw%WriteOutput',ErrStat2,ErrMsg2)
+   ELSE
+      CALL AllocAry(IfW%WriteOutput, 3, 'Ifw%WriteOutput',ErrStat2,ErrMsg2)
+   END IF
+   CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+      IF (ErrStat >= AbortErrLev) THEN
+         CALL Cleanup()
+         RETURN
+      END IF 
+   IfW%WriteOutput = 0.0
 
 
    ! ........................
