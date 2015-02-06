@@ -7,7 +7,7 @@ static double dt;
 static double TMax = 1.0;
 static double InputAry[2];
 static double OutputAry[2];
-static int NumInputs = 7;
+static int NumInputs = 10;
 static int NumOutputs = 28;
 static int ErrStat = 0;
 static char ErrMsg[INTERFACE_STRING_LENGTH];        // make sure this is the same size as IntfStrLen in FAST_Library.f90
@@ -23,15 +23,18 @@ main(int argc, char *argv[], char *env[])
    int j = 0;
    int k = 0;
    char ChannelNames[CHANNEL_LENGTH*MAXIMUM_OUTPUTS + 1];
+   double InitInputAry[MAXInitINPUTS];
+
   // char OutList[MAXIMUM_OUTPUTS][CHANNEL_LENGTH + 1];
    char OutList[CHANNEL_LENGTH + 1];
 
       // initialization
-   
+   InitInputAry[0] = 1.0;
+   InitInputAry[1] = 0.0;
 
 
    strcpy(InputFileName, "../../CertTest/Test18.fst");
-   FAST_Sizes(&TMax, InputFileName, &AbortErrLev, &NumOutputs, &dt, &ErrStat, ErrMsg, ChannelNames);
+   FAST_Sizes(&TMax, InitInputAry, InputFileName, &AbortErrLev, &NumOutputs, &dt, &ErrStat, ErrMsg, ChannelNames);
 
    checkError(ErrStat, ErrMsg);
 
@@ -99,7 +102,12 @@ main(int argc, char *argv[], char *env[])
 
    // update
    for (n_t_global = 0; n_t_global < 20 ; n_t_global++){
-      FAST_Update(&NumInputs, &NumOutputs, &InputAry[0], &OutputAry[0], &ErrStat, ErrMsg);
+
+      InputAry[7] = 50.0;
+      InputAry[8] = 0.0;
+      InputAry[9] = 0.0;
+
+      FAST_Update(&NumInputs, &NumOutputs, InputAry, OutputAry, &ErrStat, ErrMsg);
       if (checkError(ErrStat, ErrMsg)) return 1;
    }
    
