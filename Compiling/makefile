@@ -34,6 +34,7 @@ FEAM_DIR     = $(FAST_DIR)/dependencies/FEAMooring
 IceF_DIR     = $(FAST_DIR)/dependencies/IceFloe
 IceD_DIR     = $(FAST_DIR)/dependencies/IceDyn
 
+TMD_DIR      = $(SrvD_DIR)
 DWM_DIR      = $(AD_DIR)
 HD_DIR_Reg   = $(HD_DIR)
 IfW_DIR_Reg  = $(IfW_DIR)

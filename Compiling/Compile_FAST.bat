@@ -68,6 +68,7 @@ SET NWTC_Lib_Loc=%FAST_Loc%\dependencies\NWTC_Library
 SET NETLIB_Loc=%FAST_Loc%\dependencies\NetLib
 SET ED_Loc=%FAST_Loc%\dependencies\ElastoDyn
 SET SrvD_Loc=%FAST_Loc%\dependencies\ServoDyn
+SET TMD_Loc=%SrvD_Loc%
 SET AD_Loc=%FAST_Loc%\dependencies\AeroDyn
 SET DWM_Loc=%AD_Loc%
 SET IfW_Loc=%FAST_Loc%\dependencies\InflowWind
@@ -260,7 +261,7 @@ ECHO.
 SET CURR_LOC=%FAST_Loc%
 SET ModuleName=FAST
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD_Loc%" -I^
- "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Loc%"  -I "%IceF_Loc%" -I "%IceD_Loc%" -noextrap
+ "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Loc%"  -I "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -noextrap
 MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 
 
@@ -268,6 +269,10 @@ ECHO %Lines%
 SET CURR_LOC=%ED_Loc%
 CALL ::RunRegistry_fmt1 ElastoDyn
 
+
+ECHO %Lines%
+SET CURR_LOC=%TMD_Loc%
+CALL ::RunRegistry_fmt1 TMD
 
 ECHO %Lines%
 SET CURR_LOC=%SrvD_Loc%
@@ -470,7 +475,7 @@ EXIT /B
 
 :RunRegistry_fmt1
 SET ModuleName=%1
-%REGISTRY% %CURR_LOC%\%ModuleName%_Registry.txt -I "%NWTC_Lib_Loc%"
+%REGISTRY% %CURR_LOC%\%ModuleName%_Registry.txt -I "%NWTC_Lib_Loc%" -I "%TMD_Loc%"
 MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 EXIT /B
 

@@ -9,15 +9,16 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed $Date: 2015-02-04 12:37:31 -0700 (Wed, 04 Feb 2015) $
-# (File) Revision #: $Rev: 902 $
-# URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ServoDyn_Registry.txt $
+# File last committed $Date$
+# (File) Revision #: $Rev$
+# URL: $HeadURL$
 ###################################################################################################################################
 
 
 # ...... Include files (definitions from NWTC Library) ............................................................................
 # make sure that the file name does not have any trailing white spaces!
 include	Registry_NWTC_Library.txt
+usefrom	TMD_Registry.txt
 
 # ..... Input file data ...........................................................................................................
 # This is data defined in the Input File for this module (or could otherwise be passed in)
@@ -110,6 +111,8 @@ typedef	^	InitInputType	CHARACTER(1024)	InputFile	-	-	-	"Name of the input file"
 typedef	^	InitInputType	IntKi	NumBl	-	-	-	"Number of blades on the turbine"
 typedef	^	InitInputType	CHARACTER(1024)	RootName	-	-	-	"RootName for writing output files"	-
 typedef	^	InitInputType	ReKi	BlPitchInit	{:}	-	-	"Initial blade pitch"	-
+typedef	^	InitInputType	ReKi	Gravity	-	-	-	"Gravitational acceleration"	m/s^2
+typedef	^	InitInputType	ReKi	r_N_O_G	{3}	-	-	"nacelle origin for setting up mesh"	m
 
 # Define outputs from the initialization routine here:
 typedef	^	InitOutputType	CHARACTER(ChanLen)	WriteOutputHdr	{:}	-	-	"Names of the output-to-file channels"	-
@@ -120,12 +123,15 @@ typedef	^	InitOutputType	IntKi	CouplingScheme	-	-	-	"Switch that indicates if a 
 # ..... States ....................................................................................................................
 # Define continuous (differentiable) states here:
 typedef	^	ContinuousStateType	ReKi	DummyContState	-	-	-	"Remove this variable if you have continuous states"	-
+typedef	^	ContinuousStateType	TMD_ContinuousStateType	NTMD	-	-	-	"TMD module states"	-
 
 # Define discrete (nondifferentiable) states here:
 typedef	^	DiscreteStateType	ReKi	DummyDiscState	-	-	-	"Remove this variable if you have discrete states"	-
+typedef	^	DiscreteStateType	TMD_DiscreteStateType	NTMD	-	-	-	"TMD module states"	-
 
 # Define constraint states here:
 typedef	^	ConstraintStateType	ReKi	DummyConstrState	-	-	-	"Remove this variable if you have constraint states"	-
+typedef	^	ConstraintStateType	TMD_ConstraintStateType	NTMD	-	-	-	"TMD module states"	-
 
 # Define "other" states (any data that are not considered actual states) here:
 typedef	^	OtherStateType	ReKi	BlPitchI	{:}	-	-	"Initial blade pitch angles at the start of the override pitch maneuver"	radians
@@ -144,6 +150,7 @@ typedef	^	OtherStateType	BladedDLLType	dll_data	-	-	-	"data used for Bladed DLL"
 typedef	^	OtherStateType	DbKi	LastTimeCalled	-	-	-	"last time the CalcOutput/Bladed DLL was called"	s
 typedef	^	OtherStateType	logical	FirstWarn	-	-	-	"Whether or not this is the first warning about the DLL being called without Explicit-Loose coupling."	-
 typedef	^	OtherStateType	logical	FirstWarn_THSSBrDp	-	-	-	"Whether or not this is the first warning about the THSSBrDp not being enabled in this version of SrvD."	-
+typedef	^	OtherStateType	TMD_OtherStateType	NTMD	-	-	-	"TMD module states"	-
 
 # ..... Parameters ................................................................................................................
 # Define parameters here:
@@ -234,6 +241,7 @@ typedef	^	ParameterType	ReKi	PtchRate_Min	-	-	-	"Minimum pitch rate (most negati
 typedef	^	ParameterType	ReKi	NacYaw_North	-	-	-	"Reference yaw angle of the nacelle when the upwind end points due North"	rad
 typedef	^	ParameterType	CHARACTER(1024)	DLL_InFile	-	-	-	"Name of input file used in DLL"	-
 typedef	^	ParameterType	DLL_Type	DLL_Trgt	-	-	-	"The addresses and names of the Bladed DLL and its procedure"	-
+typedef	^	ParameterType	TMD_ParameterType	NTMD	-	-	-	"TMD module parameters"	-
 
 # ..... Inputs ....................................................................................................................
 # Define inputs that are contained on the mesh here:
@@ -273,7 +281,7 @@ typedef	^	InputType	ReKi	HorWindV	-	-	-	"Horizontal hub-height wind velocity mag
 typedef	^	InputType	ReKi	YawAngle	-	-	-	"Estimate of yaw (nacelle + platform)"	radians
 typedef	^	InputType	ReKi	ElecPwr_prev	-	-	-	"Electrical power (from previous step), sent to Bladed DLL"	W
 typedef	^	InputType	ReKi	GenTrq_prev	-	-	-	"Electrical generator torque (from previous step), sent to Bladed DLL"	N-m
-
+typedef	^	InputType	TMD_InputType	NTMD	-	-	-	"TMD module inputs"	-
 
 
 # ..... Outputs ...................................................................................................................
@@ -287,3 +295,4 @@ typedef	^	OutputType	ReKi	GenTrq	-	-	-	"Electrical generator torque"	N-m
 typedef	^	OutputType	ReKi	HSSBrTrq	-	-	-	"Instantaneous HSS brake torque"	N-m
 typedef	^	OutputType	ReKi	ElecPwr	-	-	-	"Electrical power"	W
 typedef	^	OutputType	ReKi	TBDrCon	{:}	-	-	"Instantaneous tip-brake drag constant, Cd*Area"
+typedef	^	OutputType	TMD_OutputType	NTMD	-	-	-	"TMD module outputs"	-

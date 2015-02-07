@@ -258,10 +258,17 @@
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat ServoDyn" Description="Running Registry for ServoDyn" Outputs="..\..\Source\dependencies\ServoDyn\ServoDyn_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat ServoDyn" Description="Running Registry for ServoDyn" Outputs="..\..\Source\dependencies\ServoDyn\ServoDyn_Types.f90"/></FileConfiguration></File>
-		<File RelativePath="..\..\Source\dependencies\ServoDyn\ServoDyn_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\ServoDyn\ServoDyn_Types.f90"/>
+		<File RelativePath="..\..\Source\dependencies\ServoDyn\TMD_Registry.txt">
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat TMD" Description="Running Registry for TMD" Outputs="..\..\Source\dependencies\ServoDyn\TMD_Types.f90"/></FileConfiguration>
+			<FileConfiguration Name="Release|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat TMD" Description="Running Registry for TMD" Outputs="..\..\Source\dependencies\ServoDyn\TMD_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\Source\dependencies\ServoDyn\TMD_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\BladedInterface.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\PitchCntrl_ACH.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\ServoDyn.f90"/>
+		<File RelativePath="..\..\Source\dependencies\ServoDyn\TMD.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\UserSubs.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\UserVSCont_KP.f90"/></Filter>
 		<Filter Name="SubDyn">

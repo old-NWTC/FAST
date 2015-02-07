@@ -56,7 +56,7 @@ REM ----------------------------------------------------------------------------
 ECHO on
 SET CURR_LOC=%FAST_Loc%
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD_Loc%" -I^
- "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Reg_Loc%"  -I "%IceF_Loc%" -I "%IceD_Loc%" -noextrap
+ "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Reg_Loc%"  -I "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -noextrap
 
 echo off
 GOTO checkError
@@ -70,7 +70,7 @@ GOTO checkError
 
 :ServoDyn
 SET CURR_LOC=%SrvD_Loc%
-%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%"
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%TMD_Loc%"
 GOTO checkError
 
 :TMD
