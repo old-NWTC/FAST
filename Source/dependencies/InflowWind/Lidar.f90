@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-02-06 09:35:46 -0700 (Fri, 06 Feb 2015) $
-! (File) Revision #: $Rev: 139 $
+! File last committed: $Date: 2015-02-09 11:06:27 -0700 (Mon, 09 Feb 2015) $
+! (File) Revision #: $Rev: 140 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/Lidar.f90 $
 !**********************************************************************************************************************************
 MODULE Lidar
@@ -432,7 +432,8 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
        
          !trunc point is behind lidar
          IF (LidRange > FocDist) THEN
-            CALL SetErrStat( ErrID_Info, "Lidar truncation point is behind the lidar. Truncation ratio is "//trim(num2lstr(LidWtRatio))//'.', ErrStat, ErrMsg, RoutineName)  ! set informational message about point being behind lidar
+            IF (NWTC_VerboseLevel == NWTC_Verbose) &
+               CALL SetErrStat( ErrID_Info, "Lidar truncation point is behind the lidar. Truncation ratio is "//trim(num2lstr(LidWtRatio))//'.', ErrStat, ErrMsg, RoutineName)  ! set informational message about point being behind lidar
             !y%LidErr = 3
             y%lidar%WtTrunc = LidWtRatio
             EXIT
@@ -446,7 +447,8 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
           
          CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, ErrStat2, ErrMsg2 )    
             IF (ErrStat2 >= AbortErrLev ) THEN !out of bounds
-            CALL SetErrStat( ErrID_Warn, "Lidar speed truncated. Truncation ratio is "//trim(num2lstr(LidWtRatio))//".", ErrStat, ErrMsg, RoutineName )
+               IF (NWTC_VerboseLevel == NWTC_Verbose) &
+                  CALL SetErrStat( ErrID_Warn, "Lidar speed truncated. Truncation ratio is "//trim(num2lstr(LidWtRatio))//".", ErrStat, ErrMsg, RoutineName )
             !y%LidErr = 2
                y%lidar%WtTrunc = LidWtRatio
                EXIT
@@ -462,7 +464,8 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
        
          CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, ErrStat2, ErrMsg2 )      
             IF (ErrStat2 >= AbortErrLev) THEN !out of bounds
-            CALL SetErrStat( ErrID_Warn, "Lidar speed truncated. Truncation ratio is "//trim(num2lstr(LidWtRatio))//".", ErrStat, ErrMsg, RoutineName )
+               IF (NWTC_VerboseLevel == NWTC_Verbose) &
+                  CALL SetErrStat( ErrID_Warn, "Lidar speed truncated. Truncation ratio is "//trim(num2lstr(LidWtRatio))//".", ErrStat, ErrMsg, RoutineName )
             !y%lidar%LidErr = 2
                y%lidar%WtTrunc = LidWtRatio
                EXIT
@@ -539,7 +542,8 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
             
                !trunc point is behind lidar
             IF (LidRange > (p%lidar%PulseRangeOne + (IRangeGt-1)*p%lidar%DeltaP)) THEN
-               CALL SetErrStat( ErrID_Info, "Lidar truncation point at gate "//trim(num2lstr(IRangeGt))//" is behind the lidar. Truncation ratio is "&
+               IF (NWTC_VerboseLevel == NWTC_Verbose) &
+                  CALL SetErrStat( ErrID_Info, "Lidar truncation point at gate "//trim(num2lstr(IRangeGt))//" is behind the lidar. Truncation ratio is "&
                                  //trim(num2lstr(LidWtRatio))//'.', ErrStat, ErrMsg, RoutineName)  ! set informational message about point being behind lidar
                !y%LidErr(IRangeGt) = 3
                y%lidar%WtTrunc(IRangeGt) = LidWtRatio
@@ -551,7 +555,8 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
             Input%Position(:,1) = u%lidar%LidPosition + LidDirUnVec*(p%lidar%PulseRangeOne + (IRangeGt-1)*p%lidar%DeltaP + LidRange)              
             CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, ErrStat2, ErrMsg2 )   
                IF (ErrStat2 >= AbortErrLev) THEN !out of bounds
-               CALL SetErrStat( ErrID_Warn, "Lidar speed at gate "//trim(num2lstr(IRangeGt))//" truncated. Truncation ratio is "//trim(num2lstr(LidWtRatio))//".", ErrStat, ErrMsg, RoutineName )
+               IF (NWTC_VerboseLevel == NWTC_Verbose) &
+                  CALL SetErrStat( ErrID_Warn, "Lidar speed at gate "//trim(num2lstr(IRangeGt))//" truncated. Truncation ratio is "//trim(num2lstr(LidWtRatio))//".", ErrStat, ErrMsg, RoutineName )
                   !y%LidErr(IRangeGt) = 2
                   y%lidar%WtTrunc(IRangeGt) = LidWtRatio
                   EXIT
@@ -562,7 +567,8 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
             Input%Position(:,1) = u%lidar%LidPosition + LidDirUnVec*(p%lidar%PulseRangeOne + (IRangeGt-1)*p%lidar%DeltaP - LidRange)    
             CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, ErrStat2, ErrMsg2 )      
                IF (ErrStat2 >= AbortErrLev) THEN !out of bounds
-               CALL SetErrStat( ErrID_Warn, "Lidar speed at gate "//trim(num2lstr(IRangeGt))//" truncated. Truncation ratio is "//trim(num2lstr(LidWtRatio))//".", ErrStat, ErrMsg, RoutineName )
+               IF (NWTC_VerboseLevel == NWTC_Verbose) &
+                  CALL SetErrStat( ErrID_Warn, "Lidar speed at gate "//trim(num2lstr(IRangeGt))//" truncated. Truncation ratio is "//trim(num2lstr(LidWtRatio))//".", ErrStat, ErrMsg, RoutineName )
                   !y%lidar%LidErr(IRangeGt) = 2
                   y%lidar%WtTrunc(IRangeGt) = LidWtRatio
                   EXIT

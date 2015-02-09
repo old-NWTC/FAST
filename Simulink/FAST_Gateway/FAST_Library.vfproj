@@ -184,10 +184,12 @@
 		<File RelativePath="..\..\Source\dependencies\NWTC_Library\SysMatlab.f90"/></Filter>
 		<Filter Name="ServoDyn">
 		<Filter Name="RegistryFiles">
-		<File RelativePath="..\..\Source\dependencies\ServoDyn\ServoDyn_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\ServoDyn\ServoDyn_Types.f90"/>
+		<File RelativePath="..\..\Source\dependencies\ServoDyn\TMD_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\BladedInterface.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\PitchCntrl_ACH.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\ServoDyn.f90"/>
+		<File RelativePath="..\..\Source\dependencies\ServoDyn\TMD.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\UserSubs.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\UserVSCont_KP.f90"/></Filter>
 		<Filter Name="SubDyn">
