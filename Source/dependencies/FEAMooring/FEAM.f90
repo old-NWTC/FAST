@@ -2577,16 +2577,16 @@ END SUBROUTINE SetOutParam
     CHARACTER(*),                           INTENT(   OUT )  ::  ErrMsg               ! Error message if ErrStat /= ErrID_None
 
 
-    REAL, DIMENSION(3,3)       ::  R             ! Rotation matrix transfering local frame coordinates to the global frame. @todo: do you prefer 0 index?
-    REAL, DIMENSION(3,3)       ::  USkewed       ! Skew symmetrix matrix. @todo: do you prefer 0 index?
-    REAL, DIMENSION(3,3)       ::  USkewedSquare ! Square of skew symmetrix matrix
-    REAL, DIMENSION(3)         ::  uHat          ! unit vector
-    REAL, DIMENSION(3)         ::  refAxis       ! reference axis unit vector. Should be oriented with the vertical Z global axis (opposite of gravity)
-    REAL, DIMENSION(3)         ::  lineAxis      ! vector of a straitgh-line segment parallel to the local z axis of the line element. Equals OtherState%Line_Tangent
-    REAL, DIMENSION(3)         ::  lineCrossRef  ! cross product, lineAxis (cross) refAxis 
-    REAL                       ::  lineDotRef    ! dot product, lineAXis (dot) refAxis
-    REAL                       ::  theta
-    REAL                       ::  norm
+    REAL(ReKi), DIMENSION(3,3)       ::  R             ! Rotation matrix transfering local frame coordinates to the global frame. @todo: do you prefer 0 index?
+    REAL(ReKi), DIMENSION(3,3)       ::  USkewed       ! Skew symmetrix matrix. @todo: do you prefer 0 index?
+    REAL(ReKi), DIMENSION(3,3)       ::  USkewedSquare ! Square of skew symmetrix matrix
+    REAL(ReKi), DIMENSION(3)         ::  uHat          ! unit vector
+    REAL(ReKi), DIMENSION(3)         ::  refAxis       ! reference axis unit vector. Should be oriented with the vertical Z global axis (opposite of gravity)
+    REAL(ReKi), DIMENSION(3)         ::  lineAxis      ! vector of a straitgh-line segment parallel to the local z axis of the line element. Equals OtherState%Line_Tangent
+    REAL(ReKi), DIMENSION(3)         ::  lineCrossRef  ! cross product, lineAxis (cross) refAxis 
+    REAL(ReKi)                       ::  lineDotRef    ! dot product, lineAXis (dot) refAxis
+    REAL(ReKi)                       ::  theta
+    REAL(ReKi)                       ::  norm
     INTEGER                    ::  I, J, K
 
     INTEGER                    ::  numNodes 

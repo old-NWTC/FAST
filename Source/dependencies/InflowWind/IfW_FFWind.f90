@@ -16,8 +16,8 @@ MODULE IfW_FFWind
 !     -- Note:  Jacobians are not included in this version.
 !
 !----------------------------------------------------------------------------------------------------
-! File last committed: $Date: 2014-09-24 14:24:25 -0600 (Wed, 24 Sep 2014) $
-! (File) Revision #: $Rev: 122 $
+! File last committed: $Date: 2015-02-09 12:53:34 -0700 (Mon, 09 Feb 2015) $
+! (File) Revision #: $Rev: 141 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/IfW_FFWind.f90 $
 !----------------------------------------------------------------------------------------------------
 ! LICENSING
@@ -859,7 +859,7 @@ SUBROUTINE IfW_FFWind_Init(InitData,   InputGuess, ParamData,                   
                     ' grid ('//TRIM( Num2LStr(OtherStates%FFYHWid*2) )//' m wide, '// &
                     TRIM( Num2LStr(OtherStates%GridBase) )//' m to '// &
                     TRIM( Num2LStr(OtherStates%GridBase+OtherStates%FFZHWid*2) )//&
-                    ' m above ground) with a characterstic wind speed of '// &
+                    ' m above ground) with a characteristic wind speed of '// &
                     TRIM( Num2LStr(OtherStates%MeanFFWS) )//' m/s. '//TRIM(DescStr) )
 
 
@@ -1573,7 +1573,7 @@ SUBROUTINE IfW_FFWind_Init(InitData,   InputGuess, ParamData,                   
                   ' grid ('//TRIM( Num2LStr(OtherStates%FFYHWid*2) )//' m wide, '// &
                   TRIM( Num2LStr(OtherStates%GridBase) )//' m to '// &
                   TRIM( Num2LStr(OtherStates%GridBase+OtherStates%FFZHWid*2) )//&
-                  ' m above ground) with a characterstic wind speed of '//TRIM( Num2LStr(OtherStates%MeanFFWS) )//' m/s. ' )
+                  ' m above ground) with a characteristic wind speed of '//TRIM( Num2LStr(OtherStates%MeanFFWS) )//' m/s. ' )
       ErrMsg   = ""
       ErrStat  =  ErrID_None
 

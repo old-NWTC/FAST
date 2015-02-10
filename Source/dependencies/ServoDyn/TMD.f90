@@ -2,8 +2,8 @@
 ! WLaCava (WGL) and Matt Lackner (MAL)
 ! Tuned Mass Damper Module
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-01-27 20:38:12 -0700 (Tue, 27 Jan 2015) $
-! (File) Revision #: $Rev: 893 $
+! File last committed: $Date: 2015-02-09 22:29:06 -0700 (Mon, 09 Feb 2015) $
+! (File) Revision #: $Rev: 913 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/TMD/Source/TMD.f90 $
 !**********************************************************************************************************************************
 MODULE TMD  
@@ -32,9 +32,7 @@ MODULE TMD
    
   ! PUBLIC :: TMD_CalcConstrStateResidual        ! Tight coupling routine for returning the constraint state residual
    PUBLIC :: TMD_CalcContStateDeriv             ! Tight coupling routine for computing derivatives of continuous states
-   PUBLIC :: TMD_OpenOutputFile
-   PUBLIC :: TMD_WriteOutputFile
-   PUBLIC :: TMD_CloseOutputFile
+
    !PUBLIC :: TMD_UpdateDiscState                ! Tight coupling routine for updating discrete states
       
    !PUBLIC :: TMD_JacobianPInput                 ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
@@ -50,6 +48,9 @@ MODULE TMD
                                                     !   states (z)
    
  
+   INTEGER(IntKi), PARAMETER :: ControlMode_NONE      = 0          ! The (ServoDyn-universal) control code for not using a particular type of control
+                                                    
+                                                    
 CONTAINS
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE TMD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, ErrStat, ErrMsg )
@@ -91,11 +92,13 @@ SUBROUTINE TMD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, 
       INTEGER(IntKi)                                :: ErrStat2      ! local error status
       CHARACTER(1024)                               :: ErrMsg2       ! local error message
       
+      CHARACTER(*), PARAMETER                       :: RoutineName = 'TMD_Init'
+      
          ! Initialize ErrStat
          
       ErrStat = ErrID_None         
       ErrMsg  = ''               
-      NumOuts = 2
+      NumOuts = 0
       !p%NumBl = 3
       !p%NumOuts = 4
      ! Initialize the NWTC Subroutine Library
@@ -117,10 +120,15 @@ SUBROUTINE TMD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, 
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
 
+      
    !CALL ValidatePrimaryData( InputFileData, InitInp%NumBl, ErrStat2, ErrMsg2 )
    !   CALL CheckError( ErrStat2, ErrMsg2 )
    !   IF (ErrStat >= AbortErrLev) RETURN
-      
+
+   IF ( InputFileData%TMD_CMODE /= ControlMode_None ) &
+      CALL SetErrStat( ErrID_Fatal, 'Control mode (TMD_CMode) must be 0 for this version of TMD.', ErrStat, ErrMsg, RoutineName )
+   
+   
       !............................................................................................
       ! Define parameters here:
       !............................................................................................
@@ -133,7 +141,7 @@ SUBROUTINE TMD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, 
          ! Destroy the local initialization data
       !CALL CleanUp()
          
-!............................................................................................
+      !............................................................................................
       ! Define initial system states here:
       !............................................................................................
       ! Define initial system states here:
@@ -563,7 +571,7 @@ CONTAINS
       IF ( ErrID /= ErrID_None ) THEN
 
          IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//'ED_RK4:'//TRIM(Msg)         
+         ErrMsg = TRIM(ErrMsg)//'TMD_RK4:'//TRIM(Msg)         
          ErrStat = MAX(ErrStat,ErrID)
          
          !.........................................................................................................................
@@ -885,21 +893,13 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
    
       CALL ReadStr( UnIn, InputFile, FTitle, 'FTitle', 'File Header: File Description (line 2)', ErrStat2, ErrMsg2, UnEc )
          CALL CheckError( ErrStat2, ErrMsg2 )
-         IF ( ErrStat >= AbortErrLev ) RETURN                    
-   !------------------ TMD INTERFACE -----------------------------
-   CALL ReadCom( UnIn, InputFile, 'Section Header: TMD interface', ErrStat2, ErrMsg2, UnEc )
+         IF ( ErrStat >= AbortErrLev ) RETURN      
+         
+   !------------------ TMD DEGREES OF FREEDOM -----------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section Header: TMD DEGREES OF FREEDOM', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN  
    
-    ! TMD_CMODE:
-   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_CMODE, "TMD_CMODE", "control mode (1/0?:passive (none?), 2/1: active)", ErrStat2, ErrMsg2, UnEc)
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-!bjj: check that TMD_CMODE = 0 for now? (0 should be passive)  
-!bjj: ask if the springs and dampers are used with active control or not?
-!  active control is not in there. is the intent to use the springs, dampers, and stops when there is active control? if yes, they always want them in there, then this passive (CMODE = 0). If no, set TMD_CMode = 1 and call this their simple model.
-!  we probably want to reorganize the input file based on that answer. (section for "simple" control)
-
       ! TMD_X_DOF:
    CALL ReadVar( UnIn, InputFile, InputFileData%TMD_X_DOF, "TMD_X_DOF", "DOF on or off", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -910,39 +910,40 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
       
+   !------------------ TMD INITIAL CONDITIONS -----------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section Header: TMD INITIAL CONDITIONS', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN  
+
       ! TMD_X_DSP:
    CALL ReadVar( UnIn, InputFile, InputFileData%TMD_X_DSP, "TMD_X_DSP", "TMD_X initial displacement", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+      
       ! TMD_Y_DSP:
    CALL ReadVar( UnIn, InputFile, InputFileData%TMD_Y_DSP, "TMD_Y_DSP", "TMD_Y initial displacement", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-      ! TMD_X_M:
-   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_X_M, "TMD_X_M", "TMD mass", ErrStat2, ErrMsg2, UnEc)
+
+   !------------------ TMD CONFIGURATION -----------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section Header: TMD CONFIGURATION', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-    ! TMD_Y_M:
-   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_Y_M, "TMD_Y_M", "TMD mass", ErrStat2, ErrMsg2, UnEc)
+      IF ( ErrStat >= AbortErrLev ) RETURN  
+
+   ! TMD_P_X:
+   CALL ReadVar(UnIn,InputFile,InputFileData%TMD_P_X,"TMD_P_X","at rest position of TMDs (X)",ErrStat2,ErrMsg2,UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
+      IF ( ErrStat >= AbortErrLev ) RETURN   
       
-      ! TMD_X_K:
-   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_X_K, "TMD_X_K", "TMD stiffness", ErrStat2, ErrMsg2, UnEc)
+    ! TMD_P_Y:
+   CALL ReadVar(UnIn,InputFile,InputFileData%TMD_P_Y,"TMD_P_Y","at rest position of TMDs (Y)",ErrStat2,ErrMsg2,UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-      ! TMD_Y_K:
-   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_Y_K, "TMD_Y_K", "TMD stiffness", ErrStat2, ErrMsg2, UnEc)
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
+      IF ( ErrStat >= AbortErrLev ) RETURN   
       
-      ! TMD_X_C:
-   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_X_C, "TMD_X_C", "TMD damping", ErrStat2, ErrMsg2, UnEc)
-      CALL CheckError( ErrStat2, ErrMsg2 )      
-      ! TMD_Y_C:
-   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_Y_C, "TMD_Y_C", "TMD damping", ErrStat2, ErrMsg2, UnEc)
+    ! TMD_P_Z:
+   CALL ReadVar(UnIn,InputFile,InputFileData%TMD_P_Z,"TMD_P_Z","at rest position of TMDs (Z)",ErrStat2,ErrMsg2,UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
+      IF ( ErrStat >= AbortErrLev ) RETURN   
       
       ! TMD_X_DWSP:
    CALL ReadVar( UnIn, InputFile, InputFileData%TMD_X_DWSP, "TMD_X_DWSP", "DW stop position (maximum X mass displacement)", ErrStat2, ErrMsg2, UnEc)
@@ -953,89 +954,85 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
    CALL ReadVar( UnIn, InputFile, InputFileData%TMD_X_UWSP, "TMD_X_UWSP", "UW stop position (minimum X mass displacement)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       
-    ! TMD_X_KS:
-   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_X_KS, "TMD_X_KS", "stop spring stiffness", ErrStat2, ErrMsg2, UnEc)
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      
-      ! TMD_X_CS:
-   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_X_CS, "TMD_X_CS", "stop spring damping", ErrStat2, ErrMsg2, UnEc)
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      
     ! TMD_Y_PLSP:
    CALL ReadVar( UnIn, InputFile, InputFileData%TMD_Y_PLSP, "TMD_Y_PLSP", "positive lateral stop position (maximum Y mass displacement)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       
-    ! TMD_NLSP:
-   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_Y_NLSP, "TMD_Y_NLSP", "negative lateral stop position (minimum Y mass displacement)", ErrStat2, ErrMsg2, UnEc)
-   
+    ! TMD_Y_NLSP:
+   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_Y_NLSP, "TMD_Y_NLSP", "negative lateral stop position (minimum Y mass displacement)", ErrStat2, ErrMsg2, UnEc)   
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   ! TMD_Y_KS:
-   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_Y_KS, "TMD_Y_KS", "stop spring stiffness", ErrStat2, ErrMsg2, UnEc)
+      
+      
+   !------------------ TMD MASS, STIFFNESS, & DAMPING -----------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section Header: TMD MASS, STIFFNESS, & DAMPING', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-   ! TMD_Y_CS:
-   CALL ReadVar(UnIn,InputFile,InputFileData%TMD_Y_CS,"TMD_Y_CS","stop spring damping",ErrStat2,ErrMsg2,UnEc)
-   CALL CheckError( ErrStat2, ErrMsg2 )
+
+      ! TMD_X_M:
+   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_X_M, "TMD_X_M", "X TMD mass", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      
+      ! TMD_Y_M:
+   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_Y_M, "TMD_Y_M", "Y TMD mass", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      
+      ! TMD_X_K:
+   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_X_K, "TMD_X_K", "X TMD stiffness", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      
+      ! TMD_Y_K:
+   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_Y_K, "TMD_Y_K", "Y TMD stiffness", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      
+      ! TMD_X_C:
+   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_X_C, "TMD_X_C", "X TMD damping", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )    
+      
+      ! TMD_Y_C:
+   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_Y_C, "TMD_Y_C", "Y TMD damping", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      
+      ! TMD_X_KS:
+   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_X_KS, "TMD_X_KS", "X stop spring stiffness", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      
+      ! TMD_Y_KS:
+   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_Y_KS, "TMD_Y_KS", "Y stop spring stiffness", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      
+      ! TMD_X_CS:
+   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_X_CS, "TMD_X_CS", "X stop spring damping", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      
+      ! TMD_Y_CS:
+   CALL ReadVar(UnIn,InputFile,InputFileData%TMD_Y_CS,"TMD_Y_CS","Y stop spring damping",ErrStat2,ErrMsg2,UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN   
       
-   ! TMD_P_X:
-   CALL ReadVar(UnIn,InputFile,InputFileData%TMD_P_X,"TMD_P_X","at rest position of TMDs (X)",ErrStat2,ErrMsg2,UnEc)
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN   
-    ! TMD_P_Y:
-   CALL ReadVar(UnIn,InputFile,InputFileData%TMD_P_Y,"TMD_P_Y","at rest position of TMDs (Y)",ErrStat2,ErrMsg2,UnEc)
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN   
-    ! TMD_P_Z:
-   CALL ReadVar(UnIn,InputFile,InputFileData%TMD_P_Z,"TMD_P_Z","at rest position of TMDs (Z)",ErrStat2,ErrMsg2,UnEc)
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN   
       
-   !---------------------- OUTPUT --------------------------------------------------         
-   CALL ReadCom( UnIn, InputFile, 'Section Header: Output', ErrStat2, ErrMsg2, UnEc )
+   !------------------ TMD CONTROL -----------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section Header: TMD CONTROL', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      
+    ! TMD_CMODE:
+   CALL ReadVar( UnIn, InputFile, InputFileData%TMD_CMODE, "TMD_CMODE", "control mode (0:none, 1: simple)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+      
+   !!---------------------- OUTPUT --------------------------------------------------         
+   !CALL ReadCom( UnIn, InputFile, 'Section Header: Output', ErrStat2, ErrMsg2, UnEc )
+   !   CALL CheckError( ErrStat2, ErrMsg2 )
+   !   IF ( ErrStat >= AbortErrLev ) RETURN
 
    !   ! SumPrint - Print summary data to <RootName>.sum (flag):
    !CALL ReadVar( UnIn, InputFile, InputFileData%SumPrint, "SumPrint", "Print summary data to <RootName>.sum (flag)", ErrStat2, ErrMsg2, UnEc)
    !   CALL CheckError( ErrStat2, ErrMsg2 )
    !   IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! OutFile - Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both) (-):
-   !CALL ReadVar( UnIn, InputFile, InputFileData%OutFile, "OutFile", "Switch to determine where output will be placed: {1: in module output file only; 2: in glue code output file only; 3: both} (-)", ErrStat2, ErrMsg2, UnEc)
+   !!---------------------- OUTLIST  --------------------------------------------
+   !   CALL ReadCom( UnIn, InputFile, 'Section Header: OutList', ErrStat2, ErrMsg2, UnEc )
    !   CALL CheckError( ErrStat2, ErrMsg2 )
    !   IF ( ErrStat >= AbortErrLev ) RETURN
-
-   !   ! OutFileFmt - Format for module tabular (time-marching) output: (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both):
-   !CALL ReadVar( UnIn, InputFile, InputFileData%OutFileFmt, "OutFileFmt", "Format for module tabular (time-marching) output: (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both)", ErrStat2, ErrMsg2, UnEc)
-   !   CALL CheckError( ErrStat2, ErrMsg2 )
-   !   IF ( ErrStat >= AbortErrLev ) RETURN      
-      
-      ! TabDelim - Flag to cause tab-delimited text output (delimited by space otherwise) (flag):
-   !CALL ReadVar( UnIn, InputFile, InputFileData%TabDelim, "TabDelim", "Flag to cause tab-delimited text output (delimited by space otherwise) (flag)", ErrStat2, ErrMsg2, UnEc)
-   !   CALL CheckError( ErrStat2, ErrMsg2 )
-   !   IF ( ErrStat >= AbortErrLev ) RETURN
-
-      ! OutFmt - Format used for module's text tabult output (except time); resulting field should be 10 characters (-):
-   !CALL ReadVar( UnIn, InputFile, InputFileData%OutFmt, "OutFmt", "Format used for module's text tabular output (except time); resulting field should be 10 characters (-)", ErrStat2, ErrMsg2, UnEc)
-   !   CALL CheckError( ErrStat2, ErrMsg2 )
-   !   IF ( ErrStat >= AbortErrLev ) RETURN
-
-      ! Tstart - Time to start module's tabular output (seconds):
-   !CALL ReadVar( UnIn, InputFile, InputFileData%Tstart, "Tstart", "Time to start module's tabular output (seconds)", ErrStat2, ErrMsg2, UnEc)
-      !CALL CheckError( ErrStat2, ErrMsg2 )
-      !IF ( ErrStat >= AbortErrLev ) RETURN
-   !
-   !   ! DecFact - Decimation factor for module's tabular output (1=output every step) (-):
-   !CALL ReadVar( UnIn, InputFile, InputFileData%DecFact, "DecFact", "Decimation factor for module's tabular output (1=output every step) (-)", ErrStat2, ErrMsg2, UnEc)
-   !   CALL CheckError( ErrStat2, ErrMsg2 )
-   !   IF ( ErrStat >= AbortErrLev ) RETURN
-
-   !---------------------- OUTLIST  --------------------------------------------
-      CALL ReadCom( UnIn, InputFile, 'Section Header: OutList', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
 
       ! OutList - List of user-requested output channels (-):
    !CALL ReadOutputList ( UnIn, InputFile, InputFileData%OutList, InputFileData%NumOuts, 'OutList', "List of user-requested output channels", ErrStat2, ErrMsg2, UnEc  )     ! Routine in NWTC Subroutine Library
@@ -1173,81 +1170,6 @@ CONTAINS
    END SUBROUTINE CheckError
 
 END SUBROUTINE TMD_SetParameters   
-!-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE TMD_OpenOutputFile(OutputFile,UnIn,ErrStat,ErrMsg)
-! This routine is called by the driver, not this module.
-   CHARACTER(1024), Intent(IN)         :: OutputFile    ! Name of the file containing the primary input data
-   INTEGER(IntKi), INTENT(OUT)         :: UnIn          ! Unit number for writing file
-   INTEGER(IntKi), INTENT(OUT)         :: ErrStat       ! Temporary error ID   
-   CHARACTER(*), INTENT(OUT)           :: ErrMsg        ! Temporary message describing error
-   CHARACTER(1024)                     :: Header1   
-   CHARACTER(1024)                     :: Header2 
-   
-   ErrStat = ErrID_None
-   ErrMsg  = ''
-   !OutputFile = 'TMD_Output_Data.txt'
-   !Fmt = "F10.2))/"
-   
-   CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
-      !CALL CheckError( ErrStat, ErrMsg)
-      !IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! Open the output file.
-
-   CALL OpenFOutFile ( UnIn, OutputFile, ErrStat, ErrMsg )
-   Header1 = "-------------- TMD Output ------------------------------"
-   Header2 = "x    dxdt     y     dydt       fx       fy     fz       mx       my       mz"
-   
-    WRITE( UnIn, *, IOSTAT=ErrStat ) TRIM(Header1)
-     WRITE( UnIn, *, IOSTAT=ErrStat ) TRIM(Header2)
-     
-END SUBROUTINE TMD_OpenOutputFile
-!-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE TMD_CloseOutputFile(Un)
-! This routine is called by the driver, not this module.
- 
- INTEGER(IntKi), INTENT(IN)                :: Un                                      ! Unit number for writing file
-  CLOSE ( Un )
-END SUBROUTINE TMD_CloseOutputFile
-!-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE TMD_WriteOutputFile( x, y, UnIn, ErrStat, ErrMsg )
-! This routine is called by the driver, not this module.
-! write output file with TMD states and forces.
-
-   TYPE(TMD_ContinuousStateType), INTENT(IN   )    :: x           ! Continuous states at Time
-   TYPE(TMD_OutputType), INTENT(IN   )             :: y                   ! state outputs
-   INTEGER(IntKi), INTENT(IN)                :: UnIn                                      ! Unit number for writing file
-   INTEGER(IntKi), INTENT(OUT)                     :: ErrStat       ! Temporary error ID   
-   CHARACTER(*), INTENT(OUT)            :: ErrMsg        ! Temporary message describing error
-   !REAL(DbKi),                      INTENT(IN   )  :: Time        ! Current simulation time in seconds
-   
-    CHARACTER(1024)              :: Fmt !text format
-    REAL(ReKi), dimension(10)                   :: OutAry
-    INTEGER(IntKi)                              :: i
-    ErrStat = ErrID_None
-   ErrMsg  = ''
- 
-   ! create output array
-   DO i=1,4
-      OutAry(i) = x%tmd_x(i)
-   END DO
-   DO i=5,7
-      OutAry(i) = y%Mesh%Force(i-4,1)
-   END DO
-   DO i=8,10
-      OutAry(i) = y%Mesh%Moment(i-7,1)
-   END DO
-   !Write output 
-    Fmt = '(10(1x,F10.2))'
-   WRITE( UnIn, Fmt, IOSTAT=ErrStat ) OutAry(:)
-   IF (ErrStat /= 0) THEN
-      CALL WrScr('Error '//TRIM(Num2LStr(ErrStat))//' writing matrix in WrMatrix1R4().')
-      RETURN
-   END IF
-   !CALL WrMatrix( x%tmd_x, UnIn, Fmt )   
-   
-END SUBROUTINE TMD_WriteOutputFile
 !-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 END MODULE TMD
 !**********************************************************************************************************************************
