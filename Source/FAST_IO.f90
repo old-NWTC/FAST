@@ -1805,11 +1805,12 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_ED, y_AD, y_SrvD, u_SrvD, MeshMapData,
                
 END SUBROUTINE ED_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW, MeshMapData, ErrStat, ErrMsg, y_SrvD_prev )
+SUBROUTINE SrvD_InputSolve( p_FAST, m_FAST, u_SrvD, y_ED, y_IfW, MeshMapData, ErrStat, ErrMsg, y_SrvD_prev )
 ! This routine sets the inputs required for ServoDyn
 !..................................................................................................................................
 
    TYPE(FAST_ParameterType),         INTENT(IN)     :: p_FAST       ! Glue-code simulation parameters
+   TYPE(FAST_MiscVarType),           INTENT(IN)     :: m_FAST       ! Glue-code misc variables (including inputs from external sources like Simulink)
    TYPE(SrvD_InputType),             INTENT(INOUT)  :: u_SrvD       ! ServoDyn Inputs at t
    TYPE(ED_OutputType),              INTENT(IN)     :: y_ED         ! ElastoDyn outputs
    REAL(ReKi),                       INTENT(IN)     :: y_IfW(3)     ! InflowWind outputs
@@ -4924,16 +4925,17 @@ SUBROUTINE CalcOutputs_And_SolveForInputs( n_t_global, this_time, this_state, ca
    CALL SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
 
-   !   ! use the ElastoDyn outputs from option1 to update the inputs for AeroDyn and ServoDyn
-   ! bjj: if they ever have states to update, we should do these tramsfers!!!!
-   !IF ( p_FAST%CompAero == Module_AD ) THEN
-   !   CALL AD_InputSolve( AD%Input(1), ED%Output(1), MeshMapData, ErrStat2, ErrMsg2 )
-   !            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
-   !END IF      
-   !
-   !IF ( p_FAST%CompServo == Module_SrvD  ) THEN         
-   !   CALL SrvD_InputSolve( p_FAST, SrvD%Input(1), ED%Output(1), IfW%WriteOutput )    ! At initialization, we don't have a previous value, so we'll use the guess inputs instead. note that this violates the framework.... (done for the Bladed DLL)
-   !END IF         
+      ! use the ElastoDyn outputs from option1 to update the inputs for AeroDyn and ServoDyn (necessary only if they have states)
+      
+   IF ( p_FAST%CompAero == Module_AD ) THEN
+      CALL AD_InputSolve( AD%Input(1), ED%Output(1), MeshMapData, ErrStat2, ErrMsg2 )
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
+   END IF      
+   
+   IF ( p_FAST%CompServo == Module_SrvD  ) THEN         
+      CALL SrvD_InputSolve( p_FAST, m_FAST, SrvD%Input(1), ED%Output(1), IfW%WriteOutput, MeshmapData, ErrStat2, ErrMsg2 )    ! At initialization, we don't have a previous value, so we'll use the guess inputs instead. note that this violates the framework.... (done for the Bladed DLL)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
+   END IF         
                      
 #endif
                                                                                                       
@@ -5182,9 +5184,9 @@ SUBROUTINE SolveOption2(this_time, this_state, p_FAST, ED, AD, SrvD, IfW, MeshMa
          
          ! note that the inputs at step(n) for ServoDyn include the outputs from step(n-1)
       IF ( firstCall ) THEN
-         CALL SrvD_InputSolve( p_FAST, SrvD%Input(1), ED%Output(1), IfW%WriteOutput, MeshMapData, ErrStat2, ErrMsg2 )    ! At initialization, we don't have a previous value, so we'll use the guess inputs instead. note that this violates the framework.... (done for the Bladed DLL)
+         CALL SrvD_InputSolve( p_FAST, m_FAST, SrvD%Input(1), ED%Output(1), IfW%WriteOutput, MeshMapData, ErrStat2, ErrMsg2 )    ! At initialization, we don't have a previous value, so we'll use the guess inputs instead. note that this violates the framework.... (done for the Bladed DLL)
       ELSE
-         CALL SrvD_InputSolve( p_FAST, SrvD%Input(1), ED%Output(1), IfW%WriteOutput, MeshMapData, ErrStat2, ErrMsg2, SrvD%y_prev   ) 
+         CALL SrvD_InputSolve( p_FAST, m_FAST, SrvD%Input(1), ED%Output(1), IfW%WriteOutput, MeshMapData, ErrStat2, ErrMsg2, SrvD%y_prev   ) 
       END IF
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
