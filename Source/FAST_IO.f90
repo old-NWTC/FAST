@@ -357,6 +357,7 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile, TMax  )
    
    IF ( ErrStat >= AbortErrLev ) RETURN
 
+   
    !...............................................................................................................................
 
       ! temporary check on p_FAST%DT_out (bjj: fix this later)
@@ -1820,6 +1821,9 @@ SUBROUTINE SrvD_InputSolve( p_FAST, m_FAST, u_SrvD, y_ED, y_IfW, MeshMapData, Er
    CHARACTER(*),                     INTENT(  OUT)  :: ErrMsg       ! Error message
 !  TYPE(AD_OutputType),              INTENT(IN)     :: y_AD         ! AeroDyn outputs
 
+      ! local variable(s)
+   INTEGER(IntKi)                                   :: i            ! 
+
 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1892,7 +1896,16 @@ SUBROUTINE SrvD_InputSolve( p_FAST, m_FAST, u_SrvD, y_ED, y_IfW, MeshMapData, Er
             
    END IF
    
+   u_SrvD%ExternalGenTrq       =  m_FAST%ExternInput%GenTrq     
+   u_SrvD%ExternalElecPwr      =  m_FAST%ExternInput%ElecPwr    
+   u_SrvD%ExternalYawPosCom    =  m_FAST%ExternInput%YawPosCom  
+   u_SrvD%ExternalYawRateCom   =  m_FAST%ExternInput%YawRateCom 
 
+   do i=1,SIZE(u_SrvD%ExternalBlPitchCom)
+      u_SrvD%ExternalBlPitchCom(i)   = m_FAST%ExternInput%BlPitchCom(i)
+   end do
+      
+                        
 END SUBROUTINE SrvD_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Transfer_SD_to_HD( y_SD, u_HD_M_LumpedMesh, u_HD_M_DistribMesh, MeshMapData, ErrStat, ErrMsg )
@@ -3834,7 +3847,31 @@ END SUBROUTINE Perturb_u_ED_SD_HD
 
 
 !----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE IfW_InputSolve( u_IfW, p_IfW, m_FAST, y_ED, MeshMapData, ErrStat, ErrMsg )
 
+      ! Passed variables
+   TYPE(IfW_InputType),         INTENT(INOUT)   :: u_IfW        ! The inputs to InflowWind
+   TYPE(IfW_ParameterType),     INTENT(IN   )   :: p_IfW        ! The parameters to InflowWind   
+   TYPE(ED_OutputType),         INTENT(IN)      :: y_ED         ! The outputs of the structural dynamics module
+   TYPE(FAST_MiscVarType),      INTENT(IN   )   :: m_FAST       ! misc FAST data, including inputs from external codes like Simulink
+   TYPE(FAST_ModuleMapType),    INTENT(INOUT)   :: MeshMapData  ! Data for mapping between modules
+   INTEGER(IntKi)                               :: ErrStat      ! Error status of the operation
+   CHARACTER(*)                                 :: ErrMsg       ! Error message if ErrStat /= ErrID_None
+
+
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+      
+
+   ! bjj: this is a total hack to get the lidar inputs into AeroDyn. We should use a mesh to take care of this messiness
+            
+   u_IfW%lidar%LidPosition = y_ED%RotorApexMotion%Position(:,1) + y_ED%RotorApexMotion%TranslationDisp(:,1) & ! rotor apex position
+                                                                  + p_IfW%lidar%RotorApexOffsetPos            ! lidar offset-from-rotor-apex position
+      
+   u_IfW%lidar%MsrPosition = m_FAST%ExternInput%LidarFocus + u_IfW%lidar%LidPosition
+
+
+END SUBROUTINE IfW_InputSolve
 !====================================================================================================
 SUBROUTINE AD_InputSolve( u_AD, y_ED, MeshMapData, ErrStat, ErrMsg )
 ! THIS ROUTINE IS A HACK TO GET THE OUTPUTS FROM ELASTODYN INTO AERODYN. IT WILL BE REPLACED WHEN THIS CODE LINKS WITH
@@ -3863,6 +3900,7 @@ SUBROUTINE AD_InputSolve( u_AD, y_ED, MeshMapData, ErrStat, ErrMsg )
    NumBl    = SIZE(u_AD%InputMarkers,1)
    BldNodes = u_AD%InputMarkers(1)%Nnodes
    
+         
    !-------------------------------------------------------------------------------------------------
    ! Blade positions, orientations, and velocities:
    !-------------------------------------------------------------------------------------------------
@@ -4833,7 +4871,7 @@ SUBROUTINE WriteOutputToFile(t_global, p_FAST, y_FAST, ED, AD, IfW, HD, SD, SrvD
 END SUBROUTINE WriteOutputToFile     
 !...............................................................................................................................
 SUBROUTINE CalcOutputs_And_SolveForInputs( n_t_global, this_time, this_state, calcJacobian, NextJacCalcTime, &
-                        p_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
+                        p_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
 ! This subroutine solves the input-output relations for all of the modules. It is a subroutine because it gets done twice--
 ! once at the start of the n_t_global loop and once in the j_pc loop, using different states.
 ! *** Note that modules that do not have direct feedthrough should be called first. ***
@@ -4846,6 +4884,7 @@ SUBROUTINE CalcOutputs_And_SolveForInputs( n_t_global, this_time, this_state, ca
    REAL(DbKi)              , intent(in   ) :: NextJacCalcTime     ! Time between calculating Jacobians in the HD-ED and SD-ED simulations
       
    TYPE(FAST_ParameterType), INTENT(IN   ) :: p_FAST              ! Parameters for the glue code
+   TYPE(FAST_MiscVarType),   INTENT(IN   ) :: m_FAST              ! Misc variables (including external inputs) for the glue code
 
    TYPE(ElastoDyn_Data),     INTENT(INOUT) :: ED                  ! ElastoDyn data
    TYPE(ServoDyn_Data),      INTENT(INOUT) :: SrvD                ! ServoDyn data
@@ -4894,7 +4933,7 @@ SUBROUTINE CalcOutputs_And_SolveForInputs( n_t_global, this_time, this_state, ca
       
    CALL SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
-   CALL SolveOption2(this_time, this_state, p_FAST, ED, AD, SrvD, IfW, MeshMapData, ErrStat2, ErrMsg2, n_t_global < 0)
+   CALL SolveOption2(this_time, this_state, p_FAST, m_FAST, ED, AD, SrvD, IfW, MeshMapData, ErrStat2, ErrMsg2, n_t_global < 0)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
                   
 #else
@@ -4912,7 +4951,7 @@ SUBROUTINE CalcOutputs_And_SolveForInputs( n_t_global, this_time, this_state, ca
    CALL ED_CalcOutput( this_time, ED%Input(1), ED%p, ED%x(this_state), ED%xd(this_state), ED%z(this_state), ED%OtherSt, ED%Output(1), ErrStat2, ErrMsg2 )
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
          
-   CALL SolveOption2(this_time, this_state, p_FAST, ED, AD, SrvD, IfW, MeshMapData, ErrStat2, ErrMsg2, n_t_global < 0)
+   CALL SolveOption2(this_time, this_state, p_FAST, m_FAST, ED, AD, SrvD, IfW, MeshMapData, ErrStat2, ErrMsg2, n_t_global < 0)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
          
       ! transfer ED outputs to other modules used in option 1:
@@ -4928,8 +4967,12 @@ SUBROUTINE CalcOutputs_And_SolveForInputs( n_t_global, this_time, this_state, ca
       ! use the ElastoDyn outputs from option1 to update the inputs for AeroDyn and ServoDyn (necessary only if they have states)
       
    IF ( p_FAST%CompAero == Module_AD ) THEN
+      
+      CALL IfW_InputSolve( AD%OtherSt%IfW_Inputs, AD%p%IfW_Params, m_FAST, ED%Output(1), MeshMapData, ErrStat2, ErrMsg2 )         
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
+      
       CALL AD_InputSolve( AD%Input(1), ED%Output(1), MeshMapData, ErrStat2, ErrMsg2 )
-               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
    END IF      
    
    IF ( p_FAST%CompServo == Module_SrvD  ) THEN         
@@ -5128,7 +5171,7 @@ SUBROUTINE SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD,
                   
 END SUBROUTINE SolveOption1
 !...............................................................................................................................
-SUBROUTINE SolveOption2(this_time, this_state, p_FAST, ED, AD, SrvD, IfW, MeshMapData, ErrStat, ErrMsg, firstCall)
+SUBROUTINE SolveOption2(this_time, this_state, p_FAST, m_FAST, ED, AD, SrvD, IfW, MeshMapData, ErrStat, ErrMsg, firstCall)
 ! This routine implements the "option 2" solve for all inputs without direct links to HD, SD, MAP, or the ED platform reference 
 ! point
 !...............................................................................................................................
@@ -5137,6 +5180,7 @@ SUBROUTINE SolveOption2(this_time, this_state, p_FAST, ED, AD, SrvD, IfW, MeshMa
    INTEGER(IntKi)          , intent(in   ) :: this_state          ! Index into the state array (current or predicted states)
 
    TYPE(FAST_ParameterType), INTENT(IN   ) :: p_FAST              ! Parameters for the glue code
+   TYPE(FAST_MiscVarType),   INTENT(IN   ) :: m_FAST              ! Misc variables for the glue code (including external inputs)
 
    TYPE(ElastoDyn_Data),     INTENT(INOUT) :: ED                  ! ElastoDyn data
    TYPE(ServoDyn_Data),      INTENT(INOUT) :: SrvD                ! ServoDyn data
@@ -5165,6 +5209,9 @@ SUBROUTINE SolveOption2(this_time, this_state, p_FAST, ED, AD, SrvD, IfW, MeshMa
    
    
    IF ( p_FAST%CompAero == Module_AD ) THEN !bjj: do this before calling SrvD so that SrvD can get the correct wind speed...
+      CALL IfW_InputSolve( AD%OtherSt%IfW_Inputs, AD%p%IfW_Params, m_FAST, ED%Output(1), MeshMapData, ErrStat2, ErrMsg2 )         
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )        
+      
       CALL AD_InputSolve( AD%Input(1), ED%Output(1), MeshMapData, ErrStat2, ErrMsg2 )
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          
@@ -5322,6 +5369,20 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
       RETURN
    END IF
       
+   
+   !...............................................................................................................................
+   ! Initialize external inputs in case they aren't being used 
+   !...............................................................................................................................
+   
+      m_FAST%ExternInput%GenTrq     = 0.0_ReKi
+      m_FAST%ExternInput%ElecPwr    = 0.0_ReKi
+      m_FAST%ExternInput%YawPosCom  = 0.0_ReKi
+      m_FAST%ExternInput%YawRateCom = 0.0_ReKi
+      m_FAST%ExternInput%BlPitchCom = 0.0_ReKi
+      m_FAST%ExternInput%LidarFocus = 1.0_ReKi  ! make this non-zero (until we add the initial position in the InflowWind input file)
+   
+   
+   !...............................................................................................................................  
       
    p_FAST%dt_module = p_FAST%dt ! initialize time steps for each module   
    
@@ -7054,7 +7115,7 @@ SUBROUTINE FAST_Solution0(p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAP
 
 
    CALL CalcOutputs_And_SolveForInputs(  n_t_global, m_FAST%t_global,  STATE_CURR, m_FAST%calcJacobian, m_FAST%NextJacCalcTime, &
-                        p_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2 )
+                        p_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2 )
       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    
       
@@ -7166,7 +7227,7 @@ SUBROUTINE FAST_Solution(t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD
    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
       CALL CalcOutputs_And_SolveForInputs( n_t_global, t_global_next,  STATE_PRED, m_FAST%calcJacobian, m_FAST%NextJacCalcTime, &
-                  p_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2 )            
+                  p_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2 )            
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          
    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

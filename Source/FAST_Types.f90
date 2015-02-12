@@ -309,6 +309,16 @@ IMPLICIT NONE
     TYPE(MeshType)  :: u_HD_Mesh      ! copy of HD input mesh [-]
   END TYPE FAST_ModuleMapType
 ! =======================
+! =========  FAST_ExternInputType  =======
+  TYPE, PUBLIC :: FAST_ExternInputType
+    REAL(ReKi)  :: GenTrq      ! generator torque input from Simulink/Labview [-]
+    REAL(ReKi)  :: ElecPwr      ! electric poser input from Simulink/Labview [-]
+    REAL(ReKi)  :: YawPosCom      ! yaw position command from Simulink/Labview [-]
+    REAL(ReKi)  :: YawRateCom      ! yaw rate command from Simulink/Labview [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: BlPitchCom      ! blade pitch commands from Simulink/Labview [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: LidarFocus      ! lidar focus (relative to lidar location) [m]
+  END TYPE FAST_ExternInputType
+! =======================
 ! =========  FAST_MiscVarType  =======
   TYPE, PUBLIC :: FAST_MiscVarType
     REAL(DbKi)  :: TiLstPrn      ! The simulation time of the last print (to file) [(s)]
@@ -321,6 +331,7 @@ IMPLICIT NONE
     INTEGER(IntKi) , DIMENSION(1:8)  :: SimStrtTime      ! Start time of simulation (after initialization) [-]
     INTEGER(IntKi)  :: n_TMax_m1      ! The time step of TMax - dt (the end time of the simulation) [(-)]
     LOGICAL  :: calcJacobian      ! Should we calculate Jacobians in Option 1? [(flag)]
+    TYPE(FAST_ExternInputType)  :: ExternInput      ! external input values [-]
   END TYPE FAST_MiscVarType
 ! =======================
 ! =========  FAST_ExternInitType  =======
@@ -8871,9 +8882,9 @@ ENDDO
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE FAST_UnPackModuleMapType
 
- SUBROUTINE FAST_CopyMiscVarType( SrcMiscVarTypeData, DstMiscVarTypeData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(FAST_MiscVarType), INTENT(IN) :: SrcMiscVarTypeData
-   TYPE(FAST_MiscVarType), INTENT(INOUT) :: DstMiscVarTypeData
+ SUBROUTINE FAST_CopyExternInputType( SrcExternInputTypeData, DstExternInputTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(FAST_ExternInputType), INTENT(IN) :: SrcExternInputTypeData
+   TYPE(FAST_ExternInputType), INTENT(INOUT) :: DstExternInputTypeData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -8885,33 +8896,29 @@ ENDDO
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstMiscVarTypeData%TiLstPrn = SrcMiscVarTypeData%TiLstPrn
-   DstMiscVarTypeData%t_global = SrcMiscVarTypeData%t_global
-   DstMiscVarTypeData%NextJacCalcTime = SrcMiscVarTypeData%NextJacCalcTime
-   DstMiscVarTypeData%PrevClockTime = SrcMiscVarTypeData%PrevClockTime
-   DstMiscVarTypeData%UsrTime1 = SrcMiscVarTypeData%UsrTime1
-   DstMiscVarTypeData%UsrTime2 = SrcMiscVarTypeData%UsrTime2
-   DstMiscVarTypeData%StrtTime = SrcMiscVarTypeData%StrtTime
-   DstMiscVarTypeData%SimStrtTime = SrcMiscVarTypeData%SimStrtTime
-   DstMiscVarTypeData%n_TMax_m1 = SrcMiscVarTypeData%n_TMax_m1
-   DstMiscVarTypeData%calcJacobian = SrcMiscVarTypeData%calcJacobian
- END SUBROUTINE FAST_CopyMiscVarType
+   DstExternInputTypeData%GenTrq = SrcExternInputTypeData%GenTrq
+   DstExternInputTypeData%ElecPwr = SrcExternInputTypeData%ElecPwr
+   DstExternInputTypeData%YawPosCom = SrcExternInputTypeData%YawPosCom
+   DstExternInputTypeData%YawRateCom = SrcExternInputTypeData%YawRateCom
+   DstExternInputTypeData%BlPitchCom = SrcExternInputTypeData%BlPitchCom
+   DstExternInputTypeData%LidarFocus = SrcExternInputTypeData%LidarFocus
+ END SUBROUTINE FAST_CopyExternInputType
 
- SUBROUTINE FAST_DestroyMiscVarType( MiscVarTypeData, ErrStat, ErrMsg )
-  TYPE(FAST_MiscVarType), INTENT(INOUT) :: MiscVarTypeData
+ SUBROUTINE FAST_DestroyExternInputType( ExternInputTypeData, ErrStat, ErrMsg )
+  TYPE(FAST_ExternInputType), INTENT(INOUT) :: ExternInputTypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE FAST_DestroyMiscVarType
+ END SUBROUTINE FAST_DestroyExternInputType
 
- SUBROUTINE FAST_PackMiscVarType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE FAST_PackExternInputType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(FAST_MiscVarType),  INTENT(INOUT) :: InData
+  TYPE(FAST_ExternInputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -8941,6 +8948,162 @@ ENDDO
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
+  Re_BufSz   = Re_BufSz   + 1  ! GenTrq
+  Re_BufSz   = Re_BufSz   + 1  ! ElecPwr
+  Re_BufSz   = Re_BufSz   + 1  ! YawPosCom
+  Re_BufSz   = Re_BufSz   + 1  ! YawRateCom
+  Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitchCom )  ! BlPitchCom 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%LidarFocus )  ! LidarFocus 
+  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
+  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
+  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%GenTrq )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%ElecPwr )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%YawPosCom )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%YawRateCom )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%BlPitchCom))-1 ) =  PACK(InData%BlPitchCom ,.TRUE.)
+  Re_Xferred   = Re_Xferred   + SIZE(InData%BlPitchCom)
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LidarFocus))-1 ) =  PACK(InData%LidarFocus ,.TRUE.)
+  Re_Xferred   = Re_Xferred   + SIZE(InData%LidarFocus)
+ END SUBROUTINE FAST_PackExternInputType
+
+ SUBROUTINE FAST_UnPackExternInputType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+  REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
+  REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
+  INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
+  TYPE(FAST_ExternInputType), INTENT(INOUT) :: OutData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  LOGICAL, ALLOCATABLE           :: mask1(:)
+  LOGICAL, ALLOCATABLE           :: mask2(:,:)
+  LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+ ! buffers to store meshes, if any
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+  OutData%GenTrq = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%ElecPwr = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%YawPosCom = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%YawRateCom = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  ALLOCATE(mask1(SIZE(OutData%BlPitchCom,1)))
+  mask1 = .TRUE.
+  OutData%BlPitchCom = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%BlPitchCom))-1 ),mask1,OutData%BlPitchCom)
+  DEALLOCATE(mask1)
+  Re_Xferred   = Re_Xferred   + SIZE(OutData%BlPitchCom)
+  ALLOCATE(mask1(SIZE(OutData%LidarFocus,1)))
+  mask1 = .TRUE.
+  OutData%LidarFocus = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LidarFocus))-1 ),mask1,OutData%LidarFocus)
+  DEALLOCATE(mask1)
+  Re_Xferred   = Re_Xferred   + SIZE(OutData%LidarFocus)
+  Re_Xferred   = Re_Xferred-1
+  Db_Xferred   = Db_Xferred-1
+  Int_Xferred  = Int_Xferred-1
+ END SUBROUTINE FAST_UnPackExternInputType
+
+ SUBROUTINE FAST_CopyMiscVarType( SrcMiscVarTypeData, DstMiscVarTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(FAST_MiscVarType), INTENT(IN) :: SrcMiscVarTypeData
+   TYPE(FAST_MiscVarType), INTENT(INOUT) :: DstMiscVarTypeData
+   INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
+   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+! Local 
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
+! 
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   DstMiscVarTypeData%TiLstPrn = SrcMiscVarTypeData%TiLstPrn
+   DstMiscVarTypeData%t_global = SrcMiscVarTypeData%t_global
+   DstMiscVarTypeData%NextJacCalcTime = SrcMiscVarTypeData%NextJacCalcTime
+   DstMiscVarTypeData%PrevClockTime = SrcMiscVarTypeData%PrevClockTime
+   DstMiscVarTypeData%UsrTime1 = SrcMiscVarTypeData%UsrTime1
+   DstMiscVarTypeData%UsrTime2 = SrcMiscVarTypeData%UsrTime2
+   DstMiscVarTypeData%StrtTime = SrcMiscVarTypeData%StrtTime
+   DstMiscVarTypeData%SimStrtTime = SrcMiscVarTypeData%SimStrtTime
+   DstMiscVarTypeData%n_TMax_m1 = SrcMiscVarTypeData%n_TMax_m1
+   DstMiscVarTypeData%calcJacobian = SrcMiscVarTypeData%calcJacobian
+      CALL FAST_Copyexterninputtype( SrcMiscVarTypeData%ExternInput, DstMiscVarTypeData%ExternInput, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMiscVarType:ExternInput')
+         IF (ErrStat>=AbortErrLev) RETURN
+ END SUBROUTINE FAST_CopyMiscVarType
+
+ SUBROUTINE FAST_DestroyMiscVarType( MiscVarTypeData, ErrStat, ErrMsg )
+  TYPE(FAST_MiscVarType), INTENT(INOUT) :: MiscVarTypeData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
+! 
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  CALL FAST_Destroyexterninputtype( MiscVarTypeData%ExternInput, ErrStat, ErrMsg )
+ END SUBROUTINE FAST_DestroyMiscVarType
+
+ SUBROUTINE FAST_PackMiscVarType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+  REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
+  REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
+  INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
+  TYPE(FAST_MiscVarType),  INTENT(INOUT) :: InData
+  INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
+  CHARACTER(*),     INTENT(  OUT) :: ErrMsg
+  LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
+ ! buffers to store meshes, if any
+  REAL(ReKi),     ALLOCATABLE :: Re_ExternInput_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_ExternInput_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_ExternInput_Buf(:)
+  OnlySize = .FALSE.
+  IF ( PRESENT(SizeOnly) ) THEN
+    OnlySize = SizeOnly
+  ENDIF
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
   Db_BufSz   = Db_BufSz   + 1  ! TiLstPrn
   Db_BufSz   = Db_BufSz   + 1  ! t_global
   Db_BufSz   = Db_BufSz   + 1  ! NextJacCalcTime
@@ -8951,6 +9114,13 @@ ENDDO
   Int_BufSz   = Int_BufSz   + SIZE( InData%SimStrtTime )  ! SimStrtTime 
   Int_BufSz  = Int_BufSz  + 1  ! n_TMax_m1
   Int_BufSz  = Int_BufSz  + 1  ! calcJacobian
+  CALL FAST_Packexterninputtype( Re_ExternInput_Buf, Db_ExternInput_Buf, Int_ExternInput_Buf, InData%ExternInput, ErrStat, ErrMsg, .TRUE. ) ! ExternInput 
+  IF(ALLOCATED(Re_ExternInput_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_ExternInput_Buf  ) ! ExternInput
+  IF(ALLOCATED(Db_ExternInput_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_ExternInput_Buf  ) ! ExternInput
+  IF(ALLOCATED(Int_ExternInput_Buf))Int_BufSz = Int_BufSz + SIZE( Int_ExternInput_Buf ) ! ExternInput
+  IF(ALLOCATED(Re_ExternInput_Buf))  DEALLOCATE(Re_ExternInput_Buf)
+  IF(ALLOCATED(Db_ExternInput_Buf))  DEALLOCATE(Db_ExternInput_Buf)
+  IF(ALLOCATED(Int_ExternInput_Buf)) DEALLOCATE(Int_ExternInput_Buf)
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -8974,6 +9144,22 @@ ENDDO
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%calcJacobian ), IntKiBuf(1), 1)
   Int_Xferred   = Int_Xferred   + 1
+  CALL FAST_Packexterninputtype( Re_ExternInput_Buf, Db_ExternInput_Buf, Int_ExternInput_Buf, InData%ExternInput, ErrStat, ErrMsg, OnlySize ) ! ExternInput 
+  IF(ALLOCATED(Re_ExternInput_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_ExternInput_Buf)-1 ) = Re_ExternInput_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_ExternInput_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_ExternInput_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_ExternInput_Buf)-1 ) = Db_ExternInput_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_ExternInput_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_ExternInput_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_ExternInput_Buf)-1 ) = Int_ExternInput_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_ExternInput_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_ExternInput_Buf) )  DEALLOCATE(Re_ExternInput_Buf)
+  IF( ALLOCATED(Db_ExternInput_Buf) )  DEALLOCATE(Db_ExternInput_Buf)
+  IF( ALLOCATED(Int_ExternInput_Buf) ) DEALLOCATE(Int_ExternInput_Buf)
  END SUBROUTINE FAST_PackMiscVarType
 
  SUBROUTINE FAST_UnPackMiscVarType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -9000,6 +9186,9 @@ ENDDO
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
  ! buffers to store meshes, if any
+  REAL(ReKi),    ALLOCATABLE :: Re_ExternInput_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_ExternInput_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_ExternInput_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
@@ -9033,6 +9222,21 @@ ENDDO
   Int_Xferred   = Int_Xferred   + SIZE(OutData%SimStrtTime)
   OutData%n_TMax_m1 = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
+ ! first call FAST_Packexterninputtype to get correctly sized buffers for unpacking
+  CALL FAST_Packexterninputtype( Re_ExternInput_Buf, Db_ExternInput_Buf, Int_ExternInput_Buf, OutData%ExternInput, ErrStat, ErrMsg, .TRUE. ) ! ExternInput 
+  IF(ALLOCATED(Re_ExternInput_Buf)) THEN
+    Re_ExternInput_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_ExternInput_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_ExternInput_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_ExternInput_Buf)) THEN
+    Db_ExternInput_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_ExternInput_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_ExternInput_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_ExternInput_Buf)) THEN
+    Int_ExternInput_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_ExternInput_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_ExternInput_Buf)
+  ENDIF
+  CALL FAST_UnPackexterninputtype( Re_ExternInput_Buf, Db_ExternInput_Buf, Int_ExternInput_Buf, OutData%ExternInput, ErrStat, ErrMsg ) ! ExternInput 
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
