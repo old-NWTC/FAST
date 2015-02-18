@@ -4,13 +4,15 @@
 ! This code provides a wrapper for the LAPACK routines currently used at the NWTC (mainly codes in the FAST framework).
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-09-18 15:01:50 -0600 (Thu, 18 Sep 2014) $
-! (File) Revision #: $Rev: 257 $
+! File last committed: $Date: 2015-02-18 13:36:26 -0700 (Wed, 18 Feb 2015) $
+! (File) Revision #: $Rev: 290 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/branches/NetLib/NWTC_source/NWTC_LAPACK.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_LAPACK
 
    USE NWTC_Base        ! we only need the precision and error level constants
+   
+   
 !   USE, INTRINSIC               :: ISO_C_Binding, only: C_FLOAT, C_DOUBLE          ! this is included in NWTC_Library
 
       ! Notes:
@@ -32,6 +34,9 @@ MODULE NWTC_LAPACK
    !      we need to check this somehow to make sure the right routines are called.
    ! (or define a directive that uses
 
+   ! http://www.netlib.org/lapack/explore-html/ 
+   
+   
    IMPLICIT  NONE
 
    INTERFACE LAPACK_gbsv ! Computes the solution to system of linear equations A * X = B for GB matrices
@@ -39,6 +44,12 @@ MODULE NWTC_LAPACK
       MODULE PROCEDURE LAPACK_sgbsv
    END INTERFACE
 
+   INTERFACE LAPACK_gemm   ! Computes scalar1*op( A )*op( B ) + scalar2*C where op(x) = x or op(x) = x**T for matrices A, B, and C
+      MODULE PROCEDURE LAPACK_dgemm
+      MODULE PROCEDURE LAPACK_sgemm
+   END INTERFACE
+   
+   
    INTERFACE LAPACK_gesv ! Computes the solution to system of linear equations A * X = B for GE matrices
       MODULE PROCEDURE LAPACK_dgesv
       MODULE PROCEDURE LAPACK_sgesv
@@ -186,6 +197,162 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_SGBSV
 !=======================================================================
+   SUBROUTINE LAPACK_DGEMM( TRANSA, TRANSB, ALPHA, A, B, BETA, C, ErrStat, ErrMsg )
+   ! computes C = alpha*op( A )*op( B ) + beta*C where op(x) = x or op(x) = x**T for matrices A, B, and C
+
+         ! passed parameters
+
+      CHARACTER(1),    intent(in   ) :: TRANSA            ! On entry, TRANSA specifies the form of op( A ) to be used in the matrix multiplication as follows:
+                                                          !     TRANSA = 'N' or 'n', op( A ) = A.
+                                                          !     TRANSA = 'T' or 't', op( A ) = A**T.
+      CHARACTER(1),    intent(in   ) :: TRANSB            ! On entry, TRANSB specifies the form of op( A ) to be used in the matrix multiplication as follows:
+                                                          !     TRANSB = 'N' or 'n', op( B ) = B.
+                                                          !     TRANSB = 'T' or 't', op( B ) = B**T.
+
+      REAL(R8Ki)      ,intent(in   ) :: ALPHA             ! On entry, ALPHA specifies the scalar alpha.
+      REAL(R8Ki)      ,intent(in   ) :: BETA              ! On entry, BETA specifies the scalar beta. When BETA is supplied as zero then C need not be set on input.
+      REAL(R8Ki)      ,intent(in   ) :: A( :, : )         ! Matrix A
+      REAL(R8Ki)      ,intent(in   ) :: B( :, : )         ! Matrix B
+      REAL(R8Ki)      ,intent(inout) :: C( :, : )         ! Matrix C: Before entry, C must contain the matrix C, except when beta is zero, in which case C need not
+                                                          ! case C need not be set on entry. On exit, the array C is overwritten by the m by n matrix ( alpha*op( A )*op( B ) + beta*C ).
+
+      INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
+      CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
+                                                          
+         ! local variables                                                                   
+                                                                                                                                                                                                                  
+      INTEGER                        :: M                 ! M specifies the number of rows of the matrix op(A)
+      INTEGER                        :: K                 ! K specifies the number of columns of the matrix op(A)
+      INTEGER                        :: N                 ! N specifies the number of columns of the matrix op(B)
+      INTEGER                        :: KB                ! KB specifies the number of rows of the matrix op(B)
+                
+      INTEGER                        :: LDA               ! LDA specifies the first dimension of A as declared in the calling (sub) program. When TRANSA = 'N' or 'n' then
+                                                          ! LDA must be at least max( 1, m ), otherwise LDA must be at least max( 1, k ).
+
+      INTEGER                        :: LDB               ! LDB specifies the first dimension of B as declared in the calling (sub) program. When TRANSB = 'N' or 'n' then
+                                                          ! LDB must be at least max( 1, k ), otherwise LDB must be at least max( 1, n ).
+                                                  
+      CHARACTER(*), PARAMETER        :: RoutineName = 'LAPACK_DGEMM'
+                                                                                                                                                                              
+      LDA = SIZE(A,1)
+      LDB = SIZE(B,1)
+      
+      IF (INDEX(TransA,'Nn') > 0) THEN                                                         
+         M = SIZE(A,1)
+         K = SIZE(A,2)
+      ELSE
+         M = SIZE(A,2)
+         K = SIZE(A,1)
+      END IF
+
+      IF (INDEX(TransB,'Nn') > 0) THEN                                                         
+         N = SIZE(B,1)
+         Kb = SIZE(B,2)
+      ELSE
+         N = SIZE(B,2)
+         Kb = SIZE(B,1)
+      END IF
+
+      ErrStat = ErrID_None
+      ErrMsg  = ""
+
+      
+      IF ( K /= Kb ) THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg = Routinename//":Size of Matrix A is incompatible with size of Matrix B."
+         RETURN
+      END IF
+      
+      IF ( M /= SIZE(C,1) .OR. N /= SIZE(C,2) ) THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg = Routinename//":Size of Matrix C is incompatible with Matrix A and Matrix B."
+         RETURN
+      END IF
+      
+      CALL dgemm (TRANSA, TRANSB, M, N, K, ALPHA, A, LDA, B, LDB, BETA, C, M)
+
+
+   RETURN
+   END SUBROUTINE LAPACK_DGEMM
+!=======================================================================
+   SUBROUTINE LAPACK_SGEMM( TRANSA, TRANSB, ALPHA, A, B, BETA, C, ErrStat, ErrMsg )
+   ! computes C = alpha*op( A )*op( B ) + beta*C where op(x) = x or op(x) = x**T for matrices A, B, and C
+
+         ! passed parameters
+
+      CHARACTER(1),    intent(in   ) :: TRANSA            ! On entry, TRANSA specifies the form of op( A ) to be used in the matrix multiplication as follows:
+                                                          !     TRANSA = 'N' or 'n', op( A ) = A.
+                                                          !     TRANSA = 'T' or 't', op( A ) = A**T.
+      CHARACTER(1),    intent(in   ) :: TRANSB            ! On entry, TRANSB specifies the form of op( A ) to be used in the matrix multiplication as follows:
+                                                          !     TRANSB = 'N' or 'n', op( B ) = B.
+                                                          !     TRANSB = 'T' or 't', op( B ) = B**T.
+
+      REAL(SiKi)      ,intent(in   ) :: ALPHA             ! On entry, ALPHA specifies the scalar alpha.
+      REAL(SiKi)      ,intent(in   ) :: BETA              ! On entry, BETA specifies the scalar beta. When BETA is supplied as zero then C need not be set on input.
+      REAL(SiKi)      ,intent(in   ) :: A( :, : )         ! Matrix A
+      REAL(SiKi)      ,intent(in   ) :: B( :, : )         ! Matrix B
+      REAL(SiKi)      ,intent(inout) :: C( :, : )         ! Matrix C: Before entry, C must contain the matrix C, except when beta is zero, in which case C need not
+                                                          ! case C need not be set on entry. On exit, the array C is overwritten by the m by n matrix ( alpha*op( A )*op( B ) + beta*C ).
+
+      INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
+      CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
+                                                          
+         ! local variables                                                                   
+                                                                                                                                                                                                                  
+      INTEGER                        :: M                 ! M specifies the number of rows of the matrix op(A)
+      INTEGER                        :: K                 ! K specifies the number of columns of the matrix op(A)
+      INTEGER                        :: N                 ! N specifies the number of columns of the matrix op(B)
+      INTEGER                        :: KB                ! KB specifies the number of rows of the matrix op(B)
+                
+      INTEGER                        :: LDA               ! LDA specifies the first dimension of A as declared in the calling (sub) program. When TRANSA = 'N' or 'n' then
+                                                          ! LDA must be at least max( 1, m ), otherwise LDA must be at least max( 1, k ).
+
+      INTEGER                        :: LDB               ! LDB specifies the first dimension of B as declared in the calling (sub) program. When TRANSB = 'N' or 'n' then
+                                                          ! LDB must be at least max( 1, k ), otherwise LDB must be at least max( 1, n ).
+                                                  
+      CHARACTER(*), PARAMETER        :: RoutineName = 'LAPACK_SGEMM'
+                                                                                                                                                                              
+      LDA = SIZE(A,1)
+      LDB = SIZE(B,1)
+      
+      IF (INDEX(TransA,'Nn') > 0) THEN                                                         
+         M = SIZE(A,1)
+         K = SIZE(A,2)
+      ELSE
+         M = SIZE(A,2)
+         K = SIZE(A,1)
+      END IF
+
+      IF (INDEX(TransB,'Nn') > 0) THEN                                                         
+         N = SIZE(B,1)
+         Kb = SIZE(B,2)
+      ELSE
+         N = SIZE(B,2)
+         Kb = SIZE(B,1)
+      END IF
+
+      ErrStat = ErrID_None
+      ErrMsg  = ""
+
+      
+      IF ( K /= Kb ) THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg = Routinename//":Size of Matrix A is incompatible with size of Matrix B."
+         RETURN
+      END IF
+      
+      IF ( M /= SIZE(C,1) .OR. N /= SIZE(C,2) ) THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg = Routinename//":Size of Matrix C is incompatible with Matrix A and Matrix B."
+         RETURN
+      END IF
+      
+      CALL sgemm (TRANSA, TRANSB, M, N, K, ALPHA, A, LDA, B, LDB, BETA, C, M)
+
+
+   RETURN
+   END SUBROUTINE LAPACK_SGEMM   
+   !=======================================================================
    SUBROUTINE LAPACK_DGESV ( N, A, IPIV, B, ErrStat, ErrMsg )
 
 
