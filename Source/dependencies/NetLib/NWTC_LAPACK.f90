@@ -4,8 +4,8 @@
 ! This code provides a wrapper for the LAPACK routines currently used at the NWTC (mainly codes in the FAST framework).
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-02-18 13:36:26 -0700 (Wed, 18 Feb 2015) $
-! (File) Revision #: $Rev: 290 $
+! File last committed: $Date: 2015-02-18 14:27:35 -0700 (Wed, 18 Feb 2015) $
+! (File) Revision #: $Rev: 291 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/branches/NetLib/NWTC_source/NWTC_LAPACK.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_LAPACK
@@ -237,7 +237,7 @@ CONTAINS
       LDA = SIZE(A,1)
       LDB = SIZE(B,1)
       
-      IF (INDEX(TransA,'Nn') > 0) THEN                                                         
+      IF (INDEX('Nn',TransA) > 0) THEN
          M = SIZE(A,1)
          K = SIZE(A,2)
       ELSE
@@ -245,12 +245,12 @@ CONTAINS
          K = SIZE(A,1)
       END IF
 
-      IF (INDEX(TransB,'Nn') > 0) THEN                                                         
-         N = SIZE(B,1)
-         Kb = SIZE(B,2)
-      ELSE
+      IF (INDEX('Nn',TransB) > 0) THEN
          N = SIZE(B,2)
          Kb = SIZE(B,1)
+      ELSE
+         N = SIZE(B,1)
+         Kb = SIZE(B,2)
       END IF
 
       ErrStat = ErrID_None
@@ -315,7 +315,7 @@ CONTAINS
       LDA = SIZE(A,1)
       LDB = SIZE(B,1)
       
-      IF (INDEX(TransA,'Nn') > 0) THEN                                                         
+      IF (INDEX('Nn',TransA) > 0) THEN
          M = SIZE(A,1)
          K = SIZE(A,2)
       ELSE
@@ -323,12 +323,12 @@ CONTAINS
          K = SIZE(A,1)
       END IF
 
-      IF (INDEX(TransB,'Nn') > 0) THEN                                                         
-         N = SIZE(B,1)
-         Kb = SIZE(B,2)
-      ELSE
+      IF (INDEX('Nn',TransB) > 0) THEN
          N = SIZE(B,2)
          Kb = SIZE(B,1)
+      ELSE
+         N = SIZE(B,1)
+         Kb = SIZE(B,2)
       END IF
 
       ErrStat = ErrID_None
