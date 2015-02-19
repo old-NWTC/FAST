@@ -54,6 +54,7 @@ USE IceFloe_Types
 USE IceDyn_Types
 USE FEAMooring_Types
 USE MAP_Types
+USE MoorDyn_Types
 USE NWTC_Library
 IMPLICIT NONE
     INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_Unknown = -1      ! Unknown [-]
@@ -67,9 +68,10 @@ IMPLICIT NONE
     INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_SD = 7      ! SubDyn [-]
     INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_MAP = 8      ! MAP (Mooring Analysis Program) [-]
     INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_FEAM = 9      ! FEAMooring [-]
-    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_IceF = 10      ! IceFloe [-]
-    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_IceD = 11      ! IceDyn [-]
-    INTEGER(IntKi), PUBLIC, PARAMETER  :: NumModules = 11      ! The number of modules available in FAST [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_MD = 10      ! MoorDyn [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_IceF = 11      ! IceFloe [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_IceD = 12      ! IceDyn [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: NumModules = 12      ! The number of modules available in FAST [-]
     INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxNBlades = 3      ! Maximum number of blades allowed on a turbine [-]
     INTEGER(IntKi), PUBLIC, PARAMETER  :: IceD_MaxLegs = 4      ! because I don't know how many legs there are before calling IceD_Init and I don't want to copy the data because of sibling mesh issues, I'm going to allocate IceD based on this number [-]
 ! =========  FAST_ParameterType  =======
@@ -268,6 +270,20 @@ IMPLICIT NONE
     REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: InputTimes      ! Array of times associated with Input Array [-]
   END TYPE FEAMooring_Data
 ! =======================
+! =========  MoorDyn_Data  =======
+  TYPE, PUBLIC :: MoorDyn_Data
+    TYPE(MD_ContinuousStateType) , DIMENSION(1:2)  :: x      ! Continuous states [-]
+    TYPE(MD_DiscreteStateType) , DIMENSION(1:2)  :: xd      ! Discrete states [-]
+    TYPE(MD_ConstraintStateType) , DIMENSION(1:2)  :: z      ! Constraint states [-]
+    TYPE(MD_OtherStateType)  :: OtherSt      ! Other/optimization states [-]
+    TYPE(MD_ParameterType)  :: p      ! Parameters [-]
+    TYPE(MD_InputType)  :: u      ! System inputs [-]
+    TYPE(MD_OutputType)  :: y      ! System outputs [-]
+    TYPE(MD_OtherStateType)  :: OtherSt_old      ! Other/optimization states (copied for the case of subcycling) [-]
+    TYPE(MD_InputType) , DIMENSION(:), ALLOCATABLE  :: Input      ! Array of inputs associated with InputTimes [-]
+    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: InputTimes      ! Array of times associated with Input Array [-]
+  END TYPE MoorDyn_Data
+! =======================
 ! =========  FAST_ModuleMapType  =======
   TYPE, PUBLIC :: FAST_ModuleMapType
     TYPE(MeshMapType)  :: ED_P_2_HD_W_P      ! Map ElastoDyn PlatformPtMesh to HydroDyn WAMIT Point [-]
@@ -276,10 +292,8 @@ IMPLICIT NONE
     TYPE(MeshMapType)  :: HD_M_P_2_ED_P      ! Map HydroDyn Morison Point to ElastoDyn PlatformPtMesh [-]
     TYPE(MeshMapType)  :: ED_P_2_HD_M_L      ! Map ElastoDyn PlatformPtMesh to HydroDyn Morison Line2 [-]
     TYPE(MeshMapType)  :: HD_M_L_2_ED_P      ! Map HydroDyn Morison Line2 to ElastoDyn PlatformPtMesh [-]
-    TYPE(MeshMapType)  :: ED_P_2_MAP_P      ! Map ElastoDyn PlatformPtMesh to MAP point mesh [-]
-    TYPE(MeshMapType)  :: MAP_P_2_ED_P      ! Map MAP point mesh to ElastoDyn PlatformPtMesh [-]
-    TYPE(MeshMapType)  :: ED_P_2_FEAM_P      ! Map ElastoDyn PlatformPtMesh to FEAM point mesh [-]
-    TYPE(MeshMapType)  :: FEAM_P_2_ED_P      ! Map FEAM point mesh to ElastoDyn PlatformPtMesh [-]
+    TYPE(MeshMapType)  :: ED_P_2_Mooring_P      ! Map ElastoDyn PlatformPtMesh to MAP/FEAM/MoorDyn point mesh [-]
+    TYPE(MeshMapType)  :: Mooring_P_2_ED_P      ! Map FEAM/MAP/MoorDyn point mesh to ElastoDyn PlatformPtMesh [-]
     TYPE(MeshMapType)  :: ED_P_2_SD_TP      ! Map ElastoDyn PlatformPtMesh to SubDyn transition-piece point mesh [-]
     TYPE(MeshMapType)  :: SD_TP_2_ED_P      ! Map SubDyn transition-piece point mesh to ElastoDyn PlatformPtMesh [-]
     TYPE(MeshMapType)  :: SD_P_2_HD_M_P      ! Map SubDyn y2Mesh Point to HydroDyn Morison Point [-]
@@ -315,7 +329,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: ElecPwr      ! electric poser input from Simulink/Labview [-]
     REAL(ReKi)  :: YawPosCom      ! yaw position command from Simulink/Labview [-]
     REAL(ReKi)  :: YawRateCom      ! yaw rate command from Simulink/Labview [-]
-    REAL(ReKi) , DIMENSION(1:3)  :: BlPitchCom      ! blade pitch commands from Simulink/Labview [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: BlPitchCom      ! blade pitch commands from Simulink/Labview [rad/s]
     REAL(ReKi) , DIMENSION(1:3)  :: LidarFocus      ! lidar focus (relative to lidar location) [m]
   END TYPE FAST_ExternInputType
 ! =======================
@@ -6947,6 +6961,622 @@ ENDDO
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE FAST_UnPackFEAMooring_Data
 
+ SUBROUTINE FAST_CopyMoorDyn_Data( SrcMoorDyn_DataData, DstMoorDyn_DataData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(MoorDyn_Data), INTENT(INOUT) :: SrcMoorDyn_DataData
+   TYPE(MoorDyn_Data), INTENT(INOUT) :: DstMoorDyn_DataData
+   INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
+   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+! Local 
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
+! 
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   DO i1 = LBOUND(SrcMoorDyn_DataData%x,1), UBOUND(SrcMoorDyn_DataData%x,1)
+      CALL MD_CopyContState( SrcMoorDyn_DataData%x(i1), DstMoorDyn_DataData%x(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMoorDyn_Data:x(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
+   ENDDO
+   DO i1 = LBOUND(SrcMoorDyn_DataData%xd,1), UBOUND(SrcMoorDyn_DataData%xd,1)
+      CALL MD_CopyDiscState( SrcMoorDyn_DataData%xd(i1), DstMoorDyn_DataData%xd(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMoorDyn_Data:xd(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
+   ENDDO
+   DO i1 = LBOUND(SrcMoorDyn_DataData%z,1), UBOUND(SrcMoorDyn_DataData%z,1)
+      CALL MD_CopyConstrState( SrcMoorDyn_DataData%z(i1), DstMoorDyn_DataData%z(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMoorDyn_Data:z(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
+   ENDDO
+      CALL MD_CopyOtherState( SrcMoorDyn_DataData%OtherSt, DstMoorDyn_DataData%OtherSt, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMoorDyn_Data:OtherSt')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL MD_CopyParam( SrcMoorDyn_DataData%p, DstMoorDyn_DataData%p, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMoorDyn_Data:p')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL MD_CopyInput( SrcMoorDyn_DataData%u, DstMoorDyn_DataData%u, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMoorDyn_Data:u')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL MD_CopyOutput( SrcMoorDyn_DataData%y, DstMoorDyn_DataData%y, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMoorDyn_Data:y')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL MD_CopyOtherState( SrcMoorDyn_DataData%OtherSt_old, DstMoorDyn_DataData%OtherSt_old, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMoorDyn_Data:OtherSt_old')
+         IF (ErrStat>=AbortErrLev) RETURN
+IF (ALLOCATED(SrcMoorDyn_DataData%Input)) THEN
+   i1_l = LBOUND(SrcMoorDyn_DataData%Input,1)
+   i1_u = UBOUND(SrcMoorDyn_DataData%Input,1)
+   IF (.NOT. ALLOCATED(DstMoorDyn_DataData%Input)) THEN 
+      ALLOCATE(DstMoorDyn_DataData%Input(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMoorDyn_DataData%Input.', ErrStat, ErrMsg,'FAST_CopyMoorDyn_Data')
+         RETURN
+      END IF
+   END IF
+   DO i1 = LBOUND(SrcMoorDyn_DataData%Input,1), UBOUND(SrcMoorDyn_DataData%Input,1)
+      CALL MD_CopyInput( SrcMoorDyn_DataData%Input(i1), DstMoorDyn_DataData%Input(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMoorDyn_Data:Input(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
+   ENDDO
+ENDIF
+IF (ALLOCATED(SrcMoorDyn_DataData%InputTimes)) THEN
+   i1_l = LBOUND(SrcMoorDyn_DataData%InputTimes,1)
+   i1_u = UBOUND(SrcMoorDyn_DataData%InputTimes,1)
+   IF (.NOT. ALLOCATED(DstMoorDyn_DataData%InputTimes)) THEN 
+      ALLOCATE(DstMoorDyn_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMoorDyn_DataData%InputTimes.', ErrStat, ErrMsg,'FAST_CopyMoorDyn_Data')
+         RETURN
+      END IF
+   END IF
+   DstMoorDyn_DataData%InputTimes = SrcMoorDyn_DataData%InputTimes
+ENDIF
+ END SUBROUTINE FAST_CopyMoorDyn_Data
+
+ SUBROUTINE FAST_DestroyMoorDyn_Data( MoorDyn_DataData, ErrStat, ErrMsg )
+  TYPE(MoorDyn_Data), INTENT(INOUT) :: MoorDyn_DataData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
+! 
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+DO i1 = LBOUND(MoorDyn_DataData%x,1), UBOUND(MoorDyn_DataData%x,1)
+  CALL MD_DestroyContState( MoorDyn_DataData%x(i1), ErrStat, ErrMsg )
+ENDDO
+DO i1 = LBOUND(MoorDyn_DataData%xd,1), UBOUND(MoorDyn_DataData%xd,1)
+  CALL MD_DestroyDiscState( MoorDyn_DataData%xd(i1), ErrStat, ErrMsg )
+ENDDO
+DO i1 = LBOUND(MoorDyn_DataData%z,1), UBOUND(MoorDyn_DataData%z,1)
+  CALL MD_DestroyConstrState( MoorDyn_DataData%z(i1), ErrStat, ErrMsg )
+ENDDO
+  CALL MD_DestroyOtherState( MoorDyn_DataData%OtherSt, ErrStat, ErrMsg )
+  CALL MD_DestroyParam( MoorDyn_DataData%p, ErrStat, ErrMsg )
+  CALL MD_DestroyInput( MoorDyn_DataData%u, ErrStat, ErrMsg )
+  CALL MD_DestroyOutput( MoorDyn_DataData%y, ErrStat, ErrMsg )
+  CALL MD_DestroyOtherState( MoorDyn_DataData%OtherSt_old, ErrStat, ErrMsg )
+IF (ALLOCATED(MoorDyn_DataData%Input)) THEN
+DO i1 = LBOUND(MoorDyn_DataData%Input,1), UBOUND(MoorDyn_DataData%Input,1)
+  CALL MD_DestroyInput( MoorDyn_DataData%Input(i1), ErrStat, ErrMsg )
+ENDDO
+   DEALLOCATE(MoorDyn_DataData%Input)
+ENDIF
+IF (ALLOCATED(MoorDyn_DataData%InputTimes)) THEN
+   DEALLOCATE(MoorDyn_DataData%InputTimes)
+ENDIF
+ END SUBROUTINE FAST_DestroyMoorDyn_Data
+
+ SUBROUTINE FAST_PackMoorDyn_Data( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+  REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
+  REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
+  INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
+  TYPE(MoorDyn_Data),  INTENT(INOUT) :: InData
+  INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
+  CHARACTER(*),     INTENT(  OUT) :: ErrMsg
+  LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
+ ! buffers to store meshes, if any
+  REAL(ReKi),     ALLOCATABLE :: Re_x_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_x_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_x_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_xd_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_xd_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_xd_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_z_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_z_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_z_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_OtherSt_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_OtherSt_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_OtherSt_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_p_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_p_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_p_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_u_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_u_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_u_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_y_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_y_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_y_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_OtherSt_old_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_OtherSt_old_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_OtherSt_old_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_Input_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_Input_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_Input_Buf(:)
+  OnlySize = .FALSE.
+  IF ( PRESENT(SizeOnly) ) THEN
+    OnlySize = SizeOnly
+  ENDIF
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+DO i1 = LBOUND(InData%x,1), UBOUND(InData%x,1)
+  CALL MD_PackContState( Re_x_Buf, Db_x_Buf, Int_x_Buf, InData%x(i1), ErrStat, ErrMsg, .TRUE. ) ! x 
+  IF(ALLOCATED(Re_x_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_x_Buf  ) ! x
+  IF(ALLOCATED(Db_x_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_x_Buf  ) ! x
+  IF(ALLOCATED(Int_x_Buf))Int_BufSz = Int_BufSz + SIZE( Int_x_Buf ) ! x
+  IF(ALLOCATED(Re_x_Buf))  DEALLOCATE(Re_x_Buf)
+  IF(ALLOCATED(Db_x_Buf))  DEALLOCATE(Db_x_Buf)
+  IF(ALLOCATED(Int_x_Buf)) DEALLOCATE(Int_x_Buf)
+ENDDO
+DO i1 = LBOUND(InData%xd,1), UBOUND(InData%xd,1)
+  CALL MD_PackDiscState( Re_xd_Buf, Db_xd_Buf, Int_xd_Buf, InData%xd(i1), ErrStat, ErrMsg, .TRUE. ) ! xd 
+  IF(ALLOCATED(Re_xd_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_xd_Buf  ) ! xd
+  IF(ALLOCATED(Db_xd_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_xd_Buf  ) ! xd
+  IF(ALLOCATED(Int_xd_Buf))Int_BufSz = Int_BufSz + SIZE( Int_xd_Buf ) ! xd
+  IF(ALLOCATED(Re_xd_Buf))  DEALLOCATE(Re_xd_Buf)
+  IF(ALLOCATED(Db_xd_Buf))  DEALLOCATE(Db_xd_Buf)
+  IF(ALLOCATED(Int_xd_Buf)) DEALLOCATE(Int_xd_Buf)
+ENDDO
+DO i1 = LBOUND(InData%z,1), UBOUND(InData%z,1)
+  CALL MD_PackConstrState( Re_z_Buf, Db_z_Buf, Int_z_Buf, InData%z(i1), ErrStat, ErrMsg, .TRUE. ) ! z 
+  IF(ALLOCATED(Re_z_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_z_Buf  ) ! z
+  IF(ALLOCATED(Db_z_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_z_Buf  ) ! z
+  IF(ALLOCATED(Int_z_Buf))Int_BufSz = Int_BufSz + SIZE( Int_z_Buf ) ! z
+  IF(ALLOCATED(Re_z_Buf))  DEALLOCATE(Re_z_Buf)
+  IF(ALLOCATED(Db_z_Buf))  DEALLOCATE(Db_z_Buf)
+  IF(ALLOCATED(Int_z_Buf)) DEALLOCATE(Int_z_Buf)
+ENDDO
+  CALL MD_PackOtherState( Re_OtherSt_Buf, Db_OtherSt_Buf, Int_OtherSt_Buf, InData%OtherSt, ErrStat, ErrMsg, .TRUE. ) ! OtherSt 
+  IF(ALLOCATED(Re_OtherSt_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_OtherSt_Buf  ) ! OtherSt
+  IF(ALLOCATED(Db_OtherSt_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_OtherSt_Buf  ) ! OtherSt
+  IF(ALLOCATED(Int_OtherSt_Buf))Int_BufSz = Int_BufSz + SIZE( Int_OtherSt_Buf ) ! OtherSt
+  IF(ALLOCATED(Re_OtherSt_Buf))  DEALLOCATE(Re_OtherSt_Buf)
+  IF(ALLOCATED(Db_OtherSt_Buf))  DEALLOCATE(Db_OtherSt_Buf)
+  IF(ALLOCATED(Int_OtherSt_Buf)) DEALLOCATE(Int_OtherSt_Buf)
+  CALL MD_PackParam( Re_p_Buf, Db_p_Buf, Int_p_Buf, InData%p, ErrStat, ErrMsg, .TRUE. ) ! p 
+  IF(ALLOCATED(Re_p_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_p_Buf  ) ! p
+  IF(ALLOCATED(Db_p_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_p_Buf  ) ! p
+  IF(ALLOCATED(Int_p_Buf))Int_BufSz = Int_BufSz + SIZE( Int_p_Buf ) ! p
+  IF(ALLOCATED(Re_p_Buf))  DEALLOCATE(Re_p_Buf)
+  IF(ALLOCATED(Db_p_Buf))  DEALLOCATE(Db_p_Buf)
+  IF(ALLOCATED(Int_p_Buf)) DEALLOCATE(Int_p_Buf)
+  CALL MD_PackInput( Re_u_Buf, Db_u_Buf, Int_u_Buf, InData%u, ErrStat, ErrMsg, .TRUE. ) ! u 
+  IF(ALLOCATED(Re_u_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_u_Buf  ) ! u
+  IF(ALLOCATED(Db_u_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_u_Buf  ) ! u
+  IF(ALLOCATED(Int_u_Buf))Int_BufSz = Int_BufSz + SIZE( Int_u_Buf ) ! u
+  IF(ALLOCATED(Re_u_Buf))  DEALLOCATE(Re_u_Buf)
+  IF(ALLOCATED(Db_u_Buf))  DEALLOCATE(Db_u_Buf)
+  IF(ALLOCATED(Int_u_Buf)) DEALLOCATE(Int_u_Buf)
+  CALL MD_PackOutput( Re_y_Buf, Db_y_Buf, Int_y_Buf, InData%y, ErrStat, ErrMsg, .TRUE. ) ! y 
+  IF(ALLOCATED(Re_y_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_y_Buf  ) ! y
+  IF(ALLOCATED(Db_y_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_y_Buf  ) ! y
+  IF(ALLOCATED(Int_y_Buf))Int_BufSz = Int_BufSz + SIZE( Int_y_Buf ) ! y
+  IF(ALLOCATED(Re_y_Buf))  DEALLOCATE(Re_y_Buf)
+  IF(ALLOCATED(Db_y_Buf))  DEALLOCATE(Db_y_Buf)
+  IF(ALLOCATED(Int_y_Buf)) DEALLOCATE(Int_y_Buf)
+  CALL MD_PackOtherState( Re_OtherSt_old_Buf, Db_OtherSt_old_Buf, Int_OtherSt_old_Buf, InData%OtherSt_old, ErrStat, ErrMsg, .TRUE. ) ! OtherSt_old 
+  IF(ALLOCATED(Re_OtherSt_old_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_OtherSt_old_Buf  ) ! OtherSt_old
+  IF(ALLOCATED(Db_OtherSt_old_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_OtherSt_old_Buf  ) ! OtherSt_old
+  IF(ALLOCATED(Int_OtherSt_old_Buf))Int_BufSz = Int_BufSz + SIZE( Int_OtherSt_old_Buf ) ! OtherSt_old
+  IF(ALLOCATED(Re_OtherSt_old_Buf))  DEALLOCATE(Re_OtherSt_old_Buf)
+  IF(ALLOCATED(Db_OtherSt_old_Buf))  DEALLOCATE(Db_OtherSt_old_Buf)
+  IF(ALLOCATED(Int_OtherSt_old_Buf)) DEALLOCATE(Int_OtherSt_old_Buf)
+DO i1 = LBOUND(InData%Input,1), UBOUND(InData%Input,1)
+  CALL MD_PackInput( Re_Input_Buf, Db_Input_Buf, Int_Input_Buf, InData%Input(i1), ErrStat, ErrMsg, .TRUE. ) ! Input 
+  IF(ALLOCATED(Re_Input_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_Input_Buf  ) ! Input
+  IF(ALLOCATED(Db_Input_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_Input_Buf  ) ! Input
+  IF(ALLOCATED(Int_Input_Buf))Int_BufSz = Int_BufSz + SIZE( Int_Input_Buf ) ! Input
+  IF(ALLOCATED(Re_Input_Buf))  DEALLOCATE(Re_Input_Buf)
+  IF(ALLOCATED(Db_Input_Buf))  DEALLOCATE(Db_Input_Buf)
+  IF(ALLOCATED(Int_Input_Buf)) DEALLOCATE(Int_Input_Buf)
+ENDDO
+  IF ( ALLOCATED(InData%InputTimes) )   Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
+  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
+  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
+  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
+DO i1 = LBOUND(InData%x,1), UBOUND(InData%x,1)
+  CALL MD_PackContState( Re_x_Buf, Db_x_Buf, Int_x_Buf, InData%x(i1), ErrStat, ErrMsg, OnlySize ) ! x 
+  IF(ALLOCATED(Re_x_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_x_Buf)-1 ) = Re_x_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_x_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_x_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_x_Buf)-1 ) = Db_x_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_x_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_x_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_x_Buf)-1 ) = Int_x_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_x_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_x_Buf) )  DEALLOCATE(Re_x_Buf)
+  IF( ALLOCATED(Db_x_Buf) )  DEALLOCATE(Db_x_Buf)
+  IF( ALLOCATED(Int_x_Buf) ) DEALLOCATE(Int_x_Buf)
+ENDDO
+DO i1 = LBOUND(InData%xd,1), UBOUND(InData%xd,1)
+  CALL MD_PackDiscState( Re_xd_Buf, Db_xd_Buf, Int_xd_Buf, InData%xd(i1), ErrStat, ErrMsg, OnlySize ) ! xd 
+  IF(ALLOCATED(Re_xd_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_xd_Buf)-1 ) = Re_xd_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_xd_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_xd_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_xd_Buf)-1 ) = Db_xd_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_xd_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_xd_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_xd_Buf)-1 ) = Int_xd_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_xd_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_xd_Buf) )  DEALLOCATE(Re_xd_Buf)
+  IF( ALLOCATED(Db_xd_Buf) )  DEALLOCATE(Db_xd_Buf)
+  IF( ALLOCATED(Int_xd_Buf) ) DEALLOCATE(Int_xd_Buf)
+ENDDO
+DO i1 = LBOUND(InData%z,1), UBOUND(InData%z,1)
+  CALL MD_PackConstrState( Re_z_Buf, Db_z_Buf, Int_z_Buf, InData%z(i1), ErrStat, ErrMsg, OnlySize ) ! z 
+  IF(ALLOCATED(Re_z_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_z_Buf)-1 ) = Re_z_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_z_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_z_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_z_Buf)-1 ) = Db_z_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_z_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_z_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_z_Buf)-1 ) = Int_z_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_z_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_z_Buf) )  DEALLOCATE(Re_z_Buf)
+  IF( ALLOCATED(Db_z_Buf) )  DEALLOCATE(Db_z_Buf)
+  IF( ALLOCATED(Int_z_Buf) ) DEALLOCATE(Int_z_Buf)
+ENDDO
+  CALL MD_PackOtherState( Re_OtherSt_Buf, Db_OtherSt_Buf, Int_OtherSt_Buf, InData%OtherSt, ErrStat, ErrMsg, OnlySize ) ! OtherSt 
+  IF(ALLOCATED(Re_OtherSt_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_OtherSt_Buf)-1 ) = Re_OtherSt_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_OtherSt_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_OtherSt_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_OtherSt_Buf)-1 ) = Db_OtherSt_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_OtherSt_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_OtherSt_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_OtherSt_Buf)-1 ) = Int_OtherSt_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_OtherSt_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_OtherSt_Buf) )  DEALLOCATE(Re_OtherSt_Buf)
+  IF( ALLOCATED(Db_OtherSt_Buf) )  DEALLOCATE(Db_OtherSt_Buf)
+  IF( ALLOCATED(Int_OtherSt_Buf) ) DEALLOCATE(Int_OtherSt_Buf)
+  CALL MD_PackParam( Re_p_Buf, Db_p_Buf, Int_p_Buf, InData%p, ErrStat, ErrMsg, OnlySize ) ! p 
+  IF(ALLOCATED(Re_p_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_p_Buf)-1 ) = Re_p_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_p_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_p_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_p_Buf)-1 ) = Db_p_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_p_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_p_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_p_Buf)-1 ) = Int_p_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_p_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_p_Buf) )  DEALLOCATE(Re_p_Buf)
+  IF( ALLOCATED(Db_p_Buf) )  DEALLOCATE(Db_p_Buf)
+  IF( ALLOCATED(Int_p_Buf) ) DEALLOCATE(Int_p_Buf)
+  CALL MD_PackInput( Re_u_Buf, Db_u_Buf, Int_u_Buf, InData%u, ErrStat, ErrMsg, OnlySize ) ! u 
+  IF(ALLOCATED(Re_u_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_u_Buf)-1 ) = Re_u_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_u_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_u_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_u_Buf)-1 ) = Db_u_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_u_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_u_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_u_Buf)-1 ) = Int_u_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_u_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_u_Buf) )  DEALLOCATE(Re_u_Buf)
+  IF( ALLOCATED(Db_u_Buf) )  DEALLOCATE(Db_u_Buf)
+  IF( ALLOCATED(Int_u_Buf) ) DEALLOCATE(Int_u_Buf)
+  CALL MD_PackOutput( Re_y_Buf, Db_y_Buf, Int_y_Buf, InData%y, ErrStat, ErrMsg, OnlySize ) ! y 
+  IF(ALLOCATED(Re_y_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_y_Buf)-1 ) = Re_y_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_y_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_y_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_y_Buf)-1 ) = Db_y_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_y_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_y_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_y_Buf)-1 ) = Int_y_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_y_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_y_Buf) )  DEALLOCATE(Re_y_Buf)
+  IF( ALLOCATED(Db_y_Buf) )  DEALLOCATE(Db_y_Buf)
+  IF( ALLOCATED(Int_y_Buf) ) DEALLOCATE(Int_y_Buf)
+  CALL MD_PackOtherState( Re_OtherSt_old_Buf, Db_OtherSt_old_Buf, Int_OtherSt_old_Buf, InData%OtherSt_old, ErrStat, ErrMsg, OnlySize ) ! OtherSt_old 
+  IF(ALLOCATED(Re_OtherSt_old_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_OtherSt_old_Buf)-1 ) = Re_OtherSt_old_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_OtherSt_old_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_OtherSt_old_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_OtherSt_old_Buf)-1 ) = Db_OtherSt_old_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_OtherSt_old_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_OtherSt_old_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_OtherSt_old_Buf)-1 ) = Int_OtherSt_old_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_OtherSt_old_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_OtherSt_old_Buf) )  DEALLOCATE(Re_OtherSt_old_Buf)
+  IF( ALLOCATED(Db_OtherSt_old_Buf) )  DEALLOCATE(Db_OtherSt_old_Buf)
+  IF( ALLOCATED(Int_OtherSt_old_Buf) ) DEALLOCATE(Int_OtherSt_old_Buf)
+DO i1 = LBOUND(InData%Input,1), UBOUND(InData%Input,1)
+  CALL MD_PackInput( Re_Input_Buf, Db_Input_Buf, Int_Input_Buf, InData%Input(i1), ErrStat, ErrMsg, OnlySize ) ! Input 
+  IF(ALLOCATED(Re_Input_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Input_Buf)-1 ) = Re_Input_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_Input_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_Input_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Input_Buf)-1 ) = Db_Input_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_Input_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_Input_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Input_Buf)-1 ) = Int_Input_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_Input_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_Input_Buf) )  DEALLOCATE(Re_Input_Buf)
+  IF( ALLOCATED(Db_Input_Buf) )  DEALLOCATE(Db_Input_Buf)
+  IF( ALLOCATED(Int_Input_Buf) ) DEALLOCATE(Int_Input_Buf)
+ENDDO
+  IF ( ALLOCATED(InData%InputTimes) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%InputTimes))-1 ) =  PACK(InData%InputTimes ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%InputTimes)
+  ENDIF
+ END SUBROUTINE FAST_PackMoorDyn_Data
+
+ SUBROUTINE FAST_UnPackMoorDyn_Data( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+  REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
+  REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
+  INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
+  TYPE(MoorDyn_Data), INTENT(INOUT) :: OutData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  LOGICAL, ALLOCATABLE           :: mask1(:)
+  LOGICAL, ALLOCATABLE           :: mask2(:,:)
+  LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+ ! buffers to store meshes, if any
+  REAL(ReKi),    ALLOCATABLE :: Re_x_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_x_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_x_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_xd_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_xd_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_xd_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_z_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_z_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_z_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_OtherSt_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_OtherSt_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_OtherSt_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_p_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_p_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_p_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_u_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_u_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_u_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_y_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_y_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_y_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_OtherSt_old_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_OtherSt_old_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_OtherSt_old_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_Input_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_Input_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_Input_Buf(:)
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+DO i1 = LBOUND(OutData%x,1), UBOUND(OutData%x,1)
+ ! first call MD_PackContState to get correctly sized buffers for unpacking
+  CALL MD_PackContState( Re_x_Buf, Db_x_Buf, Int_x_Buf, OutData%x(i1), ErrStat, ErrMsg, .TRUE. ) ! x 
+  IF(ALLOCATED(Re_x_Buf)) THEN
+    Re_x_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_x_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_x_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_x_Buf)) THEN
+    Db_x_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_x_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_x_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_x_Buf)) THEN
+    Int_x_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_x_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_x_Buf)
+  ENDIF
+  CALL MD_UnPackContState( Re_x_Buf, Db_x_Buf, Int_x_Buf, OutData%x(i1), ErrStat, ErrMsg ) ! x 
+ENDDO
+DO i1 = LBOUND(OutData%xd,1), UBOUND(OutData%xd,1)
+ ! first call MD_PackDiscState to get correctly sized buffers for unpacking
+  CALL MD_PackDiscState( Re_xd_Buf, Db_xd_Buf, Int_xd_Buf, OutData%xd(i1), ErrStat, ErrMsg, .TRUE. ) ! xd 
+  IF(ALLOCATED(Re_xd_Buf)) THEN
+    Re_xd_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_xd_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_xd_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_xd_Buf)) THEN
+    Db_xd_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_xd_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_xd_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_xd_Buf)) THEN
+    Int_xd_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_xd_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_xd_Buf)
+  ENDIF
+  CALL MD_UnPackDiscState( Re_xd_Buf, Db_xd_Buf, Int_xd_Buf, OutData%xd(i1), ErrStat, ErrMsg ) ! xd 
+ENDDO
+DO i1 = LBOUND(OutData%z,1), UBOUND(OutData%z,1)
+ ! first call MD_PackConstrState to get correctly sized buffers for unpacking
+  CALL MD_PackConstrState( Re_z_Buf, Db_z_Buf, Int_z_Buf, OutData%z(i1), ErrStat, ErrMsg, .TRUE. ) ! z 
+  IF(ALLOCATED(Re_z_Buf)) THEN
+    Re_z_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_z_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_z_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_z_Buf)) THEN
+    Db_z_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_z_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_z_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_z_Buf)) THEN
+    Int_z_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_z_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_z_Buf)
+  ENDIF
+  CALL MD_UnPackConstrState( Re_z_Buf, Db_z_Buf, Int_z_Buf, OutData%z(i1), ErrStat, ErrMsg ) ! z 
+ENDDO
+ ! first call MD_PackOtherState to get correctly sized buffers for unpacking
+  CALL MD_PackOtherState( Re_OtherSt_Buf, Db_OtherSt_Buf, Int_OtherSt_Buf, OutData%OtherSt, ErrStat, ErrMsg, .TRUE. ) ! OtherSt 
+  IF(ALLOCATED(Re_OtherSt_Buf)) THEN
+    Re_OtherSt_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_OtherSt_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_OtherSt_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_OtherSt_Buf)) THEN
+    Db_OtherSt_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_OtherSt_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_OtherSt_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_OtherSt_Buf)) THEN
+    Int_OtherSt_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_OtherSt_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_OtherSt_Buf)
+  ENDIF
+  CALL MD_UnPackOtherState( Re_OtherSt_Buf, Db_OtherSt_Buf, Int_OtherSt_Buf, OutData%OtherSt, ErrStat, ErrMsg ) ! OtherSt 
+ ! first call MD_PackParam to get correctly sized buffers for unpacking
+  CALL MD_PackParam( Re_p_Buf, Db_p_Buf, Int_p_Buf, OutData%p, ErrStat, ErrMsg, .TRUE. ) ! p 
+  IF(ALLOCATED(Re_p_Buf)) THEN
+    Re_p_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_p_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_p_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_p_Buf)) THEN
+    Db_p_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_p_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_p_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_p_Buf)) THEN
+    Int_p_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_p_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_p_Buf)
+  ENDIF
+  CALL MD_UnPackParam( Re_p_Buf, Db_p_Buf, Int_p_Buf, OutData%p, ErrStat, ErrMsg ) ! p 
+ ! first call MD_PackInput to get correctly sized buffers for unpacking
+  CALL MD_PackInput( Re_u_Buf, Db_u_Buf, Int_u_Buf, OutData%u, ErrStat, ErrMsg, .TRUE. ) ! u 
+  IF(ALLOCATED(Re_u_Buf)) THEN
+    Re_u_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_u_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_u_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_u_Buf)) THEN
+    Db_u_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_u_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_u_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_u_Buf)) THEN
+    Int_u_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_u_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_u_Buf)
+  ENDIF
+  CALL MD_UnPackInput( Re_u_Buf, Db_u_Buf, Int_u_Buf, OutData%u, ErrStat, ErrMsg ) ! u 
+ ! first call MD_PackOutput to get correctly sized buffers for unpacking
+  CALL MD_PackOutput( Re_y_Buf, Db_y_Buf, Int_y_Buf, OutData%y, ErrStat, ErrMsg, .TRUE. ) ! y 
+  IF(ALLOCATED(Re_y_Buf)) THEN
+    Re_y_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_y_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_y_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_y_Buf)) THEN
+    Db_y_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_y_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_y_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_y_Buf)) THEN
+    Int_y_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_y_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_y_Buf)
+  ENDIF
+  CALL MD_UnPackOutput( Re_y_Buf, Db_y_Buf, Int_y_Buf, OutData%y, ErrStat, ErrMsg ) ! y 
+ ! first call MD_PackOtherState to get correctly sized buffers for unpacking
+  CALL MD_PackOtherState( Re_OtherSt_old_Buf, Db_OtherSt_old_Buf, Int_OtherSt_old_Buf, OutData%OtherSt_old, ErrStat, ErrMsg, .TRUE. ) ! OtherSt_old 
+  IF(ALLOCATED(Re_OtherSt_old_Buf)) THEN
+    Re_OtherSt_old_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_OtherSt_old_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_OtherSt_old_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_OtherSt_old_Buf)) THEN
+    Db_OtherSt_old_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_OtherSt_old_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_OtherSt_old_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_OtherSt_old_Buf)) THEN
+    Int_OtherSt_old_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_OtherSt_old_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_OtherSt_old_Buf)
+  ENDIF
+  CALL MD_UnPackOtherState( Re_OtherSt_old_Buf, Db_OtherSt_old_Buf, Int_OtherSt_old_Buf, OutData%OtherSt_old, ErrStat, ErrMsg ) ! OtherSt_old 
+DO i1 = LBOUND(OutData%Input,1), UBOUND(OutData%Input,1)
+ ! first call MD_PackInput to get correctly sized buffers for unpacking
+  CALL MD_PackInput( Re_Input_Buf, Db_Input_Buf, Int_Input_Buf, OutData%Input(i1), ErrStat, ErrMsg, .TRUE. ) ! Input 
+  IF(ALLOCATED(Re_Input_Buf)) THEN
+    Re_Input_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Input_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_Input_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_Input_Buf)) THEN
+    Db_Input_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Input_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_Input_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_Input_Buf)) THEN
+    Int_Input_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Input_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_Input_Buf)
+  ENDIF
+  CALL MD_UnPackInput( Re_Input_Buf, Db_Input_Buf, Int_Input_Buf, OutData%Input(i1), ErrStat, ErrMsg ) ! Input 
+ENDDO
+  IF ( ALLOCATED(OutData%InputTimes) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%InputTimes,1)))
+  mask1 = .TRUE.
+    OutData%InputTimes = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%InputTimes))-1 ),mask1,OutData%InputTimes)
+  DEALLOCATE(mask1)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%InputTimes)
+  ENDIF
+  Re_Xferred   = Re_Xferred-1
+  Db_Xferred   = Db_Xferred-1
+  Int_Xferred  = Int_Xferred-1
+ END SUBROUTINE FAST_UnPackMoorDyn_Data
+
  SUBROUTINE FAST_CopyModuleMapType( SrcModuleMapTypeData, DstModuleMapTypeData, CtrlCode, ErrStat, ErrMsg )
    TYPE(FAST_ModuleMapType), INTENT(INOUT) :: SrcModuleMapTypeData
    TYPE(FAST_ModuleMapType), INTENT(INOUT) :: DstModuleMapTypeData
@@ -6980,17 +7610,11 @@ ENDDO
       CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%HD_M_L_2_ED_P, DstModuleMapTypeData%HD_M_L_2_ED_P, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:HD_M_L_2_ED_P')
          IF (ErrStat>=AbortErrLev) RETURN
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_P_2_MAP_P, DstModuleMapTypeData%ED_P_2_MAP_P, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:ED_P_2_MAP_P')
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_P_2_Mooring_P, DstModuleMapTypeData%ED_P_2_Mooring_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:ED_P_2_Mooring_P')
          IF (ErrStat>=AbortErrLev) RETURN
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%MAP_P_2_ED_P, DstModuleMapTypeData%MAP_P_2_ED_P, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:MAP_P_2_ED_P')
-         IF (ErrStat>=AbortErrLev) RETURN
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_P_2_FEAM_P, DstModuleMapTypeData%ED_P_2_FEAM_P, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:ED_P_2_FEAM_P')
-         IF (ErrStat>=AbortErrLev) RETURN
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%FEAM_P_2_ED_P, DstModuleMapTypeData%FEAM_P_2_ED_P, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:FEAM_P_2_ED_P')
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%Mooring_P_2_ED_P, DstModuleMapTypeData%Mooring_P_2_ED_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:Mooring_P_2_ED_P')
          IF (ErrStat>=AbortErrLev) RETURN
       CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_P_2_SD_TP, DstModuleMapTypeData%ED_P_2_SD_TP, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:ED_P_2_SD_TP')
@@ -7172,10 +7796,8 @@ ENDIF
   CALL NWTC_Library_Destroymeshmaptype( ModuleMapTypeData%HD_M_P_2_ED_P, ErrStat, ErrMsg )
   CALL NWTC_Library_Destroymeshmaptype( ModuleMapTypeData%ED_P_2_HD_M_L, ErrStat, ErrMsg )
   CALL NWTC_Library_Destroymeshmaptype( ModuleMapTypeData%HD_M_L_2_ED_P, ErrStat, ErrMsg )
-  CALL NWTC_Library_Destroymeshmaptype( ModuleMapTypeData%ED_P_2_MAP_P, ErrStat, ErrMsg )
-  CALL NWTC_Library_Destroymeshmaptype( ModuleMapTypeData%MAP_P_2_ED_P, ErrStat, ErrMsg )
-  CALL NWTC_Library_Destroymeshmaptype( ModuleMapTypeData%ED_P_2_FEAM_P, ErrStat, ErrMsg )
-  CALL NWTC_Library_Destroymeshmaptype( ModuleMapTypeData%FEAM_P_2_ED_P, ErrStat, ErrMsg )
+  CALL NWTC_Library_Destroymeshmaptype( ModuleMapTypeData%ED_P_2_Mooring_P, ErrStat, ErrMsg )
+  CALL NWTC_Library_Destroymeshmaptype( ModuleMapTypeData%Mooring_P_2_ED_P, ErrStat, ErrMsg )
   CALL NWTC_Library_Destroymeshmaptype( ModuleMapTypeData%ED_P_2_SD_TP, ErrStat, ErrMsg )
   CALL NWTC_Library_Destroymeshmaptype( ModuleMapTypeData%SD_TP_2_ED_P, ErrStat, ErrMsg )
   CALL NWTC_Library_Destroymeshmaptype( ModuleMapTypeData%SD_P_2_HD_M_P, ErrStat, ErrMsg )
@@ -7270,18 +7892,12 @@ ENDIF
   REAL(ReKi),     ALLOCATABLE :: Re_HD_M_L_2_ED_P_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_HD_M_L_2_ED_P_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_HD_M_L_2_ED_P_Buf(:)
-  REAL(ReKi),     ALLOCATABLE :: Re_ED_P_2_MAP_P_Buf(:)
-  REAL(DbKi),     ALLOCATABLE :: Db_ED_P_2_MAP_P_Buf(:)
-  INTEGER(IntKi), ALLOCATABLE :: Int_ED_P_2_MAP_P_Buf(:)
-  REAL(ReKi),     ALLOCATABLE :: Re_MAP_P_2_ED_P_Buf(:)
-  REAL(DbKi),     ALLOCATABLE :: Db_MAP_P_2_ED_P_Buf(:)
-  INTEGER(IntKi), ALLOCATABLE :: Int_MAP_P_2_ED_P_Buf(:)
-  REAL(ReKi),     ALLOCATABLE :: Re_ED_P_2_FEAM_P_Buf(:)
-  REAL(DbKi),     ALLOCATABLE :: Db_ED_P_2_FEAM_P_Buf(:)
-  INTEGER(IntKi), ALLOCATABLE :: Int_ED_P_2_FEAM_P_Buf(:)
-  REAL(ReKi),     ALLOCATABLE :: Re_FEAM_P_2_ED_P_Buf(:)
-  REAL(DbKi),     ALLOCATABLE :: Db_FEAM_P_2_ED_P_Buf(:)
-  INTEGER(IntKi), ALLOCATABLE :: Int_FEAM_P_2_ED_P_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_ED_P_2_Mooring_P_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_ED_P_2_Mooring_P_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_ED_P_2_Mooring_P_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_Mooring_P_2_ED_P_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_Mooring_P_2_ED_P_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_Mooring_P_2_ED_P_Buf(:)
   REAL(ReKi),     ALLOCATABLE :: Re_ED_P_2_SD_TP_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_ED_P_2_SD_TP_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_ED_P_2_SD_TP_Buf(:)
@@ -7409,34 +8025,20 @@ ENDIF
   IF(ALLOCATED(Re_HD_M_L_2_ED_P_Buf))  DEALLOCATE(Re_HD_M_L_2_ED_P_Buf)
   IF(ALLOCATED(Db_HD_M_L_2_ED_P_Buf))  DEALLOCATE(Db_HD_M_L_2_ED_P_Buf)
   IF(ALLOCATED(Int_HD_M_L_2_ED_P_Buf)) DEALLOCATE(Int_HD_M_L_2_ED_P_Buf)
-  CALL NWTC_Library_Packmeshmaptype( Re_ED_P_2_MAP_P_Buf, Db_ED_P_2_MAP_P_Buf, Int_ED_P_2_MAP_P_Buf, InData%ED_P_2_MAP_P, ErrStat, ErrMsg, .TRUE. ) ! ED_P_2_MAP_P 
-  IF(ALLOCATED(Re_ED_P_2_MAP_P_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_ED_P_2_MAP_P_Buf  ) ! ED_P_2_MAP_P
-  IF(ALLOCATED(Db_ED_P_2_MAP_P_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_ED_P_2_MAP_P_Buf  ) ! ED_P_2_MAP_P
-  IF(ALLOCATED(Int_ED_P_2_MAP_P_Buf))Int_BufSz = Int_BufSz + SIZE( Int_ED_P_2_MAP_P_Buf ) ! ED_P_2_MAP_P
-  IF(ALLOCATED(Re_ED_P_2_MAP_P_Buf))  DEALLOCATE(Re_ED_P_2_MAP_P_Buf)
-  IF(ALLOCATED(Db_ED_P_2_MAP_P_Buf))  DEALLOCATE(Db_ED_P_2_MAP_P_Buf)
-  IF(ALLOCATED(Int_ED_P_2_MAP_P_Buf)) DEALLOCATE(Int_ED_P_2_MAP_P_Buf)
-  CALL NWTC_Library_Packmeshmaptype( Re_MAP_P_2_ED_P_Buf, Db_MAP_P_2_ED_P_Buf, Int_MAP_P_2_ED_P_Buf, InData%MAP_P_2_ED_P, ErrStat, ErrMsg, .TRUE. ) ! MAP_P_2_ED_P 
-  IF(ALLOCATED(Re_MAP_P_2_ED_P_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_MAP_P_2_ED_P_Buf  ) ! MAP_P_2_ED_P
-  IF(ALLOCATED(Db_MAP_P_2_ED_P_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_MAP_P_2_ED_P_Buf  ) ! MAP_P_2_ED_P
-  IF(ALLOCATED(Int_MAP_P_2_ED_P_Buf))Int_BufSz = Int_BufSz + SIZE( Int_MAP_P_2_ED_P_Buf ) ! MAP_P_2_ED_P
-  IF(ALLOCATED(Re_MAP_P_2_ED_P_Buf))  DEALLOCATE(Re_MAP_P_2_ED_P_Buf)
-  IF(ALLOCATED(Db_MAP_P_2_ED_P_Buf))  DEALLOCATE(Db_MAP_P_2_ED_P_Buf)
-  IF(ALLOCATED(Int_MAP_P_2_ED_P_Buf)) DEALLOCATE(Int_MAP_P_2_ED_P_Buf)
-  CALL NWTC_Library_Packmeshmaptype( Re_ED_P_2_FEAM_P_Buf, Db_ED_P_2_FEAM_P_Buf, Int_ED_P_2_FEAM_P_Buf, InData%ED_P_2_FEAM_P, ErrStat, ErrMsg, .TRUE. ) ! ED_P_2_FEAM_P 
-  IF(ALLOCATED(Re_ED_P_2_FEAM_P_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_ED_P_2_FEAM_P_Buf  ) ! ED_P_2_FEAM_P
-  IF(ALLOCATED(Db_ED_P_2_FEAM_P_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_ED_P_2_FEAM_P_Buf  ) ! ED_P_2_FEAM_P
-  IF(ALLOCATED(Int_ED_P_2_FEAM_P_Buf))Int_BufSz = Int_BufSz + SIZE( Int_ED_P_2_FEAM_P_Buf ) ! ED_P_2_FEAM_P
-  IF(ALLOCATED(Re_ED_P_2_FEAM_P_Buf))  DEALLOCATE(Re_ED_P_2_FEAM_P_Buf)
-  IF(ALLOCATED(Db_ED_P_2_FEAM_P_Buf))  DEALLOCATE(Db_ED_P_2_FEAM_P_Buf)
-  IF(ALLOCATED(Int_ED_P_2_FEAM_P_Buf)) DEALLOCATE(Int_ED_P_2_FEAM_P_Buf)
-  CALL NWTC_Library_Packmeshmaptype( Re_FEAM_P_2_ED_P_Buf, Db_FEAM_P_2_ED_P_Buf, Int_FEAM_P_2_ED_P_Buf, InData%FEAM_P_2_ED_P, ErrStat, ErrMsg, .TRUE. ) ! FEAM_P_2_ED_P 
-  IF(ALLOCATED(Re_FEAM_P_2_ED_P_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_FEAM_P_2_ED_P_Buf  ) ! FEAM_P_2_ED_P
-  IF(ALLOCATED(Db_FEAM_P_2_ED_P_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_FEAM_P_2_ED_P_Buf  ) ! FEAM_P_2_ED_P
-  IF(ALLOCATED(Int_FEAM_P_2_ED_P_Buf))Int_BufSz = Int_BufSz + SIZE( Int_FEAM_P_2_ED_P_Buf ) ! FEAM_P_2_ED_P
-  IF(ALLOCATED(Re_FEAM_P_2_ED_P_Buf))  DEALLOCATE(Re_FEAM_P_2_ED_P_Buf)
-  IF(ALLOCATED(Db_FEAM_P_2_ED_P_Buf))  DEALLOCATE(Db_FEAM_P_2_ED_P_Buf)
-  IF(ALLOCATED(Int_FEAM_P_2_ED_P_Buf)) DEALLOCATE(Int_FEAM_P_2_ED_P_Buf)
+  CALL NWTC_Library_Packmeshmaptype( Re_ED_P_2_Mooring_P_Buf, Db_ED_P_2_Mooring_P_Buf, Int_ED_P_2_Mooring_P_Buf, InData%ED_P_2_Mooring_P, ErrStat, ErrMsg, .TRUE. ) ! ED_P_2_Mooring_P 
+  IF(ALLOCATED(Re_ED_P_2_Mooring_P_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_ED_P_2_Mooring_P_Buf  ) ! ED_P_2_Mooring_P
+  IF(ALLOCATED(Db_ED_P_2_Mooring_P_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_ED_P_2_Mooring_P_Buf  ) ! ED_P_2_Mooring_P
+  IF(ALLOCATED(Int_ED_P_2_Mooring_P_Buf))Int_BufSz = Int_BufSz + SIZE( Int_ED_P_2_Mooring_P_Buf ) ! ED_P_2_Mooring_P
+  IF(ALLOCATED(Re_ED_P_2_Mooring_P_Buf))  DEALLOCATE(Re_ED_P_2_Mooring_P_Buf)
+  IF(ALLOCATED(Db_ED_P_2_Mooring_P_Buf))  DEALLOCATE(Db_ED_P_2_Mooring_P_Buf)
+  IF(ALLOCATED(Int_ED_P_2_Mooring_P_Buf)) DEALLOCATE(Int_ED_P_2_Mooring_P_Buf)
+  CALL NWTC_Library_Packmeshmaptype( Re_Mooring_P_2_ED_P_Buf, Db_Mooring_P_2_ED_P_Buf, Int_Mooring_P_2_ED_P_Buf, InData%Mooring_P_2_ED_P, ErrStat, ErrMsg, .TRUE. ) ! Mooring_P_2_ED_P 
+  IF(ALLOCATED(Re_Mooring_P_2_ED_P_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_Mooring_P_2_ED_P_Buf  ) ! Mooring_P_2_ED_P
+  IF(ALLOCATED(Db_Mooring_P_2_ED_P_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_Mooring_P_2_ED_P_Buf  ) ! Mooring_P_2_ED_P
+  IF(ALLOCATED(Int_Mooring_P_2_ED_P_Buf))Int_BufSz = Int_BufSz + SIZE( Int_Mooring_P_2_ED_P_Buf ) ! Mooring_P_2_ED_P
+  IF(ALLOCATED(Re_Mooring_P_2_ED_P_Buf))  DEALLOCATE(Re_Mooring_P_2_ED_P_Buf)
+  IF(ALLOCATED(Db_Mooring_P_2_ED_P_Buf))  DEALLOCATE(Db_Mooring_P_2_ED_P_Buf)
+  IF(ALLOCATED(Int_Mooring_P_2_ED_P_Buf)) DEALLOCATE(Int_Mooring_P_2_ED_P_Buf)
   CALL NWTC_Library_Packmeshmaptype( Re_ED_P_2_SD_TP_Buf, Db_ED_P_2_SD_TP_Buf, Int_ED_P_2_SD_TP_Buf, InData%ED_P_2_SD_TP, ErrStat, ErrMsg, .TRUE. ) ! ED_P_2_SD_TP 
   IF(ALLOCATED(Re_ED_P_2_SD_TP_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_ED_P_2_SD_TP_Buf  ) ! ED_P_2_SD_TP
   IF(ALLOCATED(Db_ED_P_2_SD_TP_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_ED_P_2_SD_TP_Buf  ) ! ED_P_2_SD_TP
@@ -7716,70 +8318,38 @@ ENDDO
   IF( ALLOCATED(Re_HD_M_L_2_ED_P_Buf) )  DEALLOCATE(Re_HD_M_L_2_ED_P_Buf)
   IF( ALLOCATED(Db_HD_M_L_2_ED_P_Buf) )  DEALLOCATE(Db_HD_M_L_2_ED_P_Buf)
   IF( ALLOCATED(Int_HD_M_L_2_ED_P_Buf) ) DEALLOCATE(Int_HD_M_L_2_ED_P_Buf)
-  CALL NWTC_Library_Packmeshmaptype( Re_ED_P_2_MAP_P_Buf, Db_ED_P_2_MAP_P_Buf, Int_ED_P_2_MAP_P_Buf, InData%ED_P_2_MAP_P, ErrStat, ErrMsg, OnlySize ) ! ED_P_2_MAP_P 
-  IF(ALLOCATED(Re_ED_P_2_MAP_P_Buf)) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_ED_P_2_MAP_P_Buf)-1 ) = Re_ED_P_2_MAP_P_Buf
-    Re_Xferred = Re_Xferred + SIZE(Re_ED_P_2_MAP_P_Buf)
+  CALL NWTC_Library_Packmeshmaptype( Re_ED_P_2_Mooring_P_Buf, Db_ED_P_2_Mooring_P_Buf, Int_ED_P_2_Mooring_P_Buf, InData%ED_P_2_Mooring_P, ErrStat, ErrMsg, OnlySize ) ! ED_P_2_Mooring_P 
+  IF(ALLOCATED(Re_ED_P_2_Mooring_P_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_ED_P_2_Mooring_P_Buf)-1 ) = Re_ED_P_2_Mooring_P_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_ED_P_2_Mooring_P_Buf)
   ENDIF
-  IF(ALLOCATED(Db_ED_P_2_MAP_P_Buf)) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_ED_P_2_MAP_P_Buf)-1 ) = Db_ED_P_2_MAP_P_Buf
-    Db_Xferred = Db_Xferred + SIZE(Db_ED_P_2_MAP_P_Buf)
+  IF(ALLOCATED(Db_ED_P_2_Mooring_P_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_ED_P_2_Mooring_P_Buf)-1 ) = Db_ED_P_2_Mooring_P_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_ED_P_2_Mooring_P_Buf)
   ENDIF
-  IF(ALLOCATED(Int_ED_P_2_MAP_P_Buf)) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_ED_P_2_MAP_P_Buf)-1 ) = Int_ED_P_2_MAP_P_Buf
-    Int_Xferred = Int_Xferred + SIZE(Int_ED_P_2_MAP_P_Buf)
+  IF(ALLOCATED(Int_ED_P_2_Mooring_P_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_ED_P_2_Mooring_P_Buf)-1 ) = Int_ED_P_2_Mooring_P_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_ED_P_2_Mooring_P_Buf)
   ENDIF
-  IF( ALLOCATED(Re_ED_P_2_MAP_P_Buf) )  DEALLOCATE(Re_ED_P_2_MAP_P_Buf)
-  IF( ALLOCATED(Db_ED_P_2_MAP_P_Buf) )  DEALLOCATE(Db_ED_P_2_MAP_P_Buf)
-  IF( ALLOCATED(Int_ED_P_2_MAP_P_Buf) ) DEALLOCATE(Int_ED_P_2_MAP_P_Buf)
-  CALL NWTC_Library_Packmeshmaptype( Re_MAP_P_2_ED_P_Buf, Db_MAP_P_2_ED_P_Buf, Int_MAP_P_2_ED_P_Buf, InData%MAP_P_2_ED_P, ErrStat, ErrMsg, OnlySize ) ! MAP_P_2_ED_P 
-  IF(ALLOCATED(Re_MAP_P_2_ED_P_Buf)) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_MAP_P_2_ED_P_Buf)-1 ) = Re_MAP_P_2_ED_P_Buf
-    Re_Xferred = Re_Xferred + SIZE(Re_MAP_P_2_ED_P_Buf)
+  IF( ALLOCATED(Re_ED_P_2_Mooring_P_Buf) )  DEALLOCATE(Re_ED_P_2_Mooring_P_Buf)
+  IF( ALLOCATED(Db_ED_P_2_Mooring_P_Buf) )  DEALLOCATE(Db_ED_P_2_Mooring_P_Buf)
+  IF( ALLOCATED(Int_ED_P_2_Mooring_P_Buf) ) DEALLOCATE(Int_ED_P_2_Mooring_P_Buf)
+  CALL NWTC_Library_Packmeshmaptype( Re_Mooring_P_2_ED_P_Buf, Db_Mooring_P_2_ED_P_Buf, Int_Mooring_P_2_ED_P_Buf, InData%Mooring_P_2_ED_P, ErrStat, ErrMsg, OnlySize ) ! Mooring_P_2_ED_P 
+  IF(ALLOCATED(Re_Mooring_P_2_ED_P_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Mooring_P_2_ED_P_Buf)-1 ) = Re_Mooring_P_2_ED_P_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_Mooring_P_2_ED_P_Buf)
   ENDIF
-  IF(ALLOCATED(Db_MAP_P_2_ED_P_Buf)) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_MAP_P_2_ED_P_Buf)-1 ) = Db_MAP_P_2_ED_P_Buf
-    Db_Xferred = Db_Xferred + SIZE(Db_MAP_P_2_ED_P_Buf)
+  IF(ALLOCATED(Db_Mooring_P_2_ED_P_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Mooring_P_2_ED_P_Buf)-1 ) = Db_Mooring_P_2_ED_P_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_Mooring_P_2_ED_P_Buf)
   ENDIF
-  IF(ALLOCATED(Int_MAP_P_2_ED_P_Buf)) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_MAP_P_2_ED_P_Buf)-1 ) = Int_MAP_P_2_ED_P_Buf
-    Int_Xferred = Int_Xferred + SIZE(Int_MAP_P_2_ED_P_Buf)
+  IF(ALLOCATED(Int_Mooring_P_2_ED_P_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Mooring_P_2_ED_P_Buf)-1 ) = Int_Mooring_P_2_ED_P_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_Mooring_P_2_ED_P_Buf)
   ENDIF
-  IF( ALLOCATED(Re_MAP_P_2_ED_P_Buf) )  DEALLOCATE(Re_MAP_P_2_ED_P_Buf)
-  IF( ALLOCATED(Db_MAP_P_2_ED_P_Buf) )  DEALLOCATE(Db_MAP_P_2_ED_P_Buf)
-  IF( ALLOCATED(Int_MAP_P_2_ED_P_Buf) ) DEALLOCATE(Int_MAP_P_2_ED_P_Buf)
-  CALL NWTC_Library_Packmeshmaptype( Re_ED_P_2_FEAM_P_Buf, Db_ED_P_2_FEAM_P_Buf, Int_ED_P_2_FEAM_P_Buf, InData%ED_P_2_FEAM_P, ErrStat, ErrMsg, OnlySize ) ! ED_P_2_FEAM_P 
-  IF(ALLOCATED(Re_ED_P_2_FEAM_P_Buf)) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_ED_P_2_FEAM_P_Buf)-1 ) = Re_ED_P_2_FEAM_P_Buf
-    Re_Xferred = Re_Xferred + SIZE(Re_ED_P_2_FEAM_P_Buf)
-  ENDIF
-  IF(ALLOCATED(Db_ED_P_2_FEAM_P_Buf)) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_ED_P_2_FEAM_P_Buf)-1 ) = Db_ED_P_2_FEAM_P_Buf
-    Db_Xferred = Db_Xferred + SIZE(Db_ED_P_2_FEAM_P_Buf)
-  ENDIF
-  IF(ALLOCATED(Int_ED_P_2_FEAM_P_Buf)) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_ED_P_2_FEAM_P_Buf)-1 ) = Int_ED_P_2_FEAM_P_Buf
-    Int_Xferred = Int_Xferred + SIZE(Int_ED_P_2_FEAM_P_Buf)
-  ENDIF
-  IF( ALLOCATED(Re_ED_P_2_FEAM_P_Buf) )  DEALLOCATE(Re_ED_P_2_FEAM_P_Buf)
-  IF( ALLOCATED(Db_ED_P_2_FEAM_P_Buf) )  DEALLOCATE(Db_ED_P_2_FEAM_P_Buf)
-  IF( ALLOCATED(Int_ED_P_2_FEAM_P_Buf) ) DEALLOCATE(Int_ED_P_2_FEAM_P_Buf)
-  CALL NWTC_Library_Packmeshmaptype( Re_FEAM_P_2_ED_P_Buf, Db_FEAM_P_2_ED_P_Buf, Int_FEAM_P_2_ED_P_Buf, InData%FEAM_P_2_ED_P, ErrStat, ErrMsg, OnlySize ) ! FEAM_P_2_ED_P 
-  IF(ALLOCATED(Re_FEAM_P_2_ED_P_Buf)) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_FEAM_P_2_ED_P_Buf)-1 ) = Re_FEAM_P_2_ED_P_Buf
-    Re_Xferred = Re_Xferred + SIZE(Re_FEAM_P_2_ED_P_Buf)
-  ENDIF
-  IF(ALLOCATED(Db_FEAM_P_2_ED_P_Buf)) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_FEAM_P_2_ED_P_Buf)-1 ) = Db_FEAM_P_2_ED_P_Buf
-    Db_Xferred = Db_Xferred + SIZE(Db_FEAM_P_2_ED_P_Buf)
-  ENDIF
-  IF(ALLOCATED(Int_FEAM_P_2_ED_P_Buf)) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_FEAM_P_2_ED_P_Buf)-1 ) = Int_FEAM_P_2_ED_P_Buf
-    Int_Xferred = Int_Xferred + SIZE(Int_FEAM_P_2_ED_P_Buf)
-  ENDIF
-  IF( ALLOCATED(Re_FEAM_P_2_ED_P_Buf) )  DEALLOCATE(Re_FEAM_P_2_ED_P_Buf)
-  IF( ALLOCATED(Db_FEAM_P_2_ED_P_Buf) )  DEALLOCATE(Db_FEAM_P_2_ED_P_Buf)
-  IF( ALLOCATED(Int_FEAM_P_2_ED_P_Buf) ) DEALLOCATE(Int_FEAM_P_2_ED_P_Buf)
+  IF( ALLOCATED(Re_Mooring_P_2_ED_P_Buf) )  DEALLOCATE(Re_Mooring_P_2_ED_P_Buf)
+  IF( ALLOCATED(Db_Mooring_P_2_ED_P_Buf) )  DEALLOCATE(Db_Mooring_P_2_ED_P_Buf)
+  IF( ALLOCATED(Int_Mooring_P_2_ED_P_Buf) ) DEALLOCATE(Int_Mooring_P_2_ED_P_Buf)
   CALL NWTC_Library_Packmeshmaptype( Re_ED_P_2_SD_TP_Buf, Db_ED_P_2_SD_TP_Buf, Int_ED_P_2_SD_TP_Buf, InData%ED_P_2_SD_TP, ErrStat, ErrMsg, OnlySize ) ! ED_P_2_SD_TP 
   IF(ALLOCATED(Re_ED_P_2_SD_TP_Buf)) THEN
     IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_ED_P_2_SD_TP_Buf)-1 ) = Re_ED_P_2_SD_TP_Buf
@@ -8228,18 +8798,12 @@ ENDDO
   REAL(ReKi),    ALLOCATABLE :: Re_HD_M_L_2_ED_P_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_HD_M_L_2_ED_P_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_HD_M_L_2_ED_P_Buf(:)
-  REAL(ReKi),    ALLOCATABLE :: Re_ED_P_2_MAP_P_Buf(:)
-  REAL(DbKi),    ALLOCATABLE :: Db_ED_P_2_MAP_P_Buf(:)
-  INTEGER(IntKi),    ALLOCATABLE :: Int_ED_P_2_MAP_P_Buf(:)
-  REAL(ReKi),    ALLOCATABLE :: Re_MAP_P_2_ED_P_Buf(:)
-  REAL(DbKi),    ALLOCATABLE :: Db_MAP_P_2_ED_P_Buf(:)
-  INTEGER(IntKi),    ALLOCATABLE :: Int_MAP_P_2_ED_P_Buf(:)
-  REAL(ReKi),    ALLOCATABLE :: Re_ED_P_2_FEAM_P_Buf(:)
-  REAL(DbKi),    ALLOCATABLE :: Db_ED_P_2_FEAM_P_Buf(:)
-  INTEGER(IntKi),    ALLOCATABLE :: Int_ED_P_2_FEAM_P_Buf(:)
-  REAL(ReKi),    ALLOCATABLE :: Re_FEAM_P_2_ED_P_Buf(:)
-  REAL(DbKi),    ALLOCATABLE :: Db_FEAM_P_2_ED_P_Buf(:)
-  INTEGER(IntKi),    ALLOCATABLE :: Int_FEAM_P_2_ED_P_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_ED_P_2_Mooring_P_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_ED_P_2_Mooring_P_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_ED_P_2_Mooring_P_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_Mooring_P_2_ED_P_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_Mooring_P_2_ED_P_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_Mooring_P_2_ED_P_Buf(:)
   REAL(ReKi),    ALLOCATABLE :: Re_ED_P_2_SD_TP_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_ED_P_2_SD_TP_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_ED_P_2_SD_TP_Buf(:)
@@ -8412,65 +8976,35 @@ ENDDO
   ENDIF
   CALL NWTC_Library_UnPackmeshmaptype( Re_HD_M_L_2_ED_P_Buf, Db_HD_M_L_2_ED_P_Buf, Int_HD_M_L_2_ED_P_Buf, OutData%HD_M_L_2_ED_P, ErrStat, ErrMsg ) ! HD_M_L_2_ED_P 
  ! first call NWTC_Library_Packmeshmaptype to get correctly sized buffers for unpacking
-  CALL NWTC_Library_Packmeshmaptype( Re_ED_P_2_MAP_P_Buf, Db_ED_P_2_MAP_P_Buf, Int_ED_P_2_MAP_P_Buf, OutData%ED_P_2_MAP_P, ErrStat, ErrMsg, .TRUE. ) ! ED_P_2_MAP_P 
-  IF(ALLOCATED(Re_ED_P_2_MAP_P_Buf)) THEN
-    Re_ED_P_2_MAP_P_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_ED_P_2_MAP_P_Buf)-1 )
-    Re_Xferred = Re_Xferred + SIZE(Re_ED_P_2_MAP_P_Buf)
+  CALL NWTC_Library_Packmeshmaptype( Re_ED_P_2_Mooring_P_Buf, Db_ED_P_2_Mooring_P_Buf, Int_ED_P_2_Mooring_P_Buf, OutData%ED_P_2_Mooring_P, ErrStat, ErrMsg, .TRUE. ) ! ED_P_2_Mooring_P 
+  IF(ALLOCATED(Re_ED_P_2_Mooring_P_Buf)) THEN
+    Re_ED_P_2_Mooring_P_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_ED_P_2_Mooring_P_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_ED_P_2_Mooring_P_Buf)
   ENDIF
-  IF(ALLOCATED(Db_ED_P_2_MAP_P_Buf)) THEN
-    Db_ED_P_2_MAP_P_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_ED_P_2_MAP_P_Buf)-1 )
-    Db_Xferred = Db_Xferred + SIZE(Db_ED_P_2_MAP_P_Buf)
+  IF(ALLOCATED(Db_ED_P_2_Mooring_P_Buf)) THEN
+    Db_ED_P_2_Mooring_P_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_ED_P_2_Mooring_P_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_ED_P_2_Mooring_P_Buf)
   ENDIF
-  IF(ALLOCATED(Int_ED_P_2_MAP_P_Buf)) THEN
-    Int_ED_P_2_MAP_P_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_ED_P_2_MAP_P_Buf)-1 )
-    Int_Xferred = Int_Xferred + SIZE(Int_ED_P_2_MAP_P_Buf)
+  IF(ALLOCATED(Int_ED_P_2_Mooring_P_Buf)) THEN
+    Int_ED_P_2_Mooring_P_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_ED_P_2_Mooring_P_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_ED_P_2_Mooring_P_Buf)
   ENDIF
-  CALL NWTC_Library_UnPackmeshmaptype( Re_ED_P_2_MAP_P_Buf, Db_ED_P_2_MAP_P_Buf, Int_ED_P_2_MAP_P_Buf, OutData%ED_P_2_MAP_P, ErrStat, ErrMsg ) ! ED_P_2_MAP_P 
+  CALL NWTC_Library_UnPackmeshmaptype( Re_ED_P_2_Mooring_P_Buf, Db_ED_P_2_Mooring_P_Buf, Int_ED_P_2_Mooring_P_Buf, OutData%ED_P_2_Mooring_P, ErrStat, ErrMsg ) ! ED_P_2_Mooring_P 
  ! first call NWTC_Library_Packmeshmaptype to get correctly sized buffers for unpacking
-  CALL NWTC_Library_Packmeshmaptype( Re_MAP_P_2_ED_P_Buf, Db_MAP_P_2_ED_P_Buf, Int_MAP_P_2_ED_P_Buf, OutData%MAP_P_2_ED_P, ErrStat, ErrMsg, .TRUE. ) ! MAP_P_2_ED_P 
-  IF(ALLOCATED(Re_MAP_P_2_ED_P_Buf)) THEN
-    Re_MAP_P_2_ED_P_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_MAP_P_2_ED_P_Buf)-1 )
-    Re_Xferred = Re_Xferred + SIZE(Re_MAP_P_2_ED_P_Buf)
+  CALL NWTC_Library_Packmeshmaptype( Re_Mooring_P_2_ED_P_Buf, Db_Mooring_P_2_ED_P_Buf, Int_Mooring_P_2_ED_P_Buf, OutData%Mooring_P_2_ED_P, ErrStat, ErrMsg, .TRUE. ) ! Mooring_P_2_ED_P 
+  IF(ALLOCATED(Re_Mooring_P_2_ED_P_Buf)) THEN
+    Re_Mooring_P_2_ED_P_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Mooring_P_2_ED_P_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_Mooring_P_2_ED_P_Buf)
   ENDIF
-  IF(ALLOCATED(Db_MAP_P_2_ED_P_Buf)) THEN
-    Db_MAP_P_2_ED_P_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_MAP_P_2_ED_P_Buf)-1 )
-    Db_Xferred = Db_Xferred + SIZE(Db_MAP_P_2_ED_P_Buf)
+  IF(ALLOCATED(Db_Mooring_P_2_ED_P_Buf)) THEN
+    Db_Mooring_P_2_ED_P_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Mooring_P_2_ED_P_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_Mooring_P_2_ED_P_Buf)
   ENDIF
-  IF(ALLOCATED(Int_MAP_P_2_ED_P_Buf)) THEN
-    Int_MAP_P_2_ED_P_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_MAP_P_2_ED_P_Buf)-1 )
-    Int_Xferred = Int_Xferred + SIZE(Int_MAP_P_2_ED_P_Buf)
+  IF(ALLOCATED(Int_Mooring_P_2_ED_P_Buf)) THEN
+    Int_Mooring_P_2_ED_P_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Mooring_P_2_ED_P_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_Mooring_P_2_ED_P_Buf)
   ENDIF
-  CALL NWTC_Library_UnPackmeshmaptype( Re_MAP_P_2_ED_P_Buf, Db_MAP_P_2_ED_P_Buf, Int_MAP_P_2_ED_P_Buf, OutData%MAP_P_2_ED_P, ErrStat, ErrMsg ) ! MAP_P_2_ED_P 
- ! first call NWTC_Library_Packmeshmaptype to get correctly sized buffers for unpacking
-  CALL NWTC_Library_Packmeshmaptype( Re_ED_P_2_FEAM_P_Buf, Db_ED_P_2_FEAM_P_Buf, Int_ED_P_2_FEAM_P_Buf, OutData%ED_P_2_FEAM_P, ErrStat, ErrMsg, .TRUE. ) ! ED_P_2_FEAM_P 
-  IF(ALLOCATED(Re_ED_P_2_FEAM_P_Buf)) THEN
-    Re_ED_P_2_FEAM_P_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_ED_P_2_FEAM_P_Buf)-1 )
-    Re_Xferred = Re_Xferred + SIZE(Re_ED_P_2_FEAM_P_Buf)
-  ENDIF
-  IF(ALLOCATED(Db_ED_P_2_FEAM_P_Buf)) THEN
-    Db_ED_P_2_FEAM_P_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_ED_P_2_FEAM_P_Buf)-1 )
-    Db_Xferred = Db_Xferred + SIZE(Db_ED_P_2_FEAM_P_Buf)
-  ENDIF
-  IF(ALLOCATED(Int_ED_P_2_FEAM_P_Buf)) THEN
-    Int_ED_P_2_FEAM_P_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_ED_P_2_FEAM_P_Buf)-1 )
-    Int_Xferred = Int_Xferred + SIZE(Int_ED_P_2_FEAM_P_Buf)
-  ENDIF
-  CALL NWTC_Library_UnPackmeshmaptype( Re_ED_P_2_FEAM_P_Buf, Db_ED_P_2_FEAM_P_Buf, Int_ED_P_2_FEAM_P_Buf, OutData%ED_P_2_FEAM_P, ErrStat, ErrMsg ) ! ED_P_2_FEAM_P 
- ! first call NWTC_Library_Packmeshmaptype to get correctly sized buffers for unpacking
-  CALL NWTC_Library_Packmeshmaptype( Re_FEAM_P_2_ED_P_Buf, Db_FEAM_P_2_ED_P_Buf, Int_FEAM_P_2_ED_P_Buf, OutData%FEAM_P_2_ED_P, ErrStat, ErrMsg, .TRUE. ) ! FEAM_P_2_ED_P 
-  IF(ALLOCATED(Re_FEAM_P_2_ED_P_Buf)) THEN
-    Re_FEAM_P_2_ED_P_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_FEAM_P_2_ED_P_Buf)-1 )
-    Re_Xferred = Re_Xferred + SIZE(Re_FEAM_P_2_ED_P_Buf)
-  ENDIF
-  IF(ALLOCATED(Db_FEAM_P_2_ED_P_Buf)) THEN
-    Db_FEAM_P_2_ED_P_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_FEAM_P_2_ED_P_Buf)-1 )
-    Db_Xferred = Db_Xferred + SIZE(Db_FEAM_P_2_ED_P_Buf)
-  ENDIF
-  IF(ALLOCATED(Int_FEAM_P_2_ED_P_Buf)) THEN
-    Int_FEAM_P_2_ED_P_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_FEAM_P_2_ED_P_Buf)-1 )
-    Int_Xferred = Int_Xferred + SIZE(Int_FEAM_P_2_ED_P_Buf)
-  ENDIF
-  CALL NWTC_Library_UnPackmeshmaptype( Re_FEAM_P_2_ED_P_Buf, Db_FEAM_P_2_ED_P_Buf, Int_FEAM_P_2_ED_P_Buf, OutData%FEAM_P_2_ED_P, ErrStat, ErrMsg ) ! FEAM_P_2_ED_P 
+  CALL NWTC_Library_UnPackmeshmaptype( Re_Mooring_P_2_ED_P_Buf, Db_Mooring_P_2_ED_P_Buf, Int_Mooring_P_2_ED_P_Buf, OutData%Mooring_P_2_ED_P, ErrStat, ErrMsg ) ! Mooring_P_2_ED_P 
  ! first call NWTC_Library_Packmeshmaptype to get correctly sized buffers for unpacking
   CALL NWTC_Library_Packmeshmaptype( Re_ED_P_2_SD_TP_Buf, Db_ED_P_2_SD_TP_Buf, Int_ED_P_2_SD_TP_Buf, OutData%ED_P_2_SD_TP, ErrStat, ErrMsg, .TRUE. ) ! ED_P_2_SD_TP 
   IF(ALLOCATED(Re_ED_P_2_SD_TP_Buf)) THEN

@@ -137,7 +137,12 @@
 		<File RelativePath="..\..\Source\dependencies\FEAMooring\FEAM.f90"/></Filter>
 		<Filter Name="MAP">
 		<File RelativePath="..\..\Source\dependencies\MAP\MAP.f90"/>
-		<File RelativePath="..\..\Source\dependencies\MAP\MAP_Types.f90"/></Filter></Filter>
+		<File RelativePath="..\..\Source\dependencies\MAP\MAP_Types.f90"/></Filter>
+		<Filter Name="MoorDyn">
+		<Filter Name="RegistryFiles">
+		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn.f90"/>
+		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn_IO.f90"/></Filter></Filter>
 		<Filter Name="NWTC_Library">
 		<Filter Name="NetLib">
 		<Filter Name="FFTPACK">

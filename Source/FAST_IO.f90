@@ -33,6 +33,7 @@ MODULE FAST_IO_Subs
    USE AeroDyn
    USE ElastoDyn
    USE FEAMooring
+   USE MoorDyn
    USE HydroDyn
    USE IceDyn
    USE IceFloe
@@ -252,6 +253,7 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile, TMax  )
    y_FAST%Module_Ver( Module_SD   )%Name = 'SubDyn'
    y_FAST%Module_Ver( Module_MAP  )%Name = 'MAP'
    y_FAST%Module_Ver( Module_FEAM )%Name = 'FEAMooring'
+   y_FAST%Module_Ver( Module_MD   )%Name = 'MoorDyn'
    y_FAST%Module_Ver( Module_IceF )%Name = 'IceFloe'
    y_FAST%Module_Ver( Module_IceD )%Name = 'IceDyn'
    y_FAST%Module_Ver( Module_BD   )%Name = 'BeamDyn'
@@ -325,7 +327,7 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile, TMax  )
    IF (p%CompServo   == Module_Unknown) CALL SetErrStat( ErrID_Fatal, 'CompServo must be 0 (None) or 1 (ServoDyn).', ErrStat, ErrMsg, RoutineName )
    IF (p%CompHydro   == Module_Unknown) CALL SetErrStat( ErrID_Fatal, 'CompHydro must be 0 (None) or 1 (HydroDyn).', ErrStat, ErrMsg, RoutineName )
    IF (p%CompSub     == Module_Unknown) CALL SetErrStat( ErrID_Fatal, 'CompSub must be 0 (None) or 1 (SubDyn).', ErrStat, ErrMsg, RoutineName )
-   IF (p%CompMooring == Module_Unknown) CALL SetErrStat( ErrID_Fatal, 'CompMooring must be 0 (None), 1 (MAP), or 2 (FEAMooring).', ErrStat, ErrMsg, RoutineName )
+   IF (p%CompMooring == Module_Unknown) CALL SetErrStat( ErrID_Fatal, 'CompMooring must be 0 (None), 1 (MAP), 2 (FEAMooring), or 3 (MoorDyn).', ErrStat, ErrMsg, RoutineName )
    IF (p%CompIce     == Module_Unknown) CALL SetErrStat( ErrID_Fatal, 'CompIce must be 0 (None) or 1 (IceFloe).', ErrStat, ErrMsg, RoutineName )
    IF (p%CompHydro /= Module_HD) THEN
       IF (p%CompMooring == Module_MAP) THEN
@@ -385,7 +387,7 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile, TMax  )
 END SUBROUTINE FAST_Init
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, InitOutData_AD, InitOutData_HD, &
-                            InitOutData_SD, InitOutData_MAP, InitOutData_FEAM, InitOutData_IceF, InitOutData_IceD, ErrStat, ErrMsg )
+                            InitOutData_SD, InitOutData_MAP, InitOutData_FEAM, InitOutData_MD, InitOutData_IceF, InitOutData_IceD, ErrStat, ErrMsg )
 ! This routine initializes the output for the glue code, including writing the header for the primary output file.
 ! was previously called WrOutHdr()
 !..................................................................................................................................
@@ -403,6 +405,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
    TYPE(SD_InitOutputType),        INTENT(IN)           :: InitOutData_SD                        ! Initialization output for SubDyn
    TYPE(MAP_InitOutputType),       INTENT(IN)           :: InitOutData_MAP                       ! Initialization output for MAP
    TYPE(FEAM_InitOutputType),      INTENT(IN)           :: InitOutData_FEAM                      ! Initialization output for FEAMooring
+   TYPE(MD_InitOutputType),        INTENT(IN)           :: InitOutData_MD                        ! Initialization output for MoorDyn
    TYPE(IceFloe_InitOutputType),   INTENT(IN)           :: InitOutData_IceF                      ! Initialization output for IceFloe
    TYPE(IceD_InitOutputType),      INTENT(IN)           :: InitOutData_IceD                      ! Initialization output for IceDyn
 
@@ -460,6 +463,9 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
    IF ( p_FAST%CompMooring == Module_MAP ) THEN
       y_FAST%Module_Ver( Module_MAP )   = InitOutData_MAP%Ver
       y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%Module_Ver( Module_MAP )))
+   ELSEIF ( p_FAST%CompMooring == Module_MD ) THEN
+      y_FAST%Module_Ver( Module_MD )   = InitOutData_MD%Ver
+      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%Module_Ver( Module_MD )))
    ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
       y_FAST%Module_Ver( Module_FEAM )   = InitOutData_FEAM%Ver
       y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%Module_Ver( Module_FEAM )))
@@ -490,6 +496,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
    IF ( ALLOCATED( InitOutData_SD%WriteOutputHdr   ) ) y_FAST%numOuts(Module_SD)   = SIZE(InitOutData_SD%WriteOutputHdr)
    IF ( ALLOCATED( InitOutData_MAP%WriteOutputHdr  ) ) y_FAST%numOuts(Module_MAP)  = SIZE(InitOutData_MAP%WriteOutputHdr)
    IF ( ALLOCATED( InitOutData_FEAM%WriteOutputHdr ) ) y_FAST%numOuts(Module_FEAM) = SIZE(InitOutData_FEAM%WriteOutputHdr)
+   IF ( ALLOCATED( InitOutData_MD%WriteOutputHdr   ) ) y_FAST%numOuts(Module_MD)   = SIZE(InitOutData_MD%WriteOutputHdr)
    IF ( ALLOCATED( InitOutData_IceF%WriteOutputHdr ) ) y_FAST%numOuts(Module_IceF) = SIZE(InitOutData_IceF%WriteOutputHdr)
    IF ( ALLOCATED( InitOutData_IceD%WriteOutputHdr ) ) y_FAST%numOuts(Module_IceD) = SIZE(InitOutData_IceD%WriteOutputHdr)*p_FAST%numIceLegs         
    
@@ -554,6 +561,11 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
       indxLast = indxNext + y_FAST%numOuts(Module_MAP) - 1
       y_FAST%ChannelNames(indxNext:indxLast) = InitOutData_MAP%WriteOutputHdr
       y_FAST%ChannelUnits(indxNext:indxLast) = InitOutData_MAP%WriteOutputUnt
+      indxNext = indxLast + 1
+   ELSEIF ( y_FAST%numOuts(Module_MD) > 0_IntKi ) THEN !MoorDyn
+      indxLast = indxNext + y_FAST%numOuts(Module_MD) - 1
+      y_FAST%ChannelNames(indxNext:indxLast) = InitOutData_MD%WriteOutputHdr
+      y_FAST%ChannelUnits(indxNext:indxLast) = InitOutData_MD%WriteOutputUnt
       indxNext = indxLast + 1
    ELSEIF ( y_FAST%numOuts(Module_FEAM) > 0_IntKi ) THEN !FEAMooring
       indxLast = indxNext + y_FAST%numOuts(Module_FEAM) - 1
@@ -727,6 +739,10 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
 
    DescStr = GetNVD( y_FAST%Module_Ver( Module_FEAM ) )
    IF ( p_FAST%CompMooring /= Module_FEAM ) DescStr = TRIM(DescStr)//NotUsedTxt
+   WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
+   
+   DescStr = GetNVD( y_FAST%Module_Ver( Module_MD ) )
+   IF ( p_FAST%CompMooring /= Module_MD ) DescStr = TRIM(DescStr)//NotUsedTxt
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
    
    DescStr = GetNVD( y_FAST%Module_Ver( Module_IceF ) )
@@ -1089,6 +1105,8 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
             p%CompMooring = Module_MAP
          ELSEIF ( p%CompMooring == 2 ) THEN
             p%CompMooring = Module_FEAM
+         ELSEIF ( p%CompMooring == 3 ) THEN
+            p%CompMooring = Module_MD
          ELSE
             p%CompMooring = Module_Unknown
          END IF      
@@ -1517,7 +1535,7 @@ END FUNCTION TimeValues2Seconds
 !----------------------------------------------------------------------------------------------------------------------------------
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDOutput, SDOutput, MAPOutput, FEAMOutput, &
+SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDOutput, SDOutput, MAPOutput, FEAMOutput, MDOutput, &
                         IceFOutput, y_IceD, ErrStat, ErrMsg)
 ! This routine writes the module output to the primary output file(s).
 !..................................................................................................................................
@@ -1538,6 +1556,7 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDO
    REAL(ReKi),               INTENT(IN)    :: SDOutput (:)                       ! SubDyn WriteOutput values
    REAL(ReKi),               INTENT(IN)    :: MAPOutput (:)                      ! MAP WriteOutput values
    REAL(ReKi),               INTENT(IN)    :: FEAMOutput (:)                     ! FEAMooring WriteOutput values
+   REAL(ReKi),               INTENT(IN)    :: MDOutput (:)                       ! MoorDyn WriteOutput values
    REAL(ReKi),               INTENT(IN)    :: IceFOutput (:)                     ! IceFloe WriteOutput values
    TYPE(IceD_OutputType),    INTENT(IN)    :: y_IceD (:)                         ! IceDyn outputs (WriteOutput values are subset)
 
@@ -1559,7 +1578,7 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDO
    ErrMsg  = ''
    
    CALL FillOutputAry(p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDOutput, SDOutput, MAPOutput, FEAMOutput, &
-                           IceFOutput, y_IceD, OutputAry)   
+                           MDOutput, IceFOutput, y_IceD, OutputAry)   
 
    IF (p_FAST%WrTxtOutFile) THEN
 
@@ -1608,7 +1627,7 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDO
 END SUBROUTINE WrOutputLine
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE FillOutputAry(p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDOutput, SDOutput, MAPOutput, FEAMOutput, &
-                        IceFOutput, y_IceD, OutputAry)
+                        MDOutput, IceFOutput, y_IceD, OutputAry)
 
    TYPE(FAST_ParameterType), INTENT(IN)    :: p_FAST                             ! Glue-code simulation parameters
    TYPE(FAST_OutputFileType),INTENT(IN)    :: y_FAST                             ! Glue-code simulation outputs
@@ -1621,6 +1640,7 @@ SUBROUTINE FillOutputAry(p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDOutp
    REAL(ReKi),               INTENT(IN)    :: SDOutput (:)                       ! SubDyn WriteOutput values
    REAL(ReKi),               INTENT(IN)    :: MAPOutput (:)                      ! MAP WriteOutput values
    REAL(ReKi),               INTENT(IN)    :: FEAMOutput (:)                     ! FEAMooring WriteOutput values
+   REAL(ReKi),               INTENT(IN)    :: MDOutput (:)                       ! MoorDyn WriteOutput values
    REAL(ReKi),               INTENT(IN)    :: IceFOutput (:)                     ! IceFloe WriteOutput values
    TYPE(IceD_OutputType),    INTENT(IN)    :: y_IceD (:)                         ! IceDyn outputs (WriteOutput values are subset)
 
@@ -1676,6 +1696,10 @@ SUBROUTINE FillOutputAry(p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDOutp
       IF ( y_FAST%numOuts(Module_MAP) > 0 ) THEN
          indxLast = indxNext + SIZE(MAPOutput) - 1
          OutputAry(indxNext:indxLast) = MAPOutput
+         indxNext = IndxLast + 1
+      ELSEIF ( y_FAST%numOuts(Module_MD) > 0 ) THEN
+         indxLast = indxNext + SIZE(MDOutput) - 1
+         OutputAry(indxNext:indxLast) = MDOutput
          indxNext = IndxLast + 1
       ELSEIF ( y_FAST%numOuts(Module_FEAM) > 0 ) THEN
          indxLast = indxNext + SIZE(FEAMOutput) - 1
@@ -1995,7 +2019,7 @@ SUBROUTINE Transfer_ED_to_HD( y_ED, u_HD, MeshMapData, ErrStat, ErrMsg )
    
 END SUBROUTINE Transfer_ED_to_HD
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE Transfer_ED_to_HD_SD_Mooring( p_FAST, y_ED, u_HD, u_SD, u_MAP, u_FEAM, MeshMapData, ErrStat, ErrMsg )
+SUBROUTINE Transfer_ED_to_HD_SD_Mooring( p_FAST, y_ED, u_HD, u_SD, u_MAP, u_FEAM, u_MD, MeshMapData, ErrStat, ErrMsg )
 ! This routine transfers the ED outputs into inputs required for HD, SD, MAP, and/or FEAM
 !..................................................................................................................................
    TYPE(FAST_ParameterType),    INTENT(IN)    :: p_FAST                       ! Glue-code simulation parameters
@@ -2004,6 +2028,7 @@ SUBROUTINE Transfer_ED_to_HD_SD_Mooring( p_FAST, y_ED, u_HD, u_SD, u_MAP, u_FEAM
    TYPE(SD_InputType),          INTENT(INOUT) :: u_SD                         ! SubDyn input
    TYPE(MAP_InputType),         INTENT(INOUT) :: u_MAP                        ! MAP input
    TYPE(FEAM_InputType),        INTENT(INOUT) :: u_FEAM                       ! FEAM input
+   TYPE(MD_InputType),          INTENT(INOUT) :: u_MD                         ! MoorDyn input
    TYPE(FAST_ModuleMapType),    INTENT(INOUT) :: MeshMapData
 
    INTEGER(IntKi),              INTENT(OUT)   :: ErrStat                      ! Error status of the operation
@@ -2048,12 +2073,17 @@ SUBROUTINE Transfer_ED_to_HD_SD_Mooring( p_FAST, y_ED, u_HD, u_SD, u_MAP, u_FEAM
    IF ( p_FAST%CompMooring == Module_MAP ) THEN
       
          ! motions:
-      CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_MAP%PtFairDisplacement, MeshMapData%ED_P_2_MAP_P, ErrStat, ErrMsg )
+      CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_MAP%PtFairDisplacement, MeshMapData%ED_P_2_Mooring_P, ErrStat, ErrMsg )
          CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat, ErrMsg,'Transfer_ED_to_HD_SD_Mooring (u_MAP%PtFairDisplacement)' )
                                  
+   ELSEIF ( p_FAST%CompMooring == Module_MD ) THEN
+         ! motions:
+      CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_MD%PtFairleadDisplacement, MeshMapData%ED_P_2_Mooring_P, ErrStat, ErrMsg )
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat, ErrMsg,'Transfer_ED_to_HD_SD_Mooring (u_MD%PtFairleadDisplacement)' )
+                        
    ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
          ! motions:
-      CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_FEAM%PtFairleadDisplacement, MeshMapData%ED_P_2_FEAM_P, ErrStat, ErrMsg )
+      CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_FEAM%PtFairleadDisplacement, MeshMapData%ED_P_2_Mooring_P, ErrStat, ErrMsg )
          CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat, ErrMsg,'Transfer_ED_to_HD_SD_Mooring (u_FEAM%PtFairleadDisplacement)' )
                         
    END IF
@@ -2078,7 +2108,7 @@ SUBROUTINE MAP_InputSolve(  u_MAP, y_ED, MeshMapData, ErrStat, ErrMsg )
       ! Map ED outputs to MAP inputs
       !----------------------------------------------------------------------------------------------------
       ! motions:
-   CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_MAP%PtFairDisplacement, MeshMapData%ED_P_2_MAP_P, ErrStat, ErrMsg )
+   CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_MAP%PtFairDisplacement, MeshMapData%ED_P_2_Mooring_P, ErrStat, ErrMsg )
 
 
 END SUBROUTINE MAP_InputSolve
@@ -2097,13 +2127,35 @@ SUBROUTINE FEAM_InputSolve(  u_FEAM, y_ED, MeshMapData, ErrStat, ErrMsg )
 
 
       !----------------------------------------------------------------------------------------------------
-      ! Map ED outputs to MAP inputs
+      ! Map ED outputs to FEAM inputs
       !----------------------------------------------------------------------------------------------------
       ! motions:
-   CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_FEAM%PtFairleadDisplacement, MeshMapData%ED_P_2_FEAM_P, ErrStat, ErrMsg )
+   CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_FEAM%PtFairleadDisplacement, MeshMapData%ED_P_2_Mooring_P, ErrStat, ErrMsg )
 
 
 END SUBROUTINE FEAM_InputSolve
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE MD_InputSolve(  u_MD, y_ED, MeshMapData, ErrStat, ErrMsg )
+! This routine sets the inputs required for MoorDyn.
+!..................................................................................................................................
+
+      ! Passed variables
+   TYPE(MD_InputType),          INTENT(INOUT) :: u_MD                         ! MoorDyn input
+   TYPE(ED_OutputType),         INTENT(IN   ) :: y_ED                         ! The outputs of the structural dynamics module
+   TYPE(FAST_ModuleMapType),    INTENT(INOUT) :: MeshMapData
+
+   INTEGER(IntKi),              INTENT(  OUT) :: ErrStat                      ! Error status of the operation
+   CHARACTER(*)  ,              INTENT(  OUT) :: ErrMsg                       ! Error message if ErrStat /= ErrID_None
+
+
+      !----------------------------------------------------------------------------------------------------
+      ! Map ED outputs to MoorDyn inputs
+      !----------------------------------------------------------------------------------------------------
+      ! motions:
+   CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_MD%PtFairleadDisplacement, MeshMapData%ED_P_2_Mooring_P, ErrStat, ErrMsg )
+
+
+END SUBROUTINE MD_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE IceFloe_InputSolve(  u_IceF, y_SD, MeshMapData, ErrStat, ErrMsg )
 ! This routine sets the inputs required for IceFloe.
@@ -2234,7 +2286,7 @@ END FUNCTION GetPerturb
 SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                                   , u_ED, p_ED, x_ED, xd_ED, z_ED, OtherSt_ED, y_ED &
                                   , u_HD, p_HD, x_HD, xd_HD, z_HD, OtherSt_HD, y_HD & 
-                                  , u_MAP, y_MAP, u_FEAM, y_FEAM & 
+                                  , u_MAP, y_MAP, u_FEAM, y_FEAM, u_MD, y_MD & 
                                   , MeshMapData , ErrStat, ErrMsg )
 ! This routine performs the Input-Output solve for ED and HD.
 ! Note that this has been customized for the physics in the problems and is not a general solution.
@@ -2267,11 +2319,13 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    TYPE(HydroDyn_InputType)          , INTENT(INOUT) :: u_HD                      ! System inputs
    TYPE(HydroDyn_OutputType)         , INTENT(INOUT) :: y_HD                      ! System outputs
 
-      ! MAP/FEAM:
+      ! MAP/FEAM/MoorDyn:
    TYPE(MAP_OutputType),              INTENT(IN   )  :: y_MAP                     ! MAP outputs
    TYPE(MAP_InputType),               INTENT(INOUT)  :: u_MAP                     ! MAP inputs (INOUT just because I don't want to use another tempoarary mesh and we'll overwrite this later)
    TYPE(FEAM_OutputType),             INTENT(IN   )  :: y_FEAM                    ! FEAM outputs
    TYPE(FEAM_InputType),              INTENT(INOUT)  :: u_FEAM                    ! FEAM inputs (INOUT just because I don't want to use another tempoarary mesh and we'll overwrite this later)
+   TYPE(MD_OutputType),               INTENT(IN   )  :: y_MD                      ! MoorDyn outputs
+   TYPE(MD_InputType),                INTENT(INOUT)  :: u_MD                      ! MoorDyn inputs (INOUT just because I don't want to use another tempoarary mesh and we'll overwrite this later)
       
    TYPE(FAST_ModuleMapType)          , INTENT(INOUT) :: MeshMapData
    INTEGER(IntKi)                    , INTENT(  OUT) :: ErrStat                   ! Error status of the operation
@@ -2609,16 +2663,25 @@ CONTAINS
          CALL MAP_InputSolve( u_map, y_ED2, MeshMapData, ErrStat2, ErrMsg2 )
             CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )       
                                  
-         CALL Transfer_Point_to_Point( y_MAP%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%MAP_P_2_ED_P, ErrStat2, ErrMsg2, u_MAP%PtFairDisplacement, y_ED2%PlatformPtMesh ) !u_MAP and y_ED contain the displacements needed for moment calculations
+         CALL Transfer_Point_to_Point( y_MAP%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%Mooring_P_2_ED_P, ErrStat2, ErrMsg2, u_MAP%PtFairDisplacement, y_ED2%PlatformPtMesh ) !u_MAP and y_ED contain the displacements needed for moment calculations
             CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )               
-                        
+                 
+      ELSEIF ( p_FAST%CompMooring == Module_MD ) THEN
+         
+         ! note: MD_InputSolve must be called before setting ED loads inputs (so that motions are known for loads [moment] mapping)      
+         CALL MD_InputSolve( u_MD, y_ED2, MeshMapData, ErrStat2, ErrMsg2 )
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )       
+                 
+         CALL Transfer_Point_to_Point( y_MD%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%Mooring_P_2_ED_P, ErrStat2, ErrMsg2, u_MD%PtFairleadDisplacement, y_ED2%PlatformPtMesh ) !u_MD and y_ED contain the displacements needed for moment calculations
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )              
+            
       ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
          
          ! note: FEAM_InputSolve must be called before setting ED loads inputs (so that motions are known for loads [moment] mapping)      
          CALL FEAM_InputSolve( u_FEAM, y_ED2, MeshMapData, ErrStat2, ErrMsg2 )
             CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )       
                  
-         CALL Transfer_Point_to_Point( y_FEAM%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%FEAM_P_2_ED_P, ErrStat2, ErrMsg2, u_FEAM%PtFairleadDisplacement, y_ED2%PlatformPtMesh ) !u_FEAM and y_ED contain the displacements needed for moment calculations
+         CALL Transfer_Point_to_Point( y_FEAM%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%Mooring_P_2_ED_P, ErrStat2, ErrMsg2, u_FEAM%PtFairleadDisplacement, y_ED2%PlatformPtMesh ) !u_FEAM and y_ED contain the displacements needed for moment calculations
             CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )              
             
       ELSE
@@ -2683,6 +2746,7 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                                      , u_HD, p_HD, x_HD, xd_HD, z_HD, OtherSt_HD, y_HD & 
                                      , u_MAP,  y_MAP  &
                                      , u_FEAM, y_FEAM & 
+                                     , u_MD,   y_MD   & 
                                      , u_IceF, y_IceF & 
                                      , u_IceD, y_IceD & 
                                      , MeshMapData , ErrStat, ErrMsg )
@@ -2727,11 +2791,13 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    TYPE(HydroDyn_InputType)          , INTENT(INOUT) :: u_HD                      ! System inputs
    TYPE(HydroDyn_OutputType)         , INTENT(INOUT) :: y_HD                      ! System outputs
    
-      ! MAP/FEAM/IceFloe/IceDyn:
+      ! MAP/FEAM/MoorDyn/IceFloe/IceDyn:
    TYPE(MAP_OutputType),              INTENT(IN   )  :: y_MAP                     ! MAP outputs 
    TYPE(MAP_InputType),               INTENT(INOUT)  :: u_MAP                     ! MAP inputs (INOUT just because I don't want to use another tempoarary mesh and we'll overwrite this later)
    TYPE(FEAM_OutputType),             INTENT(IN   )  :: y_FEAM                    ! FEAM outputs  
    TYPE(FEAM_InputType),              INTENT(INOUT)  :: u_FEAM                    ! FEAM inputs (INOUT just because I don't want to use another tempoarary mesh and we'll overwrite this later)
+   TYPE(MD_OutputType),               INTENT(IN   )  :: y_MD                      ! MoorDyn outputs  
+   TYPE(MD_InputType),                INTENT(INOUT)  :: u_MD                      ! MoorDyn inputs (INOUT just because I don't want to use another tempoarary mesh and we'll overwrite this later)
    TYPE(IceFloe_OutputType),          INTENT(IN   )  :: y_IceF                    ! IceFloe outputs  
    TYPE(IceFloe_InputType),           INTENT(INOUT)  :: u_IceF                    ! IceFloe inputs (INOUT just because I don't want to use another tempoarary mesh and we'll overwrite this later)
    TYPE(IceD_OutputType),             INTENT(IN   )  :: y_IceD(:)                 ! IceDyn outputs  
@@ -3186,6 +3252,12 @@ CONTAINS
          CALL MAP_InputSolve( u_map, y_ED2, MeshMapData, ErrStat2, ErrMsg2 )
             CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)
                                  
+      ELSEIF ( p_FAST%CompMooring == Module_MD ) THEN
+         
+         ! note: MD_InputSolve must be called before setting ED loads inputs (so that motions are known for loads [moment] mapping)      
+         CALL MD_InputSolve( u_MD, y_ED2, MeshMapData, ErrStat2, ErrMsg2 )
+            CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)       
+                        
       ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
          
          ! note: FEAM_InputSolve must be called before setting ED loads inputs (so that motions are known for loads [moment] mapping)      
@@ -3365,14 +3437,21 @@ CONTAINS
          
          ! Get the loads for ED from a mooring module and add them:
       IF ( p_FAST%CompMooring == Module_MAP ) THEN
-         CALL Transfer_Point_to_Point( y_MAP%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%MAP_P_2_ED_P, ErrStat2, ErrMsg2, u_MAP%PtFairDisplacement, y_ED2%PlatformPtMesh ) !u_MAP and y_ED contain the displacements needed for moment calculations
+         CALL Transfer_Point_to_Point( y_MAP%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%Mooring_P_2_ED_P, ErrStat2, ErrMsg2, u_MAP%PtFairDisplacement, y_ED2%PlatformPtMesh ) !u_MAP and y_ED contain the displacements needed for moment calculations
             CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)               
             
          MeshMapData%u_ED_PlatformPtMesh%Force  = MeshMapData%u_ED_PlatformPtMesh%Force  + MeshMapData%u_ED_PlatformPtMesh_2%Force
          MeshMapData%u_ED_PlatformPtMesh%Moment = MeshMapData%u_ED_PlatformPtMesh%Moment + MeshMapData%u_ED_PlatformPtMesh_2%Moment
             
+      ELSEIF ( p_FAST%CompMooring == Module_MD ) THEN
+         CALL Transfer_Point_to_Point( y_MD%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%Mooring_P_2_ED_P, ErrStat2, ErrMsg2, u_MD%PtFairleadDisplacement, y_ED2%PlatformPtMesh ) !u_MD and y_ED contain the displacements needed for moment calculations
+            CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)  
+            
+         MeshMapData%u_ED_PlatformPtMesh%Force  = MeshMapData%u_ED_PlatformPtMesh%Force  + MeshMapData%u_ED_PlatformPtMesh_2%Force
+         MeshMapData%u_ED_PlatformPtMesh%Moment = MeshMapData%u_ED_PlatformPtMesh%Moment + MeshMapData%u_ED_PlatformPtMesh_2%Moment            
+
       ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
-         CALL Transfer_Point_to_Point( y_FEAM%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%FEAM_P_2_ED_P, ErrStat2, ErrMsg2, u_FEAM%PtFairleadDisplacement, y_ED2%PlatformPtMesh ) !u_FEAM and y_ED contain the displacements needed for moment calculations
+         CALL Transfer_Point_to_Point( y_FEAM%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%Mooring_P_2_ED_P, ErrStat2, ErrMsg2, u_FEAM%PtFairleadDisplacement, y_ED2%PlatformPtMesh ) !u_FEAM and y_ED contain the displacements needed for moment calculations
             CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)  
             
          MeshMapData%u_ED_PlatformPtMesh%Force  = MeshMapData%u_ED_PlatformPtMesh%Force  + MeshMapData%u_ED_PlatformPtMesh_2%Force
@@ -4353,7 +4432,7 @@ SUBROUTINE WriteMappingTransferToFile(Mesh1_I,Mesh1_O,Mesh2_I,Mesh2_O,Map_Mod1_M
 
 END SUBROUTINE WriteMappingTransferToFile 
 !...............................................................................................................................
-SUBROUTINE ResetRemapFlags(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, IceD )
+SUBROUTINE ResetRemapFlags(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, MD, IceF, IceD )
 ! This routine resets the remap flags on all of the meshes
 !...............................................................................................................................
 
@@ -4366,6 +4445,7 @@ SUBROUTINE ResetRemapFlags(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, IceD 
    TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
    TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
    TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(MoorDyn_Data),       INTENT(INOUT) :: MD                  ! MoorDyn data
    TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
    TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
 
@@ -4433,10 +4513,13 @@ SUBROUTINE ResetRemapFlags(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, IceD 
    END IF
       
       
-   ! MAP , FEAM
+   ! MAP , FEAM , MoorDyn
    IF ( p_FAST%CompMooring == Module_MAP ) THEN
       MAPp%Input(1)%PtFairDisplacement%RemapFlag      = .FALSE.
              MAPp%y%PtFairleadLoad%RemapFlag          = .FALSE.
+   ELSEIF ( p_FAST%CompMooring == Module_MD ) THEN
+      MD%Input(1)%PtFairleadDisplacement%RemapFlag    = .FALSE.
+           MD%y%PtFairleadLoad%RemapFlag              = .FALSE.         
    ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
       FEAM%Input(1)%PtFairleadDisplacement%RemapFlag  = .FALSE.
              FEAM%y%PtFairleadLoad%RemapFlag          = .FALSE.         
@@ -4501,7 +4584,7 @@ SUBROUTINE SetModuleSubstepTime(ModuleID, p_FAST, y_FAST, ErrStat, ErrMsg)
       
 END SUBROUTINE SetModuleSubstepTime   
 !...............................................................................................................................
-SUBROUTINE InitModuleMappings(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg)
+SUBROUTINE InitModuleMappings(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, MD, IceF, IceD, MeshMapData, ErrStat, ErrMsg)
 ! This routine initializes all of the mapping data structures needed between the various modules.
 !...............................................................................................................................
    
@@ -4514,6 +4597,7 @@ SUBROUTINE InitModuleMappings(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, Ic
    TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
    TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
    TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(MoorDyn_Data),       INTENT(INOUT) :: MD                  ! MoorDyn data
    TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
    TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
 
@@ -4682,22 +4766,33 @@ SUBROUTINE InitModuleMappings(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, Ic
 !-------------------------      
       
          ! MAP point mesh to/from ElastoDyn point mesh
-      CALL MeshMapCreate( MAPp%y%PtFairleadLoad, ED%Input(1)%PlatformPtMesh,  MeshMapData%MAP_P_2_ED_P, ErrStat2, ErrMsg2 )
-         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:MAP_P_2_ED_P' )                  
-      CALL MeshMapCreate( ED%Output(1)%PlatformPtMesh, MAPp%Input(1)%PtFairDisplacement,  MeshMapData%ED_P_2_MAP_P, ErrStat2, ErrMsg2 )
-         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:ED_P_2_MAP_P' )                  
+      CALL MeshMapCreate( MAPp%y%PtFairleadLoad, ED%Input(1)%PlatformPtMesh,  MeshMapData%Mooring_P_2_ED_P, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:Mooring_P_2_ED_P' )                  
+      CALL MeshMapCreate( ED%Output(1)%PlatformPtMesh, MAPp%Input(1)%PtFairDisplacement,  MeshMapData%ED_P_2_Mooring_P, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:ED_P_2_Mooring_P' )                  
 
+   ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
+!-------------------------
+!  ElastoDyn <-> MoorDyn
+!-------------------------      
+      
+         ! MAP point mesh to/from ElastoDyn point mesh
+      CALL MeshMapCreate( MD%y%PtFairleadLoad, ED%Input(1)%PlatformPtMesh,  MeshMapData%Mooring_P_2_ED_P, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:Mooring_P_2_ED_P' )                  
+      CALL MeshMapCreate( ED%Output(1)%PlatformPtMesh, MD%Input(1)%PtFairleadDisplacement,  MeshMapData%ED_P_2_Mooring_P, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:ED_P_2_Mooring_P' )                  
+                   
    ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
 !-------------------------
 !  ElastoDyn <-> FEAMooring
 !-------------------------      
       
          ! MAP point mesh to/from ElastoDyn point mesh
-      CALL MeshMapCreate( FEAM%y%PtFairleadLoad, ED%Input(1)%PlatformPtMesh,  MeshMapData%FEAM_P_2_ED_P, ErrStat2, ErrMsg2 )
-         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:FEAM_P_2_ED_P' )                  
-      CALL MeshMapCreate( ED%Output(1)%PlatformPtMesh, FEAM%Input(1)%PtFairleadDisplacement,  MeshMapData%ED_P_2_FEAM_P, ErrStat2, ErrMsg2 )
-         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:ED_P_2_FEAM_P' )                  
-                        
+      CALL MeshMapCreate( FEAM%y%PtFairleadLoad, ED%Input(1)%PlatformPtMesh,  MeshMapData%Mooring_P_2_ED_P, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:Mooring_P_2_ED_P' )                  
+      CALL MeshMapCreate( ED%Output(1)%PlatformPtMesh, FEAM%Input(1)%PtFairleadDisplacement,  MeshMapData%ED_P_2_Mooring_P, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:ED_P_2_Mooring_P' )                           
+         
    END IF   ! MAP-ElastoDyn ; FEAM-ElastoDyn
             
          
@@ -4765,7 +4860,7 @@ SUBROUTINE InitModuleMappings(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, Ic
    !............................................................................................................................
    ! reset the remap flags (do this before making the copies else the copies will always have remap = true)
    !............................................................................................................................
-   CALL ResetRemapFlags(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, IceD )      
+   CALL ResetRemapFlags(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, MD, IceF, IceD )      
             
    !............................................................................................................................
    ! initialize the temporary input meshes (for input-output solves):
@@ -4817,7 +4912,7 @@ SUBROUTINE InitModuleMappings(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, Ic
       
 END SUBROUTINE InitModuleMappings
 !...............................................................................................................................
-SUBROUTINE WriteOutputToFile(t_global, p_FAST, y_FAST, ED, AD, IfW, HD, SD, SrvD, MAPp, FEAM, IceF, IceD, ErrStat, ErrMsg)
+SUBROUTINE WriteOutputToFile(t_global, p_FAST, y_FAST, ED, AD, IfW, HD, SD, SrvD, MAPp, FEAM, MD, IceF, IceD, ErrStat, ErrMsg)
 ! This routine determines if it's time to write to the output files, and calls the routine to write to the files
 ! with the output data. It should be called after all the output solves for a given time have been completed.
 !...............................................................................................................................
@@ -4833,6 +4928,7 @@ SUBROUTINE WriteOutputToFile(t_global, p_FAST, y_FAST, ED, AD, IfW, HD, SD, SrvD
    TYPE(SubDyn_Data),        INTENT(IN   ) :: SD                  ! SubDyn data
    TYPE(MAP_Data),           INTENT(IN   ) :: MAPp                ! MAP data
    TYPE(FEAMooring_Data),    INTENT(IN   ) :: FEAM                ! FEAMooring data
+   TYPE(MoorDyn_Data),       INTENT(IN   ) :: MD                  ! MoorDyn data
    TYPE(IceFloe_Data),       INTENT(IN   ) :: IceF                ! IceFloe data
    TYPE(IceDyn_Data),        INTENT(IN   ) :: IceD                ! All the IceDyn data used in time-step loop
 
@@ -4857,7 +4953,7 @@ SUBROUTINE WriteOutputToFile(t_global, p_FAST, y_FAST, ED, AD, IfW, HD, SD, SrvD
             ! Generate glue-code output file
 
             CALL WrOutputLine( t_global, p_FAST, y_FAST, IfW%WriteOutput, ED%Output(1)%WriteOutput, SrvD%y%WriteOutput, HD%y%WriteOutput, &
-                           SD%y%WriteOutput, MAPp%y%WriteOutput, FEAM%y%WriteOutput, IceF%y%WriteOutput, IceD%y, ErrStat, ErrMsg )
+                           SD%y%WriteOutput, MAPp%y%WriteOutput, FEAM%y%WriteOutput, MD%y%WriteOutput, IceF%y%WriteOutput, IceD%y, ErrStat, ErrMsg )
                               
       END IF
 
@@ -4871,7 +4967,7 @@ SUBROUTINE WriteOutputToFile(t_global, p_FAST, y_FAST, ED, AD, IfW, HD, SD, SrvD
 END SUBROUTINE WriteOutputToFile     
 !...............................................................................................................................
 SUBROUTINE CalcOutputs_And_SolveForInputs( n_t_global, this_time, this_state, calcJacobian, NextJacCalcTime, &
-                        p_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
+                        p_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
 ! This subroutine solves the input-output relations for all of the modules. It is a subroutine because it gets done twice--
 ! once at the start of the n_t_global loop and once in the j_pc loop, using different states.
 ! *** Note that modules that do not have direct feedthrough should be called first. ***
@@ -4894,6 +4990,7 @@ SUBROUTINE CalcOutputs_And_SolveForInputs( n_t_global, this_time, this_state, ca
    TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
    TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
    TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(MoorDyn_Data),       INTENT(INOUT) :: MD                  ! Data for the MoorDyn module
    TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
    TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
 
@@ -4931,7 +5028,7 @@ SUBROUTINE CalcOutputs_And_SolveForInputs( n_t_global, this_time, this_state, ca
    ! For cases with HydroDyn and/or SubDyn, it calls ED_CalcOuts (a time-sink) 2 times per step/correction (plus the 6 calls when calculating the Jacobian).
    ! For cases without HydroDyn or SubDyn, it calls ED_CalcOuts 1 time per step/correction.
       
-   CALL SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2)
+   CALL SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD, MAPp, FEAM, MD, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
    CALL SolveOption2(this_time, this_state, p_FAST, m_FAST, ED, AD, SrvD, IfW, MeshMapData, ErrStat2, ErrMsg2, n_t_global < 0)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
@@ -4955,13 +5052,13 @@ SUBROUTINE CalcOutputs_And_SolveForInputs( n_t_global, this_time, this_state, ca
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
          
       ! transfer ED outputs to other modules used in option 1:
-   CALL Transfer_ED_to_HD_SD_Mooring( p_FAST, ED%Output(1), HD%Input(1), SD%Input(1), MAPp%Input(1), FEAM%Input(1), MeshMapData, ErrStat2, ErrMsg2 )         
+   CALL Transfer_ED_to_HD_SD_Mooring( p_FAST, ED%Output(1), HD%Input(1), SD%Input(1), MAPp%Input(1), FEAM%Input(1), MD%Input(1), MeshMapData, ErrStat2, ErrMsg2 )         
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
                     
 !call wrscr1( 'FAST/init/Morison/LumpedMesh:')      
 !call meshprintinfo( CU, HD%Input(1)%morison%LumpedMesh )          
               
-   CALL SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2)
+   CALL SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD, MAPp, FEAM, MD, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )  
 
       ! use the ElastoDyn outputs from option1 to update the inputs for AeroDyn and ServoDyn (necessary only if they have states)
@@ -4986,12 +5083,12 @@ SUBROUTINE CalcOutputs_And_SolveForInputs( n_t_global, this_time, this_state, ca
    ! Reset each mesh's RemapFlag (after calling all InputSolve routines):
    !.....................................................................              
          
-   CALL ResetRemapFlags(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, IceD)         
+   CALL ResetRemapFlags(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, MD, IceF, IceD)         
          
                         
 END SUBROUTINE CalcOutputs_And_SolveForInputs  
 !...............................................................................................................................
-SUBROUTINE SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
+SUBROUTINE SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD, MAPp, FEAM, MD, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
 ! This routine implements the "option 1" solve for all inputs with direct links to HD, SD, MAP, and the ED platform reference 
 ! point
 !...............................................................................................................................
@@ -5008,6 +5105,7 @@ SUBROUTINE SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD,
    TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
    TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
    TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(MoorDyn_Data),       INTENT(INOUT) :: MD                  ! MoorDyn data
    TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
    TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
 
@@ -5033,13 +5131,19 @@ SUBROUTINE SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD,
    ErrStat = ErrID_None
    ErrMsg  = ""
    
-   ! Because MAP, FEAM, and IceFloe do not contain acceleration inputs, we do this outside the DO loop in the ED{_SD}_HD_InputOutput solves.       
+   ! Because MAP, FEAM, MoorDyn, IceDyn, and IceFloe do not contain acceleration inputs, we do this outside the DO loop in the ED{_SD}_HD_InputOutput solves.       
    IF ( p_FAST%CompMooring == Module_MAP ) THEN
                   
       CALL MAP_CalcOutput( this_time, MAPp%Input(1), MAPp%p, MAPp%x(this_state), MAPp%xd(this_state), MAPp%z(this_state), &
                             MAPp%OtherSt, MAPp%y, ErrStat2, ErrMsg2 )
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
-                        
+
+   ELSEIF ( p_FAST%CompMooring == Module_MD ) THEN
+         
+      CALL MD_CalcOutput( this_time, MD%Input(1), MD%p, MD%x(this_state), MD%xd(this_state), MD%z(this_state), &
+                            MD%OtherSt, MD%y, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         
    ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
          
       CALL FEAM_CalcOutput( this_time, FEAM%Input(1), FEAM%p, FEAM%x(this_state), FEAM%xd(this_state), FEAM%z(this_state), &
@@ -5089,6 +5193,7 @@ SUBROUTINE SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD,
                                     , HD%Input(1), HD%p, HD%x(this_state), HD%xd(this_state), HD%z(this_state), HD%OtherSt, HD%y & 
                                     , MAPp%Input(1),   MAPp%y &
                                     , FEAM%Input(1),   FEAM%y &   
+                                    , MD%Input(1),     MD%y   &   
                                     , IceF%Input(1),   IceF%y &
                                     , IceD%Input(1,:), IceD%y &    ! bjj: I don't really want to make temp copies of input types. perhaps we should pass the whole Input() structure?...
                                     , MeshMapData , ErrStat2, ErrMsg2 )         
@@ -5100,7 +5205,7 @@ SUBROUTINE SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD,
       CALL ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                                     , ED%Input(1), ED%p, ED%x(this_state), ED%xd(this_state), ED%z(this_state), ED%OtherSt, ED%Output(1) &
                                     , HD%Input(1), HD%p, HD%x(this_state), HD%xd(this_state), HD%z(this_state), HD%OtherSt, HD%y & 
-                                    , MAPp%Input(1), MAPp%y, FEAM%Input(1), FEAM%y &          
+                                    , MAPp%Input(1), MAPp%y, FEAM%Input(1), FEAM%y, MD%Input(1), MD%y &          
                                     , MeshMapData , ErrStat2, ErrMsg2 )         
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
                                                                   
@@ -5123,6 +5228,12 @@ SUBROUTINE SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD,
       CALL MAP_InputSolve( MAPp%Input(1), ED%Output(1), MeshMapData, ErrStat2, ErrMsg2 )
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
                                  
+   ELSEIF ( p_FAST%CompMooring == Module_MD ) THEN
+         
+      ! note: MD_InputSolve must be called before setting ED loads inputs (so that motions are known for loads [moment] mapping)      
+      CALL MD_InputSolve( MD%Input(1), ED%Output(1), MeshMapData, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+                        
    ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
          
       ! note: FEAM_InputSolve must be called before setting ED loads inputs (so that motions are known for loads [moment] mapping)      
@@ -5261,7 +5372,7 @@ END SUBROUTINE SolveOption2
 
 
 !...............................................................................................................................
-SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg, InFile, ExternInitData )
+SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, MeshMapData, ErrStat, ErrMsg, InFile, ExternInitData )
 
    REAL(DbKi),               INTENT(IN   ) :: t_initial           ! initial time
    TYPE(FAST_ParameterType), INTENT(INOUT) :: p_FAST              ! Parameters for the glue code
@@ -5276,6 +5387,8 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
    TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
    TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
    TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(MoorDyn_Data),       INTENT(INOUT) :: MD                  ! Data for the MoorDyn module
+   
    TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
    TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
 
@@ -5308,6 +5421,9 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
                                            
    TYPE(FEAM_InitInputType)                :: InitInData_FEAM     ! Initialization input data
    TYPE(FEAM_InitOutputType)               :: InitOutData_FEAM    ! Initialization output data
+                                           
+   TYPE(MD_InitInputType)                  :: InitInData_MD       ! Initialization input data
+   TYPE(MD_InitOutputType)                 :: InitOutData_MD      ! Initialization output data
                                            
    TYPE(IceFloe_InitInputType)             :: InitInData_IceF     ! Initialization input data
    TYPE(IceFloe_InitOutputType)            :: InitOutData_IceF    ! Initialization output data
@@ -5618,6 +5734,12 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
          CALL Cleanup()
          RETURN
       END IF
+   ALLOCATE( MD%Input( p_FAST%InterpOrder+1 ), MD%InputTimes( p_FAST%InterpOrder+1 ), STAT = ErrStat2 )
+      IF (ErrStat2 /= 0) THEN
+         CALL SetErrStat(ErrID_Fatal,"Error allocating MD%Input and MD%InputTimes.",ErrStat,ErrMsg,RoutineName)
+         CALL Cleanup()
+         RETURN
+      END IF   
    ALLOCATE( FEAM%Input( p_FAST%InterpOrder+1 ), FEAM%InputTimes( p_FAST%InterpOrder+1 ), STAT = ErrStat2 )
       IF (ErrStat2 /= 0) THEN
          CALL SetErrStat(ErrID_Fatal,"Error allocating FEAM%Input and FEAM%InputTimes.",ErrStat,ErrMsg,RoutineName)
@@ -5658,6 +5780,31 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
          CALL Cleanup()
          RETURN
       END IF              
+   ! ........................
+   ! initialize MoorDyn 
+   ! ........................
+   ELSEIF (p_FAST%CompMooring == Module_MD) THEN
+                        
+      InitInData_MD%FileName  = p_FAST%MooringFile         ! This needs to be set according to what is in the FAST input file. 
+      InitInData_MD%RootName  = p_FAST%OutFileRoot
+      
+      InitInData_MD%PtfmInit  = InitOutData_ED%PlatformPos !ED%x(STATE_CURR)%QT(1:6)   ! initial position of the platform !bjj: this should come from InitOutData_ED, not x_ED
+      InitInData_MD%g         = InitOutData_ED%Gravity     ! This need to be according to g used in ElastoDyn 
+      InitInData_MD%rhoW      = InitOutData_HD%WtrDens     ! This needs to be set according to seawater density in HydroDyn      
+      InitInData_MD%WtrDepth  = InitOutData_HD%WtrDpth    ! This need to be set according to the water depth in HydroDyn
+            
+      CALL MD_Init( InitInData_MD, MD%Input(1), MD%p,  MD%x(STATE_CURR), MD%xd(STATE_CURR), MD%z(STATE_CURR), MD%OtherSt, &
+                      MD%y, p_FAST%dt_module( MODULE_MD ), InitOutData_MD, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+         
+      p_FAST%ModuleInitialized(Module_MD) = .TRUE.
+      CALL SetModuleSubstepTime(Module_MD, p_FAST, y_FAST, ErrStat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+      
+      IF (ErrStat >= AbortErrLev) THEN
+         CALL Cleanup()
+         RETURN
+      END IF
    ! ........................
    ! initialize FEAM 
    ! ........................
@@ -5808,8 +5955,8 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
    ! Set up output for glue code (must be done after all modules are initialized so we have their WriteOutput information)
    ! ........................
 
-   CALL FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, InitOutData_AD, InitOutData_HD, &
-                         InitOutData_SD, InitOutData_MAP, InitOutData_FEAM, InitOutData_IceF, InitOutData_IceD, ErrStat2, ErrMsg2 )
+   CALL FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, InitOutData_AD, InitOutData_HD, InitOutData_SD, &
+                         InitOutData_MAP, InitOutData_FEAM, InitOutData_MD, InitOutData_IceF, InitOutData_IceD, ErrStat2, ErrMsg2 )
       CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
 
 
@@ -5817,7 +5964,7 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
    ! Initialize mesh-mapping data
    ! -------------------------------------------------------------------------
 
-   CALL InitModuleMappings(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2)
+   CALL InitModuleMappings(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, MD, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2)
       CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
 
       IF (ErrStat >= AbortErrLev) THEN
@@ -5888,6 +6035,11 @@ CONTAINS
       CALL FEAM_DestroyInitOutput( InitOutData_FEAM, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
 
+      CALL MD_DestroyInitInput(  InitInData_MD,  ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+      CALL MD_DestroyInitOutput( InitOutData_MD, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+                  
       CALL IceFloe_DestroyInitInput(  InitInData_IceF,  ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
       CALL IceFloe_DestroyInitOutput( InitOutData_IceF, ErrStat2, ErrMsg2 )
@@ -5902,7 +6054,7 @@ CONTAINS
 
 END SUBROUTINE FAST_InitializeAll
 !...............................................................................................................................
-SUBROUTINE FAST_ExtrapInterpMods( t_global_next, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, ErrStat, ErrMsg )
+SUBROUTINE FAST_ExtrapInterpMods( t_global_next, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, ErrStat, ErrMsg )
 
    REAL(DbKi),               INTENT(IN   ) :: t_global_next       ! next global time step (t + dt), at which we're extrapolating inputs (and ED outputs)
    TYPE(FAST_ParameterType), INTENT(IN   ) :: p_FAST              ! Parameters for the glue code
@@ -5917,6 +6069,7 @@ SUBROUTINE FAST_ExtrapInterpMods( t_global_next, p_FAST, y_FAST, m_FAST, ED, Srv
    TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
    TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
    TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(MoorDyn_Data),       INTENT(INOUT) :: MD                  ! Data for the MoorDyn module
    TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
    TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
 
@@ -6083,7 +6236,7 @@ SUBROUTINE FAST_ExtrapInterpMods( t_global_next, p_FAST, y_FAST, m_FAST, ED, Srv
       END IF  ! SubDyn
       
       
-      ! Mooring (MAP or FEAM)
+      ! Mooring (MAP , FEAM , MoorDyn)
       ! MAP
       IF ( p_FAST%CompMooring == Module_MAP ) THEN
          
@@ -6110,6 +6263,32 @@ SUBROUTINE FAST_ExtrapInterpMods( t_global_next, p_FAST, y_FAST, m_FAST, ED, Srv
          MAPp%InputTimes(1) = t_global_next          
          !MAP_OutputTimes(1) = t_global_next 
             
+      ! MoorDyn
+      ELSEIF ( p_FAST%CompMooring == Module_MD ) THEN
+         
+         CALL MD_Input_ExtrapInterp(MD%Input, MD%InputTimes, MD%u, t_global_next, ErrStat2, ErrMsg2)
+            CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName )
+            
+         !CALL MD_Output_ExtrapInterp(MD_Output, MD_OutputTimes, MD%y, t_global_next, ErrStat2, ErrMsg2)
+         !   CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName )
+            
+            
+         ! Shift "window" of MD%Input and MD_Output
+  
+         DO j = p_FAST%InterpOrder, 1, -1
+            CALL MD_CopyInput (MD%Input(j),  MD%Input(j+1),  MESH_UPDATECOPY, Errstat2, ErrMsg2)
+               CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName )
+           !CALL MD_CopyOutput(MD_Output(j), MD_Output(j+1), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+            MD%InputTimes( j+1) = MD%InputTimes( j)
+           !MD_OutputTimes(j+1) = MD_OutputTimes(j)
+         END DO
+  
+         CALL MD_CopyInput (MD%u,  MD%Input(1),  MESH_UPDATECOPY, Errstat2, ErrMsg2)
+            CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName )
+        !CALL MD_CopyOutput(MD%y,  MD_Output(1), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         MD%InputTimes(1)  = t_global_next          
+        !MD_OutputTimes(1) = t_global_next 
+         
       ! FEAM
       ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
          
@@ -6136,7 +6315,7 @@ SUBROUTINE FAST_ExtrapInterpMods( t_global_next, p_FAST, y_FAST, m_FAST, ED, Srv
          FEAM%InputTimes(1)  = t_global_next          
         !FEAM_OutputTimes(1) = t_global_next 
          
-      END IF  ! MAP/FEAM
+      END IF  ! MAP/FEAM/MoorDyn
            
             
       ! Ice (IceFloe or IceDyn)
@@ -6203,7 +6382,7 @@ SUBROUTINE FAST_ExtrapInterpMods( t_global_next, p_FAST, y_FAST, m_FAST, ED, Srv
 
 END SUBROUTINE FAST_ExtrapInterpMods
 !...............................................................................................................................
-SUBROUTINE FAST_InitIOarrays( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, ErrStat, ErrMsg )
+SUBROUTINE FAST_InitIOarrays( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, ErrStat, ErrMsg )
 
    REAL(DbKi),               INTENT(IN   ) :: t_initial           ! start time of the simulation 
    TYPE(FAST_ParameterType), INTENT(IN   ) :: p_FAST              ! Parameters for the glue code
@@ -6218,6 +6397,7 @@ SUBROUTINE FAST_InitIOarrays( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, I
    TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
    TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
    TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(MoorDyn_Data),       INTENT(INOUT) :: MD                  ! MoorDyn data
    TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
    TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
       
@@ -6418,6 +6598,33 @@ SUBROUTINE FAST_InitIOarrays( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, I
             CALL SetErrStat( Errstat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )   
       END IF  
       
+   ELSEIF (p_FAST%CompMooring == Module_MD) THEN      
+         ! Copy values for interpolation/extrapolation:
+
+      DO j = 1, p_FAST%InterpOrder + 1
+         MD%InputTimes(j) = t_initial - (j - 1) * p_FAST%dt
+         !MD_OutputTimes(i) = t_initial - (j - 1) * dt
+      END DO
+
+      DO j = 2, p_FAST%InterpOrder + 1
+         CALL MD_CopyInput (MD%Input(1),  MD%Input(j),  MESH_NEWCOPY, Errstat2, ErrMsg2)
+            CALL SetErrStat( Errstat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      END DO
+      CALL MD_CopyInput (MD%Input(1),  MD%u,  MESH_NEWCOPY, Errstat2, ErrMsg2) ! do this to initialize meshes/allocatable arrays for output of ExtrapInterp routine
+         CALL SetErrStat( Errstat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+               
+         ! Initialize predicted states for j_pc loop:
+      CALL MD_CopyContState   (MD%x( STATE_CURR), MD%x( STATE_PRED), MESH_NEWCOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat( Errstat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      CALL MD_CopyDiscState   (MD%xd(STATE_CURR), MD%xd(STATE_PRED), MESH_NEWCOPY, Errstat2, ErrMsg2)  
+         CALL SetErrStat( Errstat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      CALL MD_CopyConstrState (MD%z( STATE_CURR), MD%z( STATE_PRED), MESH_NEWCOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat( Errstat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      IF ( p_FAST%n_substeps( MODULE_MD ) > 1 ) THEN
+         CALL MD_CopyOtherState( MD%OtherSt, MD%OtherSt_old, MESH_NEWCOPY, Errstat2, ErrMsg2)
+            CALL SetErrStat( Errstat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )   
+      END IF        
+      
    ELSEIF (p_FAST%CompMooring == Module_FEAM) THEN      
          ! Copy values for interpolation/extrapolation:
 
@@ -6520,7 +6727,7 @@ SUBROUTINE FAST_InitIOarrays( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, I
    
 END SUBROUTINE FAST_InitIOarrays
 !...............................................................................................................................   
-SUBROUTINE FAST_AdvanceStates( t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, ErrStat, ErrMsg )
+SUBROUTINE FAST_AdvanceStates( t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, ErrStat, ErrMsg )
 
    REAL(DbKi),               INTENT(IN   ) :: t_initial           ! initial simulation time (almost always 0)
    INTEGER(IntKi),           INTENT(IN   ) :: n_t_global          ! integer time step   
@@ -6536,6 +6743,7 @@ SUBROUTINE FAST_AdvanceStates( t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED
    TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
    TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
    TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(MoorDyn_Data),       INTENT(INOUT) :: MD                  ! Data for the MoorDyn module
    TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
    TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
       
@@ -6705,6 +6913,27 @@ SUBROUTINE FAST_AdvanceStates( t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED
             CALL SetErrStat( Errstat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       END DO !j_ss
                
+   ELSEIF (p_FAST%CompMooring == Module_MD) THEN
+      CALL MD_CopyContState   (MD%x( STATE_CURR), MD%x( STATE_PRED), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat( Errstat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      CALL MD_CopyDiscState   (MD%xd(STATE_CURR), MD%xd(STATE_PRED), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat( Errstat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      CALL MD_CopyConstrState (MD%z( STATE_CURR), MD%z( STATE_PRED), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat( Errstat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         
+      IF ( p_FAST%n_substeps( Module_MD ) > 1 ) THEN
+         CALL MD_CopyOtherState( MD%OtherSt, MD%OtherSt_old, MESH_UPDATECOPY, Errstat2, ErrMsg2)
+            CALL SetErrStat( Errstat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      END IF
+            
+      DO j_ss = 1, p_FAST%n_substeps( Module_MD )
+         n_t_module = n_t_global*p_FAST%n_substeps( Module_MD ) + j_ss - 1
+         t_module   = n_t_module*p_FAST%dt_module( Module_MD ) + t_initial
+               
+         CALL MD_UpdateStates( t_module, n_t_module, MD%Input, MD%InputTimes, MD%p, MD%x(STATE_PRED), MD%xd(STATE_PRED), MD%z(STATE_PRED), MD%OtherSt, ErrStat2, ErrMsg2 )
+            CALL SetErrStat( Errstat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      END DO !j_ss
+               
    ELSEIF (p_FAST%CompMooring == Module_FEAM) THEN
       CALL FEAM_CopyContState   (FEAM%x( STATE_CURR), FEAM%x( STATE_PRED), MESH_UPDATECOPY, Errstat2, ErrMsg2)
          CALL SetErrStat( Errstat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
@@ -6780,7 +7009,7 @@ SUBROUTINE FAST_AdvanceStates( t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED
          
 END SUBROUTINE FAST_AdvanceStates
 !...............................................................................................................................   
-SUBROUTINE FAST_EndMods( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, ErrStat, ErrMsg )
+SUBROUTINE FAST_EndMods( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, ErrStat, ErrMsg )
 
    TYPE(FAST_ParameterType), INTENT(INOUT) :: p_FAST              ! Parameters for the glue code
    TYPE(FAST_OutputFileType),INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
@@ -6794,6 +7023,7 @@ SUBROUTINE FAST_EndMods( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp
    TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
    TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
    TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(MoorDyn_Data),       INTENT(INOUT) :: MD                  ! Data for the MoorDyn module
    TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
    TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
       
@@ -6852,6 +7082,9 @@ SUBROUTINE FAST_EndMods( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp
       CALL MAP_End(    MAPp%Input(1),   MAPp%p,   MAPp%x(STATE_CURR),   MAPp%xd(STATE_CURR),   MAPp%z(STATE_CURR),   MAPp%OtherSt,   &
                         MAPp%y,   ErrStat2, ErrMsg2)
       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+   ELSEIF ( p_FAST%ModuleInitialized(Module_MD) ) THEN
+      CALL MD_End(  MD%Input(1), MD%p, MD%x(STATE_CURR), MD%xd(STATE_CURR), MD%z(STATE_CURR), MD%OtherSt, MD%y, ErrStat2, ErrMsg2)
+      CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
    ELSEIF ( p_FAST%ModuleInitialized(Module_FEAM) ) THEN
       CALL FEAM_End(   FEAM%Input(1),  FEAM%p,  FEAM%x(STATE_CURR),  FEAM%xd(STATE_CURR),  FEAM%z(STATE_CURR),  FEAM%OtherSt,  &
                         FEAM%y,  ErrStat2, ErrMsg2)
@@ -6874,7 +7107,7 @@ SUBROUTINE FAST_EndMods( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp
                      
 END SUBROUTINE FAST_EndMods
 !...............................................................................................................................   
-SUBROUTINE FAST_DestroyAll( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
+SUBROUTINE FAST_DestroyAll( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
 
    TYPE(FAST_ParameterType), INTENT(INOUT) :: p_FAST              ! Parameters for the glue code
    TYPE(FAST_OutputFileType),INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
@@ -6888,6 +7121,7 @@ SUBROUTINE FAST_DestroyAll( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, M
    TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
    TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
    TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(MoorDyn_Data),       INTENT(INOUT) :: MD                  ! Data for the MoorDyn module
    TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
    TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
 
@@ -6957,6 +7191,10 @@ SUBROUTINE FAST_DestroyAll( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, M
    CALL FAST_DestroyFEAMooring_Data( FEAM, ErrStat2, ErrMsg2 )
       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)      
 
+   ! MoorDyn 
+   CALL FAST_DestroyMoorDyn_Data( MD, ErrStat2, ErrMsg2 )
+      CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)      
+
    ! IceFloe
    CALL FAST_DestroyIceFloe_Data( IceF, ErrStat2, ErrMsg2 )
       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)      
@@ -6973,7 +7211,7 @@ SUBROUTINE FAST_DestroyAll( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, M
    
 END SUBROUTINE FAST_DestroyAll
 !...............................................................................................................................   
-SUBROUTINE ExitThisProgram( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrLevel_in, ErrLocMsg )
+SUBROUTINE ExitThisProgram( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, MeshMapData, ErrLevel_in, ErrLocMsg )
 ! This subroutine is called when FAST exits. It calls all the modules' end routines and cleans up variables declared in the
 ! main program. If there was an error, it also aborts. Otherwise, it prints the run times and performs a normal exit.
 !...............................................................................................................................
@@ -6991,6 +7229,7 @@ SUBROUTINE ExitThisProgram( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, M
    TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
    TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
    TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(MoorDyn_Data),       INTENT(INOUT) :: MD                  ! Data for the MoorDyn module
    TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
    TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
 
@@ -7014,7 +7253,7 @@ SUBROUTINE ExitThisProgram( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, M
       
       
       ! End all modules
-   CALL FAST_EndMods( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, ErrStat2, ErrMsg2 )
+   CALL FAST_EndMods( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, ErrStat2, ErrMsg2 )
       IF (ErrStat2 /= ErrID_None) THEN
          CALL WrScr( NewLine//RoutineName//':'//TRIM(ErrMsg2)//NewLine )
          ErrorLevel = MAX(ErrorLevel,ErrStat2)
@@ -7022,7 +7261,7 @@ SUBROUTINE ExitThisProgram( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, M
                   
       ! Destroy all data associated with FAST variables:
 
-   CALL FAST_DestroyAll( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2 )
+   CALL FAST_DestroyAll( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2 )
       IF (ErrStat2 /= ErrID_None) THEN
          CALL WrScr( NewLine//RoutineName//':'//TRIM(ErrMsg2)//NewLine )
          ErrorLevel = MAX(ErrorLevel,ErrStat2)
@@ -7055,7 +7294,7 @@ SUBROUTINE ExitThisProgram( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, M
 
 END SUBROUTINE ExitThisProgram
 !...............................................................................................................................   
-SUBROUTINE FAST_Solution0(p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
+SUBROUTINE FAST_Solution0(p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
 
    TYPE(FAST_ParameterType), INTENT(IN   ) :: p_FAST              ! Parameters for the glue code
    TYPE(FAST_OutputFileType),INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
@@ -7069,6 +7308,7 @@ SUBROUTINE FAST_Solution0(p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAP
    TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
    TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
    TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(MoorDyn_Data),       INTENT(INOUT) :: MD                  ! Data for the MoorDyn module
    TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
    TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
 
@@ -7107,7 +7347,7 @@ SUBROUTINE FAST_Solution0(p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAP
                           ED%Output(1), ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       
-      CALL Transfer_ED_to_HD_SD_Mooring( p_FAST, ED%Output(1), HD%Input(1), SD%Input(1), MAPp%Input(1), FEAM%Input(1), MeshMapData, ErrStat2, ErrMsg2 )         
+      CALL Transfer_ED_to_HD_SD_Mooring( p_FAST, ED%Output(1), HD%Input(1), SD%Input(1), MAPp%Input(1), FEAM%Input(1), MD%Input(1), MeshMapData, ErrStat2, ErrMsg2 )         
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
                
    END IF   
@@ -7115,7 +7355,7 @@ SUBROUTINE FAST_Solution0(p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAP
 
 
    CALL CalcOutputs_And_SolveForInputs(  n_t_global, m_FAST%t_global,  STATE_CURR, m_FAST%calcJacobian, m_FAST%NextJacCalcTime, &
-                        p_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2 )
+                        p_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2 )
       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    
       
@@ -7131,7 +7371,7 @@ SUBROUTINE FAST_Solution0(p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAP
    ! Check to see if we should output data this time step:
    !----------------------------------------------------------------------------------------
 
-   CALL WriteOutputToFile(m_FAST%t_global, p_FAST, y_FAST, ED, AD, IfW, HD, SD, SrvD, MAPp, FEAM, IceF, IceD, ErrStat2, ErrMsg2)   
+   CALL WriteOutputToFile(m_FAST%t_global, p_FAST, y_FAST, ED, AD, IfW, HD, SD, SrvD, MAPp, FEAM, MD, IceF, IceD, ErrStat2, ErrMsg2)   
       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
       
@@ -7142,13 +7382,13 @@ SUBROUTINE FAST_Solution0(p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAP
          
    ! Initialize Input-Output arrays for interpolation/extrapolation:
 
-   CALL FAST_InitIOarrays( m_FAST%t_global, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, ErrStat2, ErrMsg2 )
+   CALL FAST_InitIOarrays( m_FAST%t_global, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, ErrStat2, ErrMsg2 )
       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          
 
 END SUBROUTINE FAST_Solution0
 !............................................................................................................................... 
-SUBROUTINE FAST_Solution(t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
+SUBROUTINE FAST_Solution(t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
 ! this routine takes data from n_t_global and gets values at n_t_global + 1
 
    REAL(DbKi),               INTENT(IN   ) :: t_initial           ! initial time
@@ -7166,6 +7406,7 @@ SUBROUTINE FAST_Solution(t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD
    TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
    TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
    TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(MoorDyn_Data),       INTENT(INOUT) :: MD                  ! Data for the MoorDyn module
    TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
    TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
 
@@ -7199,7 +7440,7 @@ SUBROUTINE FAST_Solution(t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD
    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    ! Step 1.a: Extrapolate Inputs (gives predicted values at t+dt)
    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   CALL FAST_ExtrapInterpMods( t_global_next, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, ErrStat2, ErrMsg2 )
+   CALL FAST_ExtrapInterpMods( t_global_next, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, ErrStat2, ErrMsg2 )
       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
       
@@ -7218,7 +7459,7 @@ SUBROUTINE FAST_Solution(t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD
       ! and we need to have the old values [at m_FAST%t_global] for the next j_pc step)
       !----------------------------------------------------------------------------------------
       
-      CALL FAST_AdvanceStates( t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, ErrStat2, ErrMsg2 )               
+      CALL FAST_AdvanceStates( t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, ErrStat2, ErrMsg2 )               
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          IF (ErrStat >= AbortErrLev) RETURN
          
@@ -7227,7 +7468,7 @@ SUBROUTINE FAST_Solution(t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD
    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
       CALL CalcOutputs_And_SolveForInputs( n_t_global, t_global_next,  STATE_PRED, m_FAST%calcJacobian, m_FAST%NextJacCalcTime, &
-                  p_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2 )            
+                  p_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, MD, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2 )            
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          
    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -7262,6 +7503,9 @@ SUBROUTINE FAST_Solution(t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD
 
          IF ( p_FAST%n_substeps( Module_MAP ) > 1 ) THEN
             CALL MAP_CopyOtherState( MAPp%OtherSt_old, MAPp%OtherSt, MESH_UPDATECOPY, Errstat2, ErrMsg2)
+            CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         ELSEIF ( p_FAST%n_substeps( Module_MD ) > 1 ) THEN
+            CALL MD_CopyOtherState( MD%OtherSt_old, MD%OtherSt, MESH_UPDATECOPY, Errstat2, ErrMsg2)
             CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          ELSEIF ( p_FAST%n_substeps( Module_FEAM ) > 1 ) THEN
             CALL FEAM_CopyOtherState( FEAM%OtherSt_old, FEAM%OtherSt, MESH_UPDATECOPY, Errstat2, ErrMsg2)
@@ -7353,6 +7597,13 @@ SUBROUTINE FAST_Solution(t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       CALL MAP_CopyConstrState (MAPp%z( STATE_PRED), MAPp%z( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+   ELSEIF (p_FAST%CompMooring == Module_MD) THEN
+      CALL MD_CopyContState   (MD%x( STATE_PRED), MD%x( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      CALL MD_CopyDiscState   (MD%xd(STATE_PRED), MD%xd(STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)  
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      CALL MD_CopyConstrState (MD%z( STATE_PRED), MD%z( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    ELSEIF (p_FAST%CompMooring == Module_FEAM) THEN
       CALL FEAM_CopyContState   (FEAM%x( STATE_PRED), FEAM%x( STATE_CURR), MESH_UPDATECOPY, Errstat2, ErrMsg2)
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
@@ -7394,7 +7645,7 @@ SUBROUTINE FAST_Solution(t_initial, n_t_global, p_FAST, y_FAST, m_FAST, ED, SrvD
    ! Check to see if we should output data this time step:
    !----------------------------------------------------------------------------------------
 
-   CALL WriteOutputToFile(m_FAST%t_global, p_FAST, y_FAST, ED, AD, IfW, HD, SD, SrvD, MAPp, FEAM, IceF, IceD, ErrStat2, ErrMsg2)
+   CALL WriteOutputToFile(m_FAST%t_global, p_FAST, y_FAST, ED, AD, IfW, HD, SD, SrvD, MAPp, FEAM, MD, IceF, IceD, ErrStat2, ErrMsg2)
       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
    !----------------------------------------------------------------------------------------

@@ -42,6 +42,8 @@ SET MAP_DLL=%MAP_Loc%\bin\MAP_Win32.dll
 SET MAP_DLL64=%MAP_Loc%\bin\MAP_x64.dll
 SET MAP_Include_Lib=%MAP_Loc%\bin\MAP_Win32.lib
 
+SET MD_LOC=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MoorDyn\GitforSVN\trunk\source
+
 rem ECHO BONNIE: FIX THE FEAM LOCATION!!!
 SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
 SET FEAM_Reg_Loc=%FEAM_Loc%
