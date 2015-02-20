@@ -15,7 +15,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|Win32" OutputDirectory="..\..\bin\" ConfigurationType="typeDynamicLibrary">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Preprocess="preprocessYes" PreprocessorDefinitions="COMPILE_SIMULINK;no_CONSOLE_FILE" UseMkl="mklSequential"/>
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Preprocess="preprocessYes" PreprocessorDefinitions="COMPILE_SIMULINK" UseMkl="mklSequential"/>
 				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\$(ProjectName)_$(PlatformName).dll" SuppressStartupBanner="true" SubSystem="subSystemWindows" StackReserveSize="999999999" LargeAddressAware="addrAwareLarge" LinkDLL="true" AdditionalDependencies="..\..\Source\dependencies\MAP\MAP_$(PlatformName).lib &quot;C:\Program Files (x86)\MATLAB\R2012a\extern\lib\win32\microsoft\libmex.lib&quot;"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -66,9 +66,9 @@
 		<Filter Name="FAST">
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\FAST_Types.f90"/></Filter>
-		<File RelativePath="..\..\Source\FAST_IO.f90"/>
 		<File RelativePath="..\..\Source\FAST_Library.f90"/>
-		<File RelativePath="..\..\Source\FAST_Mods.f90"/></Filter>
+		<File RelativePath="..\..\Source\FAST_Mods.f90"/>
+		<File RelativePath="..\..\Source\FAST_Subs.f90"/></Filter>
 		<Filter Name="HydroDyn">
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\Conv_Radiation_Types.f90"/>

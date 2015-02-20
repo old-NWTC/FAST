@@ -31,6 +31,7 @@ HD_DIR       = $(FAST_DIR)/dependencies/HydroDyn
 SD_DIR       = $(FAST_DIR)/dependencies/SubDyn
 MAP_DIR      = $(FAST_DIR)/dependencies/MAP
 FEAM_DIR     = $(FAST_DIR)/dependencies/FEAMooring
+MD_DIR       = $(FAST_DIR)/dependencies/MoorDyn
 IceF_DIR     = $(FAST_DIR)/dependencies/IceFloe
 IceD_DIR     = $(FAST_DIR)/dependencies/IceDyn
 
@@ -191,6 +192,11 @@ FEAM_SOURCES =              \
 	FEAMooring_Types.f90     \
 	FEAM.f90
 
+MD_SOURCES =              \
+	MoorDyn_Types.f90      \
+	MoorDyn_IO.f90         \
+	MoorDyn.f90
+
 
 SD_SOURCES =               \
 	qsort_c_module.f90      \
@@ -205,6 +211,8 @@ ED_SOURCES =            \
 	ElastoDyn.f90
 
 SrvD_SOURCES =          \
+	TMD_Types.f90        \
+	TMD.f90              \
 	ServoDyn_Types.f90   \
 	ServoDyn.f90         \
 	PitchCntrl_ACH.f90   \
@@ -236,23 +244,26 @@ IceD_SOURCES =              \
 
 
 FAST_SOURCES =           \
-	FAST_Types.f90       \
-	FAST_Mods.f90        \
-	FAST_IO.f90          \
+	FAST_Types.f90        \
+	FAST_Mods.f90         \
+	FAST_Subs.f90         \
 	FAST_Prog.f90
 
-vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(SD_DIR) $(MAP_DIR) $(FAST_DIR) $(NETLIB_DIR) $(FEAM_DIR) $(IceF_DIR) $(IceD_DIR) $(DWM_DIR)
+vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(SD_DIR) $(MAP_DIR) \
+            $(FAST_DIR) $(NETLIB_DIR) $(FEAM_DIR) $(MD_DIR) $(IceF_DIR) $(IceD_DIR) $(DWM_DIR)
 vpath %.f   $(NETLIB_DIR)
 vpath %.mod $(INTER_DIR)
 vpath %.obj $(INTER_DIR)
-vpath %.txt $(FAST_DIR) $(AD_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR) $(IceD_DIR) $(DWM_DIR)
+vpath %.txt $(FAST_DIR) $(AD_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(FEAM_DIR) $(IceD_DIR) $(DWM_DIR) $(MD_DIR)
 vpath %.inp $(IceF_DIR)
 #apparently vpath doesn't work as expected if I use %.F90 (is it not case sensitive???)
 #vpath %.F90     $(IceF_DIR)
 vpath %     $(IceF_DIR)
 
 
-ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD_SOURCES) $(SrvD_SOURCES) $(ED_SOURCES) $(HD_SOURCES) $(SD_SOURCES) $(MAP_SOURCES) $(FEAM_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES) $(DWM_SOURCES)
+ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD_SOURCES) $(SrvD_SOURCES) $(ED_SOURCES) \
+              $(HD_SOURCES) $(SD_SOURCES) $(MAP_SOURCES) $(FEAM_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES) $(DWM_SOURCES) \
+              $(TMD_SOURCES) $(MD_SOURCES)
 tmp_objs1   = $(ALL_SOURCES:.f90=.obj)
 tmp_objs2   = $(tmp_objs1:.F90=.obj)       #note the upper case here (from IceFloe)
 ALL_OBJS    = $(tmp_objs2:.f=.obj)
@@ -284,12 +295,14 @@ default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
    # General rules for creating _Types.f90 files from Registry files.
 
 FAST_Types.f90:
-	$(Registry) FAST_Registry.txt -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(AD_DIR) \
-	-I $(HD_DIR_Reg) -I $(IceF_DIR) -I $(IceD_DIR) -I $(MAP_DIR) -I $(FEAM_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR) -noextrap
+	$(Registry) FAST_Registry.txt -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(TMD_DIR) -I $(AD_DIR) \
+	-I $(HD_DIR_Reg) -I $(IceF_DIR) -I $(IceD_DIR) -I $(MAP_DIR) -I $(FEAM_DIR) -I $(MD_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR) -noextrap
 
+TMD_Types.f90:
+	$(Registry) TMD_Registry.txt -I $(NWTC_Lib_DIR)
 
 ServoDyn_Types.f90:
-	$(Registry) ServoDyn_Registry.txt -I $(NWTC_Lib_DIR)
+	$(Registry) ServoDyn_Registry.txt -I $(NWTC_Lib_DIR) -I $(TMD_DIR)
 
 
 ElastoDyn_Types.f90:
@@ -350,6 +363,9 @@ SubDyn_Types.f90:
 
 FEAMooring_Types.f90:
 	$(Registry) FEAM_Registry.txt -I $(NWTC_Lib_DIR)
+
+MoorDyn_Types.f90:
+	$(Registry) MoorDyn_Registry.txt -I $(NWTC_Lib_DIR)
 
 
 IceFloe_Types.f90:
@@ -434,7 +450,8 @@ WAMIT_Interp.obj:           NWTC_Library.obj
 WAMIT_Output.obj:           WAMIT_Types.obj Waves.obj
 HydroDyn_Output.obj:        HydroDyn_Types.obj Waves.obj
 
-HydroDyn_Types.obj:         NWTC_Library.obj  Current_Types.obj  Waves_Types.obj  Waves2_Types.obj  Conv_Radiation_Types.obj SS_Radiation_Types.obj WAMIT_Types.obj  WAMIT2_Types.obj  Morison_Types.obj  HydroDyn.txt
+HydroDyn_Types.obj:         NWTC_Library.obj  Current_Types.obj  Waves_Types.obj  Waves2_Types.obj  Conv_Radiation_Types.obj \
+                            SS_Radiation_Types.obj WAMIT_Types.obj  WAMIT2_Types.obj  Morison_Types.obj  HydroDyn.txt
 HydroDyn_Input.obj:         HydroDyn_Types.obj  Waves.obj Morison.obj  HydroDyn_Output.obj  WAMIT_Output.obj  Waves2_Output.obj  WAMIT2_Output.obj
 HydroDyn.obj:               HydroDyn_Types.obj  HydroDyn_Input.obj  HydroDyn_Output.obj  WAMIT.obj  Current.obj  Morison.obj  Waves2.obj  WAMIT2.obj
 
@@ -455,6 +472,11 @@ MAP.obj:                    NWTC_Library.obj  MAP_Types.obj
 FEAMooring_Types.obj:       NWTC_Library.obj  FEAM_Registry.txt
 FEAM.obj:                   NWTC_Library.obj  FEAMooring_Types.obj
 
+# MoorDyn dependency rules:
+MoorDyn_Types.obj:          NWTC_Library.obj  MoorDyn_Registry.txt
+MoorDyn_IO.obj:             NWTC_Library.obj  MoorDyn_Types.obj
+MoorDyn.obj:                NWTC_Library.obj  MoorDyn_IO.obj
+
 
 # ElastoDyn dependency rules:
 ElastoDyn_Types.obj:        NWTC_Library.obj  ElastoDyn_Registry.txt
@@ -462,9 +484,11 @@ ElastoDyn.obj:              NWTC_Library.obj  ElastoDyn_Types.obj  NWTC_LAPACK.o
 
 
 # ServoDyn dependency rules:
-ServoDyn_Types.obj:         NWTC_Library.obj  ServoDyn_Registry.txt
+TMD_Types.obj:              NWTC_Library.obj  TMD_Registry.txt
+TMD.obj:                    NWTC_Library.obj  TMD_Types.obj
+ServoDyn_Types.obj:         NWTC_Library.obj  TMD_Types.obj  ServoDyn_Registry.txt
 BladedInterface.obj:        NWTC_Library.obj  ServoDyn_Types.obj
-ServoDyn.obj:               NWTC_Library.obj  ServoDyn_Types.obj  PitchCntrl_ACH.obj  UserSubs.obj   UserVSCont_KP.obj  BladedInterface.obj
+ServoDyn.obj:               NWTC_Library.obj  ServoDyn_Types.obj  PitchCntrl_ACH.obj  UserSubs.obj   UserVSCont_KP.obj  BladedInterface.obj TMD.obj
 PitchCntrl_ACH.obj:         NWTC_Library.obj
 UserSubs.obj:               NWTC_Library.obj
 UserVSCont_KP.obj:          NWTC_Library.obj
@@ -485,7 +509,8 @@ IceFlexBase.obj:            IceFloeBase.obj
 IceFlexIEC.obj:             IceFlexBase.obj
 IceFlexISO.obj:             IceFlexBase.obj
 IceFloe_Types.obj:          NWTC_Library.obj IceFloe_FASTRegistry.inp
-IceFloe.obj:                IceFloe_Types.obj iceLog.obj coupledCrushing.obj crushingIEC.obj crushingISO.obj IceFlexBase.obj IceFlexIEC.obj IceFlexISO.obj intermittentCrushing.obj lockInISO.obj randomCrushing.obj
+IceFloe.obj:                IceFloe_Types.obj iceLog.obj coupledCrushing.obj crushingIEC.obj crushingISO.obj IceFlexBase.obj \
+                            IceFlexIEC.obj IceFlexISO.obj intermittentCrushing.obj lockInISO.obj randomCrushing.obj
 
 
 # IceDyn dependency rules:
@@ -494,10 +519,12 @@ IceDyn.obj:                 NWTC_Library.obj IceDyn_Types.obj
 
 
 # FAST dependency rules:
-FAST_Types.obj:             NWTC_Library.obj  ElastoDyn_Types.obj  ServoDyn_Types.obj  AeroDyn_Types.obj  SubDyn_Types.obj  HydroDyn_Types.obj  MAP_Types.obj  FEAMooring_Types.obj  IceFloe_Types.obj  IceDyn_Types.obj FAST_Registry.txt
+FAST_Types.obj:             NWTC_Library.obj  ElastoDyn_Types.obj  ServoDyn_Types.obj  AeroDyn_Types.obj  SubDyn_Types.obj  HydroDyn_Types.obj  \
+                            MAP_Types.obj  FEAMooring_Types.obj  MoorDyn_Types.obj IceFloe_Types.obj  IceDyn_Types.obj FAST_Registry.txt
 FAST_Mods.obj:              NWTC_Library.obj  FAST_Types.obj
-FAST_IO.obj:                NWTC_Library.obj  FAST_Mods.obj  NWTC_LAPACK.obj  AeroDyn.obj  InflowWind.obj  ServoDyn.obj  ElastoDyn.obj  SubDyn.obj  HydroDyn.obj  MAP.obj  FEAM.obj  IceFloe.obj  IceDyn.obj
-FAST_Prog.obj:              NWTC_Library.obj  FAST_IO.obj
+FAST_Subs.obj:              NWTC_Library.obj  FAST_Mods.obj  NWTC_LAPACK.obj  AeroDyn.obj  InflowWind.obj  ServoDyn.obj  ElastoDyn.obj \
+                            SubDyn.obj  HydroDyn.obj  MAP.obj  FEAM.obj  MoorDyn.obj IceFloe.obj  IceDyn.obj
+FAST_Prog.obj:              NWTC_Library.obj  FAST_Subs.obj
 
 
 

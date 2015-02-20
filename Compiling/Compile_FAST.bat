@@ -76,6 +76,7 @@ SET HD_Loc=%FAST_Loc%\dependencies\HydroDyn
 SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
 SET MAP_Loc=%FAST_Loc%\dependencies\MAP
 SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
+SET MD_Loc=%FAST_Loc%\dependencies\MoorDyn
 SET IceF_Loc=%FAST_Loc%\dependencies\IceFloe
 SET IceD_Loc=%FAST_Loc%\dependencies\IceDyn
 
@@ -165,6 +166,8 @@ SET ED_SOURCES=^
 
 
 SET SrvD_SOURCES=^
+ "%TMD_Loc%\TMD_Types.f90" ^
+ "%TMD_Loc%\TMD.f90" ^
  "%SrvD_Loc%\ServoDyn_Types.f90" ^
  "%SrvD_Loc%\BladedInterface.f90" ^
  "%SrvD_Loc%\ServoDyn.f90" ^
@@ -218,6 +221,12 @@ SET FEAM_SOURCES=^
  "%FEAM_Loc%\FEAMooring_Types.f90" ^
  "%FEAM_Loc%\FEAM.f90"
 
+SET MD_SOURCES=^
+ "%MD_Loc%\MoorDyn_Types.f90" ^
+ "%MD_Loc%\MoorDyn_IO.f90" ^
+ "%MD_Loc%\MoorDyn.f90"
+
+
 
 SET IceF_SOURCES=^
  "%IceF_RanLux_Loc%\RANLUX.f90" ^
@@ -244,7 +253,7 @@ SET IceD_SOURCES=^
 SET FAST_SOURCES=^
  "%FAST_LOC%\FAST_Types.f90" ^
  "%FAST_LOC%\FAST_Mods.f90" ^
- "%FAST_LOC%\FAST_IO.f90" ^
+ "%FAST_LOC%\FAST_Subs.f90" ^
  "%FAST_LOC%\FAST_Prog.f90"
 
 
@@ -260,8 +269,9 @@ ECHO.
 
 SET CURR_LOC=%FAST_Loc%
 SET ModuleName=FAST
-%REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD_Loc%" -I^
- "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Loc%"  -I "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -noextrap
+%REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%TMD_Loc%" -I "%AD_Loc%" -I^
+ "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Loc%"  -I "%MD_Loc%" -I^
+ "%IceF_Loc%" -I "%IceD_Loc%"   -noextrap
 MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 
 
@@ -305,6 +315,10 @@ SET CURR_LOC=%FEAM_Reg_Loc%
 SET ModuleName=FEAMooring
 %REGISTRY% "%CURR_LOC%\FEAM_Registry.txt" -I "%NWTC_Lib_Loc%"
 MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+
+ECHO %Lines%
+SET CURR_LOC=%MD_Loc%
+CALL ::RunRegistry_fmt1 MoorDyn
 
 
 ECHO %Lines%
@@ -430,6 +444,11 @@ ECHO Compiling FEAMooring:
 ifort %COMPOPTS% %FEAM_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
+ECHO %Lines%
+ECHO Compiling MoorDyn:
+ifort %COMPOPTS% %MD_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
 
 ECHO %Lines%
 ECHO Compiling IceFloe:
@@ -465,7 +484,7 @@ ECHO %ROOT_NAME%.exe was created.
 GOTO END
 
 REM ----------------------------------------------------------------------------
-:: Some subroutine for the registry stuff:
+:: Some subroutines for the registry stuff:
 
 :RunRegistry_HD
 SET ModuleName=%1
@@ -501,6 +520,7 @@ SET NWTC_Lib_Loc=
 SET NETLIB_Loc=
 SET ED_Loc=
 SET SrvD_Loc=
+SET TMD_Loc=
 SET AD_Loc=
 SET DWM_Loc=
 SET IfW_Loc=
@@ -512,6 +532,7 @@ SET MAP_Loc=
 SET FAST_Loc=
 SET MAP_Include_Lib=
 SET FEAM_Loc=
+SET MD_Loc=
 SET IceF_Loc=
 SET IceF_RanLux_Loc=
 

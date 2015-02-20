@@ -2383,6 +2383,13 @@ SUBROUTINE SetOutParam(OutList, p, ErrStat, ErrMsg )
 
    InvalidOutput(BlPitchC3) = ( p%NumBl < 3 )
 
+   if (.not. p%CompNTMD) then
+      InvalidOutput(NTMD_XQ ) = .TRUE.
+      InvalidOutput(NTMD_XQD) = .TRUE.
+      InvalidOutput(NTMD_YQ ) = .TRUE.
+      InvalidOutput(NTMD_YQD) = .TRUE.
+   end if
+
 
    !-------------------------------------------------------------------------------------------------
    ! Allocate and set index, name, and units for the output channels
