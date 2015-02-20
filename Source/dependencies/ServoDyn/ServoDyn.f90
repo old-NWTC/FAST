@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-02-06 23:34:12 -0700 (Fri, 06 Feb 2015) $
-! (File) Revision #: $Rev: 911 $
+! File last committed: $Date: 2015-02-20 10:42:28 -0700 (Fri, 20 Feb 2015) $
+! (File) Revision #: $Rev: 925 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ServoDyn.f90 $
 !**********************************************************************************************************************************
 MODULE ServoDyn
@@ -2382,6 +2382,13 @@ SUBROUTINE SetOutParam(OutList, p, ErrStat, ErrMsg )
       ! Determine which inputs are not valid
 
    InvalidOutput(BlPitchC3) = ( p%NumBl < 3 )
+
+   if (.not. p%CompNTMD) then
+      InvalidOutput(NTMD_XQ ) = .TRUE.
+      InvalidOutput(NTMD_XQD) = .TRUE.
+      InvalidOutput(NTMD_YQ ) = .TRUE.
+      InvalidOutput(NTMD_YQD) = .TRUE.
+   end if
 
 
    !-------------------------------------------------------------------------------------------------

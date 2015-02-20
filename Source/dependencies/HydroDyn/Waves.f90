@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-01-15 10:57:32 -0700 (Thu, 15 Jan 2015) $
-! (File) Revision #: $Rev: 600 $
+! File last committed: $Date: 2015-02-02 14:29:40 -0700 (Mon, 02 Feb 2015) $
+! (File) Revision #: $Rev: 602 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Waves.f90 $
 !**********************************************************************************************************************************
 MODULE Waves
@@ -240,7 +240,7 @@ CONTAINS
          ! Compute the JONSWAP wave spectrum, unless Omega is zero, in which case,
          !   return zero:
 
-      IF ( Omega == 0.0 )  THEN  ! When .TRUE., the formulation below is ill-conditioned; thus, the known value of zero is returned.
+      IF ( EqualRealNos(Omega, 0.0_ReKi) )  THEN  ! When .TRUE., the formulation below is ill-conditioned; thus, the known value of zero is returned.
 
 
          JONSWAP  = 0.0
@@ -253,7 +253,7 @@ CONTAINS
 
          f        = Inv2Pi*Omega
          fp       = 1/Tp
-         fpOvrf4  = (fp/f)**4.0
+         fpOvrf4  = (fp/f)**4
 
 
          ! Compute the normalising factor:
@@ -269,7 +269,8 @@ CONTAINS
             Sigma = 0.09
          END IF
 
-         Alpha    = EXP( ( -0.5*( ( (f/fp) - 1.0 )/Sigma )**2.0 ) )
+!bjj:         Alpha    = EXP( ( -0.5*( ( (f/fp) - 1.0 )/Sigma )**2 ) )
+         Alpha    = EXP( ( -0.5*( ( (f*Tp) - 1.0 )/Sigma )**2 ) ) !this works even if Tp is 0 (but using f/fp doesn't)
 
 
          ! Compute the wave spectrum:
