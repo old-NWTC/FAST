@@ -191,13 +191,11 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: NOmegaM2      ! Coefficient of x in X (negative omegaM squared) [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: N2OmegaMJDamp      ! Coefficient of x in X (negative 2 omegaM * JDamping) [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MMB      ! Matrix after C-B reduction (transpose of MBM [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PhiM_T      ! Coefficient of u in X (transpose of phiM) [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FX      ! Load components in X [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C1_11      ! Coefficient of x in Y1 [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C1_12      ! Coefficient of x in Y1 [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_13      ! Coefficient of u in Y1 [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_14      ! Coefficient of u in Y1 [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_15      ! Coefficient of u in Y1 [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FY      ! Load Components in  Y1 [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PhiM      ! Coefficient of x in Y2 [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_61      ! Coefficient of x in Y2 (URdotdot ULdotdot) [-]
@@ -3392,20 +3390,6 @@ IF (ALLOCATED(SrcParamData%MMB)) THEN
    END IF
    DstParamData%MMB = SrcParamData%MMB
 ENDIF
-IF (ALLOCATED(SrcParamData%PhiM_T)) THEN
-   i1_l = LBOUND(SrcParamData%PhiM_T,1)
-   i1_u = UBOUND(SrcParamData%PhiM_T,1)
-   i2_l = LBOUND(SrcParamData%PhiM_T,2)
-   i2_u = UBOUND(SrcParamData%PhiM_T,2)
-   IF (.NOT. ALLOCATED(DstParamData%PhiM_T)) THEN 
-      ALLOCATE(DstParamData%PhiM_T(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%PhiM_T.', ErrStat, ErrMsg,'SD_CopyParam')
-         RETURN
-      END IF
-   END IF
-   DstParamData%PhiM_T = SrcParamData%PhiM_T
-ENDIF
 IF (ALLOCATED(SrcParamData%FX)) THEN
    i1_l = LBOUND(SrcParamData%FX,1)
    i1_u = UBOUND(SrcParamData%FX,1)
@@ -3473,20 +3457,6 @@ IF (ALLOCATED(SrcParamData%D1_14)) THEN
       END IF
    END IF
    DstParamData%D1_14 = SrcParamData%D1_14
-ENDIF
-IF (ALLOCATED(SrcParamData%D1_15)) THEN
-   i1_l = LBOUND(SrcParamData%D1_15,1)
-   i1_u = UBOUND(SrcParamData%D1_15,1)
-   i2_l = LBOUND(SrcParamData%D1_15,2)
-   i2_u = UBOUND(SrcParamData%D1_15,2)
-   IF (.NOT. ALLOCATED(DstParamData%D1_15)) THEN 
-      ALLOCATE(DstParamData%D1_15(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%D1_15.', ErrStat, ErrMsg,'SD_CopyParam')
-         RETURN
-      END IF
-   END IF
-   DstParamData%D1_15 = SrcParamData%D1_15
 ENDIF
 IF (ALLOCATED(SrcParamData%FY)) THEN
    i1_l = LBOUND(SrcParamData%FY,1)
@@ -3945,9 +3915,6 @@ ENDIF
 IF (ALLOCATED(ParamData%MMB)) THEN
    DEALLOCATE(ParamData%MMB)
 ENDIF
-IF (ALLOCATED(ParamData%PhiM_T)) THEN
-   DEALLOCATE(ParamData%PhiM_T)
-ENDIF
 IF (ALLOCATED(ParamData%FX)) THEN
    DEALLOCATE(ParamData%FX)
 ENDIF
@@ -3962,9 +3929,6 @@ IF (ALLOCATED(ParamData%D1_13)) THEN
 ENDIF
 IF (ALLOCATED(ParamData%D1_14)) THEN
    DEALLOCATE(ParamData%D1_14)
-ENDIF
-IF (ALLOCATED(ParamData%D1_15)) THEN
-   DEALLOCATE(ParamData%D1_15)
 ENDIF
 IF (ALLOCATED(ParamData%FY)) THEN
    DEALLOCATE(ParamData%FY)
@@ -4127,13 +4091,11 @@ ENDIF
   IF ( ALLOCATED(InData%NOmegaM2) )   Re_BufSz    = Re_BufSz    + SIZE( InData%NOmegaM2 )  ! NOmegaM2 
   IF ( ALLOCATED(InData%N2OmegaMJDamp) )   Re_BufSz    = Re_BufSz    + SIZE( InData%N2OmegaMJDamp )  ! N2OmegaMJDamp 
   IF ( ALLOCATED(InData%MMB) )   Re_BufSz    = Re_BufSz    + SIZE( InData%MMB )  ! MMB 
-  IF ( ALLOCATED(InData%PhiM_T) )   Re_BufSz    = Re_BufSz    + SIZE( InData%PhiM_T )  ! PhiM_T 
   IF ( ALLOCATED(InData%FX) )   Re_BufSz    = Re_BufSz    + SIZE( InData%FX )  ! FX 
   IF ( ALLOCATED(InData%C1_11) )   Re_BufSz    = Re_BufSz    + SIZE( InData%C1_11 )  ! C1_11 
   IF ( ALLOCATED(InData%C1_12) )   Re_BufSz    = Re_BufSz    + SIZE( InData%C1_12 )  ! C1_12 
   IF ( ALLOCATED(InData%D1_13) )   Re_BufSz    = Re_BufSz    + SIZE( InData%D1_13 )  ! D1_13 
   IF ( ALLOCATED(InData%D1_14) )   Re_BufSz    = Re_BufSz    + SIZE( InData%D1_14 )  ! D1_14 
-  IF ( ALLOCATED(InData%D1_15) )   Re_BufSz    = Re_BufSz    + SIZE( InData%D1_15 )  ! D1_15 
   IF ( ALLOCATED(InData%FY) )   Re_BufSz    = Re_BufSz    + SIZE( InData%FY )  ! FY 
   IF ( ALLOCATED(InData%PhiM) )   Re_BufSz    = Re_BufSz    + SIZE( InData%PhiM )  ! PhiM 
   IF ( ALLOCATED(InData%C2_61) )   Re_BufSz    = Re_BufSz    + SIZE( InData%C2_61 )  ! C2_61 
@@ -4249,10 +4211,6 @@ ENDDO
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%MMB))-1 ) =  PACK(InData%MMB ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%MMB)
   ENDIF
-  IF ( ALLOCATED(InData%PhiM_T) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%PhiM_T))-1 ) =  PACK(InData%PhiM_T ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%PhiM_T)
-  ENDIF
   IF ( ALLOCATED(InData%FX) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%FX))-1 ) =  PACK(InData%FX ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%FX)
@@ -4272,10 +4230,6 @@ ENDDO
   IF ( ALLOCATED(InData%D1_14) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%D1_14))-1 ) =  PACK(InData%D1_14 ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%D1_14)
-  ENDIF
-  IF ( ALLOCATED(InData%D1_15) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%D1_15))-1 ) =  PACK(InData%D1_15 ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%D1_15)
   ENDIF
   IF ( ALLOCATED(InData%FY) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%FY))-1 ) =  PACK(InData%FY ,.TRUE.)
@@ -4586,13 +4540,6 @@ ENDDO
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%MMB)
   ENDIF
-  IF ( ALLOCATED(OutData%PhiM_T) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%PhiM_T,1),SIZE(OutData%PhiM_T,2)))
-  mask2 = .TRUE.
-    OutData%PhiM_T = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PhiM_T))-1 ),mask2,OutData%PhiM_T)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%PhiM_T)
-  ENDIF
   IF ( ALLOCATED(OutData%FX) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FX,1)))
   mask1 = .TRUE.
@@ -4627,13 +4574,6 @@ ENDDO
     OutData%D1_14 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D1_14))-1 ),mask2,OutData%D1_14)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D1_14)
-  ENDIF
-  IF ( ALLOCATED(OutData%D1_15) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%D1_15,1),SIZE(OutData%D1_15,2)))
-  mask2 = .TRUE.
-    OutData%D1_15 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D1_15))-1 ),mask2,OutData%D1_15)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%D1_15)
   ENDIF
   IF ( ALLOCATED(OutData%FY) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FY,1)))

@@ -3,8 +3,8 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed $Date: 2014-10-02 11:56:43 -0600 (Thu, 02 Oct 2014) $
-# (File) Revision #: $Rev: 328 $
+# File last committed $Date: 2015-02-27 13:07:49 -0700 (Fri, 27 Feb 2015) $
+# (File) Revision #: $Rev: 341 $
 # URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/trunk/Source/SubDyn_Registry.txt $
 ###################################################################################################################################
 # ...... Include files (definitions from NWTC Library) ............................................................................
@@ -149,13 +149,11 @@ typedef	^	ParameterType	Logical	SttcSolve	-	-	-	"Solve dynamics about static equ
 typedef	^	ParameterType	ReKi	NOmegaM2	{:}	-	-	"Coefficient of x in X (negative omegaM squared)"
 typedef	^	ParameterType	ReKi	N2OmegaMJDamp	{:}	-	-	"Coefficient of x in X (negative 2 omegaM * JDamping)"
 typedef	^	ParameterType	ReKi	MMB	{:}{:}	-	-	"Matrix after C-B reduction (transpose of MBM"
-typedef	^	ParameterType	ReKi	PhiM_T	{:}{:}	-	-	"Coefficient of u in X (transpose of phiM)"
 typedef	^	ParameterType	ReKi	FX	{:}	-	-	"Load components in X"
 typedef	^	ParameterType	ReKi	C1_11	{:}{:}	-	-	"Coefficient of x in Y1"
 typedef	^	ParameterType	ReKi	C1_12	{:}{:}	-	-	"Coefficient of x in Y1"
 typedef	^	ParameterType	ReKi	D1_13	{:}{:}	-	-	"Coefficient of u in Y1"
 typedef	^	ParameterType	ReKi	D1_14	{:}{:}	-	-	"Coefficient of u in Y1"
-typedef	^	ParameterType	ReKi	D1_15	{:}{:}	-	-	"Coefficient of u in Y1"
 typedef	^	ParameterType	ReKi	FY	{:}	-	-	"Load Components in  Y1"
 typedef	^	ParameterType	ReKi	PhiM	{:}{:}	-	-	"Coefficient of x in Y2"
 typedef	^	ParameterType	ReKi	C2_61	{:}{:}	-	-	"Coefficient of x in Y2 (URdotdot ULdotdot)"

@@ -8001,23 +8001,6 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
                                                            ' instead of '//TRIM(Num2LStr(ChanLen))//' characters.' )
 
 
-   ! bjj: figure out what to do with these checks...
-   !IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( InputFileData%OoPDefl /= 0.0 ) )  &
-   !   CALL ProgAbort ( ' Initial out-of-plane blade-tip displacements must be zero when ElastoDyn is interfaced with Simulink'// &
-   !                ' or Labview. Set OoPDefl to 0.0 or use the standard version of ElastoDyn.'                )
-   !
-   !IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( InputFileData%IPDefl  /= 0.0 ) )  &
-   !   CALL ProgAbort ( ' Initial in-plane blade-tip displacements must be zero when ElastoDyn is interfaced with Simulink'// &
-   !                ' or Labview. Set IPDefl to 0.0 or use the standard version of ElastoDyn.'                 )
-   !
-   !IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( InputFileData%TTDspFA /= 0.0 ) )  &
-   !   CALL ProgAbort ( ' Initial fore-aft tower-top displacements must be zero when ElastoDyn is interfaced with Simulink'// &
-   !                ' or Labview. Set TTDspFA to 0.0 or use the standard version of ElastoDyn.'               )
-   !
-   !IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( InputFileData%TTDspSS /= 0.0 ) )  &
-   !   CALL ProgAbort ( ' Initial side-to-side tower-top displacements must be zero when ElastoDyn is interfaced with Simulink'// &
-   !                ' or Labview. Set TTDspSS to 0.0 or use the standard version of ElastoDyn.'                      )
-
    RETURN
 
 CONTAINS

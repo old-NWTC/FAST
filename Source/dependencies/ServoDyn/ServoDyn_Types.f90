@@ -126,6 +126,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitchInit      ! Initial blade pitch [-]
     REAL(ReKi)  :: Gravity      ! Gravitational acceleration [m/s^2]
     REAL(ReKi) , DIMENSION(1:3)  :: r_N_O_G      ! nacelle origin for setting up mesh [m]
+    REAL(DbKi)  :: Tmax      ! max time from glue code [s]
   END TYPE SrvD_InitInputType
 ! =======================
 ! =========  SrvD_InitOutputType  =======
@@ -1064,6 +1065,7 @@ IF (ALLOCATED(SrcInitInputData%BlPitchInit)) THEN
 ENDIF
    DstInitInputData%Gravity = SrcInitInputData%Gravity
    DstInitInputData%r_N_O_G = SrcInitInputData%r_N_O_G
+   DstInitInputData%Tmax = SrcInitInputData%Tmax
  END SUBROUTINE SrvD_CopyInitInput
 
  SUBROUTINE SrvD_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
@@ -1119,6 +1121,7 @@ ENDIF
   IF ( ALLOCATED(InData%BlPitchInit) )   Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitchInit )  ! BlPitchInit 
   Re_BufSz   = Re_BufSz   + 1  ! Gravity
   Re_BufSz    = Re_BufSz    + SIZE( InData%r_N_O_G )  ! r_N_O_G 
+  Db_BufSz   = Db_BufSz   + 1  ! Tmax
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1132,6 +1135,8 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%r_N_O_G))-1 ) =  PACK(InData%r_N_O_G ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%r_N_O_G)
+  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%Tmax )
+  Db_Xferred   = Db_Xferred   + 1
  END SUBROUTINE SrvD_PackInitInput
 
  SUBROUTINE SrvD_UnPackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1183,6 +1188,8 @@ ENDIF
   OutData%r_N_O_G = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%r_N_O_G))-1 ),mask1,OutData%r_N_O_G)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%r_N_O_G)
+  OutData%Tmax = DbKiBuf ( Db_Xferred )
+  Db_Xferred   = Db_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1

@@ -113,6 +113,7 @@ typedef	^	InitInputType	CHARACTER(1024)	RootName	-	-	-	"RootName for writing out
 typedef	^	InitInputType	ReKi	BlPitchInit	{:}	-	-	"Initial blade pitch"	-
 typedef	^	InitInputType	ReKi	Gravity	-	-	-	"Gravitational acceleration"	m/s^2
 typedef	^	InitInputType	ReKi	r_N_O_G	{3}	-	-	"nacelle origin for setting up mesh"	m
+typedef	^	InitInputType	DbKi	Tmax	-	-	-	"max time from glue code"	s
 
 # Define outputs from the initialization routine here:
 typedef	^	InitOutputType	CHARACTER(ChanLen)	WriteOutputHdr	{:}	-	-	"Names of the output-to-file channels"	-

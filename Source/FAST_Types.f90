@@ -330,6 +330,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: YawPosCom      ! yaw position command from Simulink/Labview [-]
     REAL(ReKi)  :: YawRateCom      ! yaw rate command from Simulink/Labview [-]
     REAL(ReKi) , DIMENSION(1:3)  :: BlPitchCom      ! blade pitch commands from Simulink/Labview [rad/s]
+    REAL(ReKi)  :: HSSBrFrac      ! Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full) from Simulink or LabVIEW [-]
     REAL(ReKi) , DIMENSION(1:3)  :: LidarFocus      ! lidar focus (relative to lidar location) [m]
   END TYPE FAST_ExternInputType
 ! =======================
@@ -9435,6 +9436,7 @@ ENDDO
    DstExternInputTypeData%YawPosCom = SrcExternInputTypeData%YawPosCom
    DstExternInputTypeData%YawRateCom = SrcExternInputTypeData%YawRateCom
    DstExternInputTypeData%BlPitchCom = SrcExternInputTypeData%BlPitchCom
+   DstExternInputTypeData%HSSBrFrac = SrcExternInputTypeData%HSSBrFrac
    DstExternInputTypeData%LidarFocus = SrcExternInputTypeData%LidarFocus
  END SUBROUTINE FAST_CopyExternInputType
 
@@ -9487,6 +9489,7 @@ ENDDO
   Re_BufSz   = Re_BufSz   + 1  ! YawPosCom
   Re_BufSz   = Re_BufSz   + 1  ! YawRateCom
   Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitchCom )  ! BlPitchCom 
+  Re_BufSz   = Re_BufSz   + 1  ! HSSBrFrac
   Re_BufSz    = Re_BufSz    + SIZE( InData%LidarFocus )  ! LidarFocus 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
@@ -9501,6 +9504,8 @@ ENDDO
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%BlPitchCom))-1 ) =  PACK(InData%BlPitchCom ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%BlPitchCom)
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%HSSBrFrac )
+  Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LidarFocus))-1 ) =  PACK(InData%LidarFocus ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%LidarFocus)
  END SUBROUTINE FAST_PackExternInputType
@@ -9551,6 +9556,8 @@ ENDDO
   OutData%BlPitchCom = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%BlPitchCom))-1 ),mask1,OutData%BlPitchCom)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%BlPitchCom)
+  OutData%HSSBrFrac = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
   ALLOCATE(mask1(SIZE(OutData%LidarFocus,1)))
   mask1 = .TRUE.
   OutData%LidarFocus = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LidarFocus))-1 ),mask1,OutData%LidarFocus)

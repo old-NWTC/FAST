@@ -24,4 +24,4 @@ static int AbortErrLev = ErrID_Fatal;      // abort error level; compare with NW
 #define CHANNEL_LENGTH 10  
 #define MAXInitINPUTS 10
 
-#define NumFixedInputs  2 + 2 + MAXIMUM_BLADES
+#define NumFixedInputs  2 + 2 + MAXIMUM_BLADES + 1
