@@ -42,14 +42,11 @@ IMPLICIT NONE
     CHARACTER(1024)  :: FileName      ! MoorDyn input file [-]
     CHARACTER(1024)  :: RootName      ! RootName for writing output files [-]
     LOGICAL  :: Echo      ! echo parameter - do we want to echo the header line describing the input file? [-]
-    REAL(ReKi)  :: DT      ! is this driver program time step size? [[s]]
-    REAL(ReKi)  :: DTmooring      ! desired time step for mooring integration [[s]]
     REAL(ReKi)  :: DTIC      ! convergence check time step for IC generation [[s]]
     REAL(ReKi)  :: TMaxIC = 120      ! maximum time to allow for getting converged ICs [[s]]
     REAL(ReKi)  :: CdScaleIC = 1      ! factor to scale drag coefficients by during dynamic relaxation [[]]
     REAL(ReKi)  :: threshIC = 0.01      ! convergence tolerance for ICs  (0.01 means 1%) [[]]
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: OutList      ! string containing list of output channels requested in input file [-]
-    INTEGER(IntKi)  :: NumOuts      !  [-]
   END TYPE MD_InitInputType
 ! =======================
 ! =========  MD_LineProp  =======
@@ -132,7 +129,7 @@ IMPLICIT NONE
   TYPE, PUBLIC :: MD_InitOutputType
     CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: writeOutputHdr      ! first line output file contents: output variable names [-]
     CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: writeOutputUnt      ! second line of output file contents: units [-]
-    TYPE(ProgDesc)  :: Ver      ! his module's name, version, and date [-]
+    TYPE(ProgDesc)  :: Ver      ! this module's name, version, and date [-]
   END TYPE MD_InitOutputType
 ! =======================
 ! =========  MD_ContinuousStateType  =======
@@ -157,7 +154,7 @@ IMPLICIT NONE
 ! =======================
 ! =========  MD_ConstraintStateType  =======
   TYPE, PUBLIC :: MD_ConstraintStateType
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: dummy      ! @MH: I don't think my model needs anything here [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: dummy      !  [-]
   END TYPE MD_ConstraintStateType
 ! =======================
 ! =========  MD_ParameterType  =======
@@ -171,9 +168,8 @@ IMPLICIT NONE
     REAL(ReKi)  :: WtrDpth      ! water depth [[m]]
     REAL(ReKi)  :: kBot      ! bottom stiffness [[Pa/m]]
     REAL(ReKi)  :: cBot      ! bottom damping [[Pa-s/m]]
-    REAL(ReKi)  :: dt      ! mooring model time step [[s]]
-    REAL(ReKi)  :: dtCoupling      ! coupling time step [[s]]
-    INTEGER(IntKi)  :: Ndt      ! number of mooring time steps per coupling time step [[]]
+    REAL(ReKi)  :: dtM0      ! desired mooring model time step [[s]]
+    REAL(ReKi)  :: dtCoupling      ! coupling time step that MoorDyn should expect [[s]]
     INTEGER(IntKi)  :: NumOuts      ! Number of parameters in the output list (number of outputs requested) [-]
     CHARACTER(1024)  :: RootName      ! RootName for writing output files [-]
     TYPE(MD_OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam      ! Names and units (and other characteristics) of all requested output parameters [-]
@@ -182,18 +178,12 @@ IMPLICIT NONE
 ! =======================
 ! =========  MD_InputType  =======
   TYPE, PUBLIC :: MD_InputType
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: x      ! Connect x displacement [[m] - using these to temporarily hold initial Connect locations]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: y      ! Connect y displacement [[m]]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: z      ! Connect z displacement [[m]]
-    TYPE(MeshType)  :: PtFairleadDisplacement      ! position of each fairlead in X,Y,Z [[m]]
+    TYPE(MeshType)  :: PtFairleadDisplacement      ! mesh for position AND VELOCITY of each fairlead in X,Y,Z [[m, m/s]]
   END TYPE MD_InputType
 ! =======================
 ! =========  MD_OutputType  =======
   TYPE, PUBLIC :: MD_OutputType
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Fx      ! horizontal line force [[N]]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Fy      ! Vertical line force [[N]]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Fz      ! horizontal line force at anchor [[N]]
-    TYPE(MeshType)  :: PtFairleadLoad      ! point mesh for forces in X,Y,Z [[N]]
+    TYPE(MeshType)  :: PtFairleadLoad      ! point mesh for fairlead forces in X,Y,Z [[N]]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      ! output vector returned to glue code []
   END TYPE MD_OutputType
 ! =======================
@@ -221,8 +211,6 @@ CONTAINS
    DstInitInputData%FileName = SrcInitInputData%FileName
    DstInitInputData%RootName = SrcInitInputData%RootName
    DstInitInputData%Echo = SrcInitInputData%Echo
-   DstInitInputData%DT = SrcInitInputData%DT
-   DstInitInputData%DTmooring = SrcInitInputData%DTmooring
    DstInitInputData%DTIC = SrcInitInputData%DTIC
    DstInitInputData%TMaxIC = SrcInitInputData%TMaxIC
    DstInitInputData%CdScaleIC = SrcInitInputData%CdScaleIC
@@ -239,7 +227,6 @@ IF (ALLOCATED(SrcInitInputData%OutList)) THEN
    END IF
    DstInitInputData%OutList = SrcInitInputData%OutList
 ENDIF
-   DstInitInputData%NumOuts = SrcInitInputData%NumOuts
  END SUBROUTINE MD_CopyInitInput
 
  SUBROUTINE MD_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
@@ -296,14 +283,11 @@ ENDIF
 !  missing buffer for FileName
 !  missing buffer for RootName
   Int_BufSz  = Int_BufSz  + 1  ! Echo
-  Re_BufSz   = Re_BufSz   + 1  ! DT
-  Re_BufSz   = Re_BufSz   + 1  ! DTmooring
   Re_BufSz   = Re_BufSz   + 1  ! DTIC
   Re_BufSz   = Re_BufSz   + 1  ! TMaxIC
   Re_BufSz   = Re_BufSz   + 1  ! CdScaleIC
   Re_BufSz   = Re_BufSz   + 1  ! threshIC
 !  missing buffer for OutList
-  Int_BufSz  = Int_BufSz  + 1  ! NumOuts
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -317,10 +301,6 @@ ENDIF
   Re_Xferred   = Re_Xferred   + SIZE(InData%PtfmInit)
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%Echo ), IntKiBuf(1), 1)
   Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DT )
-  Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DTmooring )
-  Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DTIC )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%TMaxIC )
@@ -329,8 +309,6 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%threshIC )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumOuts )
-  Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE MD_PackInitInput
 
  SUBROUTINE MD_UnPackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -377,10 +355,6 @@ ENDIF
   OutData%PtfmInit = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PtfmInit))-1 ),mask1,OutData%PtfmInit)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%PtfmInit)
-  OutData%DT = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  OutData%DTmooring = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
   OutData%DTIC = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%TMaxIC = ReKiBuf ( Re_Xferred )
@@ -389,8 +363,6 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%threshIC = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  OutData%NumOuts = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
@@ -2586,9 +2558,8 @@ ENDIF
    DstParamData%WtrDpth = SrcParamData%WtrDpth
    DstParamData%kBot = SrcParamData%kBot
    DstParamData%cBot = SrcParamData%cBot
-   DstParamData%dt = SrcParamData%dt
+   DstParamData%dtM0 = SrcParamData%dtM0
    DstParamData%dtCoupling = SrcParamData%dtCoupling
-   DstParamData%Ndt = SrcParamData%Ndt
    DstParamData%NumOuts = SrcParamData%NumOuts
    DstParamData%RootName = SrcParamData%RootName
 IF (ALLOCATED(SrcParamData%OutParam)) THEN
@@ -2672,9 +2643,8 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! WtrDpth
   Re_BufSz   = Re_BufSz   + 1  ! kBot
   Re_BufSz   = Re_BufSz   + 1  ! cBot
-  Re_BufSz   = Re_BufSz   + 1  ! dt
+  Re_BufSz   = Re_BufSz   + 1  ! dtM0
   Re_BufSz   = Re_BufSz   + 1  ! dtCoupling
-  Int_BufSz  = Int_BufSz  + 1  ! Ndt
   Int_BufSz  = Int_BufSz  + 1  ! NumOuts
 !  missing buffer for RootName
 DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
@@ -2708,12 +2678,10 @@ ENDDO
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%cBot )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%dt )
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%dtM0 )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%dtCoupling )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%Ndt )
-  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumOuts )
   Int_Xferred   = Int_Xferred   + 1
 DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
@@ -2790,12 +2758,10 @@ ENDDO
   Re_Xferred   = Re_Xferred   + 1
   OutData%cBot = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  OutData%dt = ReKiBuf ( Re_Xferred )
+  OutData%dtM0 = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%dtCoupling = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  OutData%Ndt = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
   OutData%NumOuts = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
 DO i1 = LBOUND(OutData%OutParam,1), UBOUND(OutData%OutParam,1)
@@ -2828,48 +2794,11 @@ ENDDO
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
-   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ALLOCATED(SrcInputData%x)) THEN
-   i1_l = LBOUND(SrcInputData%x,1)
-   i1_u = UBOUND(SrcInputData%x,1)
-   IF (.NOT. ALLOCATED(DstInputData%x)) THEN 
-      ALLOCATE(DstInputData%x(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInputData%x.', ErrStat, ErrMsg,'MD_CopyInput')
-         RETURN
-      END IF
-   END IF
-   DstInputData%x = SrcInputData%x
-ENDIF
-IF (ALLOCATED(SrcInputData%y)) THEN
-   i1_l = LBOUND(SrcInputData%y,1)
-   i1_u = UBOUND(SrcInputData%y,1)
-   IF (.NOT. ALLOCATED(DstInputData%y)) THEN 
-      ALLOCATE(DstInputData%y(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInputData%y.', ErrStat, ErrMsg,'MD_CopyInput')
-         RETURN
-      END IF
-   END IF
-   DstInputData%y = SrcInputData%y
-ENDIF
-IF (ALLOCATED(SrcInputData%z)) THEN
-   i1_l = LBOUND(SrcInputData%z,1)
-   i1_u = UBOUND(SrcInputData%z,1)
-   IF (.NOT. ALLOCATED(DstInputData%z)) THEN 
-      ALLOCATE(DstInputData%z(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInputData%z.', ErrStat, ErrMsg,'MD_CopyInput')
-         RETURN
-      END IF
-   END IF
-   DstInputData%z = SrcInputData%z
-ENDIF
      CALL MeshCopy( SrcInputData%PtFairleadDisplacement, DstInputData%PtFairleadDisplacement, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MD_CopyInput:PtFairleadDisplacement')
          IF (ErrStat>=AbortErrLev) RETURN
@@ -2883,15 +2812,6 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(InputData%x)) THEN
-   DEALLOCATE(InputData%x)
-ENDIF
-IF (ALLOCATED(InputData%y)) THEN
-   DEALLOCATE(InputData%y)
-ENDIF
-IF (ALLOCATED(InputData%z)) THEN
-   DEALLOCATE(InputData%z)
-ENDIF
   CALL MeshDestroy( InputData%PtFairleadDisplacement, ErrStat, ErrMsg )
  END SUBROUTINE MD_DestroyInput
 
@@ -2932,9 +2852,6 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  IF ( ALLOCATED(InData%x) )   Re_BufSz    = Re_BufSz    + SIZE( InData%x )  ! x 
-  IF ( ALLOCATED(InData%y) )   Re_BufSz    = Re_BufSz    + SIZE( InData%y )  ! y 
-  IF ( ALLOCATED(InData%z) )   Re_BufSz    = Re_BufSz    + SIZE( InData%z )  ! z 
  ! Allocate mesh buffers, if any (we'll also get sizes from these) 
   CALL MeshPack( InData%PtFairleadDisplacement, Re_PtFairleadDisplacement_Buf, Db_PtFairleadDisplacement_Buf, Int_PtFairleadDisplacement_Buf, ErrStat, ErrMsg, .TRUE. ) ! PtFairleadDisplacement 
   IF(ALLOCATED(Re_PtFairleadDisplacement_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_PtFairleadDisplacement_Buf  ) ! PtFairleadDisplacement
@@ -2946,18 +2863,6 @@ ENDIF
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( ALLOCATED(InData%x) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%x))-1 ) =  PACK(InData%x ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%x)
-  ENDIF
-  IF ( ALLOCATED(InData%y) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%y))-1 ) =  PACK(InData%y ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%y)
-  ENDIF
-  IF ( ALLOCATED(InData%z) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%z))-1 ) =  PACK(InData%z ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%z)
-  ENDIF
   CALL MeshPack( InData%PtFairleadDisplacement, Re_PtFairleadDisplacement_Buf, Db_PtFairleadDisplacement_Buf, Int_PtFairleadDisplacement_Buf, ErrStat, ErrMsg, OnlySize ) ! PtFairleadDisplacement 
   IF(ALLOCATED(Re_PtFairleadDisplacement_Buf)) THEN
     IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_PtFairleadDisplacement_Buf)-1 ) = Re_PtFairleadDisplacement_Buf
@@ -3012,27 +2917,6 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  IF ( ALLOCATED(OutData%x) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%x,1)))
-  mask1 = .TRUE.
-    OutData%x = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%x))-1 ),mask1,OutData%x)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%x)
-  ENDIF
-  IF ( ALLOCATED(OutData%y) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%y,1)))
-  mask1 = .TRUE.
-    OutData%y = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%y))-1 ),mask1,OutData%y)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%y)
-  ENDIF
-  IF ( ALLOCATED(OutData%z) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%z,1)))
-  mask1 = .TRUE.
-    OutData%z = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%z))-1 ),mask1,OutData%z)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%z)
-  ENDIF
  ! first call MeshPack to get correctly sized buffers for unpacking
   CALL MeshPack( OutData%PtFairleadDisplacement, Re_PtFairleadDisplacement_Buf, Db_PtFairleadDisplacement_Buf, Int_PtFairleadDisplacement_Buf, ErrStat, ErrMsg , .TRUE. ) ! PtFairleadDisplacement 
   IF(ALLOCATED(Re_PtFairleadDisplacement_Buf)) THEN
@@ -3070,42 +2954,6 @@ ENDIF
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ALLOCATED(SrcOutputData%Fx)) THEN
-   i1_l = LBOUND(SrcOutputData%Fx,1)
-   i1_u = UBOUND(SrcOutputData%Fx,1)
-   IF (.NOT. ALLOCATED(DstOutputData%Fx)) THEN 
-      ALLOCATE(DstOutputData%Fx(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%Fx.', ErrStat, ErrMsg,'MD_CopyOutput')
-         RETURN
-      END IF
-   END IF
-   DstOutputData%Fx = SrcOutputData%Fx
-ENDIF
-IF (ALLOCATED(SrcOutputData%Fy)) THEN
-   i1_l = LBOUND(SrcOutputData%Fy,1)
-   i1_u = UBOUND(SrcOutputData%Fy,1)
-   IF (.NOT. ALLOCATED(DstOutputData%Fy)) THEN 
-      ALLOCATE(DstOutputData%Fy(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%Fy.', ErrStat, ErrMsg,'MD_CopyOutput')
-         RETURN
-      END IF
-   END IF
-   DstOutputData%Fy = SrcOutputData%Fy
-ENDIF
-IF (ALLOCATED(SrcOutputData%Fz)) THEN
-   i1_l = LBOUND(SrcOutputData%Fz,1)
-   i1_u = UBOUND(SrcOutputData%Fz,1)
-   IF (.NOT. ALLOCATED(DstOutputData%Fz)) THEN 
-      ALLOCATE(DstOutputData%Fz(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%Fz.', ErrStat, ErrMsg,'MD_CopyOutput')
-         RETURN
-      END IF
-   END IF
-   DstOutputData%Fz = SrcOutputData%Fz
-ENDIF
      CALL MeshCopy( SrcOutputData%PtFairleadLoad, DstOutputData%PtFairleadLoad, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MD_CopyOutput:PtFairleadLoad')
          IF (ErrStat>=AbortErrLev) RETURN
@@ -3131,15 +2979,6 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(OutputData%Fx)) THEN
-   DEALLOCATE(OutputData%Fx)
-ENDIF
-IF (ALLOCATED(OutputData%Fy)) THEN
-   DEALLOCATE(OutputData%Fy)
-ENDIF
-IF (ALLOCATED(OutputData%Fz)) THEN
-   DEALLOCATE(OutputData%Fz)
-ENDIF
   CALL MeshDestroy( OutputData%PtFairleadLoad, ErrStat, ErrMsg )
 IF (ALLOCATED(OutputData%WriteOutput)) THEN
    DEALLOCATE(OutputData%WriteOutput)
@@ -3183,9 +3022,6 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  IF ( ALLOCATED(InData%Fx) )   Re_BufSz    = Re_BufSz    + SIZE( InData%Fx )  ! Fx 
-  IF ( ALLOCATED(InData%Fy) )   Re_BufSz    = Re_BufSz    + SIZE( InData%Fy )  ! Fy 
-  IF ( ALLOCATED(InData%Fz) )   Re_BufSz    = Re_BufSz    + SIZE( InData%Fz )  ! Fz 
  ! Allocate mesh buffers, if any (we'll also get sizes from these) 
   CALL MeshPack( InData%PtFairleadLoad, Re_PtFairleadLoad_Buf, Db_PtFairleadLoad_Buf, Int_PtFairleadLoad_Buf, ErrStat, ErrMsg, .TRUE. ) ! PtFairleadLoad 
   IF(ALLOCATED(Re_PtFairleadLoad_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_PtFairleadLoad_Buf  ) ! PtFairleadLoad
@@ -3198,18 +3034,6 @@ ENDIF
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( ALLOCATED(InData%Fx) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Fx))-1 ) =  PACK(InData%Fx ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%Fx)
-  ENDIF
-  IF ( ALLOCATED(InData%Fy) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Fy))-1 ) =  PACK(InData%Fy ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%Fy)
-  ENDIF
-  IF ( ALLOCATED(InData%Fz) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Fz))-1 ) =  PACK(InData%Fz ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%Fz)
-  ENDIF
   CALL MeshPack( InData%PtFairleadLoad, Re_PtFairleadLoad_Buf, Db_PtFairleadLoad_Buf, Int_PtFairleadLoad_Buf, ErrStat, ErrMsg, OnlySize ) ! PtFairleadLoad 
   IF(ALLOCATED(Re_PtFairleadLoad_Buf)) THEN
     IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_PtFairleadLoad_Buf)-1 ) = Re_PtFairleadLoad_Buf
@@ -3268,27 +3092,6 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  IF ( ALLOCATED(OutData%Fx) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%Fx,1)))
-  mask1 = .TRUE.
-    OutData%Fx = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Fx))-1 ),mask1,OutData%Fx)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%Fx)
-  ENDIF
-  IF ( ALLOCATED(OutData%Fy) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%Fy,1)))
-  mask1 = .TRUE.
-    OutData%Fy = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Fy))-1 ),mask1,OutData%Fy)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%Fy)
-  ENDIF
-  IF ( ALLOCATED(OutData%Fz) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%Fz,1)))
-  mask1 = .TRUE.
-    OutData%Fz = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Fz))-1 ),mask1,OutData%Fz)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%Fz)
-  ENDIF
  ! first call MeshPack to get correctly sized buffers for unpacking
   CALL MeshPack( OutData%PtFairleadLoad, Re_PtFairleadLoad_Buf, Db_PtFairleadLoad_Buf, Int_PtFairleadLoad_Buf, ErrStat, ErrMsg , .TRUE. ) ! PtFairleadLoad 
   IF(ALLOCATED(Re_PtFairleadLoad_Buf)) THEN
@@ -3348,8 +3151,6 @@ ENDIF
  INTEGER(IntKi)                 :: order    ! order of polynomial fit (max 2)
  REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
- REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: c1       ! temporary for extrapolation/interpolation
  INTEGER(IntKi)                             :: ErrStat2 ! local errors
  CHARACTER(1024)                            :: ErrMsg2  ! local errors
     ! Initialize ErrStat
@@ -3372,15 +3173,6 @@ ENDIF
  endif
  order = SIZE(u) - 1
  IF ( order .eq. 0 ) THEN
-IF (ALLOCATED(u_out%x) .AND. ALLOCATED(u(1)%x)) THEN
-  u_out%x = u(1)%x
-END IF ! check if allocated
-IF (ALLOCATED(u_out%y) .AND. ALLOCATED(u(1)%y)) THEN
-  u_out%y = u(1)%y
-END IF ! check if allocated
-IF (ALLOCATED(u_out%z) .AND. ALLOCATED(u(1)%z)) THEN
-  u_out%z = u(1)%z
-END IF ! check if allocated
   CALL MeshCopy(u(1)%PtFairleadDisplacement, u_out%PtFairleadDisplacement, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MD_Input_ExtrapInterp:%PtFairleadDisplacement')
          IF (ErrStat>=AbortErrLev) RETURN
@@ -3390,30 +3182,6 @@ END IF ! check if allocated
     ErrMsg  = ' Error in MD_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
-IF (ALLOCATED(u_out%x) .AND. ALLOCATED(u(1)%x)) THEN
-  ALLOCATE(b1(SIZE(u_out%x,1)))
-  ALLOCATE(c1(SIZE(u_out%x,1)))
-  b1 = -(u(1)%x - u(2)%x)/t(2)
-  u_out%x = u(1)%x + b1 * t_out
-  DEALLOCATE(b1)
-  DEALLOCATE(c1)
-END IF ! check if allocated
-IF (ALLOCATED(u_out%y) .AND. ALLOCATED(u(1)%y)) THEN
-  ALLOCATE(b1(SIZE(u_out%y,1)))
-  ALLOCATE(c1(SIZE(u_out%y,1)))
-  b1 = -(u(1)%y - u(2)%y)/t(2)
-  u_out%y = u(1)%y + b1 * t_out
-  DEALLOCATE(b1)
-  DEALLOCATE(c1)
-END IF ! check if allocated
-IF (ALLOCATED(u_out%z) .AND. ALLOCATED(u(1)%z)) THEN
-  ALLOCATE(b1(SIZE(u_out%z,1)))
-  ALLOCATE(c1(SIZE(u_out%z,1)))
-  b1 = -(u(1)%z - u(2)%z)/t(2)
-  u_out%z = u(1)%z + b1 * t_out
-  DEALLOCATE(b1)
-  DEALLOCATE(c1)
-END IF ! check if allocated
   CALL MeshExtrapInterp1(u(1)%PtFairleadDisplacement, u(2)%PtFairleadDisplacement, tin, u_out%PtFairleadDisplacement, tin_out, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MD_Input_ExtrapInterp:%PtFairleadDisplacement')
          IF (ErrStat>=AbortErrLev) RETURN
@@ -3433,33 +3201,6 @@ END IF ! check if allocated
     ErrMsg  = ' Error in MD_Input_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
-IF (ALLOCATED(u_out%x) .AND. ALLOCATED(u(1)%x)) THEN
-  ALLOCATE(b1(SIZE(u_out%x,1)))
-  ALLOCATE(c1(SIZE(u_out%x,1)))
-  b1 = (t(3)**2*(u(1)%x - u(2)%x) + t(2)**2*(-u(1)%x + u(3)%x))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%x + t(3)*u(2)%x - t(2)*u(3)%x ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%x = u(1)%x + b1 * t_out + c1 * t_out**2
-  DEALLOCATE(b1)
-  DEALLOCATE(c1)
-END IF ! check if allocated
-IF (ALLOCATED(u_out%y) .AND. ALLOCATED(u(1)%y)) THEN
-  ALLOCATE(b1(SIZE(u_out%y,1)))
-  ALLOCATE(c1(SIZE(u_out%y,1)))
-  b1 = (t(3)**2*(u(1)%y - u(2)%y) + t(2)**2*(-u(1)%y + u(3)%y))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%y + t(3)*u(2)%y - t(2)*u(3)%y ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%y = u(1)%y + b1 * t_out + c1 * t_out**2
-  DEALLOCATE(b1)
-  DEALLOCATE(c1)
-END IF ! check if allocated
-IF (ALLOCATED(u_out%z) .AND. ALLOCATED(u(1)%z)) THEN
-  ALLOCATE(b1(SIZE(u_out%z,1)))
-  ALLOCATE(c1(SIZE(u_out%z,1)))
-  b1 = (t(3)**2*(u(1)%z - u(2)%z) + t(2)**2*(-u(1)%z + u(3)%z))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%z + t(3)*u(2)%z - t(2)*u(3)%z ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%z = u(1)%z + b1 * t_out + c1 * t_out**2
-  DEALLOCATE(b1)
-  DEALLOCATE(c1)
-END IF ! check if allocated
   CALL MeshExtrapInterp2(u(1)%PtFairleadDisplacement, u(2)%PtFairleadDisplacement, u(3)%PtFairleadDisplacement, tin, u_out%PtFairleadDisplacement, tin_out, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MD_Input_ExtrapInterp:%PtFairleadDisplacement')
          IF (ErrStat>=AbortErrLev) RETURN
@@ -3523,15 +3264,6 @@ END IF ! check if allocated
  endif
  order = SIZE(u) - 1
  IF ( order .eq. 0 ) THEN
-IF (ALLOCATED(u_out%Fx) .AND. ALLOCATED(u(1)%Fx)) THEN
-  u_out%Fx = u(1)%Fx
-END IF ! check if allocated
-IF (ALLOCATED(u_out%Fy) .AND. ALLOCATED(u(1)%Fy)) THEN
-  u_out%Fy = u(1)%Fy
-END IF ! check if allocated
-IF (ALLOCATED(u_out%Fz) .AND. ALLOCATED(u(1)%Fz)) THEN
-  u_out%Fz = u(1)%Fz
-END IF ! check if allocated
   CALL MeshCopy(u(1)%PtFairleadLoad, u_out%PtFairleadLoad, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MD_Output_ExtrapInterp:%PtFairleadLoad')
          IF (ErrStat>=AbortErrLev) RETURN
@@ -3544,30 +3276,6 @@ END IF ! check if allocated
     ErrMsg  = ' Error in MD_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
-IF (ALLOCATED(u_out%Fx) .AND. ALLOCATED(u(1)%Fx)) THEN
-  ALLOCATE(b1(SIZE(u_out%Fx,1)))
-  ALLOCATE(c1(SIZE(u_out%Fx,1)))
-  b1 = -(u(1)%Fx - u(2)%Fx)/t(2)
-  u_out%Fx = u(1)%Fx + b1 * t_out
-  DEALLOCATE(b1)
-  DEALLOCATE(c1)
-END IF ! check if allocated
-IF (ALLOCATED(u_out%Fy) .AND. ALLOCATED(u(1)%Fy)) THEN
-  ALLOCATE(b1(SIZE(u_out%Fy,1)))
-  ALLOCATE(c1(SIZE(u_out%Fy,1)))
-  b1 = -(u(1)%Fy - u(2)%Fy)/t(2)
-  u_out%Fy = u(1)%Fy + b1 * t_out
-  DEALLOCATE(b1)
-  DEALLOCATE(c1)
-END IF ! check if allocated
-IF (ALLOCATED(u_out%Fz) .AND. ALLOCATED(u(1)%Fz)) THEN
-  ALLOCATE(b1(SIZE(u_out%Fz,1)))
-  ALLOCATE(c1(SIZE(u_out%Fz,1)))
-  b1 = -(u(1)%Fz - u(2)%Fz)/t(2)
-  u_out%Fz = u(1)%Fz + b1 * t_out
-  DEALLOCATE(b1)
-  DEALLOCATE(c1)
-END IF ! check if allocated
   CALL MeshExtrapInterp1(u(1)%PtFairleadLoad, u(2)%PtFairleadLoad, tin, u_out%PtFairleadLoad, tin_out, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MD_Output_ExtrapInterp:%PtFairleadLoad')
          IF (ErrStat>=AbortErrLev) RETURN
@@ -3595,33 +3303,6 @@ END IF ! check if allocated
     ErrMsg  = ' Error in MD_Output_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
-IF (ALLOCATED(u_out%Fx) .AND. ALLOCATED(u(1)%Fx)) THEN
-  ALLOCATE(b1(SIZE(u_out%Fx,1)))
-  ALLOCATE(c1(SIZE(u_out%Fx,1)))
-  b1 = (t(3)**2*(u(1)%Fx - u(2)%Fx) + t(2)**2*(-u(1)%Fx + u(3)%Fx))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%Fx + t(3)*u(2)%Fx - t(2)*u(3)%Fx ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%Fx = u(1)%Fx + b1 * t_out + c1 * t_out**2
-  DEALLOCATE(b1)
-  DEALLOCATE(c1)
-END IF ! check if allocated
-IF (ALLOCATED(u_out%Fy) .AND. ALLOCATED(u(1)%Fy)) THEN
-  ALLOCATE(b1(SIZE(u_out%Fy,1)))
-  ALLOCATE(c1(SIZE(u_out%Fy,1)))
-  b1 = (t(3)**2*(u(1)%Fy - u(2)%Fy) + t(2)**2*(-u(1)%Fy + u(3)%Fy))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%Fy + t(3)*u(2)%Fy - t(2)*u(3)%Fy ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%Fy = u(1)%Fy + b1 * t_out + c1 * t_out**2
-  DEALLOCATE(b1)
-  DEALLOCATE(c1)
-END IF ! check if allocated
-IF (ALLOCATED(u_out%Fz) .AND. ALLOCATED(u(1)%Fz)) THEN
-  ALLOCATE(b1(SIZE(u_out%Fz,1)))
-  ALLOCATE(c1(SIZE(u_out%Fz,1)))
-  b1 = (t(3)**2*(u(1)%Fz - u(2)%Fz) + t(2)**2*(-u(1)%Fz + u(3)%Fz))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%Fz + t(3)*u(2)%Fz - t(2)*u(3)%Fz ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%Fz = u(1)%Fz + b1 * t_out + c1 * t_out**2
-  DEALLOCATE(b1)
-  DEALLOCATE(c1)
-END IF ! check if allocated
   CALL MeshExtrapInterp2(u(1)%PtFairleadLoad, u(2)%PtFairleadLoad, u(3)%PtFairleadLoad, tin, u_out%PtFairleadLoad, tin_out, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MD_Output_ExtrapInterp:%PtFairleadLoad')
          IF (ErrStat>=AbortErrLev) RETURN

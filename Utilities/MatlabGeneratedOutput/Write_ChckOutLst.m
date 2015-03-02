@@ -88,7 +88,7 @@ for i=1:length(VarName)
         ParamNum = ParamNum + 1;
         fprintf( fout, numFmt,  [VarName{i}, repmat(' ',1,CLen-length(VarName{i}))], ParamNum );        
     else
-        fprintf( fout, '\n\n%s%s:\n\n',  '     ! ', Category);  %make a comment describing the category
+        fprintf( fout, '\n\n%s%s:\n\n',  '     ! ', Category{i});  %make a comment describing the category
     end
 end
 

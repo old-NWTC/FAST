@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-02-27 13:07:49 -0700 (Fri, 27 Feb 2015) $
-! (File) Revision #: $Rev: 341 $
+! File last committed: $Date: 2015-03-02 09:27:15 -0700 (Mon, 02 Mar 2015) $
+! (File) Revision #: $Rev: 342 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/trunk/Source/SubDyn.f90 $
 !**********************************************************************************************************************************
 Module SubDyn
@@ -744,7 +744,7 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
                 
              !STATIC IMPROVEMENT METHOD  ( modify UL )
       IF (p%SttcSolve) THEN
-         FLt  = MATMUL(p%PhiL_T,                  OtherState%UFL + p%FGL)  ! -> bjj: todo: this line takes up A LOT of time. is PhiL sparse???? no
+         FLt  = MATMUL(p%PhiL_T,                  OtherState%UFL + p%FGL)  ! -> bjj: todo: this line takes up A LOT of time. is PhiL sparse???? no (solution: don't call this routine thousands of time to calculate the jacobian)
          ULS  = MATMUL(p%PhiLInvOmgL2,            FLt                   )  ! -> bjj: todo: this line takes up A LOT of time. is PhiL sparse????
          OtherState%UL  = OtherState%UL + ULS 
           

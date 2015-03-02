@@ -1,0 +1,43 @@
+----------- MoorDyn input file ----------------
+Mooring system for OC4-DeepCwind Semi
+TRUE           Echo           - Echo the input file data (flag)
+---------------------- LINE TYPES -----------------------------------------------------
+1        NTypes   - number of LineTypes
+Name      Diam    MassDenInAir    EA          BA     Can     Cat    Cdn     Cdt
+(-)       (m)       (kg/m)        (N)        (Pa-s)      (-)     (-)    (-)     (-)
+main      0.13      116.6      353.6E6       1.0E5       0.9     0.27   1.1     0.2
+---------------------- CONNECTION PROPERTIES -----------------------------------------------------
+6        NConnects   - number of connections including anchors and fairleads
+Node      Type      X        Y         Z        M        V        FX       FY      FZ
+(-)       (-)      (m)      (m)       (m)      (kg)     (m^3)    (kN)     (kN)    (kN)
+1         Fixed  -837.6       0.0    -200       0        0        0        0       0
+2         Fixed   418.8    -725.383  -200       0        0        0        0       0
+3         Fixed   418.8     725.383  -200       0        0        0        0       0
+4         Vessel  -40.868     0.0     -14       0        0        0        0       0
+5         Vessel   20.434   -35.393   -14       0        0        0        0       0
+6         Vessel   20.434    35.393   -14       0        0        0        0       0
+---------------------- LINE PROPERTIES -----------------------------------------------------
+3        NLines    - number of line objects
+Line     LineType  UnstrLen  NumSegs   NodeAnch  NodeFair  Flags/Outputs
+(-)      (-)       (m)         (-)       (-)       (-)       (-)
+1        main     833.6         20        1         4        pos
+2        main     834.8         20        2         5        pos
+3        main     834.85        20        3         6        pos
+---------------------- SOLVER OPTIONS-----------------------------------------
+0.001    DT           - time step to use in mooring integration
+0.5      DTIC         - time interval for analyzing convergence during IC gen
+20.0      TmaxIC       - max time for ic gen
+3.0e6    kbot         - bottom stiffness
+3.0e5    cbot         - bottom damping
+200      WtrDpth      - water depth
+1.0      CdScaleIC    - factor by which to scale drag coefficients during dynamic relaxation IC gen
+1026     rhoW    - water density overide
+0.001    threshIC     - threshold for IC convergence
+------------------------ OUTPUTS ------------------------
+FairTen1
+FairTen2
+FairTen3
+L3N10px
+C4px
+END
+--------------------- need this line ------------------
