@@ -528,6 +528,9 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: SolnVec      ! b in the equation Ax=b (last column of AugMat) [-]
     INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: AugMat_pivot      ! Pivot column for AugMat in LAPACK factorization [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: AllOuts      ! An array holding the value of all of the calculated (not only selected) output channels [see OutListParameters.xlsx spreadsheet]
+    REAL(ReKi)  :: HSSBrTrq      ! HSSBrTrq from update states; a hack to get this working with a single integrator [-]
+    REAL(ReKi)  :: HSSBrTrqC      ! Commanded HSS brake torque (adjusted for sign) [N-m]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: OgnlGeAzRo      ! Original DOF_GeAz row in AugMat [-]
   END TYPE ED_OtherStateType
 ! =======================
 ! =========  ED_ParameterType  =======
@@ -785,7 +788,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitchCom      ! Commanded blade pitch angles [radians]
     REAL(ReKi)  :: YawMom      ! Torque transmitted through the yaw bearing [N-m]
     REAL(ReKi)  :: GenTrq      ! Electrical generator torque [N-m]
-    REAL(ReKi)  :: HSSBrTrq      ! Instantaneous HSS brake torque [N-m]
+    REAL(ReKi)  :: HSSBrTrqC      ! Commanded HSS brake torque [N-m]
   END TYPE ED_InputType
 ! =======================
 ! =========  ED_OutputType  =======
@@ -8475,6 +8478,20 @@ IF (ALLOCATED(SrcOtherStateData%AllOuts)) THEN
    END IF
    DstOtherStateData%AllOuts = SrcOtherStateData%AllOuts
 ENDIF
+   DstOtherStateData%HSSBrTrq = SrcOtherStateData%HSSBrTrq
+   DstOtherStateData%HSSBrTrqC = SrcOtherStateData%HSSBrTrqC
+IF (ALLOCATED(SrcOtherStateData%OgnlGeAzRo)) THEN
+   i1_l = LBOUND(SrcOtherStateData%OgnlGeAzRo,1)
+   i1_u = UBOUND(SrcOtherStateData%OgnlGeAzRo,1)
+   IF (.NOT. ALLOCATED(DstOtherStateData%OgnlGeAzRo)) THEN 
+      ALLOCATE(DstOtherStateData%OgnlGeAzRo(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%OgnlGeAzRo.', ErrStat, ErrMsg,'ED_CopyOtherState')
+         RETURN
+      END IF
+   END IF
+   DstOtherStateData%OgnlGeAzRo = SrcOtherStateData%OgnlGeAzRo
+ENDIF
  END SUBROUTINE ED_CopyOtherState
 
  SUBROUTINE ED_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
@@ -8513,6 +8530,9 @@ IF (ALLOCATED(OtherStateData%AugMat_pivot)) THEN
 ENDIF
 IF (ALLOCATED(OtherStateData%AllOuts)) THEN
    DEALLOCATE(OtherStateData%AllOuts)
+ENDIF
+IF (ALLOCATED(OtherStateData%OgnlGeAzRo)) THEN
+   DEALLOCATE(OtherStateData%OgnlGeAzRo)
 ENDIF
  END SUBROUTINE ED_DestroyOtherState
 
@@ -8591,6 +8611,9 @@ ENDDO
   IF ( ALLOCATED(InData%SolnVec) )   Re_BufSz    = Re_BufSz    + SIZE( InData%SolnVec )  ! SolnVec 
   IF ( ALLOCATED(InData%AugMat_pivot) )   Int_BufSz   = Int_BufSz   + SIZE( InData%AugMat_pivot )  ! AugMat_pivot 
   IF ( ALLOCATED(InData%AllOuts) )   Re_BufSz    = Re_BufSz    + SIZE( InData%AllOuts )  ! AllOuts 
+  Re_BufSz   = Re_BufSz   + 1  ! HSSBrTrq
+  Re_BufSz   = Re_BufSz   + 1  ! HSSBrTrqC
+  IF ( ALLOCATED(InData%OgnlGeAzRo) )   Re_BufSz    = Re_BufSz    + SIZE( InData%OgnlGeAzRo )  ! OgnlGeAzRo 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -8677,6 +8700,14 @@ ENDDO
   IF ( ALLOCATED(InData%AllOuts) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AllOuts))-1 ) =  PACK(InData%AllOuts ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%AllOuts)
+  ENDIF
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%HSSBrTrq )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%HSSBrTrqC )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( ALLOCATED(InData%OgnlGeAzRo) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%OgnlGeAzRo))-1 ) =  PACK(InData%OgnlGeAzRo ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%OgnlGeAzRo)
   ENDIF
  END SUBROUTINE ED_PackOtherState
 
@@ -8826,6 +8857,17 @@ ENDDO
     OutData%AllOuts = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AllOuts))-1 ),mask1,OutData%AllOuts)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%AllOuts)
+  ENDIF
+  OutData%HSSBrTrq = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%HSSBrTrqC = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( ALLOCATED(OutData%OgnlGeAzRo) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%OgnlGeAzRo,1)))
+  mask1 = .TRUE.
+    OutData%OgnlGeAzRo = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%OgnlGeAzRo))-1 ),mask1,OutData%OgnlGeAzRo)
+  DEALLOCATE(mask1)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%OgnlGeAzRo)
   ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
@@ -12133,7 +12175,7 @@ IF (ALLOCATED(SrcInputData%BlPitchCom)) THEN
 ENDIF
    DstInputData%YawMom = SrcInputData%YawMom
    DstInputData%GenTrq = SrcInputData%GenTrq
-   DstInputData%HSSBrTrq = SrcInputData%HSSBrTrq
+   DstInputData%HSSBrTrqC = SrcInputData%HSSBrTrqC
  END SUBROUTINE ED_CopyInput
 
  SUBROUTINE ED_DestroyInput( InputData, ErrStat, ErrMsg )
@@ -12243,7 +12285,7 @@ ENDDO
   IF ( ALLOCATED(InData%BlPitchCom) )   Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitchCom )  ! BlPitchCom 
   Re_BufSz   = Re_BufSz   + 1  ! YawMom
   Re_BufSz   = Re_BufSz   + 1  ! GenTrq
-  Re_BufSz   = Re_BufSz   + 1  ! HSSBrTrq
+  Re_BufSz   = Re_BufSz   + 1  ! HSSBrTrqC
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -12327,7 +12369,7 @@ ENDDO
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%GenTrq )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%HSSBrTrq )
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%HSSBrTrqC )
   Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE ED_PackInput
 
@@ -12470,7 +12512,7 @@ ENDDO
   Re_Xferred   = Re_Xferred   + 1
   OutData%GenTrq = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  OutData%HSSBrTrq = ReKiBuf ( Re_Xferred )
+  OutData%HSSBrTrqC = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
@@ -13331,7 +13373,7 @@ IF (ALLOCATED(u_out%BlPitchCom) .AND. ALLOCATED(u(1)%BlPitchCom)) THEN
 END IF ! check if allocated
   u_out%YawMom = u(1)%YawMom
   u_out%GenTrq = u(1)%GenTrq
-  u_out%HSSBrTrq = u(1)%HSSBrTrq
+  u_out%HSSBrTrqC = u(1)%HSSBrTrqC
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -13382,8 +13424,8 @@ END IF ! check if allocated
   u_out%YawMom = u(1)%YawMom + b0 * t_out
   b0 = -(u(1)%GenTrq - u(2)%GenTrq)/t(2)
   u_out%GenTrq = u(1)%GenTrq + b0 * t_out
-  b0 = -(u(1)%HSSBrTrq - u(2)%HSSBrTrq)/t(2)
-  u_out%HSSBrTrq = u(1)%HSSBrTrq + b0 * t_out
+  b0 = -(u(1)%HSSBrTrqC - u(2)%HSSBrTrqC)/t(2)
+  u_out%HSSBrTrqC = u(1)%HSSBrTrqC + b0 * t_out
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -13449,9 +13491,9 @@ END IF ! check if allocated
   b0 = (t(3)**2*(u(1)%GenTrq - u(2)%GenTrq) + t(2)**2*(-u(1)%GenTrq + u(3)%GenTrq))/(t(2)*t(3)*(t(2) - t(3)))
   c0 = ( (t(2)-t(3))*u(1)%GenTrq + t(3)*u(2)%GenTrq - t(2)*u(3)%GenTrq ) / (t(2)*t(3)*(t(2) - t(3)))
   u_out%GenTrq = u(1)%GenTrq + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(u(1)%HSSBrTrq - u(2)%HSSBrTrq) + t(2)**2*(-u(1)%HSSBrTrq + u(3)%HSSBrTrq))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*u(1)%HSSBrTrq + t(3)*u(2)%HSSBrTrq - t(2)*u(3)%HSSBrTrq ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%HSSBrTrq = u(1)%HSSBrTrq + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(u(1)%HSSBrTrqC - u(2)%HSSBrTrqC) + t(2)**2*(-u(1)%HSSBrTrqC + u(3)%HSSBrTrqC))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*u(1)%HSSBrTrqC + t(3)*u(2)%HSSBrTrqC - t(2)*u(3)%HSSBrTrqC ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%HSSBrTrqC = u(1)%HSSBrTrqC + b0 * t_out + c0 * t_out**2
  ELSE 
    ErrStat = ErrID_Fatal
    ErrMsg = ' order must be less than 3 in ED_Input_ExtrapInterp '

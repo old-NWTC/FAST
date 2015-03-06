@@ -272,12 +272,14 @@ SUBROUTINE BladedInterface_End(u, p, OtherState, ErrStat, ErrMsg)
    INTEGER(IntKi)                                 :: ErrStat2    ! The error status code
    CHARACTER(LEN(ErrMsg))                         :: ErrMsg2     ! The error message, if an error occurred
    
-   
-   OtherState%dll_data%avrSWAP( 1) = -1.0   ! Status flag set as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation (-)
-   !CALL Fill_avrSWAP( -1_IntKi, -10.0_DbKi, u, p, LEN(ErrMsg), OtherState%dll_data )
+      ! call DLL final time, but skip if we've never called it
+   IF ( .NOT. EqualRealNos( OtherState%dll_data%avrSWAP( 1), 0.0_SiKi ) ) THEN
+      OtherState%dll_data%avrSWAP( 1) = -1.0   ! Status flag set as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation (-)
+      !CALL Fill_avrSWAP( -1_IntKi, -10.0_DbKi, u, p, LEN(ErrMsg), OtherState%dll_data )
 
-   CALL CallBladedDLL(p%DLL_Trgt,  OtherState%dll_data, p, ErrStat, ErrMsg)
-   
+      CALL CallBladedDLL(p%DLL_Trgt,  OtherState%dll_data, p, ErrStat, ErrMsg)
+   END IF
+      
    CALL FreeDynamicLib( p%DLL_Trgt, ErrStat2, ErrMsg2 )
    IF (ErrStat2 /= ErrID_None) THEN  
       ErrStat = MAX(ErrStat, ErrStat2)      

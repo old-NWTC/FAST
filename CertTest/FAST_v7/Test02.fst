@@ -26,7 +26,7 @@ True        GenTiStp    - Method to stop the generator {T: timed using TimGenOf,
    6.0      TimGenOn    - Time to turn on the generator for a startup (s) [used only when GenTiStr=True]
   12.0      TimGenOf    - Time to turn off the generator (s) [used only when GenTiStp=True]
    1        HSSBrMode   - HSS brake model {1: simple, 2: user-defined from routine UserHSSBr, 3: user-defined from Labview} (switch)
-9999.9  13.0      THSSBrDp    - Time to initiate deployment of the HSS brake (s)
+  13.0      THSSBrDp    - Time to initiate deployment of the HSS brake (s)
 9999.9      TiDynBrk    - Time to initiate deployment of the dynamic generator brake [CURRENTLY IGNORED] (s)
 9999.9      TTpBrDp(1)  - Time to initiate deployment of tip brake 1 (s)
 9999.9      TTpBrDp(2)  - Time to initiate deployment of tip brake 2 (s)
@@ -193,6 +193,7 @@ True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
 "LSSGagMya,LSSGagMza"              - LSS gage rotating bending moments
 "HSShftTq,GenTq"                   - HSS, Generator torque
 "HSShftPwr,GenPwr"                 - HSS and electrical generator power
+HSSBrTq
 END of FAST input file (the word "END" must appear in the first 3 columns of this last line).
 --------------------------------------------------------------------------------
 

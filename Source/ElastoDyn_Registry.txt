@@ -530,6 +530,9 @@ typedef	^	OtherStateType	ReKi	SolnVec	{:}	-	-	"b in the equation Ax=b (last colu
 typedef	^	OtherStateType	IntKi	AugMat_pivot	{:}	-	-	"Pivot column for AugMat in LAPACK factorization"
 #typedef	^	OtherStateType	ED_ContinuousStateType	k1	-	-	-	"Constant for ED_RK4 routine"	-
 typedef	^	OtherStateType	ReKi	AllOuts	{:}	-	-	"An array holding the value of all of the calculated (not only selected) output channels"	"see OutListParameters.xlsx spreadsheet"
+typedef	^	OtherStateType	ReKi	HSSBrTrq	-	-	-	"HSSBrTrq from update states; a hack to get this working with a single integrator"	-
+typedef	^	OtherStateType	ReKi	HSSBrTrqC	-	-	-	"Commanded HSS brake torque (adjusted for sign)"	N-m
+typedef	^	OtherStateType	ReKi	OgnlGeAzRo	{:}	-	-	"Original DOF_GeAz row in AugMat"	-
 
 # ..... Parameters ................................................................................................................
 # Define parameters here:
@@ -789,7 +792,7 @@ typedef	^	InputType	ReKi	PtfmAddedMass	{6}{6}	-	-	"Platform added mass matrix"	"
 typedef	^	InputType	ReKi	BlPitchCom	{:}	-	-	"Commanded blade pitch angles"	radians
 typedef	^	InputType	ReKi	YawMom	-	-	-	"Torque transmitted through the yaw bearing"	N-m
 typedef	^	InputType	ReKi	GenTrq	-	-	-	"Electrical generator torque"	N-m
-typedef	^	InputType	ReKi	HSSBrTrq	-	-	-	"Instantaneous HSS brake torque"	N-m
+typedef	^	InputType	ReKi	HSSBrTrqC	-	-	-	"Commanded HSS brake torque"	N-m
 
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:

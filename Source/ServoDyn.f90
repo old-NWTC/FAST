@@ -32,7 +32,7 @@ MODULE ServoDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.02.00a-bjj', '6-Feb-2015' )
+   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.02.00a-bjj', '31-Mar-2015' )
    CHARACTER(*),   PARAMETER            :: SrvD_Nickname = 'SrvD'
    
 #ifdef COMPILE_SIMULINK
@@ -214,12 +214,6 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
       
-      !bjj: temporary check until we add this functionality
-   IF ( InputFileData%THSSBrDp < InitInp%TMax )  THEN
-      InputFileData%THSSBrDp  = HUGE(InputFileData%THSSBrDp) ! Make sure this doesn't get shut off during simulation
-      CALL CheckError( ErrID_Info, 'THSSBrDp is ignored in this version of ServoDyn.' )
-   END IF
-      
       
       !............................................................................................
       ! Define parameters here:
@@ -369,10 +363,14 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
    InitOut%WriteOutputUnt = p%OutParam(1:p%NumOuts)%Units     
    InitOut%Ver = SrvD_Ver
                
-   IF ( p%UseBladedInterface ) THEN
+   InitOut%UseHSSBrake = p%HSSBrMode /= ControlMode_None .AND. p%THSSBrDp < InitInp%TMax
+   
+   IF ( p%UseBladedInterface .OR. InitOut%UseHSSBrake ) THEN
       InitOut%CouplingScheme = ExplicitLoose
    !   CALL CheckError( ErrID_Info, 'The external dynamic-link library option being used in ServoDyn '&
    !                    //'requires an explicit-loose coupling scheme.' )
+   ELSE
+      InitOut%CouplingScheme = ExplicitLoose
    END IF
    
       !............................................................................................
@@ -425,9 +423,7 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       p%DLL_Trgt%ProcName = ""
       
    END IF
-      
-   OtherState%FirstWarn_THSSBrDp = .TRUE.
-   
+         
    
       !............................................................................................
       ! Initialize the TMD module:
@@ -678,16 +674,7 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    END IF
    
-   
-   
-   IF (  t >= p%THSSBrDp ) THEN
-      IF ( OtherState%FirstWarn_THSSBrDp ) THEN
-         CALL CheckError ( ErrID_Warn, 'THSSBrDp is ignored in this version of ServoDyn. '//&
-                                       'Warning will not be displayed again.' )      
-         OtherState%FirstWarn_THSSBrDp = .FALSE.
-      END IF      
-   END IF
-   
+         
    !...............................................................................................................................   
    ! Get the demanded values from the external Bladed dynamic link library, if necessary:
    !...............................................................................................................................   
@@ -738,7 +725,7 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    
    AllOuts(GenTq)   = 0.001*y%GenTrq
    AllOuts(GenPwr)  = 0.001*y%ElecPwr
-   AllOuts(HSSBrTqC)= 0.001*y%HSSBrTrq
+   AllOuts(HSSBrTqC)= 0.001*y%HSSBrTrqC
 
    DO K=1,p%NumBl
       AllOuts( BlPitchC(K) ) = y%BlPitchCom(K)
@@ -2533,7 +2520,7 @@ CONTAINS
 END SUBROUTINE TipBrake_CalcOutput
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Torque_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
-! This routine calculates the drive-train torque outputs: GenTrq, ElecPwr, and HSSBrTrq
+! This routine calculates the drive-train torque outputs: GenTrq, ElecPwr, and HSSBrTrqC
 !..................................................................................................................................
 
    REAL(DbKi),                     INTENT(IN   )  :: t           ! Current simulation time in seconds
@@ -2739,10 +2726,7 @@ SUBROUTINE Torque_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg 
    !.................................................................................
    ! Calculate the fraction of applied HSS-brake torque, HSSBrFrac:
    !.................................................................................
-!bjj FIX THIS >>>
-!   IF ( (.NOT. EqualRealNos(t, p%THSSBrDp )) .AND. t < p%THSSBrDp )  THEN    ! HSS brake not deployed yet.
-   IF ( .TRUE. )  THEN    ! HSS brake not deployed yet.
-!bjj end FIX THIS <<<
+   IF ( (.NOT. EqualRealNos(t, p%THSSBrDp )) .AND. t < p%THSSBrDp )  THEN    ! HSS brake not deployed yet.
 
       HSSBrFrac = 0.0
 
@@ -2790,7 +2774,10 @@ SUBROUTINE Torque_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg 
 
       ! Calculate the magnitude of HSS brake torque:
 
-   y%HSSBrTrq = SIGN( HSSBrFrac*p%HSSBrTqF, u%HSS_Spd )  ! Scale the full braking torque by the brake torque fraction and make sure the brake torque resists motion.
+      ! to avoid issues with ElastoDyn extrapolating between +/- p%HSSBrTqF, we're going to make this output always positive
+      
+   !y%HSSBrTrqC = SIGN( HSSBrFrac*p%HSSBrTqF, u%HSS_Spd )  ! Scale the full braking torque by the brake torque fraction and make sure the brake torque resists motion.
+   y%HSSBrTrqC = ABS( HSSBrFrac*p%HSSBrTqF )  ! Scale the full braking torque by the brake torque fraction and make sure the brake torque resists motion.
 
    RETURN
    
