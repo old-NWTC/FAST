@@ -1,35 +1,35 @@
 --------------------- MoorDyn Input File ------------------------------------
-Mooring system for OC4-DeepCwind Semi
+Mooring system for OC3-Hywind
 FALSE    Echo      - echo the input file data (flag)
 ----------------------- LINE TYPES ------------------------------------------
 1        NTypes    - number of LineTypes
 Name     Diam      MassDen      EA      BA     Can   Cat   Cdn   Cdt 
 (-)       (m)      (kg/m)       (N)    (N-s)   (-)   (-)   (-)   (-)
-main     0.1334    113.35     7.536E8  1.0E7   0.8   0.25  1.1   0.2 
+main     0.09      77.7066   384.243E6  1.0E7  1.0   0.0   1.6   0.1 
 ---------------------- CONNECTION PROPERTIES --------------------------------
 6       NConnects - number of connections including anchors and fairleads
 Node    Type      X        Y        Z       M     V      FX   FY   FZ
 (-)     (-)      (m)      (m)      (m)     (kg)  (m^3)  (kN) (kN) (kN)
-1      Fixed   418.8    725.383  -200.0     0      0      0    0    0
-2      Fixed  -837.6      0.0    -200.0     0      0      0    0    0
-3      Fixed   418.8   -725.383  -200.0     0      0      0    0    0
-4      Vessel   20.434   35.393   -14.0     0      0      0    0    0
-5      Vessel  -40.868    0.0     -14.0     0      0      0    0    0
-6      Vessel   20.434  -35.393   -14.0     0      0      0    0    0
+1      fixed    853.87     0.0    -320.0    0     0      0    0    0
+2      fixed   -426.94   739.47   -320.0    0     0      0    0    0
+3      fixed   -426.94  -739.47   -320.0    0     0      0    0    0
+4      vessel     5.2      0.0     -70.0    0     0      0    0    0
+5      vessel    -2.6      4.5     -70.0    0     0      0    0    0
+6      vessel    -2.6     -4.5     -70.0    0     0      0    0    0
 ---------------------- LINE PROPERTIES --------------------------------------
 3        NLines    - number of line objects
 Line    LineType  UnstrLen  NumSegs   NodeAnch  NodeFair  Flags/Outputs
 (-)       (-)       (m)       (-)       (-)       (-)         (-)
-1         main     835.35      20        1         4          pos 
-2         main     835.35      20        2         5          pos 
-3         main     835.35      20        3         6          pos 
+1         main     902.2      20        1         4          pos 
+2         main     902.2      20        2         5          pos 
+3         main     902.2      20        3         6          pos 
 ---------------------- SOLVER OPTIONS ---------------------------------------
 0.001    DT        - time step to use in mooring integration
 1.0      DTIC      - time interval for analyzing convergence during IC gen
 60.0     TmaxIC    - max time for ic gen
 3.0e6    kbot      - bottom stiffness
 3.0e5    cbot      - bottom damping
-200      WtrDpth   - water depth
+320      WtrDpth   - water depth
 4.0      CdScaleIC - factor by which to scale drag coefficients during dynamic relaxation
 0.001    threshIC  - threshold for IC convergence
 ------------------------ OUTPUTS --------------------------------------------
