@@ -44,7 +44,7 @@ True          GenTiStp     - Method to stop the generator {T: timed using TimGen
      9999.9   TEC_RLR      - Rotor leakage reactance (ohms) [used only when VSContrl=0 and GenModel=2]
      9999.9   TEC_MR       - Magnetizing reactance (ohms) [used only when VSContrl=0 and GenModel=2]
 ---------------------- HIGH-SPEED SHAFT BRAKE ----------------------------------
-          1   HSSBrMode    - HSS brake model {0: none, 1: simple, 3: user-defined from routine UserHSSBr, 4: user-defined from Simulink/Labview, 5: user-defined from Bladed-style DLL} (switch)
+          0   HSSBrMode    - HSS brake model {0: none, 1: simple, 3: user-defined from routine UserHSSBr, 4: user-defined from Simulink/Labview, 5: user-defined from Bladed-style DLL} (switch)
      9999.9   THSSBrDp     - Time to initiate deployment of the HSS brake (s)
         0.5   HSSBrDT      - Time for HSS-brake to reach full deployment once initiated (sec) [used only when HSSBrMode=1]
         115   HSSBrTqF     - Fully deployed HSS-brake torque (N-m)
@@ -86,6 +86,6 @@ True          TabDelim     - Use tab delimiters in text tabular output file? (fl
 "ES10.3E2"    OutFmt       - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string) (currently unused)
           5   TStart       - Time to begin tabular output (s) (currently unused)
               OutList      - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
-"GenPwr"                   
+"GenPwr"
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------

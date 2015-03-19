@@ -7806,7 +7806,7 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
    
    
       ! make sure GBoxEff is 100% for now
-   IF ( .NOT. EqualRealNos( InputFileData%GBoxEff, 1.0_ReKi ) ) CALL SetErrors( ErrID_Fatal, 'GBoxEff must be 1 (i.e., 100%).')
+   IF ( .NOT. EqualRealNos( InputFileData%GBoxEff, 1.0_ReKi ) .and. InputFileData%method == method_rk4 ) CALL SetErrors( ErrID_Fatal, 'GBoxEff must be 1 (i.e., 100%) when using RK4.')
       
    
       ! Don't allow these parameters to be negative (i.e., they must be in the range (0,inf)):
@@ -8907,7 +8907,7 @@ SUBROUTINE SetOutParam(OutList, p, ErrStat, ErrMsg )
       InvalidOutput( QD2_Teet) = .TRUE.
    END IF
    
-   InvalidOutput(HSSBrTq) = p%method /= Method_ABM4
+   InvalidOutput(HSSBrTq) = p%method == Method_RK4
 !   ................. End of validity checking .................
 
 
@@ -12600,12 +12600,7 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, HSSBrTrq, RtHSdat, AugMat )
       ! Initialize the matrix:
       
    AugMat      = 0.0
-   if (p%method == Method_ABM4) then
-      GBoxTrq    = ( u%GenTrq + HSSBrTrq )*ABS(p%GBRatio) ! bjj: do we use HSSBrTrqC or HSSBrTrq?
-   else
-      GBoxTrq    = ( u%GenTrq            )*ABS(p%GBRatio) 
-   end if
-
+   GBoxTrq    = ( u%GenTrq + HSSBrTrq )*ABS(p%GBRatio) ! bjj: do we use HSSBrTrqC or HSSBrTrq?
    
    DO K = 1,p%NumBl ! Loop through all blades
    

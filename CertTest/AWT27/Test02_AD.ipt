@@ -14,7 +14,7 @@ NONE                                   HLModel  - Hub-loss model (EQUIL only) [P
    2.432                               T_Shad_Refpt - Tower-shadow reference point (m)
    1.225                               AirDens  - Air density (kg/m^3)
    1.4639e-5                           KinVisc  - Kinematic air viscosity (m^2/sec)
-   0.004                               DTAero   - Time interval for aerodynamic calculations (sec)
+ default                               DTAero   - Time interval for aerodynamic calculations (sec)
   10                                   NumFoil  - Number of airfoil files (-)
 "AeroData/AWT27_05.dat"                FoilNm   - Names of the airfoil files [NumFoil lines] (quoted strings)
 "AeroData/AWT27_15.dat"
