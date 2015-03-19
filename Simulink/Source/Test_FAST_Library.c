@@ -18,7 +18,7 @@ int checkError(const int ErrStat, const char * ErrMsg);
 int 
 main(int argc, char *argv[], char *env[])
 {
-   int n_t_global = 0;
+   int n_t_global = -2;
    int i = 0;
    int j = 0;
    int k = 0;
@@ -97,7 +97,7 @@ main(int argc, char *argv[], char *env[])
    }
    */
 
-   FAST_Start(&NumOutputs, &OutputAry[0], &ErrStat, ErrMsg);
+   FAST_Start(&NumInputs, &NumOutputs, InputAry, OutputAry, &ErrStat, ErrMsg);
    if (checkError(ErrStat, ErrMsg)) return 1;
 
    // update

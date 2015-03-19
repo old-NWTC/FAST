@@ -29,18 +29,18 @@ IF "%INCLUDE%"=="" (
 
 IF /I "%2"=="64" ( ECHO //// Using intel64 compiler \\\\
 CALL "C:\Program Files (x86)\Intel\Composer XE 2011 SP1\bin\ipsxe-comp-vars.bat" intel64 vs2010
-SET Suffix=_win64
+SET Suffix=_x64
 ) ELSE ( ECHO  //// Using ia32 compiler \\\\
 CALL "C:\Program Files (x86)\Intel\Composer XE 2011 SP1\bin\ipsxe-comp-vars.bat" ia32 vs2010
-SET Suffix=_win32
+SET Suffix=_Win32
 )
 
 ) ELSE ( ECHO //// Using existing compiler settings \\\\
 
 IF /I "%2"=="64" ( ECHO //// assuming intel64 \\\\
-SET Suffix=_win64
+SET Suffix=_x64
 ) ELSE ( ECHO  //// assuming ia32 \\\\
-SET Suffix=_win32
+SET Suffix=_Win32
 )
 
 

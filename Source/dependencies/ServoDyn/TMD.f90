@@ -2,8 +2,8 @@
 ! WLaCava (WGL) and Matt Lackner (MAL)
 ! Tuned Mass Damper Module
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-02-09 22:29:06 -0700 (Mon, 09 Feb 2015) $
-! (File) Revision #: $Rev: 913 $
+! File last committed: $Date: 2015-03-11 14:34:32 -0600 (Wed, 11 Mar 2015) $
+! (File) Revision #: $Rev: 934 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/TMD/Source/TMD.f90 $
 !**********************************************************************************************************************************
 MODULE TMD  
@@ -16,7 +16,7 @@ MODULE TMD
    PRIVATE
 
   
-   TYPE(ProgDesc), PARAMETER            :: TMD_Ver = ProgDesc( 'TMD', 'v1.00.00-wgl', '09-January-2015' )
+   TYPE(ProgDesc), PARAMETER            :: TMD_Ver = ProgDesc( 'TMD', 'v1.00.00-wgl', '11-March-2015' )
 
     
    
@@ -702,14 +702,22 @@ SUBROUTINE TMD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrSt
       B_Y = - rddot_N_N(2) + a_G_N(2) + 1 / p%M_Y * ( OtherState%F_ext(2) + OtherState%F_stop(2))
       
       ! Compute the first time derivatives of the continuous states here:
-      dxdt%tmd_x (1) = x%tmd_x(2)
+      IF (p%TMD_X_DOF) then
+        dxdt%tmd_x (1) = x%tmd_x(2)
       
-      dxdt%tmd_x (2) = (omega_P_N(2)**2 + omega_P_N(3)**2 - p%K_X / p%M_X) * x%tmd_x(1) - (p%C_X/p%M_X) * x%tmd_x(2) + B_X
-      
-      dxdt%tmd_x (3) = x%tmd_x(4)
+        dxdt%tmd_x (2) = (omega_P_N(2)**2 + omega_P_N(3)**2 - p%K_X / p%M_X) * x%tmd_x(1) - (p%C_X/p%M_X) * x%tmd_x(2) + B_X
+      ELSE
+        dxdt%tmd_x (1) =0
+        dxdt%tmd_x (2) =0
+      END if
+      IF (p%TMD_Y_DOF) then
+          dxdt%tmd_x (3) = x%tmd_x(4)
        
-      dxdt%tmd_x (4) = (omega_P_N(1)**2 + omega_P_N(3)**2 - p%K_Y / p%M_Y) * x%tmd_x(3) - (p%C_Y/p%M_Y) * x%tmd_x(4) + B_Y
-      
+          dxdt%tmd_x (4) = (omega_P_N(1)**2 + omega_P_N(3)**2 - p%K_Y / p%M_Y) * x%tmd_x(3) - (p%C_Y/p%M_Y) * x%tmd_x(4) + B_Y
+       ELSE
+            dxdt%tmd_x (3) =0
+            dxdt%tmd_x (4) =0
+       end if
 
 CONTAINS
    SUBROUTINE TMD_CalcStopForce(x,p,F_stop)
@@ -1110,6 +1118,11 @@ SUBROUTINE TMD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
 
    !p%DT = InputFileData%DT
    !p%RootName = 'TMD'
+   ! DOFs 
+   
+   p%TMD_X_DOF = InputFileData%TMD_X_DOF
+   p%TMD_Y_DOF = InputFileData%TMD_Y_DOF
+    
    ! TMD X parameters
    p%X_DSP = InputFileData%TMD_X_DSP
    p%M_X = InputFileData%TMD_X_M

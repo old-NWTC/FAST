@@ -33,6 +33,7 @@ MODULE ElastoDyn_Types
 !---------------------------------------------------------------------------------------------------------------------------------
 USE NWTC_Library
 IMPLICIT NONE
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: ED_NMX = 4      ! Used in updating predictor-corrector values (size of state history) [-]
 ! =========  ED_InitInputType  =======
   TYPE, PUBLIC :: ED_InitInputType
     CHARACTER(1024)  :: InputFile      ! Name of the input file [-]
@@ -519,7 +520,7 @@ IMPLICIT NONE
     TYPE(ED_CoordSys)  :: CoordSys      ! Coordinate systems in the FAST framework [-]
     TYPE(ED_RtHndSide)  :: RtHS      ! Values used in calculating the right-hand-side RtHS (and outputs) [-]
     INTEGER(IntKi)  :: n      ! tracks time step for which OtherState was updated [-]
-    TYPE(ED_ContinuousStateType) , DIMENSION(1:4)  :: xdot      ! previous state deriv for multi-step [-]
+    TYPE(ED_ContinuousStateType) , DIMENSION(ED_NMX)  :: xdot      ! previous state deriv for multi-step [-]
     INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IC      ! Array which stores pointers to predictor-corrector results [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: QD2T      ! Solution (acceleration) vector; the first time derivative of QDT [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch      ! Current blade pitch angles [radians]
@@ -531,6 +532,8 @@ IMPLICIT NONE
     REAL(ReKi)  :: HSSBrTrq      ! HSSBrTrq from update states; a hack to get this working with a single integrator [-]
     REAL(ReKi)  :: HSSBrTrqC      ! Commanded HSS brake torque (adjusted for sign) [N-m]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: OgnlGeAzRo      ! Original DOF_GeAz row in AugMat [-]
+    INTEGER(IntKi)  :: SgnPrvLSTQ      ! The sign of the low-speed shaft torque from the previous call to RtHS().  This is calculated at the end of RtHS().  NOTE: The low-speed shaft torque is assumed to be positive at the beginning of the run! [-]
+    INTEGER(IntKi) , DIMENSION(ED_NMX)  :: SgnLSTQ      ! history of sign of LSTQ [-]
   END TYPE ED_OtherStateType
 ! =======================
 ! =========  ED_ParameterType  =======
@@ -8492,6 +8495,8 @@ IF (ALLOCATED(SrcOtherStateData%OgnlGeAzRo)) THEN
    END IF
    DstOtherStateData%OgnlGeAzRo = SrcOtherStateData%OgnlGeAzRo
 ENDIF
+   DstOtherStateData%SgnPrvLSTQ = SrcOtherStateData%SgnPrvLSTQ
+   DstOtherStateData%SgnLSTQ = SrcOtherStateData%SgnLSTQ
  END SUBROUTINE ED_CopyOtherState
 
  SUBROUTINE ED_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
@@ -8614,6 +8619,8 @@ ENDDO
   Re_BufSz   = Re_BufSz   + 1  ! HSSBrTrq
   Re_BufSz   = Re_BufSz   + 1  ! HSSBrTrqC
   IF ( ALLOCATED(InData%OgnlGeAzRo) )   Re_BufSz    = Re_BufSz    + SIZE( InData%OgnlGeAzRo )  ! OgnlGeAzRo 
+  Int_BufSz  = Int_BufSz  + 1  ! SgnPrvLSTQ
+  Int_BufSz   = Int_BufSz   + SIZE( InData%SgnLSTQ )  ! SgnLSTQ 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -8709,6 +8716,10 @@ ENDDO
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%OgnlGeAzRo))-1 ) =  PACK(InData%OgnlGeAzRo ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%OgnlGeAzRo)
   ENDIF
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%SgnPrvLSTQ )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%SgnLSTQ))-1 ) = PACK(InData%SgnLSTQ ,.TRUE.)
+  Int_Xferred   = Int_Xferred   + SIZE(InData%SgnLSTQ)
  END SUBROUTINE ED_PackOtherState
 
  SUBROUTINE ED_UnPackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -8869,6 +8880,13 @@ ENDDO
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%OgnlGeAzRo)
   ENDIF
+  OutData%SgnPrvLSTQ = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  ALLOCATE(mask1(SIZE(OutData%SgnLSTQ,1)))
+  mask1 = .TRUE.
+  OutData%SgnLSTQ = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%SgnLSTQ))-1 ),mask1,OutData%SgnLSTQ)
+  DEALLOCATE(mask1)
+  Int_Xferred   = Int_Xferred   + SIZE(OutData%SgnLSTQ)
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1

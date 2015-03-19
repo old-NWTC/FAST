@@ -93,8 +93,6 @@ MODULE ElastoDyn_Parameters
 
       ! Parameters related to coupling scheme
 
-!   INTEGER(IntKi), PARAMETER        :: NMX      =  9                                   ! Used in updating predictor-corrector values.
-   INTEGER(IntKi), PARAMETER        :: NMX      =  4                                   ! Used in updating predictor-corrector values.
    INTEGER(IntKi), PARAMETER        :: Method_RK4  = 1                                 
    INTEGER(IntKi), PARAMETER        :: Method_AB4  = 2                                 
    INTEGER(IntKi), PARAMETER        :: Method_ABM4 = 3
@@ -1751,7 +1749,6 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    IF ( UpdateValues ) THEN    
          ! Update the OtherState data by calculating the derivative...
       !OtherState%HSSBrTrqC = SIGN( u%HSSBrTrqC, x%QDT(DOF_GeAz) )
-      OtherState%HSSBrTrqC = OtherState%HSSBrTrq
       CALL ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
       CALL ED_DestroyContState( dxdt, ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
@@ -2864,22 +2861,20 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, 
    INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
    CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
-      !LOCAL variables
-!   REAL(ReKi)                   :: SolnVec    (p%NDOF)         ! Solution vector found by solving the equations of motion
-   INTEGER(IntKi), PARAMETER    :: SgnPrvLSTQ = 1              ! The sign of the low-speed shaft torque from the previous call to RtHS().  This is calculated at the end of RtHS().  NOTE: The low-speed shaft torque is assumed to be positive at the beginning of the run!
+      ! LOCAL variables
    LOGICAL, PARAMETER           :: UpdateValues  = .TRUE.      ! determines if the OtherState values need to be updated
       
-   REAL(ReKi)                             :: HSSBrTrqC 
    INTEGER(IntKi)                         :: I                 ! Loops through some or all of the DOFs.
    INTEGER(IntKi)                         :: ErrStat2          ! The error status code
    CHARACTER(LEN(ErrMsg))                 :: ErrMsg2           ! The error message, if an error occurred
    CHARACTER(*), PARAMETER                :: RoutineName = 'ED_CalcContStateDeriv'
+   
       ! Initialize ErrStat
 
    ErrStat = ErrID_None
    ErrMsg  = ""
    
-!OtherState%HSSBrTrqC = SIGN( u%HSSBrTrqC, x%QDT(DOF_GeAz) ) !need correct value of x%QDT(DOF_GeAz) here
+   !OtherState%HSSBrTrqC = SIGN( u%HSSBrTrqC, x%QDT(DOF_GeAz) ) !need correct value of x%QDT(DOF_GeAz) here
 
          ! Compute the first time derivatives of the continuous states here:
 
@@ -2911,14 +2906,10 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, 
    CALL TFurling( t, p, x%QT(DOF_TFrl),          x%QDT(DOF_TFrl),            OtherState%RtHS%TFrlMom ) ! Compute moment from tail-furl  springs and dampers, TFrlMom
    
    !bjj: note OtherState%RtHS%GBoxEffFac needed in OtherState only to fix HSSBrTrq (and used in FillAugMat)
-   OtherState%RtHS%GBoxEffFac  = p%GBoxEff**SgnPrvLSTQ      ! = GBoxEff if SgnPrvLSTQ = 1 OR 1/GBoxEff if SgnPrvLSTQ = -1
+   OtherState%RtHS%GBoxEffFac  = p%GBoxEff**OtherState%SgnPrvLSTQ      ! = GBoxEff if SgnPrvLSTQ = 1 OR 1/GBoxEff if SgnPrvLSTQ = -1
    
-   !HSSBrTrqC = SIGN( u%HSSBrTrqC, x%QDT(DOF_GeAz) ) 
-   CALL FillAugMat( p, x, OtherState%CoordSys, u, OtherState%HSSBrTrqC, OtherState%RtHS, OtherState%AugMat )
+   CALL FillAugMat( p, x, OtherState%CoordSys, u, OtherState%HSSBrTrq, OtherState%RtHS, OtherState%AugMat )
    
-!      ! make a copy for the routine that fixes the HSSBrTrq
-!   OtherState%AugMatOut  = OtherState%AugMat
-
 
    ! Invert the matrix to solve for the accelerations. The accelerations are returned by Gauss() in the first NActvDOF elements
    !   of the solution vector, SolnVec(). These are transfered to the proper index locations of the acceleration vector QD2T()
@@ -2930,7 +2921,6 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, 
       OtherState%AugMat_factor = OtherState%AugMat( p%DOFs%SrtPS( 1:p%DOFs%NActvDOF ), p%DOFs%SrtPSNAUG(1:p%DOFs%NActvDOF) )
       OtherState%SolnVec       = OtherState%AugMat( p%DOFs%SrtPS( 1:p%DOFs%NActvDOF ), p%DOFs%SrtPSNAUG(1+p%DOFs%NActvDOF) )
    
-      OtherState%OgnlGeAzRo    = OtherState%AugMat(DOF_GeAz,:)  ! used for HSS Brake hack
 
       CALL LAPACK_getrf( M=p%DOFs%NActvDOF, N=p%DOFs%NActvDOF, A=OtherState%AugMat_factor, IPIV=OtherState%AugMat_pivot, ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)   
@@ -2970,9 +2960,10 @@ END IF
       
    
       ! Let's calculate the sign (+/-1) of the low-speed shaft torque for this time step and store it in SgnPrvLSTQ.
-      !  This will be used during the next call to RtHS (bjj: currently violates framework so we'll remove it).
-
-   !SgnPrvLSTQ = SignLSSTrq(p, OtherState)
+      !  This will be used during the next call to RtHS (bjj: currently violates framework, but DOE wants a hack for HSS brake).
+      ! need OtherState%QD2T set before calling this
+      
+   !OtherState%SgnPrvLSTQ = SignLSSTrq(p, OtherState)
    
    
 END SUBROUTINE ED_CalcContStateDeriv
@@ -8251,7 +8242,7 @@ SUBROUTINE Init_OtherStates( OtherState, p, x, InputFileData, ErrStat, ErrMsg  )
    OtherState%AllOuts = 0.0_ReKi
    
       ! for loose coupling:
-   CALL AllocAry( OtherState%IC,  NMX,   'IC',   ErrStat, ErrMsg )
+   CALL AllocAry( OtherState%IC,  ED_NMX,   'IC',   ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) RETURN
    
    
@@ -8264,8 +8255,6 @@ SUBROUTINE Init_OtherStates( OtherState, p, x, InputFileData, ErrStat, ErrMsg  )
       IF ( ErrStat >= AbortErrLev ) RETURN
    CALL AllocAry( OtherState%OgnlGeAzRo,                    p%NAug,          'OgnlGeAzRo',   ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) RETURN
-!   CALL AllocAry( OtherState%AugMatOut,    p%NDOF,          p%NAug,          'AugMatOut',    ErrStat, ErrMsg )
-!      IF ( ErrStat /= ErrID_None ) RETURN 
    CALL AllocAry( OtherState%SolnVec,      p%DOFs%NActvDOF,                  'SolnVec',      ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) RETURN
    CALL AllocAry( OtherState%AugMat_pivot, p%DOFs%NActvDOF,                  'AugMat_pivot', ErrStat, ErrMsg )
@@ -8277,8 +8266,8 @@ SUBROUTINE Init_OtherStates( OtherState, p, x, InputFileData, ErrStat, ErrMsg  )
       ! Now initialize the IC array = (/NMX, NMX-1, ... , 1 /)
       ! this keeps track of the position in the array of continuous states (stored in other states)
 
-   OtherState%IC(1) = NMX
-   DO I = 2,NMX
+   OtherState%IC(1) = ED_NMX
+   DO I = 2,ED_NMX
       OtherState%IC(I) = OtherState%IC(I-1) - 1
    ENDDO
 
@@ -8295,8 +8284,13 @@ SUBROUTINE Init_OtherStates( OtherState, p, x, InputFileData, ErrStat, ErrMsg  )
          IF ( ErrStat >= AbortErrLev ) RETURN 
    ENDDO
    
-   OtherState%HSSBrTrq  = 0.0_ReKi
-   OtherState%HSSBrTrqC = 0.0_ReKi
+      ! hacks for HSS brake function:
+   
+   OtherState%HSSBrTrq   = 0.0_ReKi
+   OtherState%HSSBrTrqC  = 0.0_ReKi
+   OtherState%SgnPrvLSTQ = 1
+   OtherState%SgnLSTQ    = 1
+   
    
 END SUBROUTINE Init_OtherStates
 
@@ -12577,7 +12571,7 @@ DO K = 1,p%NumBl ! Loop through all blades
    
 END SUBROUTINE CalculateForcesMoments
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE FillAugMat( p, x, CoordSys, u, HSSBrTrqC, RtHSdat, AugMat )
+SUBROUTINE FillAugMat( p, x, CoordSys, u, HSSBrTrq, RtHSdat, AugMat )
 ! This routine is used to populate the AugMat matrix for RtHS (CalcContStateDeriv)
 !..................................................................................................................................
 
@@ -12587,7 +12581,7 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, HSSBrTrqC, RtHSdat, AugMat )
    TYPE(ED_CoordSys),            INTENT(IN   )  :: CoordSys    ! The coordinate systems that have been set for these states/time
    TYPE(ED_InputType),           INTENT(IN   )  :: u           ! The aero blade forces/moments
    TYPE(ED_RtHndSide),           INTENT(INOUT)  :: RtHSdat     ! data from the RtHndSid module (contains positions to be set)
-   REAL(ReKi),                   INTENT(IN )    :: HSSBrTrqC   !  SIGN( u%HSSBrTrqC, x%QDT(DOF_GeAz) )
+   REAL(ReKi),                   INTENT(IN )    :: HSSBrTrq    !  SIGN( u%HSSBrTrqC, x%QDT(DOF_GeAz) ) or corrected value from FixHSS
    REAL(ReKi),                   INTENT(OUT)    :: AugMat(:,:) ! 
    
       ! Local variables
@@ -12607,9 +12601,9 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, HSSBrTrqC, RtHSdat, AugMat )
       
    AugMat      = 0.0
    if (p%method == Method_ABM4) then
-      GBoxTrq    = ( u%GenTrq + HSSBrTrqC )*ABS(p%GBRatio) ! bjj: do we use HSSBrTrqC or HSSBrTrq?
+      GBoxTrq    = ( u%GenTrq + HSSBrTrq )*ABS(p%GBRatio) ! bjj: do we use HSSBrTrqC or HSSBrTrq?
    else
-      GBoxTrq    = ( u%GenTrq             )*ABS(p%GBRatio) 
+      GBoxTrq    = ( u%GenTrq            )*ABS(p%GBRatio) 
    end if
 
    
@@ -13661,6 +13655,8 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       INTEGER(IntKi)                               :: ErrStat2    ! local error status
       CHARACTER(LEN(ErrMsg))                       :: ErrMsg2     ! local error message (ErrMsg)
       
+      REAL(ReKi)                                   :: HSSBrTrq_at_t 
+      
       ! Initialize ErrStat
 
       ErrStat = ErrID_None
@@ -13687,6 +13683,9 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       CALL ED_Input_ExtrapInterp( u, utimes, u_interp, t, ErrStat2, ErrMsg2 )
          CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
+!      HSSBrTrq_at_t = u_interp%HSSBrTrqC
+!      OtherState%HSSBrTrqC = SIGN( u_interp%HSSBrTrqC, x%QDT(DOF_GeAz) )         
+!      OtherState%HSSBrTrq  = OtherState%HSSBrTrqC         
 
       ! find xdot at t
       CALL ED_CalcContStateDeriv( t, u_interp, p, x, xd, z, OtherState, xdot, ErrStat2, ErrMsg2 )
@@ -13703,7 +13702,9 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       CALL ED_Input_ExtrapInterp(u, utimes, u_interp, t+0.5*p%dt, ErrStat2, ErrMsg2)
          CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
-      OtherState%HSSBrTrqC = SIGN( u_interp%HSSBrTrqC, x%QDT(DOF_GeAz) )         
+!      u_interp%HSSBrTrqC = max(0.0_ReKi, min(u_interp%HSSBrTrqC, HSSBrTrq_at_t )) ! hack for extrapolation of limits       
+!      OtherState%HSSBrTrqC = SIGN( u_interp%HSSBrTrqC, x_tmp%QDT(DOF_GeAz) )         
+!      OtherState%HSSBrTrq  = OtherState%HSSBrTrqC         
 
       ! find xdot at t + dt/2
       CALL ED_CalcContStateDeriv( t + 0.5*p%dt, u_interp, p, x_tmp, xd, z, OtherState, xdot, ErrStat2, ErrMsg2 )
@@ -13717,6 +13718,9 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       x_tmp%qdt = x%qdt + 0.5 * k2%qdt
 
       ! find xdot at t + dt/2
+!      u_interp%HSSBrTrqC = max(0.0_ReKi, min(u_interp%HSSBrTrqC, HSSBrTrq_at_t )) ! hack for extrapolation of limits       
+!      OtherState%HSSBrTrqC = SIGN( u_interp%HSSBrTrqC, x_tmp%QDT(DOF_GeAz) )         
+!      OtherState%HSSBrTrq  = OtherState%HSSBrTrqC         
       CALL ED_CalcContStateDeriv( t + 0.5*p%dt, u_interp, p, x_tmp, xd, z, OtherState, xdot, ErrStat2, ErrMsg2 )
          CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
@@ -13731,7 +13735,9 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       CALL ED_Input_ExtrapInterp(u, utimes, u_interp, t + p%dt, ErrStat2, ErrMsg2)
          CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
-      OtherState%HSSBrTrqC = SIGN( u_interp%HSSBrTrqC, x%QDT(DOF_GeAz) )
+!      u_interp%HSSBrTrqC = max(0.0_ReKi, min(u_interp%HSSBrTrqC, HSSBrTrq_at_t )) ! hack for extrapolation of limits       
+!      OtherState%HSSBrTrqC = SIGN( u_interp%HSSBrTrqC, x_tmp%QDT(DOF_GeAz) )         
+!      OtherState%HSSBrTrq  = OtherState%HSSBrTrqC         
 
       ! find xdot at t + dt
       CALL ED_CalcContStateDeriv( t + p%dt, u_interp, p, x_tmp, xd, z, OtherState, xdot, ErrStat2, ErrMsg2 )
@@ -13843,7 +13849,7 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       INTEGER(IntKi)                                 :: ErrStat2    ! local error status
       CHARACTER(LEN(ErrMsg))                         :: ErrMsg2     ! local error message (ErrMsg)
 
-      
+
       ! Initialize ErrStat
 
       ErrStat = ErrID_None
@@ -13854,7 +13860,7 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
          OtherState%n = n
             
-         ! Update IC() index so IC(1) is the location of current xdot values.
+         ! Update IC() index so IC(1) is the location of xdot values at n.
          ! (this allows us to shift the indices into the array, not copy all of the values)
          OtherState%IC = CSHIFT( OtherState%IC, -1 ) ! circular shift of all values to the right
             
@@ -13876,13 +13882,18 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       ! need xdot at t
       CALL ED_Input_ExtrapInterp(u, utimes, u_interp, t, ErrStat2, ErrMsg2)
          CALL CheckError(ErrStat2,ErrMsg2)
-         IF ( ErrStat >= AbortErrLev ) RETURN         
-      OtherState%HSSBrTrqC = SIGN( u_interp%HSSBrTrqC, x%QDT(DOF_GeAz) ) ! hack for HSS brake (need correct sign)
+         IF ( ErrStat >= AbortErrLev ) RETURN                  
+      IF (EqualRealNos( x%qdt(DOF_GeAz) ,0.0_ReKi ) ) THEN
+         OtherState%HSSBrTrqC = u_interp%HSSBrTrqC
+      ELSE
+         OtherState%HSSBrTrqC  = SIGN( u_interp%HSSBrTrqC, x%qdt(DOF_GeAz) ) ! hack for HSS brake (need correct sign)
+      END IF
+      OtherState%HSSBrTrq   = OtherState%HSSBrTrqC
+      OtherState%SgnPrvLSTQ = OtherState%SgnLSTQ(OtherState%IC(2))
       
       CALL ED_CalcContStateDeriv( t, u_interp, p, x, xd, z, OtherState, xdot, ErrStat2, ErrMsg2 )
          CALL CheckError(ErrStat2,ErrMsg2)
          
-         !tmp=OtherState%IC(1)
          CALL ED_CopyContState(xdot, OtherState%xdot ( OtherState%IC(1) ), MESH_NEWCOPY, ErrStat2, ErrMsg2)
             CALL CheckError(ErrStat2,ErrMsg2)
             IF ( ErrStat >= AbortErrLev ) RETURN
@@ -13901,9 +13912,23 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
          x%qdt = x%qdt + p%DT24 * ( 55.*OtherState%xdot(OtherState%IC(1))%qdt - 59.*OtherState%xdot(OtherState%IC(2))%qdt  &
                                   + 37.*OtherState%xdot(OtherState%IC(3))%qdt  - 9.*OtherState%xdot(OtherState%IC(4))%qdt )
-                      
+         
+         
+            ! Make sure the HSS brake will not reverse the direction of the HSS
+            !   for the next time step.  Do this by computing the predicted value
+            !   of x%qt(); QD(DOF_GeAz,IC(NMX)) as will be done during the next time step.
+            ! Only do this after the first few time steps since it doesn't work
+            !   for the Runga-Kutta integration scheme.
+   
+         
+         CALL FixHSSBrTq ( 'P', p, x, OtherState, ErrStat2, ErrMsg2 )
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF ( ErrStat >= AbortErrLev ) RETURN
+            
       endif
             
+      OtherState%SgnPrvLSTQ = SignLSSTrq(p, OtherState)   
+      OtherState%SgnLSTQ(OtherState%IC(1)) = OtherState%SgnPrvLSTQ 
       
       
          ! clean up local variables:
@@ -14020,41 +14045,31 @@ SUBROUTINE ED_ABM4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
          
       if (n .gt. 2_IntKi) then
-                  
-         
-            ! Make sure the HSS brake will not reverse the direction of the HSS
-            !   for the next time step.  Do this by computing the predicted value
-            !   of QD(DOF_GeAz,IC(NMX)) as will be done during the next time step.
-            ! Only do this after the first few time steps since it doesn't work
-            !   for the Runga-Kutta integration scheme.
-   
-         !IF ( p%DOF_Flag(DOF_GeAz) .AND. .not. EqualRealNos( u%HSSBrTqC, 0.0_ReKi )  )  THEN
-         
-               !bjj: note that u_interp is u at t, computed in ED_AB4 (only when n .gt. 2)
-            CALL FixHSSBrTq ( t, 'P', p, x_pred, OtherState, ErrStat2, ErrMsg2 )
-               CALL CheckError(ErrStat2,ErrMsg2)
-               IF ( ErrStat >= AbortErrLev ) RETURN
-         
-         !ENDIF              
-         
          
             ! correct:
          
             ! allocate the arrays in u_interp
          CALL ED_CopyInput( u(1), u_interp, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
-         !CALL ED_AllocInput( u_interp, p, ErrStat2, ErrMsg2 )      
             CALL CheckError(ErrStat2,ErrMsg2)
             IF ( ErrStat >= AbortErrLev ) RETURN
          
          CALL ED_Input_ExtrapInterp(u, utimes, u_interp, t + p%dt, ErrStat2, ErrMsg2)
             CALL CheckError(ErrStat2,ErrMsg2)
             IF ( ErrStat >= AbortErrLev ) RETURN
-         OtherState%HSSBrTrqC = SIGN( u_interp%HSSBrTrqC, x%QDT(DOF_GeAz) )
+            
+         u_interp%HSSBrTrqC = max(0.0_ReKi, min(u_interp%HSSBrTrqC, ABS( OtherState%HSSBrTrqC) )) ! hack for extrapolation of limits  (OtherState%HSSBrTrqC is HSSBrTrqC at t)     
+         IF (EqualRealNos( x_pred%qdt(DOF_GeAz) ,0.0_ReKi ) ) THEN
+            OtherState%HSSBrTrqC = u_interp%HSSBrTrqC
+         ELSE
+            OtherState%HSSBrTrqC  = SIGN( u_interp%HSSBrTrqC, x_pred%qdt(DOF_GeAz) ) ! hack for HSS brake (need correct sign)
+         END IF
+         OtherState%HSSBrTrq  = OtherState%HSSBrTrqC
 
          CALL ED_CalcContStateDeriv(t + p%dt, u_interp, p, x_pred, xd, z, OtherState, xdot_pred, ErrStat2, ErrMsg2 )
             CALL CheckError(ErrStat2,ErrMsg2)
             IF ( ErrStat >= AbortErrLev ) RETURN
 
+         
          x%qt  = x%qt  + p%DT24 * ( 9. * xdot_pred%qt +  19. * OtherState%xdot(OtherState%IC(1))%qt &
                                                         - 5. * OtherState%xdot(OtherState%IC(2))%qt &
                                                         + 1. * OtherState%xdot(OtherState%IC(3))%qt )
@@ -14066,11 +14081,11 @@ SUBROUTINE ED_ABM4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
                   
           ! Make sure the HSS brake has not reversed the direction of the HSS:
          
-         !IF ( p%DOF_Flag(DOF_GeAz) .AND. .not. EqualRealNos( u_interp%HSSBrTqC, 0.0_ReKi ) )  THEN
-            CALL FixHSSBrTq ( t, 'C', p, x, OtherState, ErrStat2, ErrMsg2 )      
-               CALL CheckError(ErrStat2,ErrMsg2)
-               IF ( ErrStat >= AbortErrLev ) RETURN
-         !END IF
+         CALL FixHSSBrTq ( 'C', p, x, OtherState, ErrStat2, ErrMsg2 )      
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF ( ErrStat >= AbortErrLev ) RETURN
+         OtherState%SgnPrvLSTQ = SignLSSTrq(p, OtherState)
+         OtherState%SgnLSTQ(OtherState%IC(1)) = OtherState%SgnPrvLSTQ 
                                                                     
       else
 
@@ -14346,7 +14361,7 @@ END SUBROUTINE ED_PrintSum
 !=======================================================================
 
 !=======================================================================
-SUBROUTINE FixHSSBrTq ( t, Integrator, p, x, OtherState, ErrStat, ErrMsg )
+SUBROUTINE FixHSSBrTq ( Integrator, p, x, OtherState, ErrStat, ErrMsg )
 
 
    ! This routine is used to adjust the HSSBrTrq value if the absolute
@@ -14359,11 +14374,10 @@ SUBROUTINE FixHSSBrTq ( t, Integrator, p, x, OtherState, ErrStat, ErrMsg )
 
 
    ! Passed variables:
-real(dbki), intent(in) :: t
+
    TYPE(ED_ParameterType),      INTENT(IN   ):: p                                 ! Parameters of the structural dynamics module
-!   TYPE(ED_InputType),          INTENT(IN   ):: u                                 ! Inputs
    TYPE(ED_OtherStateType),     INTENT(INOUT):: OtherState                        ! Other/optimization states of the structural dynamics module 
-   TYPE(ED_ContinuousStateType),INTENT(INOUT):: x                                 ! Continuous states of the structural dynamics module 
+   TYPE(ED_ContinuousStateType),INTENT(INOUT):: x                                 ! Continuous states of the structural dynamics module at n+1
    CHARACTER(1),                INTENT(IN   ):: Integrator                        ! A string holding the current integrator being used.
    INTEGER(IntKi),              INTENT(  OUT):: ErrStat
    CHARACTER(*),                INTENT(  OUT):: ErrMsg
@@ -14442,6 +14456,9 @@ real(dbki), intent(in) :: t
    !   Once this equation is solved, the unknown force can be found from:
    !      {Fb}=[Cba]{Qa}+[Cbb]{Qb}
 
+   OtherState%OgnlGeAzRo    = OtherState%AugMat(DOF_GeAz,:)  ! used for HSS Brake hack; copy this row before modifying the old matrix
+   
+  
    DO I = 1,p%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
 
       OtherState%AugMat(p%DOFs%SrtPS(I),    p%NAUG) = OtherState%AugMat(p%DOFs%SrtPS(I),p%NAUG) &
@@ -14474,9 +14491,6 @@ real(dbki), intent(in) :: t
       
       CALL LAPACK_getrs( TRANS='N',N=p%DOFs%NActvDOF, A=OtherState%AugMat_factor,IPIV=OtherState%AugMat_pivot, B=OtherState%SolnVec, ErrStat=ErrStat2, ErrMsg=ErrMsg2)
    
-      !CALL GaussElim( OtherState%AugMat( p%DOFs%SrtPS(    1: p%DOFs%NActvDOF   ),     &
-      !                                   p%DOFs%SrtPSNAUG(1:(p%DOFs%NActvDOF+1)) ),   &
-      !                                   p%DOFs%NActvDOF,  SolnVec, ErrStat2, ErrMsg2 )
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          IF ( ErrStat >= AbortErrLev ) RETURN
    
@@ -14486,9 +14500,9 @@ real(dbki), intent(in) :: t
 
    RqdFrcGeAz = 0.0
    DO I = 1,p%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
-      ! bjj: use OtherState%SolnVec(I) instead of OtherState%QD2T(SrtPS(I)) here; then update OtherState%QD2T(SrtPS(I))
+      ! bjj: use OtherState%SolnVec(I) instead of OtherState%QD2T(p%DOFs%SrtPS(I)) here; then update OtherState%QD2T(p%DOFs%SrtPS(I))
       !      later if necessary
-      !RqdFrcGeAz = RqdFrcGeAz + OgnlGeAzRo(SrtPS(I))*OtherState%QD2T(SrtPS(I))  ! {Fb}=[Cba]{Qa}+[Cbb]{Qb}
+      !RqdFrcGeAz = RqdFrcGeAz + OgnlGeAzRo(SrtPS(I))*OtherState%QD2T(p%DOFs%SrtPS(I))  ! {Fb}=[Cba]{Qa}+[Cbb]{Qb}
       RqdFrcGeAz = RqdFrcGeAz + OtherState%OgnlGeAzRo(p%DOFs%SrtPS(I))*OtherState%SolnVec(I)  ! {Fb}=[Cba]{Qa}+[Cbb]{Qb}
    ENDDO             ! I - All active (enabled) DOFs
 
@@ -14514,7 +14528,8 @@ real(dbki), intent(in) :: t
       !OtherState%QD2T     = QD2TC
 
    ELSE
-         ! overwrite QD2T with the new values
+
+      ! overwrite QD2T with the new values
       OtherState%QD2T = 0.0
       DO I = 1,p%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
          OtherState%QD2T(p%DOFs%SrtPS(I)) = OtherState%SolnVec(I)
@@ -14531,27 +14546,31 @@ real(dbki), intent(in) :: t
       ! Update QD and QD2 with the new accelerations using the corrector.
       ! This will make QD(DOF_GeAz,IC(NMX)) equal to zero and adjust all
       !    of the other QDs as necessary.
-      ! The Q's are unnaffected by this change.
-            
-         x%qdt =                   OtherState%xdot(OtherState%IC(1))%qt &  ! state at n
+      ! The Q's are unnaffected by this change.     
+      
+         x%qdt =                   OtherState%xdot(OtherState%IC(1))%qt &  ! qd at n
                  + p%DT24 * ( 9. * OtherState%QD2T &                 ! the value we just changed
                            + 19. * OtherState%xdot(OtherState%IC(1))%qdt &
                            -  5. * OtherState%xdot(OtherState%IC(2))%qdt &
                            +  1. * OtherState%xdot(OtherState%IC(3))%qdt )
             
 
+         
       CASE ('P')  ! Predictor
 
       ! Update QD and QD2 with the new accelerations using predictor.  
-
-         x%qdt =                OtherState%xdot(OtherState%IC(1))%qt + &  ! state at n
+         
+         x%qdt =                OtherState%xdot(OtherState%IC(1))%qt + &  ! qd at n
                  p%DT24 * ( 55.*OtherState%QD2T &                    ! the value we just changed
                           - 59.*OtherState%xdot(OtherState%IC(2))%qdt  &
                           + 37.*OtherState%xdot(OtherState%IC(3))%qdt  &
                            - 9.*OtherState%xdot(OtherState%IC(4))%qdt )
          
-      END SELECT
+         OtherState%xdot ( OtherState%IC(1) )%qdt = OtherState%QD2T        ! fix the history
 
+         
+      END SELECT
+      
    ENDIF
 
    RETURN

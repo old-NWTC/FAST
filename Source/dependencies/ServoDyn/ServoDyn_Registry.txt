@@ -9,8 +9,8 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed $Date: 2015-02-27 14:51:54 -0700 (Fri, 27 Feb 2015) $
-# (File) Revision #: $Rev: 928 $
+# File last committed $Date: 2015-03-06 14:54:39 -0700 (Fri, 06 Mar 2015) $
+# (File) Revision #: $Rev: 932 $
 # URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ServoDyn_Registry.txt $
 ###################################################################################################################################
 
@@ -120,6 +120,7 @@ typedef	^	InitOutputType	CHARACTER(ChanLen)	WriteOutputHdr	{:}	-	-	"Names of the
 typedef	^	InitOutputType	CHARACTER(ChanLen)	WriteOutputUnt	{:}	-	-	"Units of the output-to-file channels"	-
 typedef	^	InitOutputType	ProgDesc	Ver	-	-	-	"This module's name, version, and date"	-
 typedef	^	InitOutputType	IntKi	CouplingScheme	-	-	-	"Switch that indicates if a particular coupling scheme is required"	-
+typedef	^	InitOutputType	Logical	UseHSSBrake	-	-	-	"flag to determine if high-speed shaft brake is potentially used (true=yes)"	-
 
 # ..... States ....................................................................................................................
 # Define continuous (differentiable) states here:
@@ -150,7 +151,6 @@ typedef	^	OtherStateType	DbKi	TGenOnLine	-	-	-	"Time that the generator first we
 typedef	^	OtherStateType	BladedDLLType	dll_data	-	-	-	"data used for Bladed DLL"	-
 typedef	^	OtherStateType	DbKi	LastTimeCalled	-	-	-	"last time the CalcOutput/Bladed DLL was called"	s
 typedef	^	OtherStateType	logical	FirstWarn	-	-	-	"Whether or not this is the first warning about the DLL being called without Explicit-Loose coupling."	-
-typedef	^	OtherStateType	logical	FirstWarn_THSSBrDp	-	-	-	"Whether or not this is the first warning about the THSSBrDp not being enabled in this version of SrvD."	-
 typedef	^	OtherStateType	TMD_OtherStateType	NTMD	-	-	-	"TMD module states"	-
 
 # ..... Parameters ................................................................................................................
@@ -259,7 +259,7 @@ typedef	^	InputType	ReKi	ExternalYawRateCom	-	-	-	"Commanded nacelle yaw rate fr
 typedef	^	InputType	ReKi	ExternalBlPitchCom	{:}	-	-	"Commanded blade pitch from Simulink or LabVIEW"	radians
 typedef	^	InputType	ReKi	ExternalGenTrq	-	-	-	"Electrical generator torque from Simulink or LabVIEW"	N-m
 typedef	^	InputType	ReKi	ExternalElecPwr	-	-	-	"Electrical power from Simulink or LabVIEW"	W
-typedef	^	InputType	ReKi	ExternalHSSBrFrac	-	-	-	"Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full) from LabVIEW"	-
+typedef	^	InputType	ReKi	ExternalHSSBrFrac	-	-	-	"Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full) from Simulink or LabVIEW"	-
 typedef	^	InputType	ReKi	TwrAccel	-	-	-	"Tower acceleration for tower feedback control (user routine only)"	m/s^2
 typedef	^	InputType	ReKi	YawErr	-	-	-	"Yaw error"	radians
 typedef	^	InputType	ReKi	WindDir	-	-	-	"Wind direction"	radians
@@ -293,7 +293,7 @@ typedef	^	OutputType	ReKi	WriteOutput	{:}	-	-	"Data to be written to an output f
 typedef	^	OutputType	ReKi	BlPitchCom	{:}	-	-	"Commanded blade pitch angles"	radians
 typedef	^	OutputType	ReKi	YawMom	-	-	-	"Torque transmitted through the yaw bearing"	N-m
 typedef	^	OutputType	ReKi	GenTrq	-	-	-	"Electrical generator torque"	N-m
-typedef	^	OutputType	ReKi	HSSBrTrq	-	-	-	"Instantaneous HSS brake torque"	N-m
+typedef	^	OutputType	ReKi	HSSBrTrqC	-	-	-	"Commanded HSS brake torque"	N-m
 typedef	^	OutputType	ReKi	ElecPwr	-	-	-	"Electrical power"	W
 typedef	^	OutputType	ReKi	TBDrCon	{:}	-	-	"Instantaneous tip-brake drag constant, Cd*Area"
 typedef	^	OutputType	TMD_OutputType	NTMD	-	-	-	"TMD module outputs"	-

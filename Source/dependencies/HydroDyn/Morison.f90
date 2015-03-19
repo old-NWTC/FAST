@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-01-05 13:46:53 -0700 (Mon, 05 Jan 2015) $
-! (File) Revision #: $Rev: 598 $
+! File last committed: $Date: 2015-03-10 14:15:34 -0600 (Tue, 10 Mar 2015) $
+! (File) Revision #: $Rev: 604 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Morison.f90 $
 !**********************************************************************************************************************************
 MODULE Morison
@@ -1063,7 +1063,7 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, WtrDpth, numNodes, nodes, numElemen
          
          node1   = nodes(elements(I)%Node1Indx)
          node2   = nodes(elements(I)%Node2Indx)
-         IF ( ( (node1%tMG > 0 ) .AND. EqualRealNos(node2%tMG,0.0_ReKi) ) .OR. ( (node2%tMG > 0 ) .AND. EqualRealNos(node1%tMG,0.0_ReKi) ) ) THEN
+         IF ( ( (node1%tMG > 0.0_ReKi ) .AND. EqualRealNos(node2%tMG,0.0_ReKi) ) .OR. ( (node2%tMG > 0.0_ReKi ) .AND. EqualRealNos(node1%tMG,0.0_ReKi) ) ) THEN
             ErrStat = ErrID_Fatal
             ErrMsg  = 'If one node of an element has MG, then both must.  This is an internal code problem within HydroDyn.'
             RETURN
@@ -1396,7 +1396,7 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, WtrDpth, numNodes, nodes, numElemen
          
          node1   = nodes(elements(I)%Node1Indx)
          node2   = nodes(elements(I)%Node2Indx)
-         IF ( ( (node1%tMG > 0 ) .AND. EqualRealNos(node2%tMG,0.0_ReKi) ) .OR. ( (node2%tMG > 0 ) .AND. EqualRealNos(node1%tMG,0.0_ReKi) ) ) THEN
+         IF ( ( (node1%tMG > 0.0_ReKi ) .AND. EqualRealNos(node2%tMG,0.0_ReKi) ) .OR. ( (node2%tMG > 0.0_ReKi ) .AND. EqualRealNos(node1%tMG,0.0_ReKi) ) ) THEN
             ErrStat = ErrID_Fatal
             ErrMsg  = 'If one node of an element has MG, then both must.  This is an internal code problem within HydroDyn.'
             RETURN

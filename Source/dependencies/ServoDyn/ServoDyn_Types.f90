@@ -135,6 +135,7 @@ IMPLICIT NONE
     CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! Units of the output-to-file channels [-]
     TYPE(ProgDesc)  :: Ver      ! This module's name, version, and date [-]
     INTEGER(IntKi)  :: CouplingScheme      ! Switch that indicates if a particular coupling scheme is required [-]
+    LOGICAL  :: UseHSSBrake      ! flag to determine if high-speed shaft brake is potentially used (true=yes) [-]
   END TYPE SrvD_InitOutputType
 ! =======================
 ! =========  SrvD_ContinuousStateType  =======
@@ -172,7 +173,6 @@ IMPLICIT NONE
     TYPE(BladedDLLType)  :: dll_data      ! data used for Bladed DLL [-]
     REAL(DbKi)  :: LastTimeCalled      ! last time the CalcOutput/Bladed DLL was called [s]
     LOGICAL  :: FirstWarn      ! Whether or not this is the first warning about the DLL being called without Explicit-Loose coupling. [-]
-    LOGICAL  :: FirstWarn_THSSBrDp      ! Whether or not this is the first warning about the THSSBrDp not being enabled in this version of SrvD. [-]
     TYPE(TMD_OtherStateType)  :: NTMD      ! TMD module states [-]
   END TYPE SrvD_OtherStateType
 ! =======================
@@ -278,7 +278,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: ExternalBlPitchCom      ! Commanded blade pitch from Simulink or LabVIEW [radians]
     REAL(ReKi)  :: ExternalGenTrq      ! Electrical generator torque from Simulink or LabVIEW [N-m]
     REAL(ReKi)  :: ExternalElecPwr      ! Electrical power from Simulink or LabVIEW [W]
-    REAL(ReKi)  :: ExternalHSSBrFrac      ! Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full) from LabVIEW [-]
+    REAL(ReKi)  :: ExternalHSSBrFrac      ! Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full) from Simulink or LabVIEW [-]
     REAL(ReKi)  :: TwrAccel      ! Tower acceleration for tower feedback control (user routine only) [m/s^2]
     REAL(ReKi)  :: YawErr      ! Yaw error [radians]
     REAL(ReKi)  :: WindDir      ! Wind direction [radians]
@@ -310,7 +310,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitchCom      ! Commanded blade pitch angles [radians]
     REAL(ReKi)  :: YawMom      ! Torque transmitted through the yaw bearing [N-m]
     REAL(ReKi)  :: GenTrq      ! Electrical generator torque [N-m]
-    REAL(ReKi)  :: HSSBrTrq      ! Instantaneous HSS brake torque [N-m]
+    REAL(ReKi)  :: HSSBrTrqC      ! Commanded HSS brake torque [N-m]
     REAL(ReKi)  :: ElecPwr      ! Electrical power [W]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TBDrCon      ! Instantaneous tip-brake drag constant, Cd*Area [-]
     TYPE(TMD_OutputType)  :: NTMD      ! TMD module outputs [-]
@@ -1237,6 +1237,7 @@ ENDIF
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'SrvD_CopyInitOutput:Ver')
          IF (ErrStat>=AbortErrLev) RETURN
    DstInitOutputData%CouplingScheme = SrcInitOutputData%CouplingScheme
+   DstInitOutputData%UseHSSBrake = SrcInitOutputData%UseHSSBrake
  END SUBROUTINE SrvD_CopyInitOutput
 
  SUBROUTINE SrvD_DestroyInitOutput( InitOutputData, ErrStat, ErrMsg )
@@ -1303,6 +1304,7 @@ ENDIF
   IF(ALLOCATED(Db_Ver_Buf))  DEALLOCATE(Db_Ver_Buf)
   IF(ALLOCATED(Int_Ver_Buf)) DEALLOCATE(Int_Ver_Buf)
   Int_BufSz  = Int_BufSz  + 1  ! CouplingScheme
+  Int_BufSz  = Int_BufSz  + 1  ! UseHSSBrake
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1323,6 +1325,8 @@ ENDIF
   IF( ALLOCATED(Db_Ver_Buf) )  DEALLOCATE(Db_Ver_Buf)
   IF( ALLOCATED(Int_Ver_Buf) ) DEALLOCATE(Int_Ver_Buf)
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%CouplingScheme )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%UseHSSBrake ), IntKiBuf(1), 1)
   Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE SrvD_PackInitOutput
 
@@ -1949,7 +1953,6 @@ ENDIF
          IF (ErrStat>=AbortErrLev) RETURN
    DstOtherStateData%LastTimeCalled = SrcOtherStateData%LastTimeCalled
    DstOtherStateData%FirstWarn = SrcOtherStateData%FirstWarn
-   DstOtherStateData%FirstWarn_THSSBrDp = SrcOtherStateData%FirstWarn_THSSBrDp
       CALL TMD_CopyOtherState( SrcOtherStateData%NTMD, DstOtherStateData%NTMD, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'SrvD_CopyOtherState:NTMD')
          IF (ErrStat>=AbortErrLev) RETURN
@@ -2046,7 +2049,6 @@ ENDIF
   IF(ALLOCATED(Int_dll_data_Buf)) DEALLOCATE(Int_dll_data_Buf)
   Db_BufSz   = Db_BufSz   + 1  ! LastTimeCalled
   Int_BufSz  = Int_BufSz  + 1  ! FirstWarn
-  Int_BufSz  = Int_BufSz  + 1  ! FirstWarn_THSSBrDp
   CALL TMD_PackOtherState( Re_NTMD_Buf, Db_NTMD_Buf, Int_NTMD_Buf, InData%NTMD, ErrStat, ErrMsg, .TRUE. ) ! NTMD 
   IF(ALLOCATED(Re_NTMD_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_NTMD_Buf  ) ! NTMD
   IF(ALLOCATED(Db_NTMD_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_NTMD_Buf  ) ! NTMD
@@ -2112,8 +2114,6 @@ ENDIF
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%LastTimeCalled )
   Db_Xferred   = Db_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%FirstWarn ), IntKiBuf(1), 1)
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%FirstWarn_THSSBrDp ), IntKiBuf(1), 1)
   Int_Xferred   = Int_Xferred   + 1
   CALL TMD_PackOtherState( Re_NTMD_Buf, Db_NTMD_Buf, Int_NTMD_Buf, InData%NTMD, ErrStat, ErrMsg, OnlySize ) ! NTMD 
   IF(ALLOCATED(Re_NTMD_Buf)) THEN
@@ -3553,7 +3553,7 @@ IF (ALLOCATED(SrcOutputData%BlPitchCom)) THEN
 ENDIF
    DstOutputData%YawMom = SrcOutputData%YawMom
    DstOutputData%GenTrq = SrcOutputData%GenTrq
-   DstOutputData%HSSBrTrq = SrcOutputData%HSSBrTrq
+   DstOutputData%HSSBrTrqC = SrcOutputData%HSSBrTrqC
    DstOutputData%ElecPwr = SrcOutputData%ElecPwr
 IF (ALLOCATED(SrcOutputData%TBDrCon)) THEN
    i1_l = LBOUND(SrcOutputData%TBDrCon,1)
@@ -3633,7 +3633,7 @@ ENDIF
   IF ( ALLOCATED(InData%BlPitchCom) )   Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitchCom )  ! BlPitchCom 
   Re_BufSz   = Re_BufSz   + 1  ! YawMom
   Re_BufSz   = Re_BufSz   + 1  ! GenTrq
-  Re_BufSz   = Re_BufSz   + 1  ! HSSBrTrq
+  Re_BufSz   = Re_BufSz   + 1  ! HSSBrTrqC
   Re_BufSz   = Re_BufSz   + 1  ! ElecPwr
   IF ( ALLOCATED(InData%TBDrCon) )   Re_BufSz    = Re_BufSz    + SIZE( InData%TBDrCon )  ! TBDrCon 
   CALL TMD_PackOutput( Re_NTMD_Buf, Db_NTMD_Buf, Int_NTMD_Buf, InData%NTMD, ErrStat, ErrMsg, .TRUE. ) ! NTMD 
@@ -3658,7 +3658,7 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%GenTrq )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%HSSBrTrq )
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%HSSBrTrqC )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%ElecPwr )
   Re_Xferred   = Re_Xferred   + 1
@@ -3738,7 +3738,7 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%GenTrq = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  OutData%HSSBrTrq = ReKiBuf ( Re_Xferred )
+  OutData%HSSBrTrqC = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%ElecPwr = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
@@ -4169,7 +4169,7 @@ IF (ALLOCATED(u_out%BlPitchCom) .AND. ALLOCATED(u(1)%BlPitchCom)) THEN
 END IF ! check if allocated
   u_out%YawMom = u(1)%YawMom
   u_out%GenTrq = u(1)%GenTrq
-  u_out%HSSBrTrq = u(1)%HSSBrTrq
+  u_out%HSSBrTrqC = u(1)%HSSBrTrqC
   u_out%ElecPwr = u(1)%ElecPwr
 IF (ALLOCATED(u_out%TBDrCon) .AND. ALLOCATED(u(1)%TBDrCon)) THEN
   u_out%TBDrCon = u(1)%TBDrCon
@@ -4203,8 +4203,8 @@ END IF ! check if allocated
   u_out%YawMom = u(1)%YawMom + b0 * t_out
   b0 = -(u(1)%GenTrq - u(2)%GenTrq)/t(2)
   u_out%GenTrq = u(1)%GenTrq + b0 * t_out
-  b0 = -(u(1)%HSSBrTrq - u(2)%HSSBrTrq)/t(2)
-  u_out%HSSBrTrq = u(1)%HSSBrTrq + b0 * t_out
+  b0 = -(u(1)%HSSBrTrqC - u(2)%HSSBrTrqC)/t(2)
+  u_out%HSSBrTrqC = u(1)%HSSBrTrqC + b0 * t_out
   b0 = -(u(1)%ElecPwr - u(2)%ElecPwr)/t(2)
   u_out%ElecPwr = u(1)%ElecPwr + b0 * t_out
 IF (ALLOCATED(u_out%TBDrCon) .AND. ALLOCATED(u(1)%TBDrCon)) THEN
@@ -4258,9 +4258,9 @@ END IF ! check if allocated
   b0 = (t(3)**2*(u(1)%GenTrq - u(2)%GenTrq) + t(2)**2*(-u(1)%GenTrq + u(3)%GenTrq))/(t(2)*t(3)*(t(2) - t(3)))
   c0 = ( (t(2)-t(3))*u(1)%GenTrq + t(3)*u(2)%GenTrq - t(2)*u(3)%GenTrq ) / (t(2)*t(3)*(t(2) - t(3)))
   u_out%GenTrq = u(1)%GenTrq + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(u(1)%HSSBrTrq - u(2)%HSSBrTrq) + t(2)**2*(-u(1)%HSSBrTrq + u(3)%HSSBrTrq))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*u(1)%HSSBrTrq + t(3)*u(2)%HSSBrTrq - t(2)*u(3)%HSSBrTrq ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%HSSBrTrq = u(1)%HSSBrTrq + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(u(1)%HSSBrTrqC - u(2)%HSSBrTrqC) + t(2)**2*(-u(1)%HSSBrTrqC + u(3)%HSSBrTrqC))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*u(1)%HSSBrTrqC + t(3)*u(2)%HSSBrTrqC - t(2)*u(3)%HSSBrTrqC ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%HSSBrTrqC = u(1)%HSSBrTrqC + b0 * t_out + c0 * t_out**2
   b0 = (t(3)**2*(u(1)%ElecPwr - u(2)%ElecPwr) + t(2)**2*(-u(1)%ElecPwr + u(3)%ElecPwr))/(t(2)*t(3)*(t(2) - t(3)))
   c0 = ( (t(2)-t(3))*u(1)%ElecPwr + t(3)*u(2)%ElecPwr - t(2)*u(3)%ElecPwr ) / (t(2)*t(3)*(t(2) - t(3)))
   u_out%ElecPwr = u(1)%ElecPwr + b0 * t_out + c0 * t_out**2

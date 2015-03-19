@@ -34,8 +34,7 @@ SET SD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\SubDyn\SVNdir
 SET HD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\HydroDyn\SVNdirectory\trunk\Source
 SET HD_Reg_Loc=%HD_Loc%\RegistryFiles
 
-rem SET MAP_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\SVNdirectory\trunk\src\fortran
-SET MAP_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\SVNdirectory\branches\mmasciola-map-plus-plus
+SET MAP_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\SVNdirectory\trunk
 SET MAP_Loc_R=%MAP_Loc%\registry
 SET MAP_Loc_F=%MAP_Loc%\fortran_driver
 SET MAP_DLL=%MAP_Loc%\bin\MAP_Win32.dll
@@ -45,10 +44,9 @@ SET MAP_Include_Lib=%MAP_Loc%\bin\MAP_Win32.lib
 SET MD_LOC=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MoorDyn\GitforSVN\trunk\source
 
 rem ECHO BONNIE: FIX THE FEAM LOCATION!!!
-SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
+rem SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
+SET FEAM_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FEAMooring\SVNdirectory\source\
 SET FEAM_Reg_Loc=%FEAM_Loc%
-rem SET FEAM_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FEAMooring\FEAMooring\branches\nrel_current\source\dependencies\FEAM\
-rem SET FEAM_Reg_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FEAMooring\SVNforGit\branches\tamu_experiment\VisualStudio2010\HydroDyn_FEAM\Source\FEAM\nwtc_registry_rev_597
 
 SET IceF_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\IceFloe\SVNDirectory\IceFloe\source
 SET IceF_RanLux_Loc=%IceF_Loc%\ranlux

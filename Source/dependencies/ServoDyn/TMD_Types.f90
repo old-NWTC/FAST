@@ -98,6 +98,8 @@ IMPLICIT NONE
   TYPE, PUBLIC :: TMD_ParameterType
     REAL(DbKi)  :: DT      ! Time step for cont. state integration & disc. state update [seconds]
     CHARACTER(1024)  :: RootName      ! RootName for writing output files [-]
+    LOGICAL  :: TMD_X_DOF      ! DOF on or off [-]
+    LOGICAL  :: TMD_Y_DOF      ! DOF on or off [-]
     REAL(ReKi)  :: X_DSP      ! TMD_X initial displacement [m]
     REAL(ReKi)  :: Y_DSP      ! TMD_Y initial displacement [m]
     REAL(ReKi)  :: M_X      ! TMD mass [kg]
@@ -1064,6 +1066,8 @@ ENDIF
    ErrMsg  = ""
    DstParamData%DT = SrcParamData%DT
    DstParamData%RootName = SrcParamData%RootName
+   DstParamData%TMD_X_DOF = SrcParamData%TMD_X_DOF
+   DstParamData%TMD_Y_DOF = SrcParamData%TMD_Y_DOF
    DstParamData%X_DSP = SrcParamData%X_DSP
    DstParamData%Y_DSP = SrcParamData%Y_DSP
    DstParamData%M_X = SrcParamData%M_X
@@ -1126,6 +1130,8 @@ ENDIF
   Int_BufSz  = 0
   Db_BufSz   = Db_BufSz   + 1  ! DT
 !  missing buffer for RootName
+  Int_BufSz  = Int_BufSz  + 1  ! TMD_X_DOF
+  Int_BufSz  = Int_BufSz  + 1  ! TMD_Y_DOF
   Re_BufSz   = Re_BufSz   + 1  ! X_DSP
   Re_BufSz   = Re_BufSz   + 1  ! Y_DSP
   Re_BufSz   = Re_BufSz   + 1  ! M_X
@@ -1145,6 +1151,10 @@ ENDIF
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%DT )
   Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%TMD_X_DOF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%TMD_Y_DOF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%X_DSP )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Y_DSP )

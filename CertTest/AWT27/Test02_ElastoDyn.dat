@@ -1,5 +1,5 @@
 ------- ELASTODYN V1.01.* INPUT FILE -------------------------------------------
-FAST certification Test #02: AWT-27CR2 with many DOFs with startup and shutdown and steady wind. 
+FAST certification Test #02: AWT-27CR2 with many DOFs with startup and shutdown and steady wind.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo        - Echo input data to "<RootName>.ech" (flag)
           3   Method      - Integration method: {1: RK4, 2: AB4, or 3: ABM4} (-)
@@ -138,6 +138,7 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
 "LSSGagMya"               - LSS gage rotating bending moments
 "LSSGagMza"               - LSS gage rotating bending moments
 "HSShftTq"                - HSS, Generator torque
+"HSSBrTq"                 - HSS, brake torque
 "HSShftPwr"               - HSS and electrical generator power
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------

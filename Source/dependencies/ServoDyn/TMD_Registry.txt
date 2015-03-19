@@ -7,8 +7,8 @@
 #
 # Use ^ as a shortcut for the value from the previous line.
 ###################################################################################################################################
-# File last committed: $Date: 2015-02-09 22:29:06 -0700 (Mon, 09 Feb 2015) $
-# (File) Revision #: $Rev: 913 $
+# File last committed: $Date: 2015-03-11 14:34:32 -0600 (Wed, 11 Mar 2015) $
+# (File) Revision #: $Rev: 934 $
 # URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/TMD/Source/TMD_Registry.txt $
 ###################################################################################################################################
 
@@ -64,6 +64,8 @@ typedef	^		^				ReKi			F_ext	{2}	-	-	"External forces (user defined)"	-
 # Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
 typedef ^ ParameterType DbKi DT - - - "Time step for cont. state integration & disc. state update" seconds
 typedef  ^     ^           CHARACTER(1024) RootName   -   -   -   "RootName for writing output files"	-
+typedef	^		^				LOGICAL			TMD_X_DOF	-	-	-	"DOF on or off"	-
+typedef	^		^				LOGICAL			TMD_Y_DOF	-	-	-	"DOF on or off"	-
 typedef	^		^				ReKi			X_DSP	-	-	-	"TMD_X initial displacement"	m
 typedef	^		^				ReKi			Y_DSP	-	-	-	"TMD_Y initial displacement"	m
 typedef	^		^				ReKi			M_X		-	-	-	"TMD mass"	kg

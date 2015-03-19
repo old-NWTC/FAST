@@ -1,5 +1,5 @@
 !**********************************************************************************************************************************
-! $Id: InflowWind.f90 136 2015-01-30 21:58:56Z bjonkman $
+! $Id: InflowWind.f90 147 2015-03-13 17:43:26Z bjonkman $
 !
 ! This module is used to read and process the (undisturbed) inflow winds.  It must be initialized
 ! using InflowWind_Init() with the name of the file, the file type, and possibly reference height and
@@ -16,8 +16,8 @@
 !    Feb 2013    v2.00.00a-adp   conversion to Framework       A. Platt
 !
 !----------------------------------------------------------------------------------------------------
-! File last committed: $Date: 2015-01-30 14:58:56 -0700 (Fri, 30 Jan 2015) $
-! (File) Revision #: $Rev: 136 $
+! File last committed: $Date: 2015-03-13 11:43:26 -0600 (Fri, 13 Mar 2015) $
+! (File) Revision #: $Rev: 147 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/InflowWind.f90 $
 !..................................................................................................................................
 ! Files with this module:
@@ -74,7 +74,7 @@ MODULE InflowWind
    IMPLICIT NONE
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: IfW_Ver = ProgDesc( 'InflowWind', 'v2.01.00a-bjj', '30-Jan-2015' )
+   TYPE(ProgDesc), PARAMETER            :: IfW_Ver = ProgDesc( 'InflowWind', 'v2.01.00a-bjj', '13-Mar-2015' )
 
 
 
