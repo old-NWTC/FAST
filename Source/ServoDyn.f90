@@ -657,7 +657,7 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
       ! Local variables
-   REAL(ReKi)                                     :: AllOuts(MaxOutPts)     ! All the the available output channels
+   REAL(ReKi)                                     :: AllOuts(0:MaxOutPts)   ! All the the available output channels
    INTEGER(IntKi)                                 :: I                      ! Generic loop index
    INTEGER(IntKi)                                 :: K                      ! Blade index
    INTEGER(IntKi)                                 :: ErrStat2

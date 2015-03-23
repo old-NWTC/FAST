@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-03-10 14:15:34 -0600 (Tue, 10 Mar 2015) $
-! (File) Revision #: $Rev: 604 $
+! File last committed: $Date: 2015-03-23 14:32:11 -0600 (Mon, 23 Mar 2015) $
+! (File) Revision #: $Rev: 609 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Conv_Radiation.f90 $
 !**********************************************************************************************************************************
 MODULE Conv_Radiation
@@ -624,7 +624,9 @@ SUBROUTINE Conv_Rdtn_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherS
       
          ! Get the inputs at time t, based on the array of values sent by the glue code:
          
-    
+      CALL Conv_Rdtn_Input_ExtrapInterp( Inputs, InputTimes, u, t, ErrStat, ErrMsg )  
+      IF ( ErrStat >= AbortErrLev ) RETURN
+       
       
          ! Update discrete states:
          !   Note that xd [discrete state] is changed in Conv_Rdtn_UpdateDiscState() so xd will now contain values at t+Interval
@@ -641,7 +643,7 @@ SUBROUTINE Conv_Rdtn_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherS
 
          ! Destroy local variables before returning
          
-      
+      CALL Conv_Rdtn_DestroyInput(   u, ErrStat2, ErrMsg2)
       
       
 END SUBROUTINE Conv_Rdtn_UpdateStates
