@@ -3,7 +3,7 @@ Mooring system for ITI Energy Barge
 FALSE    Echo      - echo the input file data (flag)
 ----------------------- LINE TYPES ------------------------------------------
 1        NTypes    - number of LineTypes
-Name     Diam      MassDen       EA      BA     Can     Cat   Cdn   Cdt 
+Name     Diam      MassDen       EA      BA     Can     Cat   Cdn   Cdt
 (-)       (m)      (kg/m)        (N)    (N-s)   (-)     (-)   (-)   (-)
 main     0.0809    130.403     589.0E6  8.0E6   1.0     0.0   1.6   0.1
 ---------------------- CONNECTION PROPERTIES --------------------------------

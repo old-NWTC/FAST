@@ -3,9 +3,9 @@ Mooring system for OC4-DeepCwind Semi
 FALSE    Echo      - echo the input file data (flag)
 ----------------------- LINE TYPES ------------------------------------------
 1        NTypes    - number of LineTypes
-Name     Diam      MassDen      EA      BA     Can   Cat   Cdn   Cdt 
+Name     Diam      MassDen      EA      BA     Can   Cat   Cdn   Cdt
 (-)       (m)      (kg/m)       (N)    (N-s)   (-)   (-)   (-)   (-)
-main     0.1334    113.35     7.536E8  1.0E7   0.8   0.25  1.1   0.2 
+main     0.1334    113.35     7.536E8  1.0E7   0.8   0.25  1.1   0.2
 ---------------------- CONNECTION PROPERTIES --------------------------------
 6       NConnects - number of connections including anchors and fairleads
 Node    Type      X        Y        Z       M     V      FX   FY   FZ
@@ -20,9 +20,9 @@ Node    Type      X        Y        Z       M     V      FX   FY   FZ
 3        NLines    - number of line objects
 Line    LineType  UnstrLen  NumSegs   NodeAnch  NodeFair  Flags/Outputs
 (-)       (-)       (m)       (-)       (-)       (-)         (-)
-1         main     835.35      20        1         4          pos 
-2         main     835.35      20        2         5          pos 
-3         main     835.35      20        3         6          pos 
+1         main     835.35      20        1         4          pos
+2         main     835.35      20        2         5          pos
+3         main     835.35      20        3         6          pos
 ---------------------- SOLVER OPTIONS ---------------------------------------
 0.001    DT        - time step to use in mooring integration
 1.0      DTIC      - time interval for analyzing convergence during IC gen
@@ -36,5 +36,8 @@ Line    LineType  UnstrLen  NumSegs   NodeAnch  NodeFair  Flags/Outputs
 FairTen1
 FairTen2
 FairTen3
+AnchTen1
+AnchTen2
+AnchTen3
 END
 ------------------------- need this line --------------------------------------

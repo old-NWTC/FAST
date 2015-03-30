@@ -101,7 +101,7 @@ REM ----------------------------------------------------------------------------
 REM -------------------- LOCAL VARIABLES ---------------------------------------
 REM ----------------------------------------------------------------------------
 
-SET ROOT_NAME=FAST_iwin%BITS%
+SET ROOT_NAME=..\bin\FAST_iwin%BITS%
 SET INTER_DIR=Obj_iwin%BITS%
 
 :: /nologo /fpp /stand:f03 /Qdiag-disable:5268 /traceback /libs:static /threads /Qmkl:sequential /c

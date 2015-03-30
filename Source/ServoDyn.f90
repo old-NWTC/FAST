@@ -2410,7 +2410,7 @@ SUBROUTINE SetOutParam(OutList, p, ErrStat, ErrMsg )
          p%OutParam(I)%SignM = 0                    ! multiply all results by zero
 
          ErrStat = ErrID_Warn
-         ErrMsg  = p%OutParam(I)%Name//" is not an available output channel. "//TRIM(ErrMsg)
+         ErrMsg  = trim(p%OutParam(I)%Name)//" is not an available output channel. "//TRIM(ErrMsg)
       END IF
 
    END DO
