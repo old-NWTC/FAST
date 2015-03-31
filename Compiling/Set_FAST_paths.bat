@@ -45,7 +45,7 @@ SET MD_LOC=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MoorDyn\Gitfo
 
 rem ECHO BONNIE: FIX THE FEAM LOCATION!!!
 rem SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
-SET FEAM_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FEAMooring\SVNdirectory\source\
+SET FEAM_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FEAMooring\SVNdirectory\source
 SET FEAM_Reg_Loc=%FEAM_Loc%
 
 SET IceF_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\IceFloe\SVNDirectory\IceFloe\source

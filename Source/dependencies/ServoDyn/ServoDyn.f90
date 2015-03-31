@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-03-06 14:54:39 -0700 (Fri, 06 Mar 2015) $
-! (File) Revision #: $Rev: 932 $
+! File last committed: $Date: 2015-03-30 15:00:11 -0600 (Mon, 30 Mar 2015) $
+! (File) Revision #: $Rev: 952 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ServoDyn.f90 $
 !**********************************************************************************************************************************
 MODULE ServoDyn
@@ -2410,7 +2410,7 @@ SUBROUTINE SetOutParam(OutList, p, ErrStat, ErrMsg )
          p%OutParam(I)%SignM = 0                    ! multiply all results by zero
 
          ErrStat = ErrID_Warn
-         ErrMsg  = p%OutParam(I)%Name//" is not an available output channel. "//TRIM(ErrMsg)
+         ErrMsg  = trim(p%OutParam(I)%Name)//" is not an available output channel. "//TRIM(ErrMsg)
       END IF
 
    END DO

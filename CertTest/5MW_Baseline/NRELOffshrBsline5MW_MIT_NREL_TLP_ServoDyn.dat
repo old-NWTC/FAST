@@ -89,5 +89,4 @@ True          TabDelim     - Use tab delimiters in text tabular output file? (fl
 "GenPwr"                  - Electrical generator power and torque
 "GenTq"                   - Electrical generator power and torque
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
-"HSSBrTqC"                - High-speed shaft brake torque command
 ---------------------------------------------------------------------------------------

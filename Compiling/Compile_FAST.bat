@@ -11,6 +11,7 @@ rem SET BITS=%1
 
 SET RegOnly=1
 IF /I "%1"=="-REGISTRYONLY" goto SetPaths
+IF /I "%2"=="-REGISTRYONLY" goto SetPaths
 SET RegOnly=0
 
 REM ----------------------------------------------------------------------------
@@ -269,9 +270,10 @@ ECHO.
 
 SET CURR_LOC=%FAST_Loc%
 SET ModuleName=FAST
-%REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%TMD_Loc%" -I "%AD_Loc%" -I^
- "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Loc%"  -I "%MD_Loc%" -I^
- "%IceF_Loc%" -I "%IceD_Loc%"   -noextrap
+%REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD_Loc%" -I^
+ "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Reg_Loc%"  -I^
+ "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -noextrap
+
 MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 
 
@@ -360,7 +362,6 @@ rem need the syntax for generating the c-to-fortran code...
 
 
 IF %RegOnly%==1 goto end
-
 
 :ivf
 REM ----------------------------------------------------------------------------
