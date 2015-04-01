@@ -1,17 +1,18 @@
 
 FAST Summary File
 
-Predictions were generated on 06-Oct-2014 at 18:07:31 using FAST (v8.09.00a-bjj, 30-Sep-2014), compiled for 32-bit systems using single precision
+Predictions were generated on 31-Mar-2015 at 20:49:46 using FAST (v8.10.00a-bjj, 31-Mar-2015), compiled as a 32-bit application using single precision
   compiled with
-    NWTC Subroutine Library (v2.04.00a-bjj, 30-Sep-2014)
-    ElastoDyn (v1.01.07a-bjj, 30-Sep-2014)
-    AeroDyn (v14.03.00a-bjj, 30-Sep-2014)
-    InflowWind (v2.00.01c-bjj, 30-Sep-2014)
-    ServoDyn (v1.01.02a-bjj, 30-June-2014)
-    HydroDyn (v2.02.00a-adp, 30-Sep-2014)
+    NWTC Subroutine Library (v2.05.02a-bjj, 25-Feb-2015)
+    ElastoDyn (v1.02.00a-bjj, 31-Mar-2015)
+    AeroDyn (v14.03.01a-bjj, 13-Mar-2015)
+    InflowWind (v2.01.00a-bjj, 13-Mar-2015)
+    ServoDyn (v1.02.00a-bjj, 31-Mar-2015)
+    HydroDyn (v2.02.02a-gjh, 25-Mar-2015)
     SubDyn (unknown version, unknown date) [not called]
-    MAP (0.97.01a-mdm, Mar-05-2014)
+    MAP++ (<1.10.0rc>, <Mar-10-2015>)
     FEAMooring (unknown version, unknown date) [not called]
+    MoorDyn (unknown version, unknown date) [not called]
     IceFloe (unknown version, unknown date) [not called]
     IceDyn (unknown version, unknown date) [not called]
 
@@ -34,7 +35,7 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn to HydroDyn:     1
   AeroDyn             1.250E-02              1
   ServoDyn            1.250E-02              1
   HydroDyn            1.250E-02              1
-  MAP                 1.250E-02              1
+  MAP++               1.250E-02              1
   FAST output files   1.250E-02              1
 
 
@@ -130,11 +131,10 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn to HydroDyn:     1
       86  TwHt1MLzt   (kN·m)      ElastoDyn
       87  GenPwr      (kW)        ServoDyn
       88  GenTq       (kN·m)      ServoDyn
-      89  HSSBrTq     (kN·m)      ServoDyn
-      90  Wave1Elev   (m)         HydroDyn
-      91  TFair[1]    [kN]        MAP
-      92  TAnch[1]    [kN]        MAP
-      93  TFair[2]    [kN]        MAP
-      94  TAnch[2]    [kN]        MAP
-      95  TFair[3]    [kN]        MAP
-      96  TAnch[3]    [kN]        MAP
+      89  Wave1Elev   (m)         HydroDyn
+      90  T[1]        [N]         MAP++
+      91  T_a[1]      [N]         MAP++
+      92  T[2]        [N]         MAP++
+      93  T_a[2]      [N]         MAP++
+      94  T[3]        [N]         MAP++
+      95  T_a[3]      [N]         MAP++

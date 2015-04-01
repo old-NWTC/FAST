@@ -1,1020 +1,122 @@
+Outputs were generated using MAP++ 1.10.0rc.
 
+    Tuesday March 31-2015 at 20:50:23 PM
 
-MAP Summary File.
-Outputs were generated using MAP version 0.97.01a-mdm on <2014-12-04.12:11:20>
-
-
-    Sea Density [kg/m^3]: 1025.000
-    Gravity     [m/s^2] : 9.807
-    Depth       [m]     : -200.000
-
-    Cable Type          : Material
-    Diam         [m]    : 0.077
-    MassDenInAir [kg/m] : 113.350
-    EA           [kN]   : 753600.000
-    CB                  : 1.000
-
-            |  Node 1 Data:             Node 2 Data:             Node 3 Data:             Node 4 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   Fix                      Vessel                   
-X  [m]   :  |  -837.600                 -40.868                  418.800                  20.434                   
-Y  [m]   :  |  0.000                    0.000                    -725.383                 -35.393                  
-Z  [m]   :  |  -200.000                 -14.000                  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    0.000                    0.000                    
-FX [kN]  :  |  (-651.255)               (909.414)                (325.627)                (-454.707)               
-FY [kN]  :  |  (0.000)                  (0.000)                  (-564.003)               (787.576)                
-FZ [kN]  :  |  (0.000)                  (631.706)                (0.000)                  (631.706)                
-
-
-            |  Node 5 Data:             Node 6 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   
-X  [m]   :  |  418.800                  20.434                   
-Y  [m]   :  |  725.383                  35.393                   
-Z  [m]   :  |  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    
-FX [kN]  :  |  (325.627)                (-454.707)               
-FY [kN]  :  |  (564.003)                (-787.576)               
-FZ [kN]  :  |  (0.000)                  (631.706)                
-
-
-Line 1 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  -837.6      -> -40.9      
-    Y Position [m] : |  0.0         -> 0.0        
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 2 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  -725.4      -> -35.4      
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 3 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  725.4       -> 35.4       
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-
-
------------------------ MAP INPUT FILE CONTENTS AT INITIALIZATION ---------------------
-Material     0.0766    113.35      7.536E5      1.0                                                                                                                                                                                                            
-1    fix     -837.6      0      depth   0     0     #     #     #                                                                                                                                                                                              
-2    Vessel  -40.868     0      -14.0   0     0     #     #     #                                                                                                                                                                                              
-3 fix 418.7999934281309 -725.38288200411614 depth 0 0 # # # 
-4 Vessel 20.433999679346769 -35.392726386991669 -14.0 0 0 # # # 
-5 fix 418.80001314373806 725.38287062130496 depth 0 0 # # # 
-6 Vessel 20.434000641306458 35.392725831603975 -14.0 0 0 # # # 
-1       Material   835.35        1         2        fair_tension anch_tension                                                                                                                                                                                  
-2 Material 835.35 3 4 fair_tension anch_tension  
-3 Material 835.35 5 6 fair_tension anch_tension  
--snes_type newtonls                                                                                                                                                                                                                                            
--ksp_type preonly                                                                                                                                                                                                                                              
--msqs_fd_jacobian                                                                                                                                                                                                                                              
--pc_type lu                                                                                                                                                                                                                                                    
--pc_factor_nonzeros_along_diagonal                                                                                                                                                                                                                             
--snes_atol 1e-6                                                                                                                                                                                                                                                
--snes_rtol 1e-12                                                                                                                                                                                                                                               
--snes_stol 1e-6                                                                                                                                                                                                                                                
------------------------ END INPUT FILE CONTENTS ---------------------------------------
-
-
-
-
-MAP Summary File.
-Outputs were generated using MAP version 0.97.01a-mdm on <2014-12-06.15:00:14>
-
-
-    Sea Density [kg/m^3]: 1025.000
-    Gravity     [m/s^2] : 9.807
-    Depth       [m]     : -200.000
+    Gravity constant          [m/s^2]  : 9.81
+    Sea density               [kg/m^3] : 1025.00
+    Water depth               [m]      : 200.00
+    Vessel reference position [m]      : 0.00 , 0.00 , 0.00
 
     Cable Type          : Material
-    Diam         [m]    : 0.077
-    MassDenInAir [kg/m] : 113.350
-    EA           [kN]   : 753600.000
-    CB                  : 1.000
-
-            |  Node 1 Data:             Node 2 Data:             Node 3 Data:             Node 4 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   Fix                      Vessel                   
-X  [m]   :  |  -837.600                 -40.868                  418.800                  20.434                   
-Y  [m]   :  |  0.000                    0.000                    -725.383                 -35.393                  
-Z  [m]   :  |  -200.000                 -14.000                  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    0.000                    0.000                    
-FX [kN]  :  |  (-651.255)               (909.414)                (325.627)                (-454.707)               
-FY [kN]  :  |  (0.000)                  (0.000)                  (-564.003)               (787.576)                
-FZ [kN]  :  |  (0.000)                  (631.706)                (0.000)                  (631.706)                
-
-
-            |  Node 5 Data:             Node 6 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   
-X  [m]   :  |  418.800                  20.434                   
-Y  [m]   :  |  725.383                  35.393                   
-Z  [m]   :  |  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    
-FX [kN]  :  |  (325.627)                (-454.707)               
-FY [kN]  :  |  (564.003)                (-787.576)               
-FZ [kN]  :  |  (0.000)                  (631.706)                
-
-
-Line 1 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  -837.6      -> -40.9      
-    Y Position [m] : |  0.0         -> 0.0        
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 2 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  -725.4      -> -35.4      
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 3 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  725.4       -> 35.4       
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-
-
------------------------ MAP INPUT FILE CONTENTS AT INITIALIZATION ---------------------
-Material     0.0766    113.35      7.536E5      1.0                                                                                                                                                                                                            
-1    fix     -837.6      0      depth   0     0     #     #     #                                                                                                                                                                                              
-2    Vessel  -40.868     0      -14.0   0     0     #     #     #                                                                                                                                                                                              
-3 fix 418.7999934281309 -725.38288200411614 depth 0 0 # # # 
-4 Vessel 20.433999679346769 -35.392726386991669 -14.0 0 0 # # # 
-5 fix 418.80001314373806 725.38287062130496 depth 0 0 # # # 
-6 Vessel 20.434000641306458 35.392725831603975 -14.0 0 0 # # # 
-1       Material   835.35        1         2        fair_tension anch_tension                                                                                                                                                                                  
-2 Material 835.35 3 4 fair_tension anch_tension  
-3 Material 835.35 5 6 fair_tension anch_tension  
--snes_type newtonls                                                                                                                                                                                                                                            
--ksp_type preonly                                                                                                                                                                                                                                              
--msqs_fd_jacobian                                                                                                                                                                                                                                              
--pc_type lu                                                                                                                                                                                                                                                    
--pc_factor_nonzeros_along_diagonal                                                                                                                                                                                                                             
--snes_atol 1e-6                                                                                                                                                                                                                                                
--snes_rtol 1e-12                                                                                                                                                                                                                                               
--snes_stol 1e-6                                                                                                                                                                                                                                                
------------------------ END INPUT FILE CONTENTS ---------------------------------------
-
-
-
-
-MAP Summary File.
-Outputs were generated using MAP version 0.97.01a-mdm on <2014-12-06.21:33:15>
-
-
-    Sea Density [kg/m^3]: 1025.000
-    Gravity     [m/s^2] : 9.807
-    Depth       [m]     : -200.000
-
-    Cable Type          : Material
-    Diam         [m]    : 0.077
-    MassDenInAir [kg/m] : 113.350
-    EA           [kN]   : 753600.000
-    CB                  : 1.000
-
-            |  Node 1 Data:             Node 2 Data:             Node 3 Data:             Node 4 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   Fix                      Vessel                   
-X  [m]   :  |  -837.600                 -40.868                  418.800                  20.434                   
-Y  [m]   :  |  0.000                    0.000                    -725.383                 -35.393                  
-Z  [m]   :  |  -200.000                 -14.000                  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    0.000                    0.000                    
-FX [kN]  :  |  (-651.255)               (909.414)                (325.627)                (-454.707)               
-FY [kN]  :  |  (0.000)                  (0.000)                  (-564.003)               (787.576)                
-FZ [kN]  :  |  (0.000)                  (631.706)                (0.000)                  (631.706)                
-
-
-            |  Node 5 Data:             Node 6 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   
-X  [m]   :  |  418.800                  20.434                   
-Y  [m]   :  |  725.383                  35.393                   
-Z  [m]   :  |  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    
-FX [kN]  :  |  (325.627)                (-454.707)               
-FY [kN]  :  |  (564.003)                (-787.576)               
-FZ [kN]  :  |  (0.000)                  (631.706)                
-
-
-Line 1 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  -837.6      -> -40.9      
-    Y Position [m] : |  0.0         -> 0.0        
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 2 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  -725.4      -> -35.4      
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 3 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  725.4       -> 35.4       
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-
-
------------------------ MAP INPUT FILE CONTENTS AT INITIALIZATION ---------------------
-Material     0.0766    113.35      7.536E5      1.0                                                                                                                                                                                                            
-1    fix     -837.6      0      depth   0     0     #     #     #                                                                                                                                                                                              
-2    Vessel  -40.868     0      -14.0   0     0     #     #     #                                                                                                                                                                                              
-3 fix 418.7999934281309 -725.38288200411614 depth 0 0 # # # 
-4 Vessel 20.433999679346769 -35.392726386991669 -14.0 0 0 # # # 
-5 fix 418.80001314373806 725.38287062130496 depth 0 0 # # # 
-6 Vessel 20.434000641306458 35.392725831603975 -14.0 0 0 # # # 
-1       Material   835.35        1         2        fair_tension anch_tension                                                                                                                                                                                  
-2 Material 835.35 3 4 fair_tension anch_tension  
-3 Material 835.35 5 6 fair_tension anch_tension  
--snes_type newtonls                                                                                                                                                                                                                                            
--ksp_type preonly                                                                                                                                                                                                                                              
--msqs_fd_jacobian                                                                                                                                                                                                                                              
--pc_type lu                                                                                                                                                                                                                                                    
--pc_factor_nonzeros_along_diagonal                                                                                                                                                                                                                             
--snes_atol 1e-6                                                                                                                                                                                                                                                
--snes_rtol 1e-12                                                                                                                                                                                                                                               
--snes_stol 1e-6                                                                                                                                                                                                                                                
------------------------ END INPUT FILE CONTENTS ---------------------------------------
-
-
-
-
-MAP Summary File.
-Outputs were generated using MAP version 0.97.01a-mdm on <2014-12-07.15:48:39>
-
-
-    Sea Density [kg/m^3]: 1025.000
-    Gravity     [m/s^2] : 9.807
-    Depth       [m]     : -200.000
-
-    Cable Type          : Material
-    Diam         [m]    : 0.077
-    MassDenInAir [kg/m] : 113.350
-    EA           [kN]   : 753600.000
-    CB                  : 1.000
-
-            |  Node 1 Data:             Node 2 Data:             Node 3 Data:             Node 4 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   Fix                      Vessel                   
-X  [m]   :  |  -837.600                 -40.868                  418.800                  20.434                   
-Y  [m]   :  |  0.000                    0.000                    -725.383                 -35.393                  
-Z  [m]   :  |  -200.000                 -14.000                  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    0.000                    0.000                    
-FX [kN]  :  |  (-651.255)               (909.414)                (325.627)                (-454.707)               
-FY [kN]  :  |  (0.000)                  (0.000)                  (-564.003)               (787.576)                
-FZ [kN]  :  |  (0.000)                  (631.706)                (0.000)                  (631.706)                
-
-
-            |  Node 5 Data:             Node 6 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   
-X  [m]   :  |  418.800                  20.434                   
-Y  [m]   :  |  725.383                  35.393                   
-Z  [m]   :  |  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    
-FX [kN]  :  |  (325.627)                (-454.707)               
-FY [kN]  :  |  (564.003)                (-787.576)               
-FZ [kN]  :  |  (0.000)                  (631.706)                
-
-
-Line 1 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  -837.6      -> -40.9      
-    Y Position [m] : |  0.0         -> 0.0        
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 2 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  -725.4      -> -35.4      
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 3 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  725.4       -> 35.4       
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-
-
------------------------ MAP INPUT FILE CONTENTS AT INITIALIZATION ---------------------
-Material     0.0766    113.35      7.536E5      1.0                                                                                                                                                                                                            
-1    fix     -837.6      0      depth   0     0     #     #     #                                                                                                                                                                                              
-2    Vessel  -40.868     0      -14.0   0     0     #     #     #                                                                                                                                                                                              
-3 fix 418.7999934281309 -725.38288200411614 depth 0 0 # # # 
-4 Vessel 20.433999679346769 -35.392726386991669 -14.0 0 0 # # # 
-5 fix 418.80001314373806 725.38287062130496 depth 0 0 # # # 
-6 Vessel 20.434000641306458 35.392725831603975 -14.0 0 0 # # # 
-1       Material   835.35        1         2        fair_tension anch_tension                                                                                                                                                                                  
-2 Material 835.35 3 4 fair_tension anch_tension  
-3 Material 835.35 5 6 fair_tension anch_tension  
--snes_type newtonls                                                                                                                                                                                                                                            
--ksp_type preonly                                                                                                                                                                                                                                              
--msqs_fd_jacobian                                                                                                                                                                                                                                              
--pc_type lu                                                                                                                                                                                                                                                    
--pc_factor_nonzeros_along_diagonal                                                                                                                                                                                                                             
--snes_atol 1e-6                                                                                                                                                                                                                                                
--snes_rtol 1e-12                                                                                                                                                                                                                                               
--snes_stol 1e-6                                                                                                                                                                                                                                                
------------------------ END INPUT FILE CONTENTS ---------------------------------------
-
-
-
-
-MAP Summary File.
-Outputs were generated using MAP version 0.97.01a-mdm on <2014-12-07.20:31:41>
-
-
-    Sea Density [kg/m^3]: 1025.000
-    Gravity     [m/s^2] : 9.807
-    Depth       [m]     : -200.000
-
-    Cable Type          : Material
-    Diam         [m]    : 0.077
-    MassDenInAir [kg/m] : 113.350
-    EA           [kN]   : 753600.000
-    CB                  : 1.000
-
-            |  Node 1 Data:             Node 2 Data:             Node 3 Data:             Node 4 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   Fix                      Vessel                   
-X  [m]   :  |  -837.600                 -40.868                  418.800                  20.434                   
-Y  [m]   :  |  0.000                    0.000                    -725.383                 -35.393                  
-Z  [m]   :  |  -200.000                 -14.000                  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    0.000                    0.000                    
-FX [kN]  :  |  (-651.255)               (909.414)                (325.627)                (-454.707)               
-FY [kN]  :  |  (0.000)                  (0.000)                  (-564.003)               (787.576)                
-FZ [kN]  :  |  (0.000)                  (631.706)                (0.000)                  (631.706)                
-
-
-            |  Node 5 Data:             Node 6 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   
-X  [m]   :  |  418.800                  20.434                   
-Y  [m]   :  |  725.383                  35.393                   
-Z  [m]   :  |  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    
-FX [kN]  :  |  (325.627)                (-454.707)               
-FY [kN]  :  |  (564.003)                (-787.576)               
-FZ [kN]  :  |  (0.000)                  (631.706)                
-
-
-Line 1 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  -837.6      -> -40.9      
-    Y Position [m] : |  0.0         -> 0.0        
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 2 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  -725.4      -> -35.4      
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 3 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  725.4       -> 35.4       
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-
-
------------------------ MAP INPUT FILE CONTENTS AT INITIALIZATION ---------------------
-Material     0.0766    113.35      7.536E5      1.0                                                                                                                                                                                                            
-1    fix     -837.6      0      depth   0     0     #     #     #                                                                                                                                                                                              
-2    Vessel  -40.868     0      -14.0   0     0     #     #     #                                                                                                                                                                                              
-3 fix 418.7999934281309 -725.38288200411614 depth 0 0 # # # 
-4 Vessel 20.433999679346769 -35.392726386991669 -14.0 0 0 # # # 
-5 fix 418.80001314373806 725.38287062130496 depth 0 0 # # # 
-6 Vessel 20.434000641306458 35.392725831603975 -14.0 0 0 # # # 
-1       Material   835.35        1         2        fair_tension anch_tension                                                                                                                                                                                  
-2 Material 835.35 3 4 fair_tension anch_tension  
-3 Material 835.35 5 6 fair_tension anch_tension  
--snes_type newtonls                                                                                                                                                                                                                                            
--ksp_type preonly                                                                                                                                                                                                                                              
--msqs_fd_jacobian                                                                                                                                                                                                                                              
--pc_type lu                                                                                                                                                                                                                                                    
--pc_factor_nonzeros_along_diagonal                                                                                                                                                                                                                             
--snes_atol 1e-6                                                                                                                                                                                                                                                
--snes_rtol 1e-12                                                                                                                                                                                                                                               
--snes_stol 1e-6                                                                                                                                                                                                                                                
------------------------ END INPUT FILE CONTENTS ---------------------------------------
-
-
-
-
-MAP Summary File.
-Outputs were generated using MAP version 0.97.01a-mdm on <2014-12-08.09:27:19>
-
-
-    Sea Density [kg/m^3]: 1025.000
-    Gravity     [m/s^2] : 9.807
-    Depth       [m]     : -200.000
-
-    Cable Type          : Material
-    Diam         [m]    : 0.077
-    MassDenInAir [kg/m] : 113.350
-    EA           [kN]   : 753600.000
-    CB                  : 1.000
-
-            |  Node 1 Data:             Node 2 Data:             Node 3 Data:             Node 4 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   Fix                      Vessel                   
-X  [m]   :  |  -837.600                 -40.868                  418.800                  20.434                   
-Y  [m]   :  |  0.000                    0.000                    -725.383                 -35.393                  
-Z  [m]   :  |  -200.000                 -14.000                  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    0.000                    0.000                    
-FX [kN]  :  |  (-651.255)               (909.414)                (325.627)                (-454.707)               
-FY [kN]  :  |  (0.000)                  (0.000)                  (-564.003)               (787.576)                
-FZ [kN]  :  |  (0.000)                  (631.706)                (0.000)                  (631.706)                
-
-
-            |  Node 5 Data:             Node 6 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   
-X  [m]   :  |  418.800                  20.434                   
-Y  [m]   :  |  725.383                  35.393                   
-Z  [m]   :  |  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    
-FX [kN]  :  |  (325.627)                (-454.707)               
-FY [kN]  :  |  (564.003)                (-787.576)               
-FZ [kN]  :  |  (0.000)                  (631.706)                
-
-
-Line 1 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  -837.6      -> -40.9      
-    Y Position [m] : |  0.0         -> 0.0        
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 2 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  -725.4      -> -35.4      
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 3 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  725.4       -> 35.4       
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-
-
------------------------ MAP INPUT FILE CONTENTS AT INITIALIZATION ---------------------
-Material     0.0766    113.35      7.536E5      1.0                                                                                                                                                                                                            
-1    fix     -837.6      0      depth   0     0     #     #     #                                                                                                                                                                                              
-2    Vessel  -40.868     0      -14.0   0     0     #     #     #                                                                                                                                                                                              
-3 fix 418.7999934281309 -725.38288200411614 depth 0 0 # # # 
-4 Vessel 20.433999679346769 -35.392726386991669 -14.0 0 0 # # # 
-5 fix 418.80001314373806 725.38287062130496 depth 0 0 # # # 
-6 Vessel 20.434000641306458 35.392725831603975 -14.0 0 0 # # # 
-1       Material   835.35        1         2        fair_tension anch_tension                                                                                                                                                                                  
-2 Material 835.35 3 4 fair_tension anch_tension  
-3 Material 835.35 5 6 fair_tension anch_tension  
--snes_type newtonls                                                                                                                                                                                                                                            
--ksp_type preonly                                                                                                                                                                                                                                              
--msqs_fd_jacobian                                                                                                                                                                                                                                              
--pc_type lu                                                                                                                                                                                                                                                    
--pc_factor_nonzeros_along_diagonal                                                                                                                                                                                                                             
--snes_atol 1e-6                                                                                                                                                                                                                                                
--snes_rtol 1e-12                                                                                                                                                                                                                                               
--snes_stol 1e-6                                                                                                                                                                                                                                                
------------------------ END INPUT FILE CONTENTS ---------------------------------------
-
-
-
-
-MAP Summary File.
-Outputs were generated using MAP version 0.97.01a-mdm on <2014-12-08.12:03:32>
-
-
-    Sea Density [kg/m^3]: 1025.000
-    Gravity     [m/s^2] : 9.807
-    Depth       [m]     : -200.000
-
-    Cable Type          : Material
-    Diam         [m]    : 0.077
-    MassDenInAir [kg/m] : 113.350
-    EA           [kN]   : 753600.000
-    CB                  : 1.000
-
-            |  Node 1 Data:             Node 2 Data:             Node 3 Data:             Node 4 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   Fix                      Vessel                   
-X  [m]   :  |  -837.600                 -40.868                  418.800                  20.434                   
-Y  [m]   :  |  0.000                    0.000                    -725.383                 -35.393                  
-Z  [m]   :  |  -200.000                 -14.000                  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    0.000                    0.000                    
-FX [kN]  :  |  (-651.255)               (909.414)                (325.627)                (-454.707)               
-FY [kN]  :  |  (0.000)                  (0.000)                  (-564.003)               (787.576)                
-FZ [kN]  :  |  (0.000)                  (631.706)                (0.000)                  (631.706)                
-
-
-            |  Node 5 Data:             Node 6 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   
-X  [m]   :  |  418.800                  20.434                   
-Y  [m]   :  |  725.383                  35.393                   
-Z  [m]   :  |  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    
-FX [kN]  :  |  (325.627)                (-454.707)               
-FY [kN]  :  |  (564.003)                (-787.576)               
-FZ [kN]  :  |  (0.000)                  (631.706)                
-
-
-Line 1 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  -837.6      -> -40.9      
-    Y Position [m] : |  0.0         -> 0.0        
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 2 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  -725.4      -> -35.4      
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 3 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  725.4       -> 35.4       
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-
-
------------------------ MAP INPUT FILE CONTENTS AT INITIALIZATION ---------------------
-Material     0.0766    113.35      7.536E5      1.0                                                                                                                                                                                                            
-1    fix     -837.6      0      depth   0     0     #     #     #                                                                                                                                                                                              
-2    Vessel  -40.868     0      -14.0   0     0     #     #     #                                                                                                                                                                                              
-3 fix 418.7999934281309 -725.38288200411614 depth 0 0 # # # 
-4 Vessel 20.433999679346769 -35.392726386991669 -14.0 0 0 # # # 
-5 fix 418.80001314373806 725.38287062130496 depth 0 0 # # # 
-6 Vessel 20.434000641306458 35.392725831603975 -14.0 0 0 # # # 
-1       Material   835.35        1         2        fair_tension anch_tension                                                                                                                                                                                  
-2 Material 835.35 3 4 fair_tension anch_tension  
-3 Material 835.35 5 6 fair_tension anch_tension  
--snes_type newtonls                                                                                                                                                                                                                                            
--ksp_type preonly                                                                                                                                                                                                                                              
--msqs_fd_jacobian                                                                                                                                                                                                                                              
--pc_type lu                                                                                                                                                                                                                                                    
--pc_factor_nonzeros_along_diagonal                                                                                                                                                                                                                             
--snes_atol 1e-6                                                                                                                                                                                                                                                
--snes_rtol 1e-12                                                                                                                                                                                                                                               
--snes_stol 1e-6                                                                                                                                                                                                                                                
------------------------ END INPUT FILE CONTENTS ---------------------------------------
-
-
-
-
-MAP Summary File.
-Outputs were generated using MAP version 0.97.01a-mdm on <2014-12-09.20:52:00>
-
-
-    Sea Density [kg/m^3]: 1025.000
-    Gravity     [m/s^2] : 9.807
-    Depth       [m]     : -200.000
-
-    Cable Type          : Material
-    Diam         [m]    : 0.077
-    MassDenInAir [kg/m] : 113.350
-    EA           [kN]   : 753600.000
-    CB                  : 1.000
-
-            |  Node 1 Data:             Node 2 Data:             Node 3 Data:             Node 4 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   Fix                      Vessel                   
-X  [m]   :  |  -837.600                 -40.868                  418.800                  20.434                   
-Y  [m]   :  |  0.000                    0.000                    -725.383                 -35.393                  
-Z  [m]   :  |  -200.000                 -14.000                  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    0.000                    0.000                    
-FX [kN]  :  |  (-651.255)               (909.414)                (325.627)                (-454.707)               
-FY [kN]  :  |  (0.000)                  (0.000)                  (-564.003)               (787.576)                
-FZ [kN]  :  |  (0.000)                  (631.706)                (0.000)                  (631.706)                
-
-
-            |  Node 5 Data:             Node 6 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   
-X  [m]   :  |  418.800                  20.434                   
-Y  [m]   :  |  725.383                  35.393                   
-Z  [m]   :  |  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    
-FX [kN]  :  |  (325.627)                (-454.707)               
-FY [kN]  :  |  (564.003)                (-787.576)               
-FZ [kN]  :  |  (0.000)                  (631.706)                
-
-
-Line 1 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  -837.6      -> -40.9      
-    Y Position [m] : |  0.0         -> 0.0        
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 2 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  -725.4      -> -35.4      
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 3 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  725.4       -> 35.4       
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-
-
------------------------ MAP INPUT FILE CONTENTS AT INITIALIZATION ---------------------
-Material     0.0766    113.35      7.536E5      1.0                                                                                                                                                                                                            
-1    fix     -837.6      0      depth   0     0     #     #     #                                                                                                                                                                                              
-2    Vessel  -40.868     0      -14.0   0     0     #     #     #                                                                                                                                                                                              
-3 fix 418.7999934281309 -725.38288200411614 depth 0 0 # # # 
-4 Vessel 20.433999679346769 -35.392726386991669 -14.0 0 0 # # # 
-5 fix 418.80001314373806 725.38287062130496 depth 0 0 # # # 
-6 Vessel 20.434000641306458 35.392725831603975 -14.0 0 0 # # # 
-1       Material   835.35        1         2        fair_tension anch_tension                                                                                                                                                                                  
-2 Material 835.35 3 4 fair_tension anch_tension  
-3 Material 835.35 5 6 fair_tension anch_tension  
--snes_type newtonls                                                                                                                                                                                                                                            
--ksp_type preonly                                                                                                                                                                                                                                              
--msqs_fd_jacobian                                                                                                                                                                                                                                              
--pc_type lu                                                                                                                                                                                                                                                    
--pc_factor_nonzeros_along_diagonal                                                                                                                                                                                                                             
--snes_atol 1e-6                                                                                                                                                                                                                                                
--snes_rtol 1e-12                                                                                                                                                                                                                                               
--snes_stol 1e-6                                                                                                                                                                                                                                                
------------------------ END INPUT FILE CONTENTS ---------------------------------------
-
-
-
-
-MAP Summary File.
-Outputs were generated using MAP version 0.97.01a-mdm on <2014-12-09.22:48:33>
-
-
-    Sea Density [kg/m^3]: 1025.000
-    Gravity     [m/s^2] : 9.807
-    Depth       [m]     : -200.000
-
-    Cable Type          : Material
-    Diam         [m]    : 0.077
-    MassDenInAir [kg/m] : 113.350
-    EA           [kN]   : 753600.000
-    CB                  : 1.000
-
-            |  Node 1 Data:             Node 2 Data:             Node 3 Data:             Node 4 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   Fix                      Vessel                   
-X  [m]   :  |  -837.600                 -40.868                  418.800                  20.434                   
-Y  [m]   :  |  0.000                    0.000                    -725.383                 -35.393                  
-Z  [m]   :  |  -200.000                 -14.000                  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    0.000                    0.000                    
-FX [kN]  :  |  (-651.255)               (909.414)                (325.627)                (-454.707)               
-FY [kN]  :  |  (0.000)                  (0.000)                  (-564.003)               (787.576)                
-FZ [kN]  :  |  (0.000)                  (631.706)                (0.000)                  (631.706)                
-
-
-            |  Node 5 Data:             Node 6 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   
-X  [m]   :  |  418.800                  20.434                   
-Y  [m]   :  |  725.383                  35.393                   
-Z  [m]   :  |  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    
-FX [kN]  :  |  (325.627)                (-454.707)               
-FY [kN]  :  |  (564.003)                (-787.576)               
-FZ [kN]  :  |  (0.000)                  (631.706)                
-
-
-Line 1 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  -837.6      -> -40.9      
-    Y Position [m] : |  0.0         -> 0.0        
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 2 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  -725.4      -> -35.4      
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 3 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  725.4       -> 35.4       
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-
-
------------------------ MAP INPUT FILE CONTENTS AT INITIALIZATION ---------------------
-Material     0.0766    113.35      7.536E5      1.0                                                                                                                                                                                                            
-1    fix     -837.6      0      depth   0     0     #     #     #                                                                                                                                                                                              
-2    Vessel  -40.868     0      -14.0   0     0     #     #     #                                                                                                                                                                                              
-3 fix 418.7999934281309 -725.38288200411614 depth 0 0 # # # 
-4 Vessel 20.433999679346769 -35.392726386991669 -14.0 0 0 # # # 
-5 fix 418.80001314373806 725.38287062130496 depth 0 0 # # # 
-6 Vessel 20.434000641306458 35.392725831603975 -14.0 0 0 # # # 
-1       Material   835.35        1         2        fair_tension anch_tension                                                                                                                                                                                  
-2 Material 835.35 3 4 fair_tension anch_tension  
-3 Material 835.35 5 6 fair_tension anch_tension  
--snes_type newtonls                                                                                                                                                                                                                                            
--ksp_type preonly                                                                                                                                                                                                                                              
--msqs_fd_jacobian                                                                                                                                                                                                                                              
--pc_type lu                                                                                                                                                                                                                                                    
--pc_factor_nonzeros_along_diagonal                                                                                                                                                                                                                             
--snes_atol 1e-6                                                                                                                                                                                                                                                
--snes_rtol 1e-12                                                                                                                                                                                                                                               
--snes_stol 1e-6                                                                                                                                                                                                                                                
------------------------ END INPUT FILE CONTENTS ---------------------------------------
-
-
-
-
-MAP Summary File.
-Outputs were generated using MAP version 0.97.01a-mdm on <2014-12-19.13:39:39>
-
-
-    Sea Density [kg/m^3]: 1025.000
-    Gravity     [m/s^2] : 9.807
-    Depth       [m]     : -200.000
-
-    Cable Type          : Material
-    Diam         [m]    : 0.077
-    MassDenInAir [kg/m] : 113.350
-    EA           [kN]   : 753600.000
-    CB                  : 1.000
-
-            |  Node 1 Data:             Node 2 Data:             Node 3 Data:             Node 4 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   Fix                      Vessel                   
-X  [m]   :  |  418.800                  20.434                   -837.600                 -40.868                  
-Y  [m]   :  |  725.383                  35.393                   0.000                    -0.000                   
-Z  [m]   :  |  -200.000                 -14.000                  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    0.000                    0.000                    
-FX [kN]  :  |  (325.623)                (-454.704)               (-651.247)               (909.408)                
-FY [kN]  :  |  (563.996)                (-787.571)               (0.000)                  (-0.000)                 
-FZ [kN]  :  |  (0.000)                  (631.704)                (0.000)                  (631.704)                
-
-
-            |  Node 5 Data:             Node 6 Data:             
-            |  ---------------------------------------------------------------------------------------
-Node Type:  |  Fix                      Vessel                   
-X  [m]   :  |  418.800                  20.434                   
-Y  [m]   :  |  -725.383                 -35.393                  
-Z  [m]   :  |  -200.000                 -14.000                  
-M  [kg]  :  |  0.000                    0.000                    
-B  [m^3] :  |  0.000                    0.000                    
-FX [kN]  :  |  (325.623)                (-454.704)               
-FY [kN]  :  |  (-563.996)               (787.571)                
-FZ [kN]  :  |  (0.000)                  (631.704)                
-
-
-Line 1 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  725.4       -> 35.4       
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 2 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  -837.6      -> -40.9      
-    Y Position [m] : |  0.0         -> -0.0       
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-Line 3 properties:
--------------------------------------------------
-    Line type      : |  Material
-    X Position [m] : |  418.8       -> 20.4       
-    Y Position [m] : |  -725.4      -> -35.4      
-    Z Position [m] : |  -200.0      -> -14.0      
-    Length     [m] : |  835.4
-    H          [kN]: |  (909.4)
-    V          [kN]: |  (631.7)
-    T          [kN]: |  (1107.3)
-
-
-
-
------------------------ MAP INPUT FILE CONTENTS AT INITIALIZATION ---------------------
-Material     0.0766    113.35      7.536E5      1.0                                                                                                                                                                                                            
-1    fix     418.8    725.383    depth   0     0     #     #     #                                                                                                                                                                                             
-2    Vessel   20.434   35.393    -14.0   0     0     #     #     #                                                                                                                                                                                             
-3 fix -837.60010547336799 -5.3306535392039223e-005 depth 0 0 # # # 
-4 Vessel -40.868237116143874 -0.00013652880817360824 -14.0 0 0 # # # 
-5 fix 418.80009232962817 -725.38294669346556 depth 0 0 # # # 
-6 Vessel 20.434236474833689 -35.392863471193962 -14.0 0 0 # # # 
-1       Material   835.35        1         2        fair_tension anch_tension                                                                                                                                                                                  
-2 Material 835.35 3 4 fair_tension anch_tension  
-3 Material 835.35 5 6 fair_tension anch_tension  
--snes_type newtonls                                                                                                                                                                                                                                            
--ksp_type preonly                                                                                                                                                                                                                                              
--msqs_fd_jacobian                                                                                                                                                                                                                                              
--pc_type lu                                                                                                                                                                                                                                                    
--pc_factor_nonzeros_along_diagonal                                                                                                                                                                                                                             
--snes_atol 1e-6                                                                                                                                                                                                                                                
--snes_rtol 1e-12                                                                                                                                                                                                                                               
--snes_stol 1e-6                                                                                                                                                                                                                                                
------------------------ END INPUT FILE CONTENTS ---------------------------------------
-
-
+    Diameter     [m]    : 0.0766
+    Mass Density [kg/m] : 113.35
+    EA           [N]    : 753600000.00
+    omega        [N/m]  : 1065.26
+    CB                  : 1.00
+
+          | Node 1 Data            Node 2 Data            Node 3 Data            Node 4 Data
+          | -------------------------------------------------------------------------------------------
+Type      |  FIX                    VESSEL                 FIX                    VESSEL
+X  [m]    |   418.800                20.434                -837.600               -40.868
+Y  [m]    |   725.383                35.393                -0.000                 -0.000
+Z  [m]    |  -200.000               -14.000                -200.000               -14.000
+M  [kg]   |  0.000                   0.000                  0.000                  0.000
+B  [m^3]  |  0.000                   0.000                  0.000                  0.000
+FX [N]    | ( 325623.416)          (-454704.295)          (-651248.635)          ( 909409.896)
+FY [N]    | ( 563996.176)          (-787570.769)          ( 0.000)               ( 0.000)
+FZ [N]    | ( 0.000)               ( 631704.309)          ( 0.000)               ( 631704.765)
+
+
+          | Node 5 Data            Node 6 Data
+          | -------------------------------------------------------------------------------------------
+Type      |  FIX                    VESSEL
+X  [m]    |   418.800                20.434
+Y  [m]    |  -725.383               -35.393
+Z  [m]    |  -200.000               -14.000
+M  [kg]   |  0.000                   0.000
+B  [m^3]  |  0.000                   0.000
+FX [N]    | ( 325621.845)          (-454703.060)
+FY [N]    | (-563993.597)          ( 787568.826)
+FZ [N]    | ( 0.000)               ( 631703.590)
+
+
+                | Line 1
+                | ---------------------------------------
+Material        |  Material
+Lu        [m]   |  835.350
+Lb        [m]   |  242.346
+H         [N]   |  909408.441
+V         [N]   |  631704.309
+T         [N]   |  1107282.279
+Alpha     [deg] |  34.785
+HAnch     [N]   |  651246.724
+VAnch     [N]   | 0.000
+TAnch     [N]   |  651246.724
+AlphaAnch [deg] | 0.000
+L^2-Norm        |  1.943354e-009
+Function Evals  |  6
+Jacobian Evals  |  5
+Term. criteria  |  2 : ||x_i - x_{i-1}||  <= INNER_XTOL.
+
+
+                | Line 2
+                | ---------------------------------------
+Material        |  Material
+Lu        [m]   |  835.350
+Lb        [m]   |  242.345
+H         [N]   |  909409.896
+V         [N]   |  631704.765
+T         [N]   |  1107283.735
+Alpha     [deg] |  34.785
+HAnch     [N]   |  651248.635
+VAnch     [N]   | 0.000
+TAnch     [N]   |  651248.635
+AlphaAnch [deg] | 0.000
+L^2-Norm        |  1.943354e-009
+Function Evals  |  6
+Jacobian Evals  |  5
+Term. criteria  |  2 : ||x_i - x_{i-1}||  <= INNER_XTOL.
+
+
+                | Line 3
+                | ---------------------------------------
+Material        |  Material
+Lu        [m]   |  835.350
+Lb        [m]   |  242.347
+H         [N]   |  909406.141
+V         [N]   |  631703.590
+T         [N]   |  1107279.980
+Alpha     [deg] |  34.785
+HAnch     [N]   |  651243.705
+VAnch     [N]   | 0.000
+TAnch     [N]   |  651243.705
+AlphaAnch [deg] | 0.000
+L^2-Norm        |  1.943394e-009
+Function Evals  |  6
+Jacobian Evals  |  5
+Term. criteria  |  2 : ||x_i - x_{i-1}||  <= INNER_XTOL.
+
+
+---------------------- LINE DICTIONARY ---------------------------------------
+LineType  Diam      MassDenInAir   EA            CB
+[-]       [m]       [kg/m]         [N]           [-]
+Material     0.0766    113.35      7.536E8      1.0    0        0    0    0 
+---------------------- NODE PROPERTIES ---------------------------------------
+Node  Type       X       Y       Z      M     B     FX    FY    FZ
+[-]   [-]       [m]     [m]     [m]    [kg]  [mˆ3]  [N]   [N]   [N]
+1    fix     418.8    725.383    depth   0     0     #     #     # 
+2    Vessel   20.434   35.393    -14.0   0     0     #     #     # 
+3   fix   -837.6001   -0.0001   depth   0   0   #   #   #
+4   Vessel   -40.8682   -0.0001   -14.0000   0   0   #   #   #
+5   fix   418.8001   -725.3829   depth   0   0   #   #   #
+6   Vessel   20.4342   -35.3929   -14.0000   0   0   #   #   #
+---------------------- LINE PROPERTIES ---------------------------------------
+Line  LineType  UnstrLen  NodeAnch  NodeFair  Flags
+[-]      [-]       [m]       [-]       [-]       [-]
+1       Material   835.35        1         2        tension_fair tension_anch 
+2   Material   835.35   3   4   tension_fair   tension_anch   
+3   Material   835.35   5   6   tension_fair   tension_anch   
+---------------------- SOLVER OPTIONS-----------------------------------------
+Option 
+[-] 
+repeat 240 120 
