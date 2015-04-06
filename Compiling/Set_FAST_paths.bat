@@ -11,8 +11,10 @@ ECHO Setting paths for Bonnie Jonkman.
 
 SET Crunch=C:\Users\bjonkman\Documents\DATA\DesignCodes\postprocessors\Crunch\SVNdirectory\trunk\crunch_win32.exe
 
-SET Registry=CALL Registry
 SET REG_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\FAST_Registry
+:: SET Registry=CALL Registry
+:: SET Registry=%REG_Loc%\Registry_Debug_Win32.exe
+SET Registry=%REG_Loc%\Registry.exe
 
 SET FAST_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
 

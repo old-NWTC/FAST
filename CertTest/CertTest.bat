@@ -65,11 +65,12 @@ goto CertTest
 goto CertTest
 
 ::=======================================================================================================
-
-
 :CertTest
+@SET UseCrunch=0
+IF /I "%2"=="-Crunch" @SET UseCrunch=1
+IF /I "%1"=="-Crunch" @SET UseCrunch=1
 
-
+::=======================================================================================================
 REM  FAST test sequence definition:
 
 @SET  TEST01=Test #01: AWT-27CR2 with many DOFs with fixed yaw error and steady wind.  AA plots.
@@ -137,21 +138,14 @@ echo %EXE_VER%
 echo %FAST%
 echo %DASHES%
 
-rem ------------------
-rem Bonnie: remove this!
-rem goto test24
-rem ------------------
-
-
 
 rem *******************************************************
 :Test1
 @CALL :GenTestHeader %Test01%
 @CALL :RunFASTandCrunch 01 out
 
-
-:: @CALL :CompareFiles 01 sts
-:: @CALL :CompareFiles 01 azi
+@CALL :CompareFiles 01 sts
+@CALL :CompareFiles 01 azi
 @CALL :CompareFiles 01 sum
 @CALL :CompareFiles 01 AD.sum
 
@@ -163,7 +157,7 @@ rem *******************************************************
 
 @IF NOT EXIST Test%TEST%.out   GOTO ERROR
 
-:: @CALL :CompareFiles 02 sts
+@CALL :CompareFiles 02 sts
 @CALL :CompareFiles 02 ED.sum
 @CALL :CompareFiles 02 AD.sum
 
@@ -173,8 +167,8 @@ rem *******************************************************
 @CALL :GenTestHeader %Test03%
 @CALL :RunFASTandCrunch 03 out
 
-:: @CALL :CompareFiles 03 sts
-:: @CALL :CompareFiles 03 azi
+@CALL :CompareFiles 03 sts
+@CALL :CompareFiles 03 azi
 @CALL :CompareFiles 03 ED.sum
 @CALL :CompareFiles 03 AD.sum
 
@@ -184,8 +178,8 @@ rem *******************************************************
 @CALL :GenTestHeader %Test04%
 @CALL :RunFASTandCrunch 04 outb
 
-:: @CALL :CompareFiles 04 sts
-:: @CALL :CompareFiles 04 pmf
+@CALL :CompareFiles 04 sts
+@CALL :CompareFiles 04 pmf
 @CALL :CompareFiles 04 ED.sum
 @CALL :CompareFiles 04 AD.sum
 
@@ -195,7 +189,7 @@ rem *******************************************************
 @CALL :GenTestHeader %Test05%
 @CALL :RunFASTandCrunch 05 out
 
-:: @CALL :CompareFiles 05 sts
+@CALL :CompareFiles 05 sts
 @CALL :CompareFiles 05 ED.sum
 @CALL :CompareFiles 05 AD.sum
 
@@ -205,8 +199,8 @@ rem *******************************************************
 @CALL :GenTestHeader %Test06%
 @CALL :RunFASTandCrunch 06 out
 
-:: @CALL :CompareFiles 06 sts
-:: @CALL :CompareFiles 06 sum
+@CALL :CompareFiles 06 sts
+@CALL :CompareFiles 06 sum
 @CALL :CompareFiles 06 AD.sum
 
 rem *******************************************************
@@ -214,8 +208,8 @@ rem *******************************************************
 @CALL :GenTestHeader %Test07%
 @CALL :RunFASTandCrunch 07 out
 
-:: @CALL :CompareFiles 07 sts
-:: @CALL :CompareFiles 07 pmf
+@CALL :CompareFiles 07 sts
+@CALL :CompareFiles 07 pmf
 @CALL :CompareFiles 07 ED.sum
 @CALL :CompareFiles 07 AD.sum
 
@@ -224,8 +218,8 @@ rem *******************************************************
 @CALL :GenTestHeader %Test08%
 @CALL :RunFASTandCrunch 08 out
 
-:: @CALL :CompareFiles 08 sts
-:: @CALL :CompareFiles 08 azi
+@CALL :CompareFiles 08 sts
+@CALL :CompareFiles 08 azi
 @CALL :CompareFiles 08 ED.sum
 @CALL :CompareFiles 08 AD.sum
 
@@ -234,7 +228,7 @@ rem *******************************************************
 @CALL :GenTestHeader %Test09%
 @CALL :RunFASTandCrunch 09 out
 
-:: @CALL :CompareFiles 09 sts
+@CALL :CompareFiles 09 sts
 @CALL :CompareFiles 09 ED.sum
 @CALL :CompareFiles 09 AD.sum
 
@@ -244,7 +238,7 @@ rem *******************************************************
 @CALL :RunFASTandCrunch 10 out
 
 
-:: @CALL :CompareFiles 10 sts
+@CALL :CompareFiles 10 sts
 @CALL :CompareFiles 10 ED.sum
 @CALL :CompareFiles 10 AD.sum
 
@@ -254,7 +248,7 @@ rem *******************************************************
 @CALL :GenTestHeader %Test11%
 @CALL :RunFASTandCrunch 11 out
 
-:: @CALL :CompareFiles 11 sts
+@CALL :CompareFiles 11 sts
 @CALL :CompareFiles 11 sum
 @CALL :CompareFiles 11 AD.sum
 
@@ -264,7 +258,7 @@ rem *******************************************************
 @CALL :GenTestHeader %Test12%
 @CALL :RunFASTandCrunch 12 out
 
-:: @CALL :CompareFiles 12 sts
+@CALL :CompareFiles 12 sts
 @CALL :CompareFiles 12 ED.sum
 @CALL :CompareFiles 12 AD.sum
 
@@ -273,8 +267,8 @@ rem *******************************************************
 @CALL :GenTestHeader %Test13%
 @CALL :RunFASTandCrunch 13 out
 
-:: @CALL :CompareFiles 13 sts
-:: @CALL :CompareFiles 13 pmf
+@CALL :CompareFiles 13 sts
+@CALL :CompareFiles 13 pmf
 @CALL :CompareFiles 13 ED.sum
 @CALL :CompareFiles 13 AD.sum
 
@@ -321,7 +315,7 @@ rem *******************************************************
 @CALL :GenTestHeader %Test15%
 @CALL :RunFASTandCrunch 15 out
 
-:: @CALL :CompareFiles 15 sts
+@CALL :CompareFiles 15 sts
 @CALL :CompareFiles 15 sum
 @CALL :CompareFiles 15 AD.sum
 
@@ -330,7 +324,7 @@ rem *******************************************************
 @CALL :GenTestHeader %Test16%
 @CALL :RunFASTandCrunch 16 out
 
-:: @CALL :CompareFiles 16 sts
+@CALL :CompareFiles 16 sts
 @CALL :CompareFiles 16 ED.sum
 @CALL :CompareFiles 16 AD.sum
 
@@ -342,8 +336,8 @@ rem *******************************************************
 @CALL :GenTestHeader %Test17%
 @CALL :RunFASTandCrunch 17  out
 
-:: @CALL :CompareFiles 17 sts
-:: @CALL :CompareFiles 17 pmf
+@CALL :CompareFiles 17 sts
+@CALL :CompareFiles 17 pmf
 @CALL :CompareFiles 17 ED.sum
 @CALL :CompareFiles 17 AD.sum
 
@@ -439,18 +433,20 @@ IF ERRORLEVEL 1  GOTO ERROR
 @IF NOT EXIST Test%1.%2  GOTO ERROR
 
 echo %DASHES%
+@IF "%UseCrunch%"=="1" (
 :: Crunch the FAST output.
-:: %CRUNCH% Test%1.cru
+%CRUNCH% Test%1.cru
 
-:: IF ERRORLEVEL 1  GOTO ERROR
-:: @IF NOT EXIST Test%1.sts  GOTO ERROR
+IF ERRORLEVEL 1  GOTO ERROR
+@IF NOT EXIST Test%1.sts  GOTO ERROR
+)
 
 EXIT /B
 
 rem ******************************************************
 :CompareOutput
 
-:: @CALL :CompareFiles %1 sts
+@CALL :CompareFiles %1 sts
 @CALL :CompareFiles %1 sum
 @CALL :CompareFiles %1 AD.sum
 
@@ -458,9 +454,16 @@ EXIT /B
 
 :CompareFiles
 
+@IF "%UseCrunch%"=="0" (
+@IF /I "%2"=="sts" GOTO EndCompareFiles
+@IF /I "%2"=="azi" GOTO EndCompareFiles
+@IF /I "%2"=="pmf" GOTO EndCompareFiles
+)
+
 echo %DASHES%                          >> %CompareFile%
 %Compare% Test%1.%2 TstFiles\Test%1.%2 >> %CompareFile%
 
+:EndCompareFiles
 EXIT /B
 
 
@@ -482,6 +485,7 @@ EXIT /B
 
 :END
 
+@SET UseCrunch=
 @SET CRUNCH=
 @SET MATLAB=
 @SET MBC_SOURCE=
