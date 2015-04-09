@@ -82,6 +82,7 @@ SET IceF_Loc=%FAST_Loc%\dependencies\IceFloe
 SET IceD_Loc=%FAST_Loc%\dependencies\IceDyn
 
 SET MAP_Include_Lib=%MAP_Loc%\map_win32.lib
+IF "%BITS%"=="64" SET MAP_Include_Lib=%MAP_Loc%\map_x64.lib
 SET HD_Reg_Loc=%HD_Loc%
 SET IfW_Reg_Loc=%IfW_Loc%
 SET IceF_RanLux_Loc=%IceF_Loc%

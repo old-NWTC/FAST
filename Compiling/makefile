@@ -84,7 +84,7 @@ LDFLAGS = -O2 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware
    # Destination and RootName for executable
 
 OUTPUT_NAME = FAST
-DEST_DIR    = ..\bin
+DEST_DIR    = $(BIN_DIR)
 
    #==========================================================#
    # You should not need to change anything beyond this point #
