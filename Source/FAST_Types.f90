@@ -356,6 +356,26 @@ IMPLICIT NONE
     LOGICAL  :: LidRadialVel      ! TRUE => return radial component, FALSE => return 'x' direction estimate [-]
   END TYPE FAST_ExternInitType
 ! =======================
+! =========  FAST_TurbineType  =======
+  TYPE, PUBLIC :: FAST_TurbineType
+    INTEGER(IntKi)  :: TurbID = 1      ! Turbine ID Number [-]
+    TYPE(FAST_ParameterType)  :: p_FAST      ! Parameters for the glue code [-]
+    TYPE(FAST_OutputFileType)  :: y_FAST      ! Output variables for the glue code [-]
+    TYPE(FAST_MiscVarType)  :: m_FAST      ! Miscellaneous variables [-]
+    TYPE(FAST_ModuleMapType)  :: MeshMapData      ! Data for mapping between modules [-]
+    TYPE(ElastoDyn_Data)  :: ED      ! Data for the ElastoDyn module [-]
+    TYPE(ServoDyn_Data)  :: SrvD      ! Data for the ServoDyn module [-]
+    TYPE(AeroDyn_Data)  :: AD      ! Data for the AeroDyn module [-]
+    TYPE(InflowWind_Data)  :: IfW      ! Data for InflowWind module [-]
+    TYPE(HydroDyn_Data)  :: HD      ! Data for the HydroDyn module [-]
+    TYPE(SubDyn_Data)  :: SD      ! Data for the SubDyn module [-]
+    TYPE(MAP_Data)  :: MAP      ! Data for the MAP (Mooring Analysis Program) module [-]
+    TYPE(FEAMooring_Data)  :: FEAM      ! Data for the FEAMooring module [-]
+    TYPE(MoorDyn_Data)  :: MD      ! Data for the MoorDyn module [-]
+    TYPE(IceFloe_Data)  :: IceF      ! Data for the IceFloe module [-]
+    TYPE(IceDyn_Data)  :: IceD      ! Data for the IceDyn module [-]
+  END TYPE FAST_TurbineType
+! =======================
 CONTAINS
  SUBROUTINE FAST_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )
    TYPE(FAST_ParameterType), INTENT(IN) :: SrcParamData
@@ -9900,6 +9920,834 @@ ENDDO
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE FAST_UnPackExternInitType
+
+ SUBROUTINE FAST_CopyTurbineType( SrcTurbineTypeData, DstTurbineTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(FAST_TurbineType), INTENT(INOUT) :: SrcTurbineTypeData
+   TYPE(FAST_TurbineType), INTENT(INOUT) :: DstTurbineTypeData
+   INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
+   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+! Local 
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
+! 
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   DstTurbineTypeData%TurbID = SrcTurbineTypeData%TurbID
+      CALL FAST_CopyParam( SrcTurbineTypeData%p_FAST, DstTurbineTypeData%p_FAST, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyTurbineType:p_FAST')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FAST_Copyoutputfiletype( SrcTurbineTypeData%y_FAST, DstTurbineTypeData%y_FAST, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyTurbineType:y_FAST')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FAST_Copymiscvartype( SrcTurbineTypeData%m_FAST, DstTurbineTypeData%m_FAST, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyTurbineType:m_FAST')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FAST_Copymodulemaptype( SrcTurbineTypeData%MeshMapData, DstTurbineTypeData%MeshMapData, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyTurbineType:MeshMapData')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FAST_Copyelastodyn_data( SrcTurbineTypeData%ED, DstTurbineTypeData%ED, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyTurbineType:ED')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FAST_Copyservodyn_data( SrcTurbineTypeData%SrvD, DstTurbineTypeData%SrvD, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyTurbineType:SrvD')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FAST_Copyaerodyn_data( SrcTurbineTypeData%AD, DstTurbineTypeData%AD, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyTurbineType:AD')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FAST_Copyinflowwind_data( SrcTurbineTypeData%IfW, DstTurbineTypeData%IfW, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyTurbineType:IfW')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FAST_Copyhydrodyn_data( SrcTurbineTypeData%HD, DstTurbineTypeData%HD, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyTurbineType:HD')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FAST_Copysubdyn_data( SrcTurbineTypeData%SD, DstTurbineTypeData%SD, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyTurbineType:SD')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FAST_Copymap_data( SrcTurbineTypeData%MAP, DstTurbineTypeData%MAP, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyTurbineType:MAP')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FAST_Copyfeamooring_data( SrcTurbineTypeData%FEAM, DstTurbineTypeData%FEAM, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyTurbineType:FEAM')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FAST_Copymoordyn_data( SrcTurbineTypeData%MD, DstTurbineTypeData%MD, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyTurbineType:MD')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FAST_Copyicefloe_data( SrcTurbineTypeData%IceF, DstTurbineTypeData%IceF, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyTurbineType:IceF')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FAST_Copyicedyn_data( SrcTurbineTypeData%IceD, DstTurbineTypeData%IceD, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyTurbineType:IceD')
+         IF (ErrStat>=AbortErrLev) RETURN
+ END SUBROUTINE FAST_CopyTurbineType
+
+ SUBROUTINE FAST_DestroyTurbineType( TurbineTypeData, ErrStat, ErrMsg )
+  TYPE(FAST_TurbineType), INTENT(INOUT) :: TurbineTypeData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
+! 
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  CALL FAST_DestroyParam( TurbineTypeData%p_FAST, ErrStat, ErrMsg )
+  CALL FAST_Destroyoutputfiletype( TurbineTypeData%y_FAST, ErrStat, ErrMsg )
+  CALL FAST_Destroymiscvartype( TurbineTypeData%m_FAST, ErrStat, ErrMsg )
+  CALL FAST_Destroymodulemaptype( TurbineTypeData%MeshMapData, ErrStat, ErrMsg )
+  CALL FAST_Destroyelastodyn_data( TurbineTypeData%ED, ErrStat, ErrMsg )
+  CALL FAST_Destroyservodyn_data( TurbineTypeData%SrvD, ErrStat, ErrMsg )
+  CALL FAST_Destroyaerodyn_data( TurbineTypeData%AD, ErrStat, ErrMsg )
+  CALL FAST_Destroyinflowwind_data( TurbineTypeData%IfW, ErrStat, ErrMsg )
+  CALL FAST_Destroyhydrodyn_data( TurbineTypeData%HD, ErrStat, ErrMsg )
+  CALL FAST_Destroysubdyn_data( TurbineTypeData%SD, ErrStat, ErrMsg )
+  CALL FAST_Destroymap_data( TurbineTypeData%MAP, ErrStat, ErrMsg )
+  CALL FAST_Destroyfeamooring_data( TurbineTypeData%FEAM, ErrStat, ErrMsg )
+  CALL FAST_Destroymoordyn_data( TurbineTypeData%MD, ErrStat, ErrMsg )
+  CALL FAST_Destroyicefloe_data( TurbineTypeData%IceF, ErrStat, ErrMsg )
+  CALL FAST_Destroyicedyn_data( TurbineTypeData%IceD, ErrStat, ErrMsg )
+ END SUBROUTINE FAST_DestroyTurbineType
+
+ SUBROUTINE FAST_PackTurbineType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+  REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
+  REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
+  INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
+  TYPE(FAST_TurbineType),  INTENT(INOUT) :: InData
+  INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
+  CHARACTER(*),     INTENT(  OUT) :: ErrMsg
+  LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
+ ! buffers to store meshes, if any
+  REAL(ReKi),     ALLOCATABLE :: Re_p_FAST_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_p_FAST_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_p_FAST_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_y_FAST_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_y_FAST_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_y_FAST_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_m_FAST_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_m_FAST_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_m_FAST_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_MeshMapData_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_MeshMapData_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_MeshMapData_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_ED_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_ED_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_ED_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_SrvD_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_SrvD_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_SrvD_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_AD_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_AD_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_AD_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_IfW_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_IfW_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_IfW_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_HD_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_HD_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_HD_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_SD_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_SD_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_SD_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_MAP_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_MAP_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_MAP_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_FEAM_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_FEAM_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_FEAM_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_MD_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_MD_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_MD_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_IceF_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_IceF_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_IceF_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_IceD_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_IceD_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_IceD_Buf(:)
+  OnlySize = .FALSE.
+  IF ( PRESENT(SizeOnly) ) THEN
+    OnlySize = SizeOnly
+  ENDIF
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+  Int_BufSz  = Int_BufSz  + 1  ! TurbID
+  CALL FAST_PackParam( Re_p_FAST_Buf, Db_p_FAST_Buf, Int_p_FAST_Buf, InData%p_FAST, ErrStat, ErrMsg, .TRUE. ) ! p_FAST 
+  IF(ALLOCATED(Re_p_FAST_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_p_FAST_Buf  ) ! p_FAST
+  IF(ALLOCATED(Db_p_FAST_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_p_FAST_Buf  ) ! p_FAST
+  IF(ALLOCATED(Int_p_FAST_Buf))Int_BufSz = Int_BufSz + SIZE( Int_p_FAST_Buf ) ! p_FAST
+  IF(ALLOCATED(Re_p_FAST_Buf))  DEALLOCATE(Re_p_FAST_Buf)
+  IF(ALLOCATED(Db_p_FAST_Buf))  DEALLOCATE(Db_p_FAST_Buf)
+  IF(ALLOCATED(Int_p_FAST_Buf)) DEALLOCATE(Int_p_FAST_Buf)
+  CALL FAST_Packoutputfiletype( Re_y_FAST_Buf, Db_y_FAST_Buf, Int_y_FAST_Buf, InData%y_FAST, ErrStat, ErrMsg, .TRUE. ) ! y_FAST 
+  IF(ALLOCATED(Re_y_FAST_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_y_FAST_Buf  ) ! y_FAST
+  IF(ALLOCATED(Db_y_FAST_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_y_FAST_Buf  ) ! y_FAST
+  IF(ALLOCATED(Int_y_FAST_Buf))Int_BufSz = Int_BufSz + SIZE( Int_y_FAST_Buf ) ! y_FAST
+  IF(ALLOCATED(Re_y_FAST_Buf))  DEALLOCATE(Re_y_FAST_Buf)
+  IF(ALLOCATED(Db_y_FAST_Buf))  DEALLOCATE(Db_y_FAST_Buf)
+  IF(ALLOCATED(Int_y_FAST_Buf)) DEALLOCATE(Int_y_FAST_Buf)
+  CALL FAST_Packmiscvartype( Re_m_FAST_Buf, Db_m_FAST_Buf, Int_m_FAST_Buf, InData%m_FAST, ErrStat, ErrMsg, .TRUE. ) ! m_FAST 
+  IF(ALLOCATED(Re_m_FAST_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_m_FAST_Buf  ) ! m_FAST
+  IF(ALLOCATED(Db_m_FAST_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_m_FAST_Buf  ) ! m_FAST
+  IF(ALLOCATED(Int_m_FAST_Buf))Int_BufSz = Int_BufSz + SIZE( Int_m_FAST_Buf ) ! m_FAST
+  IF(ALLOCATED(Re_m_FAST_Buf))  DEALLOCATE(Re_m_FAST_Buf)
+  IF(ALLOCATED(Db_m_FAST_Buf))  DEALLOCATE(Db_m_FAST_Buf)
+  IF(ALLOCATED(Int_m_FAST_Buf)) DEALLOCATE(Int_m_FAST_Buf)
+  CALL FAST_Packmodulemaptype( Re_MeshMapData_Buf, Db_MeshMapData_Buf, Int_MeshMapData_Buf, InData%MeshMapData, ErrStat, ErrMsg, .TRUE. ) ! MeshMapData 
+  IF(ALLOCATED(Re_MeshMapData_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_MeshMapData_Buf  ) ! MeshMapData
+  IF(ALLOCATED(Db_MeshMapData_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_MeshMapData_Buf  ) ! MeshMapData
+  IF(ALLOCATED(Int_MeshMapData_Buf))Int_BufSz = Int_BufSz + SIZE( Int_MeshMapData_Buf ) ! MeshMapData
+  IF(ALLOCATED(Re_MeshMapData_Buf))  DEALLOCATE(Re_MeshMapData_Buf)
+  IF(ALLOCATED(Db_MeshMapData_Buf))  DEALLOCATE(Db_MeshMapData_Buf)
+  IF(ALLOCATED(Int_MeshMapData_Buf)) DEALLOCATE(Int_MeshMapData_Buf)
+  CALL FAST_Packelastodyn_data( Re_ED_Buf, Db_ED_Buf, Int_ED_Buf, InData%ED, ErrStat, ErrMsg, .TRUE. ) ! ED 
+  IF(ALLOCATED(Re_ED_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_ED_Buf  ) ! ED
+  IF(ALLOCATED(Db_ED_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_ED_Buf  ) ! ED
+  IF(ALLOCATED(Int_ED_Buf))Int_BufSz = Int_BufSz + SIZE( Int_ED_Buf ) ! ED
+  IF(ALLOCATED(Re_ED_Buf))  DEALLOCATE(Re_ED_Buf)
+  IF(ALLOCATED(Db_ED_Buf))  DEALLOCATE(Db_ED_Buf)
+  IF(ALLOCATED(Int_ED_Buf)) DEALLOCATE(Int_ED_Buf)
+  CALL FAST_Packservodyn_data( Re_SrvD_Buf, Db_SrvD_Buf, Int_SrvD_Buf, InData%SrvD, ErrStat, ErrMsg, .TRUE. ) ! SrvD 
+  IF(ALLOCATED(Re_SrvD_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_SrvD_Buf  ) ! SrvD
+  IF(ALLOCATED(Db_SrvD_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_SrvD_Buf  ) ! SrvD
+  IF(ALLOCATED(Int_SrvD_Buf))Int_BufSz = Int_BufSz + SIZE( Int_SrvD_Buf ) ! SrvD
+  IF(ALLOCATED(Re_SrvD_Buf))  DEALLOCATE(Re_SrvD_Buf)
+  IF(ALLOCATED(Db_SrvD_Buf))  DEALLOCATE(Db_SrvD_Buf)
+  IF(ALLOCATED(Int_SrvD_Buf)) DEALLOCATE(Int_SrvD_Buf)
+  CALL FAST_Packaerodyn_data( Re_AD_Buf, Db_AD_Buf, Int_AD_Buf, InData%AD, ErrStat, ErrMsg, .TRUE. ) ! AD 
+  IF(ALLOCATED(Re_AD_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_AD_Buf  ) ! AD
+  IF(ALLOCATED(Db_AD_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_AD_Buf  ) ! AD
+  IF(ALLOCATED(Int_AD_Buf))Int_BufSz = Int_BufSz + SIZE( Int_AD_Buf ) ! AD
+  IF(ALLOCATED(Re_AD_Buf))  DEALLOCATE(Re_AD_Buf)
+  IF(ALLOCATED(Db_AD_Buf))  DEALLOCATE(Db_AD_Buf)
+  IF(ALLOCATED(Int_AD_Buf)) DEALLOCATE(Int_AD_Buf)
+  CALL FAST_Packinflowwind_data( Re_IfW_Buf, Db_IfW_Buf, Int_IfW_Buf, InData%IfW, ErrStat, ErrMsg, .TRUE. ) ! IfW 
+  IF(ALLOCATED(Re_IfW_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_IfW_Buf  ) ! IfW
+  IF(ALLOCATED(Db_IfW_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_IfW_Buf  ) ! IfW
+  IF(ALLOCATED(Int_IfW_Buf))Int_BufSz = Int_BufSz + SIZE( Int_IfW_Buf ) ! IfW
+  IF(ALLOCATED(Re_IfW_Buf))  DEALLOCATE(Re_IfW_Buf)
+  IF(ALLOCATED(Db_IfW_Buf))  DEALLOCATE(Db_IfW_Buf)
+  IF(ALLOCATED(Int_IfW_Buf)) DEALLOCATE(Int_IfW_Buf)
+  CALL FAST_Packhydrodyn_data( Re_HD_Buf, Db_HD_Buf, Int_HD_Buf, InData%HD, ErrStat, ErrMsg, .TRUE. ) ! HD 
+  IF(ALLOCATED(Re_HD_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_HD_Buf  ) ! HD
+  IF(ALLOCATED(Db_HD_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_HD_Buf  ) ! HD
+  IF(ALLOCATED(Int_HD_Buf))Int_BufSz = Int_BufSz + SIZE( Int_HD_Buf ) ! HD
+  IF(ALLOCATED(Re_HD_Buf))  DEALLOCATE(Re_HD_Buf)
+  IF(ALLOCATED(Db_HD_Buf))  DEALLOCATE(Db_HD_Buf)
+  IF(ALLOCATED(Int_HD_Buf)) DEALLOCATE(Int_HD_Buf)
+  CALL FAST_Packsubdyn_data( Re_SD_Buf, Db_SD_Buf, Int_SD_Buf, InData%SD, ErrStat, ErrMsg, .TRUE. ) ! SD 
+  IF(ALLOCATED(Re_SD_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_SD_Buf  ) ! SD
+  IF(ALLOCATED(Db_SD_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_SD_Buf  ) ! SD
+  IF(ALLOCATED(Int_SD_Buf))Int_BufSz = Int_BufSz + SIZE( Int_SD_Buf ) ! SD
+  IF(ALLOCATED(Re_SD_Buf))  DEALLOCATE(Re_SD_Buf)
+  IF(ALLOCATED(Db_SD_Buf))  DEALLOCATE(Db_SD_Buf)
+  IF(ALLOCATED(Int_SD_Buf)) DEALLOCATE(Int_SD_Buf)
+  CALL FAST_Packmap_data( Re_MAP_Buf, Db_MAP_Buf, Int_MAP_Buf, InData%MAP, ErrStat, ErrMsg, .TRUE. ) ! MAP 
+  IF(ALLOCATED(Re_MAP_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_MAP_Buf  ) ! MAP
+  IF(ALLOCATED(Db_MAP_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_MAP_Buf  ) ! MAP
+  IF(ALLOCATED(Int_MAP_Buf))Int_BufSz = Int_BufSz + SIZE( Int_MAP_Buf ) ! MAP
+  IF(ALLOCATED(Re_MAP_Buf))  DEALLOCATE(Re_MAP_Buf)
+  IF(ALLOCATED(Db_MAP_Buf))  DEALLOCATE(Db_MAP_Buf)
+  IF(ALLOCATED(Int_MAP_Buf)) DEALLOCATE(Int_MAP_Buf)
+  CALL FAST_Packfeamooring_data( Re_FEAM_Buf, Db_FEAM_Buf, Int_FEAM_Buf, InData%FEAM, ErrStat, ErrMsg, .TRUE. ) ! FEAM 
+  IF(ALLOCATED(Re_FEAM_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_FEAM_Buf  ) ! FEAM
+  IF(ALLOCATED(Db_FEAM_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_FEAM_Buf  ) ! FEAM
+  IF(ALLOCATED(Int_FEAM_Buf))Int_BufSz = Int_BufSz + SIZE( Int_FEAM_Buf ) ! FEAM
+  IF(ALLOCATED(Re_FEAM_Buf))  DEALLOCATE(Re_FEAM_Buf)
+  IF(ALLOCATED(Db_FEAM_Buf))  DEALLOCATE(Db_FEAM_Buf)
+  IF(ALLOCATED(Int_FEAM_Buf)) DEALLOCATE(Int_FEAM_Buf)
+  CALL FAST_Packmoordyn_data( Re_MD_Buf, Db_MD_Buf, Int_MD_Buf, InData%MD, ErrStat, ErrMsg, .TRUE. ) ! MD 
+  IF(ALLOCATED(Re_MD_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_MD_Buf  ) ! MD
+  IF(ALLOCATED(Db_MD_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_MD_Buf  ) ! MD
+  IF(ALLOCATED(Int_MD_Buf))Int_BufSz = Int_BufSz + SIZE( Int_MD_Buf ) ! MD
+  IF(ALLOCATED(Re_MD_Buf))  DEALLOCATE(Re_MD_Buf)
+  IF(ALLOCATED(Db_MD_Buf))  DEALLOCATE(Db_MD_Buf)
+  IF(ALLOCATED(Int_MD_Buf)) DEALLOCATE(Int_MD_Buf)
+  CALL FAST_Packicefloe_data( Re_IceF_Buf, Db_IceF_Buf, Int_IceF_Buf, InData%IceF, ErrStat, ErrMsg, .TRUE. ) ! IceF 
+  IF(ALLOCATED(Re_IceF_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_IceF_Buf  ) ! IceF
+  IF(ALLOCATED(Db_IceF_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_IceF_Buf  ) ! IceF
+  IF(ALLOCATED(Int_IceF_Buf))Int_BufSz = Int_BufSz + SIZE( Int_IceF_Buf ) ! IceF
+  IF(ALLOCATED(Re_IceF_Buf))  DEALLOCATE(Re_IceF_Buf)
+  IF(ALLOCATED(Db_IceF_Buf))  DEALLOCATE(Db_IceF_Buf)
+  IF(ALLOCATED(Int_IceF_Buf)) DEALLOCATE(Int_IceF_Buf)
+  CALL FAST_Packicedyn_data( Re_IceD_Buf, Db_IceD_Buf, Int_IceD_Buf, InData%IceD, ErrStat, ErrMsg, .TRUE. ) ! IceD 
+  IF(ALLOCATED(Re_IceD_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_IceD_Buf  ) ! IceD
+  IF(ALLOCATED(Db_IceD_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_IceD_Buf  ) ! IceD
+  IF(ALLOCATED(Int_IceD_Buf))Int_BufSz = Int_BufSz + SIZE( Int_IceD_Buf ) ! IceD
+  IF(ALLOCATED(Re_IceD_Buf))  DEALLOCATE(Re_IceD_Buf)
+  IF(ALLOCATED(Db_IceD_Buf))  DEALLOCATE(Db_IceD_Buf)
+  IF(ALLOCATED(Int_IceD_Buf)) DEALLOCATE(Int_IceD_Buf)
+  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
+  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
+  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%TurbID )
+  Int_Xferred   = Int_Xferred   + 1
+  CALL FAST_PackParam( Re_p_FAST_Buf, Db_p_FAST_Buf, Int_p_FAST_Buf, InData%p_FAST, ErrStat, ErrMsg, OnlySize ) ! p_FAST 
+  IF(ALLOCATED(Re_p_FAST_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_p_FAST_Buf)-1 ) = Re_p_FAST_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_p_FAST_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_p_FAST_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_p_FAST_Buf)-1 ) = Db_p_FAST_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_p_FAST_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_p_FAST_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_p_FAST_Buf)-1 ) = Int_p_FAST_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_p_FAST_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_p_FAST_Buf) )  DEALLOCATE(Re_p_FAST_Buf)
+  IF( ALLOCATED(Db_p_FAST_Buf) )  DEALLOCATE(Db_p_FAST_Buf)
+  IF( ALLOCATED(Int_p_FAST_Buf) ) DEALLOCATE(Int_p_FAST_Buf)
+  CALL FAST_Packoutputfiletype( Re_y_FAST_Buf, Db_y_FAST_Buf, Int_y_FAST_Buf, InData%y_FAST, ErrStat, ErrMsg, OnlySize ) ! y_FAST 
+  IF(ALLOCATED(Re_y_FAST_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_y_FAST_Buf)-1 ) = Re_y_FAST_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_y_FAST_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_y_FAST_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_y_FAST_Buf)-1 ) = Db_y_FAST_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_y_FAST_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_y_FAST_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_y_FAST_Buf)-1 ) = Int_y_FAST_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_y_FAST_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_y_FAST_Buf) )  DEALLOCATE(Re_y_FAST_Buf)
+  IF( ALLOCATED(Db_y_FAST_Buf) )  DEALLOCATE(Db_y_FAST_Buf)
+  IF( ALLOCATED(Int_y_FAST_Buf) ) DEALLOCATE(Int_y_FAST_Buf)
+  CALL FAST_Packmiscvartype( Re_m_FAST_Buf, Db_m_FAST_Buf, Int_m_FAST_Buf, InData%m_FAST, ErrStat, ErrMsg, OnlySize ) ! m_FAST 
+  IF(ALLOCATED(Re_m_FAST_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_m_FAST_Buf)-1 ) = Re_m_FAST_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_m_FAST_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_m_FAST_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_m_FAST_Buf)-1 ) = Db_m_FAST_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_m_FAST_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_m_FAST_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_m_FAST_Buf)-1 ) = Int_m_FAST_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_m_FAST_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_m_FAST_Buf) )  DEALLOCATE(Re_m_FAST_Buf)
+  IF( ALLOCATED(Db_m_FAST_Buf) )  DEALLOCATE(Db_m_FAST_Buf)
+  IF( ALLOCATED(Int_m_FAST_Buf) ) DEALLOCATE(Int_m_FAST_Buf)
+  CALL FAST_Packmodulemaptype( Re_MeshMapData_Buf, Db_MeshMapData_Buf, Int_MeshMapData_Buf, InData%MeshMapData, ErrStat, ErrMsg, OnlySize ) ! MeshMapData 
+  IF(ALLOCATED(Re_MeshMapData_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_MeshMapData_Buf)-1 ) = Re_MeshMapData_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_MeshMapData_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_MeshMapData_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_MeshMapData_Buf)-1 ) = Db_MeshMapData_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_MeshMapData_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_MeshMapData_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_MeshMapData_Buf)-1 ) = Int_MeshMapData_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_MeshMapData_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_MeshMapData_Buf) )  DEALLOCATE(Re_MeshMapData_Buf)
+  IF( ALLOCATED(Db_MeshMapData_Buf) )  DEALLOCATE(Db_MeshMapData_Buf)
+  IF( ALLOCATED(Int_MeshMapData_Buf) ) DEALLOCATE(Int_MeshMapData_Buf)
+  CALL FAST_Packelastodyn_data( Re_ED_Buf, Db_ED_Buf, Int_ED_Buf, InData%ED, ErrStat, ErrMsg, OnlySize ) ! ED 
+  IF(ALLOCATED(Re_ED_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_ED_Buf)-1 ) = Re_ED_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_ED_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_ED_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_ED_Buf)-1 ) = Db_ED_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_ED_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_ED_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_ED_Buf)-1 ) = Int_ED_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_ED_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_ED_Buf) )  DEALLOCATE(Re_ED_Buf)
+  IF( ALLOCATED(Db_ED_Buf) )  DEALLOCATE(Db_ED_Buf)
+  IF( ALLOCATED(Int_ED_Buf) ) DEALLOCATE(Int_ED_Buf)
+  CALL FAST_Packservodyn_data( Re_SrvD_Buf, Db_SrvD_Buf, Int_SrvD_Buf, InData%SrvD, ErrStat, ErrMsg, OnlySize ) ! SrvD 
+  IF(ALLOCATED(Re_SrvD_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_SrvD_Buf)-1 ) = Re_SrvD_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_SrvD_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_SrvD_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_SrvD_Buf)-1 ) = Db_SrvD_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_SrvD_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_SrvD_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_SrvD_Buf)-1 ) = Int_SrvD_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_SrvD_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_SrvD_Buf) )  DEALLOCATE(Re_SrvD_Buf)
+  IF( ALLOCATED(Db_SrvD_Buf) )  DEALLOCATE(Db_SrvD_Buf)
+  IF( ALLOCATED(Int_SrvD_Buf) ) DEALLOCATE(Int_SrvD_Buf)
+  CALL FAST_Packaerodyn_data( Re_AD_Buf, Db_AD_Buf, Int_AD_Buf, InData%AD, ErrStat, ErrMsg, OnlySize ) ! AD 
+  IF(ALLOCATED(Re_AD_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_AD_Buf)-1 ) = Re_AD_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_AD_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_AD_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_AD_Buf)-1 ) = Db_AD_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_AD_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_AD_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_AD_Buf)-1 ) = Int_AD_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_AD_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_AD_Buf) )  DEALLOCATE(Re_AD_Buf)
+  IF( ALLOCATED(Db_AD_Buf) )  DEALLOCATE(Db_AD_Buf)
+  IF( ALLOCATED(Int_AD_Buf) ) DEALLOCATE(Int_AD_Buf)
+  CALL FAST_Packinflowwind_data( Re_IfW_Buf, Db_IfW_Buf, Int_IfW_Buf, InData%IfW, ErrStat, ErrMsg, OnlySize ) ! IfW 
+  IF(ALLOCATED(Re_IfW_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_IfW_Buf)-1 ) = Re_IfW_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_IfW_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_IfW_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_IfW_Buf)-1 ) = Db_IfW_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_IfW_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_IfW_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_IfW_Buf)-1 ) = Int_IfW_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_IfW_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_IfW_Buf) )  DEALLOCATE(Re_IfW_Buf)
+  IF( ALLOCATED(Db_IfW_Buf) )  DEALLOCATE(Db_IfW_Buf)
+  IF( ALLOCATED(Int_IfW_Buf) ) DEALLOCATE(Int_IfW_Buf)
+  CALL FAST_Packhydrodyn_data( Re_HD_Buf, Db_HD_Buf, Int_HD_Buf, InData%HD, ErrStat, ErrMsg, OnlySize ) ! HD 
+  IF(ALLOCATED(Re_HD_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_HD_Buf)-1 ) = Re_HD_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_HD_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_HD_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_HD_Buf)-1 ) = Db_HD_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_HD_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_HD_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_HD_Buf)-1 ) = Int_HD_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_HD_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_HD_Buf) )  DEALLOCATE(Re_HD_Buf)
+  IF( ALLOCATED(Db_HD_Buf) )  DEALLOCATE(Db_HD_Buf)
+  IF( ALLOCATED(Int_HD_Buf) ) DEALLOCATE(Int_HD_Buf)
+  CALL FAST_Packsubdyn_data( Re_SD_Buf, Db_SD_Buf, Int_SD_Buf, InData%SD, ErrStat, ErrMsg, OnlySize ) ! SD 
+  IF(ALLOCATED(Re_SD_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_SD_Buf)-1 ) = Re_SD_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_SD_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_SD_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_SD_Buf)-1 ) = Db_SD_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_SD_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_SD_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_SD_Buf)-1 ) = Int_SD_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_SD_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_SD_Buf) )  DEALLOCATE(Re_SD_Buf)
+  IF( ALLOCATED(Db_SD_Buf) )  DEALLOCATE(Db_SD_Buf)
+  IF( ALLOCATED(Int_SD_Buf) ) DEALLOCATE(Int_SD_Buf)
+  CALL FAST_Packmap_data( Re_MAP_Buf, Db_MAP_Buf, Int_MAP_Buf, InData%MAP, ErrStat, ErrMsg, OnlySize ) ! MAP 
+  IF(ALLOCATED(Re_MAP_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_MAP_Buf)-1 ) = Re_MAP_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_MAP_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_MAP_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_MAP_Buf)-1 ) = Db_MAP_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_MAP_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_MAP_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_MAP_Buf)-1 ) = Int_MAP_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_MAP_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_MAP_Buf) )  DEALLOCATE(Re_MAP_Buf)
+  IF( ALLOCATED(Db_MAP_Buf) )  DEALLOCATE(Db_MAP_Buf)
+  IF( ALLOCATED(Int_MAP_Buf) ) DEALLOCATE(Int_MAP_Buf)
+  CALL FAST_Packfeamooring_data( Re_FEAM_Buf, Db_FEAM_Buf, Int_FEAM_Buf, InData%FEAM, ErrStat, ErrMsg, OnlySize ) ! FEAM 
+  IF(ALLOCATED(Re_FEAM_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_FEAM_Buf)-1 ) = Re_FEAM_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_FEAM_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_FEAM_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_FEAM_Buf)-1 ) = Db_FEAM_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_FEAM_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_FEAM_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_FEAM_Buf)-1 ) = Int_FEAM_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_FEAM_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_FEAM_Buf) )  DEALLOCATE(Re_FEAM_Buf)
+  IF( ALLOCATED(Db_FEAM_Buf) )  DEALLOCATE(Db_FEAM_Buf)
+  IF( ALLOCATED(Int_FEAM_Buf) ) DEALLOCATE(Int_FEAM_Buf)
+  CALL FAST_Packmoordyn_data( Re_MD_Buf, Db_MD_Buf, Int_MD_Buf, InData%MD, ErrStat, ErrMsg, OnlySize ) ! MD 
+  IF(ALLOCATED(Re_MD_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_MD_Buf)-1 ) = Re_MD_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_MD_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_MD_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_MD_Buf)-1 ) = Db_MD_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_MD_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_MD_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_MD_Buf)-1 ) = Int_MD_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_MD_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_MD_Buf) )  DEALLOCATE(Re_MD_Buf)
+  IF( ALLOCATED(Db_MD_Buf) )  DEALLOCATE(Db_MD_Buf)
+  IF( ALLOCATED(Int_MD_Buf) ) DEALLOCATE(Int_MD_Buf)
+  CALL FAST_Packicefloe_data( Re_IceF_Buf, Db_IceF_Buf, Int_IceF_Buf, InData%IceF, ErrStat, ErrMsg, OnlySize ) ! IceF 
+  IF(ALLOCATED(Re_IceF_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_IceF_Buf)-1 ) = Re_IceF_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_IceF_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_IceF_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_IceF_Buf)-1 ) = Db_IceF_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_IceF_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_IceF_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_IceF_Buf)-1 ) = Int_IceF_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_IceF_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_IceF_Buf) )  DEALLOCATE(Re_IceF_Buf)
+  IF( ALLOCATED(Db_IceF_Buf) )  DEALLOCATE(Db_IceF_Buf)
+  IF( ALLOCATED(Int_IceF_Buf) ) DEALLOCATE(Int_IceF_Buf)
+  CALL FAST_Packicedyn_data( Re_IceD_Buf, Db_IceD_Buf, Int_IceD_Buf, InData%IceD, ErrStat, ErrMsg, OnlySize ) ! IceD 
+  IF(ALLOCATED(Re_IceD_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_IceD_Buf)-1 ) = Re_IceD_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_IceD_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_IceD_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_IceD_Buf)-1 ) = Db_IceD_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_IceD_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_IceD_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_IceD_Buf)-1 ) = Int_IceD_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_IceD_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_IceD_Buf) )  DEALLOCATE(Re_IceD_Buf)
+  IF( ALLOCATED(Db_IceD_Buf) )  DEALLOCATE(Db_IceD_Buf)
+  IF( ALLOCATED(Int_IceD_Buf) ) DEALLOCATE(Int_IceD_Buf)
+ END SUBROUTINE FAST_PackTurbineType
+
+ SUBROUTINE FAST_UnPackTurbineType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+  REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
+  REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
+  INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
+  TYPE(FAST_TurbineType), INTENT(INOUT) :: OutData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  LOGICAL, ALLOCATABLE           :: mask1(:)
+  LOGICAL, ALLOCATABLE           :: mask2(:,:)
+  LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+ ! buffers to store meshes, if any
+  REAL(ReKi),    ALLOCATABLE :: Re_p_FAST_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_p_FAST_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_p_FAST_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_y_FAST_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_y_FAST_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_y_FAST_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_m_FAST_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_m_FAST_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_m_FAST_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_MeshMapData_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_MeshMapData_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_MeshMapData_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_ED_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_ED_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_ED_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_SrvD_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_SrvD_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_SrvD_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_AD_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_AD_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_AD_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_IfW_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_IfW_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_IfW_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_HD_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_HD_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_HD_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_SD_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_SD_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_SD_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_MAP_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_MAP_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_MAP_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_FEAM_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_FEAM_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_FEAM_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_MD_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_MD_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_MD_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_IceF_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_IceF_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_IceF_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_IceD_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_IceD_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_IceD_Buf(:)
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+  OutData%TurbID = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+ ! first call FAST_PackParam to get correctly sized buffers for unpacking
+  CALL FAST_PackParam( Re_p_FAST_Buf, Db_p_FAST_Buf, Int_p_FAST_Buf, OutData%p_FAST, ErrStat, ErrMsg, .TRUE. ) ! p_FAST 
+  IF(ALLOCATED(Re_p_FAST_Buf)) THEN
+    Re_p_FAST_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_p_FAST_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_p_FAST_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_p_FAST_Buf)) THEN
+    Db_p_FAST_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_p_FAST_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_p_FAST_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_p_FAST_Buf)) THEN
+    Int_p_FAST_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_p_FAST_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_p_FAST_Buf)
+  ENDIF
+  CALL FAST_UnPackParam( Re_p_FAST_Buf, Db_p_FAST_Buf, Int_p_FAST_Buf, OutData%p_FAST, ErrStat, ErrMsg ) ! p_FAST 
+ ! first call FAST_Packoutputfiletype to get correctly sized buffers for unpacking
+  CALL FAST_Packoutputfiletype( Re_y_FAST_Buf, Db_y_FAST_Buf, Int_y_FAST_Buf, OutData%y_FAST, ErrStat, ErrMsg, .TRUE. ) ! y_FAST 
+  IF(ALLOCATED(Re_y_FAST_Buf)) THEN
+    Re_y_FAST_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_y_FAST_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_y_FAST_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_y_FAST_Buf)) THEN
+    Db_y_FAST_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_y_FAST_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_y_FAST_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_y_FAST_Buf)) THEN
+    Int_y_FAST_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_y_FAST_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_y_FAST_Buf)
+  ENDIF
+  CALL FAST_UnPackoutputfiletype( Re_y_FAST_Buf, Db_y_FAST_Buf, Int_y_FAST_Buf, OutData%y_FAST, ErrStat, ErrMsg ) ! y_FAST 
+ ! first call FAST_Packmiscvartype to get correctly sized buffers for unpacking
+  CALL FAST_Packmiscvartype( Re_m_FAST_Buf, Db_m_FAST_Buf, Int_m_FAST_Buf, OutData%m_FAST, ErrStat, ErrMsg, .TRUE. ) ! m_FAST 
+  IF(ALLOCATED(Re_m_FAST_Buf)) THEN
+    Re_m_FAST_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_m_FAST_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_m_FAST_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_m_FAST_Buf)) THEN
+    Db_m_FAST_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_m_FAST_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_m_FAST_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_m_FAST_Buf)) THEN
+    Int_m_FAST_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_m_FAST_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_m_FAST_Buf)
+  ENDIF
+  CALL FAST_UnPackmiscvartype( Re_m_FAST_Buf, Db_m_FAST_Buf, Int_m_FAST_Buf, OutData%m_FAST, ErrStat, ErrMsg ) ! m_FAST 
+ ! first call FAST_Packmodulemaptype to get correctly sized buffers for unpacking
+  CALL FAST_Packmodulemaptype( Re_MeshMapData_Buf, Db_MeshMapData_Buf, Int_MeshMapData_Buf, OutData%MeshMapData, ErrStat, ErrMsg, .TRUE. ) ! MeshMapData 
+  IF(ALLOCATED(Re_MeshMapData_Buf)) THEN
+    Re_MeshMapData_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_MeshMapData_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_MeshMapData_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_MeshMapData_Buf)) THEN
+    Db_MeshMapData_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_MeshMapData_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_MeshMapData_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_MeshMapData_Buf)) THEN
+    Int_MeshMapData_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_MeshMapData_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_MeshMapData_Buf)
+  ENDIF
+  CALL FAST_UnPackmodulemaptype( Re_MeshMapData_Buf, Db_MeshMapData_Buf, Int_MeshMapData_Buf, OutData%MeshMapData, ErrStat, ErrMsg ) ! MeshMapData 
+ ! first call FAST_Packelastodyn_data to get correctly sized buffers for unpacking
+  CALL FAST_Packelastodyn_data( Re_ED_Buf, Db_ED_Buf, Int_ED_Buf, OutData%ED, ErrStat, ErrMsg, .TRUE. ) ! ED 
+  IF(ALLOCATED(Re_ED_Buf)) THEN
+    Re_ED_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_ED_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_ED_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_ED_Buf)) THEN
+    Db_ED_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_ED_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_ED_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_ED_Buf)) THEN
+    Int_ED_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_ED_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_ED_Buf)
+  ENDIF
+  CALL FAST_UnPackelastodyn_data( Re_ED_Buf, Db_ED_Buf, Int_ED_Buf, OutData%ED, ErrStat, ErrMsg ) ! ED 
+ ! first call FAST_Packservodyn_data to get correctly sized buffers for unpacking
+  CALL FAST_Packservodyn_data( Re_SrvD_Buf, Db_SrvD_Buf, Int_SrvD_Buf, OutData%SrvD, ErrStat, ErrMsg, .TRUE. ) ! SrvD 
+  IF(ALLOCATED(Re_SrvD_Buf)) THEN
+    Re_SrvD_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_SrvD_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_SrvD_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_SrvD_Buf)) THEN
+    Db_SrvD_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_SrvD_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_SrvD_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_SrvD_Buf)) THEN
+    Int_SrvD_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_SrvD_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_SrvD_Buf)
+  ENDIF
+  CALL FAST_UnPackservodyn_data( Re_SrvD_Buf, Db_SrvD_Buf, Int_SrvD_Buf, OutData%SrvD, ErrStat, ErrMsg ) ! SrvD 
+ ! first call FAST_Packaerodyn_data to get correctly sized buffers for unpacking
+  CALL FAST_Packaerodyn_data( Re_AD_Buf, Db_AD_Buf, Int_AD_Buf, OutData%AD, ErrStat, ErrMsg, .TRUE. ) ! AD 
+  IF(ALLOCATED(Re_AD_Buf)) THEN
+    Re_AD_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_AD_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_AD_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_AD_Buf)) THEN
+    Db_AD_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_AD_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_AD_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_AD_Buf)) THEN
+    Int_AD_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_AD_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_AD_Buf)
+  ENDIF
+  CALL FAST_UnPackaerodyn_data( Re_AD_Buf, Db_AD_Buf, Int_AD_Buf, OutData%AD, ErrStat, ErrMsg ) ! AD 
+ ! first call FAST_Packinflowwind_data to get correctly sized buffers for unpacking
+  CALL FAST_Packinflowwind_data( Re_IfW_Buf, Db_IfW_Buf, Int_IfW_Buf, OutData%IfW, ErrStat, ErrMsg, .TRUE. ) ! IfW 
+  IF(ALLOCATED(Re_IfW_Buf)) THEN
+    Re_IfW_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_IfW_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_IfW_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_IfW_Buf)) THEN
+    Db_IfW_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_IfW_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_IfW_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_IfW_Buf)) THEN
+    Int_IfW_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_IfW_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_IfW_Buf)
+  ENDIF
+  CALL FAST_UnPackinflowwind_data( Re_IfW_Buf, Db_IfW_Buf, Int_IfW_Buf, OutData%IfW, ErrStat, ErrMsg ) ! IfW 
+ ! first call FAST_Packhydrodyn_data to get correctly sized buffers for unpacking
+  CALL FAST_Packhydrodyn_data( Re_HD_Buf, Db_HD_Buf, Int_HD_Buf, OutData%HD, ErrStat, ErrMsg, .TRUE. ) ! HD 
+  IF(ALLOCATED(Re_HD_Buf)) THEN
+    Re_HD_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_HD_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_HD_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_HD_Buf)) THEN
+    Db_HD_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_HD_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_HD_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_HD_Buf)) THEN
+    Int_HD_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_HD_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_HD_Buf)
+  ENDIF
+  CALL FAST_UnPackhydrodyn_data( Re_HD_Buf, Db_HD_Buf, Int_HD_Buf, OutData%HD, ErrStat, ErrMsg ) ! HD 
+ ! first call FAST_Packsubdyn_data to get correctly sized buffers for unpacking
+  CALL FAST_Packsubdyn_data( Re_SD_Buf, Db_SD_Buf, Int_SD_Buf, OutData%SD, ErrStat, ErrMsg, .TRUE. ) ! SD 
+  IF(ALLOCATED(Re_SD_Buf)) THEN
+    Re_SD_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_SD_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_SD_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_SD_Buf)) THEN
+    Db_SD_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_SD_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_SD_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_SD_Buf)) THEN
+    Int_SD_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_SD_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_SD_Buf)
+  ENDIF
+  CALL FAST_UnPacksubdyn_data( Re_SD_Buf, Db_SD_Buf, Int_SD_Buf, OutData%SD, ErrStat, ErrMsg ) ! SD 
+ ! first call FAST_Packmap_data to get correctly sized buffers for unpacking
+  CALL FAST_Packmap_data( Re_MAP_Buf, Db_MAP_Buf, Int_MAP_Buf, OutData%MAP, ErrStat, ErrMsg, .TRUE. ) ! MAP 
+  IF(ALLOCATED(Re_MAP_Buf)) THEN
+    Re_MAP_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_MAP_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_MAP_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_MAP_Buf)) THEN
+    Db_MAP_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_MAP_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_MAP_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_MAP_Buf)) THEN
+    Int_MAP_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_MAP_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_MAP_Buf)
+  ENDIF
+  CALL FAST_UnPackmap_data( Re_MAP_Buf, Db_MAP_Buf, Int_MAP_Buf, OutData%MAP, ErrStat, ErrMsg ) ! MAP 
+ ! first call FAST_Packfeamooring_data to get correctly sized buffers for unpacking
+  CALL FAST_Packfeamooring_data( Re_FEAM_Buf, Db_FEAM_Buf, Int_FEAM_Buf, OutData%FEAM, ErrStat, ErrMsg, .TRUE. ) ! FEAM 
+  IF(ALLOCATED(Re_FEAM_Buf)) THEN
+    Re_FEAM_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_FEAM_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_FEAM_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_FEAM_Buf)) THEN
+    Db_FEAM_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_FEAM_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_FEAM_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_FEAM_Buf)) THEN
+    Int_FEAM_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_FEAM_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_FEAM_Buf)
+  ENDIF
+  CALL FAST_UnPackfeamooring_data( Re_FEAM_Buf, Db_FEAM_Buf, Int_FEAM_Buf, OutData%FEAM, ErrStat, ErrMsg ) ! FEAM 
+ ! first call FAST_Packmoordyn_data to get correctly sized buffers for unpacking
+  CALL FAST_Packmoordyn_data( Re_MD_Buf, Db_MD_Buf, Int_MD_Buf, OutData%MD, ErrStat, ErrMsg, .TRUE. ) ! MD 
+  IF(ALLOCATED(Re_MD_Buf)) THEN
+    Re_MD_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_MD_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_MD_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_MD_Buf)) THEN
+    Db_MD_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_MD_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_MD_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_MD_Buf)) THEN
+    Int_MD_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_MD_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_MD_Buf)
+  ENDIF
+  CALL FAST_UnPackmoordyn_data( Re_MD_Buf, Db_MD_Buf, Int_MD_Buf, OutData%MD, ErrStat, ErrMsg ) ! MD 
+ ! first call FAST_Packicefloe_data to get correctly sized buffers for unpacking
+  CALL FAST_Packicefloe_data( Re_IceF_Buf, Db_IceF_Buf, Int_IceF_Buf, OutData%IceF, ErrStat, ErrMsg, .TRUE. ) ! IceF 
+  IF(ALLOCATED(Re_IceF_Buf)) THEN
+    Re_IceF_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_IceF_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_IceF_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_IceF_Buf)) THEN
+    Db_IceF_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_IceF_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_IceF_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_IceF_Buf)) THEN
+    Int_IceF_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_IceF_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_IceF_Buf)
+  ENDIF
+  CALL FAST_UnPackicefloe_data( Re_IceF_Buf, Db_IceF_Buf, Int_IceF_Buf, OutData%IceF, ErrStat, ErrMsg ) ! IceF 
+ ! first call FAST_Packicedyn_data to get correctly sized buffers for unpacking
+  CALL FAST_Packicedyn_data( Re_IceD_Buf, Db_IceD_Buf, Int_IceD_Buf, OutData%IceD, ErrStat, ErrMsg, .TRUE. ) ! IceD 
+  IF(ALLOCATED(Re_IceD_Buf)) THEN
+    Re_IceD_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_IceD_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_IceD_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_IceD_Buf)) THEN
+    Db_IceD_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_IceD_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_IceD_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_IceD_Buf)) THEN
+    Int_IceD_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_IceD_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_IceD_Buf)
+  ENDIF
+  CALL FAST_UnPackicedyn_data( Re_IceD_Buf, Db_IceD_Buf, Int_IceD_Buf, OutData%IceD, ErrStat, ErrMsg ) ! IceD 
+  Re_Xferred   = Re_Xferred-1
+  Db_Xferred   = Db_Xferred-1
+  Int_Xferred  = Int_Xferred-1
+ END SUBROUTINE FAST_UnPackTurbineType
 
 END MODULE FAST_Types
 !ENDOFREGISTRYGENERATEDFILE
