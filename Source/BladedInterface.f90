@@ -84,7 +84,6 @@ SUBROUTINE CallBladedDLL ( DLL, dll_data, p, ErrStat, ErrMsg )
    CHARACTER(KIND=C_CHAR)                    :: avcOUTNAME(LEN_TRIM(p%RootName)+1)   ! OUTNAME (Simulation RootName)
    CHARACTER(KIND=C_CHAR)                    :: avcMSG(LEN(ErrMsg)+1)                ! MESSAGE (Message from DLL to simulation code [ErrMsg])   
    
-   INTEGER(IntKi)                            :: I                              ! generic counter
       
    PROCEDURE(BladedDLL_Procedure), POINTER   :: DLL_Subroutine                 ! The address of the procedure in the Bladed DLL
 
@@ -139,7 +138,6 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
    
       ! local variables
    
-   INTEGER(IntKi)                                  :: I              ! generic loop index
    INTEGER(IntKi)                                  :: ErrStat2       ! The error status code
    CHARACTER(LEN(ErrMsg))                          :: ErrMsg2        ! The error message, if an error occurred
       
