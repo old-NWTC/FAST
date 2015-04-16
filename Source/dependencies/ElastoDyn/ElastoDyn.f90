@@ -20,8 +20,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-03-19 13:06:02 -0600 (Thu, 19 Mar 2015) $
-! (File) Revision #: $Rev: 947 $
+! File last committed: $Date: 2015-04-14 14:53:47 -0600 (Tue, 14 Apr 2015) $
+! (File) Revision #: $Rev: 977 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn.f90 $
 !**********************************************************************************************************************************
 
@@ -1695,7 +1695,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    REAL(ReKi)                   :: FrcPRot   (3)                                   ! Total force at the teeter pin  (point P  ) due to the rotor
    REAL(ReKi)                   :: FrcT0Trb  (3)                                   ! Total force at the base of flexible portion of the tower (point T(0)) due to the entire wind turbine
    REAL(ReKi)                   :: FZHydro   (3)                                   ! Total platform hydrodynamic force at the platform reference (point Z)
-   REAL(ReKi)                   :: HHWndVec  (3)                                   ! Hub-height wind vector in the AeroDyn coordinate system
+!   REAL(ReKi)                   :: HHWndVec  (3)                                   ! Hub-height wind vector in the AeroDyn coordinate system
    REAL(ReKi)                   :: LinAccEIMU(3)                                   ! Total linear acceleration of the nacelle IMU (point IMU) in the inertia frame (body E for earth)
    REAL(ReKi)                   :: LinAccEO  (3)                                   ! Total linear acceleration of the base plate (point O) in the inertia frame (body E for earth)
    REAL(ReKi)                   :: LinAccEZ  (3)                                   ! Total linear acceleration of the platform refernce (point Z) in the inertia frame (body E for earth)
@@ -3049,7 +3049,7 @@ SUBROUTINE ED_ReadInput( InputFileName, MeshFile, InputFileData, ReadAdmVals, De
 
       ! local variables
 
-   INTEGER(IntKi)                         :: UnIn           ! Unit number for the input file
+!   INTEGER(IntKi)                         :: UnIn           ! Unit number for the input file
    INTEGER(IntKi)                         :: UnEcho         ! Unit number for the echo file
    INTEGER(IntKi)                         :: ErrStat2       ! The error status code
    CHARACTER(LEN(ErrMsg))                 :: ErrMsg2        ! The error message, if an error occurred
@@ -3206,11 +3206,11 @@ SUBROUTINE ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
    CHARACTER(*),             INTENT(OUT)      :: ErrMsg              ! The error message, if an error occurred
 
       ! Local variables:
-   INTEGER(IntKi)                             :: I                   ! Loop counter
+!   INTEGER(IntKi)                             :: I                   ! Loop counter
    INTEGER(IntKi)                             :: K                   ! Blade number
    INTEGER(IntKi)                             :: ErrStat2            ! Temporary error ID
-   LOGICAL                                    :: ReadAdmVals         ! determines if an Adams model will be created (do we read/check all the inputs?)
-   LOGICAL                                    :: ReadFile            ! determines if an input file for a blade is the same as the file for the previous blade
+!   LOGICAL                                    :: ReadAdmVals         ! determines if an Adams model will be created (do we read/check all the inputs?)
+!   LOGICAL                                    :: ReadFile            ! determines if an input file for a blade is the same as the file for the previous blade
    CHARACTER(LEN(ErrMsg))                     :: ErrMsg2             ! Temporary message describing error
 
 
@@ -3286,7 +3286,7 @@ SUBROUTINE ED_SetParameters( InputFileData, p, ErrStat, ErrMsg )
    CHARACTER(*),             INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred
 
       ! Local variables
-   INTEGER(IntKi)                             :: K              ! Loop counter (for blades)
+!   INTEGER(IntKi)                             :: K              ! Loop counter (for blades)
    INTEGER(IntKi)                             :: ErrStat2       ! Temporary error ID
    CHARACTER(LEN(ErrMsg))                     :: ErrMsg2        ! Temporary message describing error
 
@@ -4996,7 +4996,7 @@ SUBROUTINE ValidateFurlData( InputFileData, ErrStat, ErrMsg )
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
 
       ! Local variables:
-   CHARACTER(1024)                          :: TmpMsg                              ! a temporary message (so I don't have to keep typing the same error message)
+!   CHARACTER(1024)                          :: TmpMsg                              ! a temporary message (so I don't have to keep typing the same error message)
    REAL(ReKi)                               :: SmallAngleLimit_Rad                 ! Largest input angle considered "small" (check in input file), radians
 
 
@@ -5174,8 +5174,8 @@ SUBROUTINE SetFurlParameters( p, InputFileData, ErrStat, ErrMsg  )
       ! Local variables:
 
    REAL(ReKi)                               :: x                            ! Fractional location between two points in linear interpolation
-   INTEGER(IntKi )                          :: J                            ! Index for the node arrays
-   INTEGER(IntKi)                           :: InterpInd                    ! Index for the interpolation routine
+!   INTEGER(IntKi )                          :: J                            ! Index for the node arrays
+!   INTEGER(IntKi)                           :: InterpInd                    ! Index for the interpolation routine
 
 
       ! Initialize error data
@@ -5936,7 +5936,7 @@ SUBROUTINE ReadBladeMeshFile( BladeKInputFileMesh, MeshFile, UnEc, ErrStat, ErrM
    INTEGER(IntKi)               :: ErrStat2                                             ! Temporary Error status
    CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                              ! Temporary Err msg
    CHARACTER(1024)              :: Line                                                 ! Temporary string.
-   CHARACTER(1024)              :: TmpStr(1)                                            ! Temporary string.
+!   CHARACTER(1024)              :: TmpStr(1)                                            ! Temporary string.
 
 
 
@@ -7026,7 +7026,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
 
       ! Local variables:
    INTEGER(IntKi)               :: I                                         ! loop counter
-   INTEGER(IntKi)               :: NumOuts                                   ! Number of output channel names read from the file
+!   INTEGER(IntKi)               :: NumOuts                                   ! Number of output channel names read from the file
    INTEGER(IntKi)               :: UnIn                                      ! Unit number for reading file
 
    INTEGER(IntKi)               :: ErrStat2                                  ! Temporary Error status
@@ -8069,7 +8069,7 @@ SUBROUTINE Init_ContStates( x, p, InputFileData, OtherState, ErrStat, ErrMsg  )
    REAL(ReKi)                                   :: InitQE1(p%NumBl)  ! Initial value of the 1st blade edge DOF
    REAL(ReKi)                                   :: InitQF1(p%NumBl)  ! Initial value of the 1st blade flap DOF
    REAL(ReKi)                                   :: InitQF2(p%NumBl)  ! Initial value of the 2nd blade flap DOF
-   INTEGER(IntKi)                               :: I                 ! loop counter
+!   INTEGER(IntKi)                               :: I                 ! loop counter
 
       
       ! First allocate the arrays stored here:
@@ -11158,7 +11158,7 @@ SUBROUTINE CalculateAngularPosVelAcc( p, x, CoordSys, RtHSdat )
    TYPE(ED_RtHndSide),           INTENT(INOUT)  :: RtHSdat     ! data from the RtHndSid module (contains positions to be set)
 
       !Local variables
-   REAL(ReKi)                   :: AngVelEN  (3)                                   ! Angular velocity of the nacelle (body N) in the inertia frame (body E for earth).
+!   REAL(ReKi)                   :: AngVelEN  (3)                                   ! Angular velocity of the nacelle (body N) in the inertia frame (body E for earth).
    REAL(ReKi)                   :: AngAccELt (3)                                   ! Portion of the angular acceleration of the low-speed shaft (body L) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
    INTEGER(IntKi)               :: J                                               ! Counter for elements
    INTEGER(IntKi)               :: K                                               ! Counter for blades
@@ -13650,7 +13650,6 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       INTEGER(IntKi)                               :: ErrStat2    ! local error status
       CHARACTER(LEN(ErrMsg))                       :: ErrMsg2     ! local error message (ErrMsg)
       
-      REAL(ReKi)                                   :: HSSBrTrq_at_t 
       
       ! Initialize ErrStat
 
@@ -13840,7 +13839,6 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       TYPE(ED_InputType)                             :: u_interp
       TYPE(ED_ContinuousStateType)                   :: xdot
          
-      INTEGER(IntKi)                                 :: tmp    
       INTEGER(IntKi)                                 :: ErrStat2    ! local error status
       CHARACTER(LEN(ErrMsg))                         :: ErrMsg2     ! local error message (ErrMsg)
 

@@ -1,5 +1,5 @@
 !**********************************************************************************************************************************
-! $Id: InflowWind.f90 147 2015-03-13 17:43:26Z bjonkman $
+! $Id: InflowWind.f90 161 2015-04-14 20:33:00Z bjonkman $
 !
 ! This module is used to read and process the (undisturbed) inflow winds.  It must be initialized
 ! using InflowWind_Init() with the name of the file, the file type, and possibly reference height and
@@ -16,8 +16,8 @@
 !    Feb 2013    v2.00.00a-adp   conversion to Framework       A. Platt
 !
 !----------------------------------------------------------------------------------------------------
-! File last committed: $Date: 2015-03-13 11:43:26 -0600 (Fri, 13 Mar 2015) $
-! (File) Revision #: $Rev: 147 $
+! File last committed: $Date: 2015-04-14 14:33:00 -0600 (Tue, 14 Apr 2015) $
+! (File) Revision #: $Rev: 161 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/InflowWind.f90 $
 !..................................................................................................................................
 ! Files with this module:
@@ -159,8 +159,8 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
 
 
 !NOTE: It isn't entirely clear what the purpose of Height is. Does it sometimes occur that Height  /= ParamData%ReferenceHeight???
-      REAL(ReKi)                                         :: Height            ! Retrieved from FF
-      REAL(ReKi)                                         :: HalfWidth         ! Retrieved from FF
+!      REAL(ReKi)                                         :: Height            ! Retrieved from FF
+!      REAL(ReKi)                                         :: HalfWidth         ! Retrieved from FF
 
       INTEGER(IntKi)                                     :: NumOuts_Sensor
       INTEGER(IntKi)                                     :: NumOuts_Mod
@@ -488,7 +488,7 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
 
 END SUBROUTINE IfW_CalcOutput
 !====================================================================================================
-SUBROUTINE IfW_End( InitData, ParamData, ContStates, DiscStates, ConstrStateGuess, OtherStates, &
+SUBROUTINE IfW_End( InputData, ParamData, ContStates, DiscStates, ConstrStateGuess, OtherStates, &
                        OutData, ErrStat, ErrMsg )
    ! Clean up the allocated variables and close all open files.  Reset the initialization flag so
    ! that we have to reinitialize before calling the routines again.
@@ -496,7 +496,7 @@ SUBROUTINE IfW_End( InitData, ParamData, ContStates, DiscStates, ConstrStateGues
 
          ! Initialization data and guesses
 
-      TYPE( IfW_InputType ),              INTENT(INOUT)  :: InitData          ! Input data for initialization
+      TYPE( IfW_InputType ),              INTENT(INOUT)  :: InputData         ! Input data
       TYPE( Ifw_ParameterType ),          INTENT(INOUT)  :: ParamData         ! Parameters
       TYPE( IfW_ContinuousStateType ),    INTENT(INOUT)  :: ContStates        ! Continuous states
       TYPE( IfW_DiscreteStateType ),      INTENT(INOUT)  :: DiscStates        ! Discrete states

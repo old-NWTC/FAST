@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-03-12 14:42:36 -0600 (Thu, 12 Mar 2015) $
-! (File) Revision #: $Rev: 294 $
+! File last committed: $Date: 2015-04-14 14:00:21 -0600 (Tue, 14 Apr 2015) $
+! (File) Revision #: $Rev: 297 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Num.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_Num
@@ -952,7 +952,7 @@ SUBROUTINE DCM_SetLogMapForInterp( tensor )
    REAL(ReKi)                    :: temp(3), temp1(3) ! difference between two tensors
    REAL(ReKi)                    :: period(3)         ! the period to add to the rotational parameters
    INTEGER(IntKi)                :: nc                ! size of the tensors matrix
-   INTEGER(IntKi)                :: ic, k             ! loop counters for each array dimension
+   INTEGER(IntKi)                :: ic                ! loop counters for each array dimension
    
    nc = size(tensor,2)
           

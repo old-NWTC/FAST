@@ -1,4 +1,4 @@
-------- FAST v8.10.* INPUT FILE ------------------------------------------------
+------- FAST v8.11.* INPUT FILE ------------------------------------------------
 FAST Certification Test #12: WindPACT 1.5 MW Baseline with many DOFs with VS and VP and ECD wind.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
@@ -33,6 +33,7 @@ False         CompUserTwrLd   - Compute additional tower loading (flag) {false: 
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime        - Amount of time between screen status messages (s)
+       1000   ChkptTime       - Amount of time between creating checkpoint files for potential restart (s)
        0.05   DT_Out          - Time step for tabular output (s)
           5   TStart          - Time to begin tabular output (s)
           1   OutFileFmt      - Format for tabular (time-marching) output file (switch) {1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both}

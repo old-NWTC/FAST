@@ -29,7 +29,7 @@ LDFLAGS = -shared -O2 -m$(BITS) -fbacktrace
 
 # other useful gfortran options:
 #  -fdefault-real-8 -fcheck=bounds -std=f2003 -O0 -v
-
+# -Wl,--out-implib,DISCON.lib
 
 
    # Destination and RootName for executable

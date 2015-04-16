@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-03-13 12:04:56 -0600 (Fri, 13 Mar 2015) $
-! (File) Revision #: $Rev: 177 $
+! File last committed: $Date: 2015-04-14 14:23:46 -0600 (Tue, 14 Apr 2015) $
+! (File) Revision #: $Rev: 187 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/AeroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE AeroDyn
@@ -84,7 +84,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    REAL(ReKi)                       :: CosPrecone
    REAL(ReKi)                       :: DTip, ElemRad, Dhub, Rhub     ! variables for calculating hub- and tip-loss constants
    REAL(ReKi)                       :: HubRadius
-   REAL(ReKi)                       :: MeanWind
+!   REAL(ReKi)                       :: MeanWind
    REAL(ReKi)                       :: TipRadius
    REAL(ReKi)                       :: TmpVar
    REAL(ReKi)                       :: TmpPos(3)
@@ -93,7 +93,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    INTEGER                          :: IB, IE 
    INTEGER                          :: IELM
 
-   CHARACTER(1024)                  :: Title
+!   CHARACTER(1024)                  :: Title
 
    INTEGER                                   :: Elem                          ! Index for mesh element.
    INTEGER                                   :: InterpIndx                 ! Index telling the interpolation routine where to start in the array.
@@ -762,8 +762,8 @@ SUBROUTINE AD_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, E
       TYPE(AD_ContinuousStateType)                 :: dxdt        ! Continuous state derivatives at Time
       TYPE(AD_ConstraintStateType)                 :: z_Residual  ! Residual of the constraint state equations (Z)
 
-      INTEGER(IntKi)                                    :: ErrStat2    ! Error status of the operation (occurs after initial error)
-      CHARACTER(LEN(ErrMess))                            :: ErrMess2     ! Error message if ErrStat2 /= ErrID_None
+!      INTEGER(IntKi)                                    :: ErrStat2    ! Error status of the operation (occurs after initial error)
+!      CHARACTER(LEN(ErrMess))                            :: ErrMess2     ! Error message if ErrStat2 /= ErrID_None
 
          ! Initialize ErrStat
 

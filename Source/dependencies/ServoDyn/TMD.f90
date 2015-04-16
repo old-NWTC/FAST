@@ -2,8 +2,8 @@
 ! WLaCava (WGL) and Matt Lackner (MAL)
 ! Tuned Mass Damper Module
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-03-11 14:34:32 -0600 (Wed, 11 Mar 2015) $
-! (File) Revision #: $Rev: 934 $
+! File last committed: $Date: 2015-04-14 14:40:30 -0600 (Tue, 14 Apr 2015) $
+! (File) Revision #: $Rev: 976 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/TMD/Source/TMD.f90 $
 !**********************************************************************************************************************************
 MODULE TMD  
@@ -81,12 +81,12 @@ SUBROUTINE TMD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, 
       
          ! Local variables
       INTEGER(IntKi)                                :: NumOuts
-      INTEGER(IntKi)                                :: NumStates
+!      INTEGER(IntKi)                                :: NumStates
       TYPE(TMD_InputFile)                           :: InputFileData ! Data stored in the module's input file    
-      CHARACTER(1024)                               :: SummaryName   ! name of the TMD summary file
-      TYPE(TMD_InitInputType)                       :: InitLocal     ! Local version of the initialization data, needed because the framework data (InitInp) is read-only
-      INTEGER                                       :: i             ! Generic index
-      INTEGER                                       :: j             ! Generic index  
+!      CHARACTER(1024)                               :: SummaryName   ! name of the TMD summary file
+!      TYPE(TMD_InitInputType)                       :: InitLocal     ! Local version of the initialization data, needed because the framework data (InitInp) is read-only
+!      INTEGER                                       :: i             ! Generic index
+!      INTEGER                                       :: j             ! Generic index  
                                                     
       INTEGER(IntKi)                                :: UnEcho        ! Unit number for the echo file   
       INTEGER(IntKi)                                :: ErrStat2      ! local error status
@@ -678,7 +678,7 @@ SUBROUTINE TMD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrSt
       REAL(ReKi), dimension(3)                   :: omega_P_N ! angular velocity of nacelle transformed to nacelle orientation
       REAL(ReKi)                                   :: B_X 
       REAL(ReKi)                                   :: B_Y
-      INTEGER                                      :: i         
+!      INTEGER                                      :: i         
       !Real(ReKi), dimension(2)                  :: F_stop !stop forces
          ! Initialize ErrStat
          
@@ -846,9 +846,9 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
    TYPE(TMD_InputFile), INTENT(INOUT) :: InputFileData                       ! All the data in the TMD input file
    
       ! Local variables:
-   REAL(ReKi)                    :: TmpRAry(2)                                ! A temporary array to read a table from the input file
+!   REAL(ReKi)                    :: TmpRAry(2)                                ! A temporary array to read a table from the input file
    INTEGER(IntKi)                :: I                                         ! loop counter
-   INTEGER(IntKi)                :: NumOuts                                   ! Number of output channel names read from the file 
+!   INTEGER(IntKi)                :: NumOuts                                   ! Number of output channel names read from the file 
    INTEGER(IntKi)                :: UnIn                                      ! Unit number for reading file
      
    INTEGER(IntKi)                :: ErrStat2                                  ! Temporary Error status
@@ -856,7 +856,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
    CHARACTER(LEN(ErrMsg))        :: ErrMsg2                                   ! Temporary Error message
    CHARACTER(1024)               :: PriPath                                   ! Path name of the primary file
    CHARACTER(1024)               :: FTitle                                    ! "File Title": the 2nd line of the input file, which contains a description of its contents
-   CHARACTER(200)                :: Line                                      ! Temporary storage of a line from the input file (to compare with "default")
+!   CHARACTER(200)                :: Line                                      ! Temporary storage of a line from the input file (to compare with "default")
 
    
       ! Initialize some variables:
@@ -1099,14 +1099,14 @@ SUBROUTINE TMD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
    CHARACTER(*),             INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred
 
       ! Local variables
-   REAL(ReKi)                                 :: ComDenom       ! Common denominator of variables used in the TEC model
-   REAL(ReKi)                                 :: SIG_RtSp       ! Rated speed
-   REAL(ReKi)                                 :: TEC_K1         ! K1 term for Thevenin-equivalent circuit
-   REAL(ReKi)                                 :: TEC_K2         ! K2 term for Thevenin-equivalent circuit
+!   REAL(ReKi)                                 :: ComDenom       ! Common denominator of variables used in the TEC model
+!   REAL(ReKi)                                 :: SIG_RtSp       ! Rated speed
+!   REAL(ReKi)                                 :: TEC_K1         ! K1 term for Thevenin-equivalent circuit
+!   REAL(ReKi)                                 :: TEC_K2         ! K2 term for Thevenin-equivalent circuit
    
-   INTEGER(IntKi)                             :: K              ! Loop counter (for blades)
-   INTEGER(IntKi)                             :: ErrStat2       ! Temporary error ID   
-   CHARACTER(LEN(ErrMsg))                     :: ErrMsg2        ! Temporary message describing error
+!   INTEGER(IntKi)                             :: K              ! Loop counter (for blades)
+!   INTEGER(IntKi)                             :: ErrStat2       ! Temporary error ID   
+!   CHARACTER(LEN(ErrMsg))                     :: ErrMsg2        ! Temporary message describing error
 
 
    

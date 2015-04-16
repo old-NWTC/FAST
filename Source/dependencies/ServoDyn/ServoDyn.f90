@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-03-30 15:00:11 -0600 (Mon, 30 Mar 2015) $
-! (File) Revision #: $Rev: 952 $
+! File last committed: $Date: 2015-04-14 14:53:47 -0600 (Tue, 14 Apr 2015) $
+! (File) Revision #: $Rev: 977 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ServoDyn.f90 $
 !**********************************************************************************************************************************
 MODULE ServoDyn
@@ -581,8 +581,8 @@ SUBROUTINE SrvD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState,
       TYPE(SrvD_ContinuousStateType)                 :: dxdt            ! Continuous state derivatives at t
       TYPE(SrvD_InputType)                           :: u               ! Inputs at t
 
-      INTEGER(IntKi)                                 :: ErrStat2        ! Error status of the operation (occurs after initial error)
-      CHARACTER(LEN(ErrMsg))                         :: ErrMsg2         ! Error message if ErrStat2 /= ErrID_None
+!      INTEGER(IntKi)                                 :: ErrStat2        ! Error status of the operation (occurs after initial error)
+!      CHARACTER(LEN(ErrMsg))                         :: ErrMsg2         ! Error message if ErrStat2 /= ErrID_None
 
       
       
@@ -986,7 +986,6 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       ! Local variables:
    REAL(ReKi)                    :: TmpRAry(2)                                ! A temporary array to read a table from the input file
    INTEGER(IntKi)                :: I                                         ! loop counter
-   INTEGER(IntKi)                :: NumOuts                                   ! Number of output channel names read from the file 
    INTEGER(IntKi)                :: UnIn                                      ! Unit number for reading file
      
    INTEGER(IntKi)                :: ErrStat2                                  ! Temporary Error status
@@ -1853,7 +1852,6 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
    REAL(ReKi)                                 :: TEC_K1         ! K1 term for Thevenin-equivalent circuit
    REAL(ReKi)                                 :: TEC_K2         ! K2 term for Thevenin-equivalent circuit
    
-   INTEGER(IntKi)                             :: K              ! Loop counter (for blades)
    INTEGER(IntKi)                             :: ErrStat2       ! Temporary error ID   
    CHARACTER(LEN(ErrMsg))                     :: ErrMsg2        ! Temporary message describing error
 
@@ -2301,7 +2299,6 @@ SUBROUTINE SetOutParam(OutList, p, ErrStat, ErrMsg )
       ! Local variables
 
    INTEGER                      :: I                                               ! Generic loop-counting index
-   INTEGER                      :: J                                               ! Generic loop-counting index
    INTEGER                      :: INDX                                            ! Index for valid arrays
 
    LOGICAL                      :: CheckOutListAgain                               ! Flag used to determine if output parameter starting with "M" is valid (or the negative of another parameter)

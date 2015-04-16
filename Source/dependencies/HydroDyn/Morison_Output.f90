@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-12-08 13:17:52 -0700 (Mon, 08 Dec 2014) $
-! (File) Revision #: $Rev: 594 $
+! File last committed: $Date: 2015-04-14 14:27:12 -0600 (Tue, 14 Apr 2015) $
+! (File) Revision #: $Rev: 614 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Morison_Output.f90 $
 !**********************************************************************************************************************************
 MODULE Morison_Output
@@ -7027,8 +7027,8 @@ SUBROUTINE MrsnOut_OpenOutput( ProgName, OutRootName,  p, InitOut, ErrStat, ErrM
    
       ! Local variables
    INTEGER                                        :: I                    ! Generic loop counter      
-   INTEGER                                        :: J                    ! Generic loop counter      
-   INTEGER                                        :: Indx                 ! Counts the current index into the WaveKinNd array
+!   INTEGER                                        :: J                    ! Generic loop counter      
+!   INTEGER                                        :: Indx                 ! Counts the current index into the WaveKinNd array
    CHARACTER(1024)                                :: OutFileName          ! The name of the output file  including the full path.
    CHARACTER(200)                                 :: Frmt                 ! a string to hold a format statement
                  
@@ -7306,12 +7306,12 @@ SUBROUTINE MrsnOut_Init( InitInp, y,  p, InitOut, ErrStat, ErrMsg )
       ! Local variables
    INTEGER                                        :: I                    ! Generic loop counter      
    INTEGER                                        :: J                    ! Generic loop counter      
-   INTEGER                                        :: Indx                 ! Counts the current index into the WaveKinNd array
-   CHARACTER(1024)                                ::  OutFileName         ! The name of the output file  including the full path.
-   CHARACTER(200)                                 :: Frmt                 ! a string to hold a format statement
+!   INTEGER                                        :: Indx                 ! Counts the current index into the WaveKinNd array
+!   CHARACTER(1024)                                ::  OutFileName         ! The name of the output file  including the full path.
+!   CHARACTER(200)                                 :: Frmt                 ! a string to hold a format statement
    INTEGER                                        :: m1, m2, memberIndx   ! marker1, marker2, and member indices
    REAL(ReKi)                                     :: s                    ! interpolation factor
-   INTEGER                                        :: count                ! node index
+!   INTEGER                                        :: count                ! node index
    
    
    !-------------------------------------------------------------------------------------------------      
@@ -7453,7 +7453,7 @@ FUNCTION   GetMorisonChannels    ( NUserOutputs, UserOutputs, OutList, foundMask
    
    CHARACTER(10)                          :: OutListTmp                                ! A string to temporarily hold OutList(I).
    CHARACTER(28), PARAMETER               :: OutPFmt   = "( I4, 3X,A 10,1 X, A10 )"    ! Output format parameter output list.
-   LOGICAL                                :: InvalidOutput(MaxMrsnOutputs)                        ! This array determines if the output channel is valid for this configuration
+!   LOGICAL                                :: InvalidOutput(MaxMrsnOutputs)                        ! This array determines if the output channel is valid for this configuration
    LOGICAL                                :: CheckOutListAgain
    LOGICAL                                :: newFoundMask (NUserOutputs)        ! A mask indicating whether a user requested channel belongs to a module's output channels.
        ! Initialize ErrStat
@@ -7552,7 +7552,7 @@ SUBROUTINE MrsnOut_ChkOutLst( OutList, ValidOutList, y, p, ErrStat, ErrMsg )
       ! Local variables.
    
    INTEGER                                :: I                                         ! Generic loop-counting index.
-   INTEGER                                :: J                                         ! Generic loop-counting index.
+!   INTEGER                                :: J                                         ! Generic loop-counting index.
    INTEGER                                :: INDX                                      ! Index for valid arrays
    
    CHARACTER(10)                          :: OutListTmp                                ! A string to temporarily hold OutList(I).

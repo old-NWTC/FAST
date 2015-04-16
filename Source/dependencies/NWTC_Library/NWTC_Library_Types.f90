@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.05.00, 10-Jan-2015)
+! FAST Registry (v2.06.00, 14-Apr-2015)
 !*********************************************************************************************************************************
 ! NWTC_Library_Types
 !.................................................................................................................................
@@ -121,18 +121,20 @@ SUBROUTINE NWTC_Library_CopyProgDesc( SrcProgDescData, DstProgDescData, CtrlCode
    INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_CopyProgDesc'
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstProgDescData%Name = SrcProgDescData%Name
-   DstProgDescData%Ver = SrcProgDescData%Ver
-   DstProgDescData%Date = SrcProgDescData%Date
+    DstProgDescData%Name = SrcProgDescData%Name
+    DstProgDescData%Ver = SrcProgDescData%Ver
+    DstProgDescData%Date = SrcProgDescData%Date
  END SUBROUTINE NWTC_Library_CopyProgDesc
 
  SUBROUTINE NWTC_Library_DestroyProgDesc( ProgDescData, ErrStat, ErrMsg )
   TYPE(ProgDesc), INTENT(INOUT) :: ProgDescData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  CHARACTER(*),    PARAMETER :: RoutineName = 'NWTC_Library_DestroyProgDesc'
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
@@ -143,23 +145,27 @@ SUBROUTINE NWTC_Library_CopyProgDesc( SrcProgDescData, DstProgDescData, CtrlCode
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(ProgDesc),  INTENT(INOUT) :: InData
+  TYPE(ProgDesc),  INTENT(IN) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
     ! Local variables
   INTEGER(IntKi)                 :: Re_BufSz
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
   INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
- ! buffers to store meshes, if any
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_PackProgDesc'
+ ! buffers to store subtypes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -167,18 +173,51 @@ SUBROUTINE NWTC_Library_CopyProgDesc( SrcProgDescData, DstProgDescData, CtrlCode
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-!  missing buffer for Name
-!  missing buffer for Ver
-!  missing buffer for Date
-  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
-  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
-  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
+      Int_BufSz  = Int_BufSz  + 1*LEN(InData%Name)  ! Name
+      Int_BufSz  = Int_BufSz  + 1*LEN(InData%Ver)  ! Ver
+      Int_BufSz  = Int_BufSz  + 1*LEN(InData%Date)  ! Date
+  IF ( Re_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Db_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Int_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
+
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred = 1
+
+        DO I = 1, LEN(InData%Name)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%Name(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+        DO I = 1, LEN(InData%Ver)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%Ver(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+        DO I = 1, LEN(InData%Date)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%Date(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
  END SUBROUTINE NWTC_Library_PackProgDesc
 
  SUBROUTINE NWTC_Library_UnPackProgDesc( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -189,34 +228,44 @@ SUBROUTINE NWTC_Library_CopyProgDesc( SrcProgDescData, DstProgDescData, CtrlCode
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
-  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Buf_size
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
-  INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
-  INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
-  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  INTEGER(IntKi)                 :: i
+  LOGICAL                        :: mask0
   LOGICAL, ALLOCATABLE           :: mask1(:)
   LOGICAL, ALLOCATABLE           :: mask2(:,:)
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+  INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_UnPackProgDesc'
  ! buffers to store meshes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-  Re_BufSz  = 0
-  Db_BufSz  = 0
-  Int_BufSz  = 0
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
+      DO I = 1, LEN(OutData%Name)
+        OutData%Name(I:I) = CHAR(IntKiBuf(Int_Xferred))
+        Int_Xferred = Int_Xferred   + 1
+      END DO ! I
+      DO I = 1, LEN(OutData%Ver)
+        OutData%Ver(I:I) = CHAR(IntKiBuf(Int_Xferred))
+        Int_Xferred = Int_Xferred   + 1
+      END DO ! I
+      DO I = 1, LEN(OutData%Date)
+        OutData%Date(I:I) = CHAR(IntKiBuf(Int_Xferred))
+        Int_Xferred = Int_Xferred   + 1
+      END DO ! I
  END SUBROUTINE NWTC_Library_UnPackProgDesc
 
  SUBROUTINE NWTC_Library_CopyFASTdataType( SrcFASTdataTypeData, DstFASTdataTypeData, CtrlCode, ErrStat, ErrMsg )
@@ -231,51 +280,52 @@ SUBROUTINE NWTC_Library_CopyProgDesc( SrcProgDescData, DstProgDescData, CtrlCode
    INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_CopyFASTdataType'
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstFASTdataTypeData%File = SrcFASTdataTypeData%File
-   DstFASTdataTypeData%Descr = SrcFASTdataTypeData%Descr
-   DstFASTdataTypeData%NumChans = SrcFASTdataTypeData%NumChans
-   DstFASTdataTypeData%NumRecs = SrcFASTdataTypeData%NumRecs
-   DstFASTdataTypeData%TimeStep = SrcFASTdataTypeData%TimeStep
+    DstFASTdataTypeData%File = SrcFASTdataTypeData%File
+    DstFASTdataTypeData%Descr = SrcFASTdataTypeData%Descr
+    DstFASTdataTypeData%NumChans = SrcFASTdataTypeData%NumChans
+    DstFASTdataTypeData%NumRecs = SrcFASTdataTypeData%NumRecs
+    DstFASTdataTypeData%TimeStep = SrcFASTdataTypeData%TimeStep
 IF (ALLOCATED(SrcFASTdataTypeData%ChanNames)) THEN
-   i1_l = LBOUND(SrcFASTdataTypeData%ChanNames,1)
-   i1_u = UBOUND(SrcFASTdataTypeData%ChanNames,1)
-   IF (.NOT. ALLOCATED(DstFASTdataTypeData%ChanNames)) THEN 
-      ALLOCATE(DstFASTdataTypeData%ChanNames(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFASTdataTypeData%ChanNames.', ErrStat, ErrMsg,'NWTC_Library_CopyFASTdataType')
-         RETURN
-      END IF
-   END IF
-   DstFASTdataTypeData%ChanNames = SrcFASTdataTypeData%ChanNames
+  i1_l = LBOUND(SrcFASTdataTypeData%ChanNames,1)
+  i1_u = UBOUND(SrcFASTdataTypeData%ChanNames,1)
+  IF (.NOT. ALLOCATED(DstFASTdataTypeData%ChanNames)) THEN 
+    ALLOCATE(DstFASTdataTypeData%ChanNames(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFASTdataTypeData%ChanNames.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstFASTdataTypeData%ChanNames = SrcFASTdataTypeData%ChanNames
 ENDIF
 IF (ALLOCATED(SrcFASTdataTypeData%ChanUnits)) THEN
-   i1_l = LBOUND(SrcFASTdataTypeData%ChanUnits,1)
-   i1_u = UBOUND(SrcFASTdataTypeData%ChanUnits,1)
-   IF (.NOT. ALLOCATED(DstFASTdataTypeData%ChanUnits)) THEN 
-      ALLOCATE(DstFASTdataTypeData%ChanUnits(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFASTdataTypeData%ChanUnits.', ErrStat, ErrMsg,'NWTC_Library_CopyFASTdataType')
-         RETURN
-      END IF
-   END IF
-   DstFASTdataTypeData%ChanUnits = SrcFASTdataTypeData%ChanUnits
+  i1_l = LBOUND(SrcFASTdataTypeData%ChanUnits,1)
+  i1_u = UBOUND(SrcFASTdataTypeData%ChanUnits,1)
+  IF (.NOT. ALLOCATED(DstFASTdataTypeData%ChanUnits)) THEN 
+    ALLOCATE(DstFASTdataTypeData%ChanUnits(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFASTdataTypeData%ChanUnits.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstFASTdataTypeData%ChanUnits = SrcFASTdataTypeData%ChanUnits
 ENDIF
 IF (ALLOCATED(SrcFASTdataTypeData%Data)) THEN
-   i1_l = LBOUND(SrcFASTdataTypeData%Data,1)
-   i1_u = UBOUND(SrcFASTdataTypeData%Data,1)
-   i2_l = LBOUND(SrcFASTdataTypeData%Data,2)
-   i2_u = UBOUND(SrcFASTdataTypeData%Data,2)
-   IF (.NOT. ALLOCATED(DstFASTdataTypeData%Data)) THEN 
-      ALLOCATE(DstFASTdataTypeData%Data(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFASTdataTypeData%Data.', ErrStat, ErrMsg,'NWTC_Library_CopyFASTdataType')
-         RETURN
-      END IF
-   END IF
-   DstFASTdataTypeData%Data = SrcFASTdataTypeData%Data
+  i1_l = LBOUND(SrcFASTdataTypeData%Data,1)
+  i1_u = UBOUND(SrcFASTdataTypeData%Data,1)
+  i2_l = LBOUND(SrcFASTdataTypeData%Data,2)
+  i2_u = UBOUND(SrcFASTdataTypeData%Data,2)
+  IF (.NOT. ALLOCATED(DstFASTdataTypeData%Data)) THEN 
+    ALLOCATE(DstFASTdataTypeData%Data(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFASTdataTypeData%Data.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstFASTdataTypeData%Data = SrcFASTdataTypeData%Data
 ENDIF
  END SUBROUTINE NWTC_Library_CopyFASTdataType
 
@@ -283,6 +333,7 @@ ENDIF
   TYPE(FASTdataType), INTENT(INOUT) :: FASTdataTypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  CHARACTER(*),    PARAMETER :: RoutineName = 'NWTC_Library_DestroyFASTdataType'
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
@@ -302,23 +353,27 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(FASTdataType),  INTENT(INOUT) :: InData
+  TYPE(FASTdataType),  INTENT(IN) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
     ! Local variables
   INTEGER(IntKi)                 :: Re_BufSz
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
   INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
- ! buffers to store meshes, if any
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_PackFASTdataType'
+ ! buffers to store subtypes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -326,33 +381,120 @@ ENDIF
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-!  missing buffer for File
-!  missing buffer for Descr
-  Int_BufSz  = Int_BufSz  + 1  ! NumChans
-  Int_BufSz  = Int_BufSz  + 1  ! NumRecs
-  Db_BufSz   = Db_BufSz   + 1  ! TimeStep
-!  missing buffer for ChanNames
-!  missing buffer for ChanUnits
-  IF ( ALLOCATED(InData%Data) )   Re_BufSz    = Re_BufSz    + SIZE( InData%Data )  ! Data 
-  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
-  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
-  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumChans )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumRecs )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%TimeStep )
-  Db_Xferred   = Db_Xferred   + 1
+      Int_BufSz  = Int_BufSz  + 1*LEN(InData%File)  ! File
+      Int_BufSz  = Int_BufSz  + 1*LEN(InData%Descr)  ! Descr
+      Int_BufSz  = Int_BufSz  + 1  ! NumChans
+      Int_BufSz  = Int_BufSz  + 1  ! NumRecs
+      Db_BufSz   = Db_BufSz   + 1  ! TimeStep
+  Int_BufSz   = Int_BufSz   + 1     ! ChanNames allocated yes/no
+  IF ( ALLOCATED(InData%ChanNames) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! ChanNames upper/lower bounds for each dimension
+      Int_BufSz  = Int_BufSz  + SIZE(InData%ChanNames)*LEN(InData%ChanNames)  ! ChanNames
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! ChanUnits allocated yes/no
+  IF ( ALLOCATED(InData%ChanUnits) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! ChanUnits upper/lower bounds for each dimension
+      Int_BufSz  = Int_BufSz  + SIZE(InData%ChanUnits)*LEN(InData%ChanUnits)  ! ChanUnits
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! Data allocated yes/no
   IF ( ALLOCATED(InData%Data) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Data))-1 ) =  PACK(InData%Data ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%Data)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*2  ! Data upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%Data)  ! Data
+  END IF
+  IF ( Re_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Db_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Int_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
+
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred = 1
+
+        DO I = 1, LEN(InData%File)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%File(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+        DO I = 1, LEN(InData%Descr)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%Descr(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumChans
+      Int_Xferred   = Int_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumRecs
+      Int_Xferred   = Int_Xferred   + 1
+       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%TimeStep
+      Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. ALLOCATED(InData%ChanNames) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%ChanNames,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%ChanNames,1)
+    Int_Xferred = Int_Xferred + 2
+
+    DO i1 = LBOUND(InData%ChanNames,1), UBOUND(InData%ChanNames,1)
+        DO I = 1, LEN(InData%ChanNames)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%ChanNames(i1)(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+    END DO !i1
+  END IF
+  IF ( .NOT. ALLOCATED(InData%ChanUnits) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%ChanUnits,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%ChanUnits,1)
+    Int_Xferred = Int_Xferred + 2
+
+    DO i1 = LBOUND(InData%ChanUnits,1), UBOUND(InData%ChanUnits,1)
+        DO I = 1, LEN(InData%ChanUnits)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%ChanUnits(i1)(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+    END DO !i1
+  END IF
+  IF ( .NOT. ALLOCATED(InData%Data) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%Data,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%Data,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%Data,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%Data,2)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%Data)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Data))-1 ) = PACK(InData%Data,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%Data)
+  END IF
  END SUBROUTINE NWTC_Library_PackFASTdataType
 
  SUBROUTINE NWTC_Library_UnPackFASTdataType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -363,47 +505,126 @@ ENDIF
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
-  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Buf_size
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
-  INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
-  INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
-  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  INTEGER(IntKi)                 :: i
+  LOGICAL                        :: mask0
   LOGICAL, ALLOCATABLE           :: mask1(:)
   LOGICAL, ALLOCATABLE           :: mask2(:,:)
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+  INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_UnPackFASTdataType'
  ! buffers to store meshes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-  Re_BufSz  = 0
-  Db_BufSz  = 0
-  Int_BufSz  = 0
-  OutData%NumChans = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%NumRecs = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%TimeStep = DbKiBuf ( Db_Xferred )
-  Db_Xferred   = Db_Xferred   + 1
-  IF ( ALLOCATED(OutData%Data) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%Data,1),SIZE(OutData%Data,2)))
-  mask2 = .TRUE.
-    OutData%Data = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Data))-1 ),mask2,OutData%Data)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%Data)
-  ENDIF
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
+      DO I = 1, LEN(OutData%File)
+        OutData%File(I:I) = CHAR(IntKiBuf(Int_Xferred))
+        Int_Xferred = Int_Xferred   + 1
+      END DO ! I
+      DO I = 1, LEN(OutData%Descr)
+        OutData%Descr(I:I) = CHAR(IntKiBuf(Int_Xferred))
+        Int_Xferred = Int_Xferred   + 1
+      END DO ! I
+      OutData%NumChans = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%NumRecs = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%TimeStep = DbKiBuf( Db_Xferred ) 
+      Db_Xferred   = Db_Xferred + 1
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! ChanNames not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%ChanNames)) DEALLOCATE(OutData%ChanNames)
+    ALLOCATE(OutData%ChanNames(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%ChanNames.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+    DO i1 = LBOUND(OutData%ChanNames,1), UBOUND(OutData%ChanNames,1)
+        DO I = 1, LEN(OutData%ChanNames)
+          OutData%ChanNames(i1)(I:I) = CHAR(IntKiBuf(Int_Xferred))
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+    END DO !i1
+    DEALLOCATE(mask1)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! ChanUnits not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%ChanUnits)) DEALLOCATE(OutData%ChanUnits)
+    ALLOCATE(OutData%ChanUnits(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%ChanUnits.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+    DO i1 = LBOUND(OutData%ChanUnits,1), UBOUND(OutData%ChanUnits,1)
+        DO I = 1, LEN(OutData%ChanUnits)
+          OutData%ChanUnits(i1)(I:I) = CHAR(IntKiBuf(Int_Xferred))
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+    END DO !i1
+    DEALLOCATE(mask1)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! Data not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%Data)) DEALLOCATE(OutData%Data)
+    ALLOCATE(OutData%Data(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%Data.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask2.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask2 = .TRUE. 
+      IF (SIZE(OutData%Data)>0) OutData%Data = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Data))-1 ), mask2, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%Data)
+    DEALLOCATE(mask2)
+  END IF
  END SUBROUTINE NWTC_Library_UnPackFASTdataType
 
  SUBROUTINE NWTC_Library_CopyOutParmType( SrcOutParmTypeData, DstOutParmTypeData, CtrlCode, ErrStat, ErrMsg )
@@ -414,23 +635,23 @@ ENDIF
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
-   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
-   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_CopyOutParmType'
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstOutParmTypeData%Indx = SrcOutParmTypeData%Indx
-   DstOutParmTypeData%Name = SrcOutParmTypeData%Name
-   DstOutParmTypeData%Units = SrcOutParmTypeData%Units
-   DstOutParmTypeData%SignM = SrcOutParmTypeData%SignM
+    DstOutParmTypeData%Indx = SrcOutParmTypeData%Indx
+    DstOutParmTypeData%Name = SrcOutParmTypeData%Name
+    DstOutParmTypeData%Units = SrcOutParmTypeData%Units
+    DstOutParmTypeData%SignM = SrcOutParmTypeData%SignM
  END SUBROUTINE NWTC_Library_CopyOutParmType
 
  SUBROUTINE NWTC_Library_DestroyOutParmType( OutParmTypeData, ErrStat, ErrMsg )
   TYPE(OutParmType), INTENT(INOUT) :: OutParmTypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  CHARACTER(*),    PARAMETER :: RoutineName = 'NWTC_Library_DestroyOutParmType'
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
@@ -441,23 +662,27 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(OutParmType),  INTENT(INOUT) :: InData
+  TYPE(OutParmType),  INTENT(IN) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
     ! Local variables
   INTEGER(IntKi)                 :: Re_BufSz
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
   INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
- ! buffers to store meshes, if any
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_PackOutParmType'
+ ! buffers to store subtypes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -465,23 +690,52 @@ ENDIF
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Int_BufSz  = Int_BufSz  + 1  ! Indx
-!  missing buffer for Name
-!  missing buffer for Units
-  Int_BufSz  = Int_BufSz  + 1  ! SignM
-  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
-  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
-  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%Indx )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%SignM )
-  Int_Xferred   = Int_Xferred   + 1
+      Int_BufSz  = Int_BufSz  + 1  ! Indx
+      Int_BufSz  = Int_BufSz  + 1*LEN(InData%Name)  ! Name
+      Int_BufSz  = Int_BufSz  + 1*LEN(InData%Units)  ! Units
+      Int_BufSz  = Int_BufSz  + 1  ! SignM
+  IF ( Re_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Db_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Int_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
+
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred = 1
+
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%Indx
+      Int_Xferred   = Int_Xferred   + 1
+        DO I = 1, LEN(InData%Name)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%Name(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+        DO I = 1, LEN(InData%Units)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%Units(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%SignM
+      Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE NWTC_Library_PackOutParmType
 
  SUBROUTINE NWTC_Library_UnPackOutParmType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -492,38 +746,42 @@ ENDIF
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
-  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Buf_size
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
-  INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
-  INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
-  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  INTEGER(IntKi)                 :: i
+  LOGICAL                        :: mask0
   LOGICAL, ALLOCATABLE           :: mask1(:)
   LOGICAL, ALLOCATABLE           :: mask2(:,:)
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_UnPackOutParmType'
  ! buffers to store meshes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-  Re_BufSz  = 0
-  Db_BufSz  = 0
-  Int_BufSz  = 0
-  OutData%Indx = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%SignM = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
+      OutData%Indx = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      DO I = 1, LEN(OutData%Name)
+        OutData%Name(I:I) = CHAR(IntKiBuf(Int_Xferred))
+        Int_Xferred = Int_Xferred   + 1
+      END DO ! I
+      DO I = 1, LEN(OutData%Units)
+        OutData%Units(I:I) = CHAR(IntKiBuf(Int_Xferred))
+        Int_Xferred = Int_Xferred   + 1
+      END DO ! I
+      OutData%SignM = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
  END SUBROUTINE NWTC_Library_UnPackOutParmType
 
  SUBROUTINE NWTC_Library_CopyFileInfoType( SrcFileInfoTypeData, DstFileInfoTypeData, CtrlCode, ErrStat, ErrMsg )
@@ -535,61 +793,61 @@ ENDIF
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
-   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_CopyFileInfoType'
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstFileInfoTypeData%NumLines = SrcFileInfoTypeData%NumLines
-   DstFileInfoTypeData%NumFiles = SrcFileInfoTypeData%NumFiles
+    DstFileInfoTypeData%NumLines = SrcFileInfoTypeData%NumLines
+    DstFileInfoTypeData%NumFiles = SrcFileInfoTypeData%NumFiles
 IF (ALLOCATED(SrcFileInfoTypeData%FileLine)) THEN
-   i1_l = LBOUND(SrcFileInfoTypeData%FileLine,1)
-   i1_u = UBOUND(SrcFileInfoTypeData%FileLine,1)
-   IF (.NOT. ALLOCATED(DstFileInfoTypeData%FileLine)) THEN 
-      ALLOCATE(DstFileInfoTypeData%FileLine(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFileInfoTypeData%FileLine.', ErrStat, ErrMsg,'NWTC_Library_CopyFileInfoType')
-         RETURN
-      END IF
-   END IF
-   DstFileInfoTypeData%FileLine = SrcFileInfoTypeData%FileLine
+  i1_l = LBOUND(SrcFileInfoTypeData%FileLine,1)
+  i1_u = UBOUND(SrcFileInfoTypeData%FileLine,1)
+  IF (.NOT. ALLOCATED(DstFileInfoTypeData%FileLine)) THEN 
+    ALLOCATE(DstFileInfoTypeData%FileLine(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFileInfoTypeData%FileLine.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstFileInfoTypeData%FileLine = SrcFileInfoTypeData%FileLine
 ENDIF
 IF (ALLOCATED(SrcFileInfoTypeData%FileIndx)) THEN
-   i1_l = LBOUND(SrcFileInfoTypeData%FileIndx,1)
-   i1_u = UBOUND(SrcFileInfoTypeData%FileIndx,1)
-   IF (.NOT. ALLOCATED(DstFileInfoTypeData%FileIndx)) THEN 
-      ALLOCATE(DstFileInfoTypeData%FileIndx(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFileInfoTypeData%FileIndx.', ErrStat, ErrMsg,'NWTC_Library_CopyFileInfoType')
-         RETURN
-      END IF
-   END IF
-   DstFileInfoTypeData%FileIndx = SrcFileInfoTypeData%FileIndx
+  i1_l = LBOUND(SrcFileInfoTypeData%FileIndx,1)
+  i1_u = UBOUND(SrcFileInfoTypeData%FileIndx,1)
+  IF (.NOT. ALLOCATED(DstFileInfoTypeData%FileIndx)) THEN 
+    ALLOCATE(DstFileInfoTypeData%FileIndx(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFileInfoTypeData%FileIndx.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstFileInfoTypeData%FileIndx = SrcFileInfoTypeData%FileIndx
 ENDIF
 IF (ALLOCATED(SrcFileInfoTypeData%FileList)) THEN
-   i1_l = LBOUND(SrcFileInfoTypeData%FileList,1)
-   i1_u = UBOUND(SrcFileInfoTypeData%FileList,1)
-   IF (.NOT. ALLOCATED(DstFileInfoTypeData%FileList)) THEN 
-      ALLOCATE(DstFileInfoTypeData%FileList(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFileInfoTypeData%FileList.', ErrStat, ErrMsg,'NWTC_Library_CopyFileInfoType')
-         RETURN
-      END IF
-   END IF
-   DstFileInfoTypeData%FileList = SrcFileInfoTypeData%FileList
+  i1_l = LBOUND(SrcFileInfoTypeData%FileList,1)
+  i1_u = UBOUND(SrcFileInfoTypeData%FileList,1)
+  IF (.NOT. ALLOCATED(DstFileInfoTypeData%FileList)) THEN 
+    ALLOCATE(DstFileInfoTypeData%FileList(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFileInfoTypeData%FileList.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstFileInfoTypeData%FileList = SrcFileInfoTypeData%FileList
 ENDIF
 IF (ALLOCATED(SrcFileInfoTypeData%Lines)) THEN
-   i1_l = LBOUND(SrcFileInfoTypeData%Lines,1)
-   i1_u = UBOUND(SrcFileInfoTypeData%Lines,1)
-   IF (.NOT. ALLOCATED(DstFileInfoTypeData%Lines)) THEN 
-      ALLOCATE(DstFileInfoTypeData%Lines(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFileInfoTypeData%Lines.', ErrStat, ErrMsg,'NWTC_Library_CopyFileInfoType')
-         RETURN
-      END IF
-   END IF
-   DstFileInfoTypeData%Lines = SrcFileInfoTypeData%Lines
+  i1_l = LBOUND(SrcFileInfoTypeData%Lines,1)
+  i1_u = UBOUND(SrcFileInfoTypeData%Lines,1)
+  IF (.NOT. ALLOCATED(DstFileInfoTypeData%Lines)) THEN 
+    ALLOCATE(DstFileInfoTypeData%Lines(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFileInfoTypeData%Lines.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstFileInfoTypeData%Lines = SrcFileInfoTypeData%Lines
 ENDIF
  END SUBROUTINE NWTC_Library_CopyFileInfoType
 
@@ -597,6 +855,7 @@ ENDIF
   TYPE(FileInfoType), INTENT(INOUT) :: FileInfoTypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  CHARACTER(*),    PARAMETER :: RoutineName = 'NWTC_Library_DestroyFileInfoType'
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
@@ -619,23 +878,27 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(FileInfoType),  INTENT(INOUT) :: InData
+  TYPE(FileInfoType),  INTENT(IN) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
     ! Local variables
   INTEGER(IntKi)                 :: Re_BufSz
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
   INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
- ! buffers to store meshes, if any
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_PackFileInfoType'
+ ! buffers to store subtypes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -643,33 +906,122 @@ ENDIF
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Int_BufSz  = Int_BufSz  + 1  ! NumLines
-  Int_BufSz  = Int_BufSz  + 1  ! NumFiles
-  IF ( ALLOCATED(InData%FileLine) )   Int_BufSz   = Int_BufSz   + SIZE( InData%FileLine )  ! FileLine 
-  IF ( ALLOCATED(InData%FileIndx) )   Int_BufSz   = Int_BufSz   + SIZE( InData%FileIndx )  ! FileIndx 
-!  missing buffer for FileList
-!  missing buffer for Lines
-  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
-  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
-  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumLines )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumFiles )
-  Int_Xferred   = Int_Xferred   + 1
+      Int_BufSz  = Int_BufSz  + 1  ! NumLines
+      Int_BufSz  = Int_BufSz  + 1  ! NumFiles
+  Int_BufSz   = Int_BufSz   + 1     ! FileLine allocated yes/no
   IF ( ALLOCATED(InData%FileLine) ) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%FileLine))-1 ) = PACK(InData%FileLine ,.TRUE.)
-    Int_Xferred   = Int_Xferred   + SIZE(InData%FileLine)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*1  ! FileLine upper/lower bounds for each dimension
+      Int_BufSz  = Int_BufSz  + SIZE(InData%FileLine)  ! FileLine
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! FileIndx allocated yes/no
   IF ( ALLOCATED(InData%FileIndx) ) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%FileIndx))-1 ) = PACK(InData%FileIndx ,.TRUE.)
-    Int_Xferred   = Int_Xferred   + SIZE(InData%FileIndx)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*1  ! FileIndx upper/lower bounds for each dimension
+      Int_BufSz  = Int_BufSz  + SIZE(InData%FileIndx)  ! FileIndx
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! FileList allocated yes/no
+  IF ( ALLOCATED(InData%FileList) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! FileList upper/lower bounds for each dimension
+      Int_BufSz  = Int_BufSz  + SIZE(InData%FileList)*LEN(InData%FileList)  ! FileList
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! Lines allocated yes/no
+  IF ( ALLOCATED(InData%Lines) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! Lines upper/lower bounds for each dimension
+      Int_BufSz  = Int_BufSz  + SIZE(InData%Lines)*LEN(InData%Lines)  ! Lines
+  END IF
+  IF ( Re_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Db_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Int_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
+
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred = 1
+
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumLines
+      Int_Xferred   = Int_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumFiles
+      Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. ALLOCATED(InData%FileLine) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%FileLine,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%FileLine,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%FileLine)>0) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%FileLine))-1 ) = PACK(InData%FileLine,.TRUE.)
+      Int_Xferred   = Int_Xferred   + SIZE(InData%FileLine)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%FileIndx) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%FileIndx,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%FileIndx,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%FileIndx)>0) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%FileIndx))-1 ) = PACK(InData%FileIndx,.TRUE.)
+      Int_Xferred   = Int_Xferred   + SIZE(InData%FileIndx)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%FileList) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%FileList,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%FileList,1)
+    Int_Xferred = Int_Xferred + 2
+
+    DO i1 = LBOUND(InData%FileList,1), UBOUND(InData%FileList,1)
+        DO I = 1, LEN(InData%FileList)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%FileList(i1)(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+    END DO !i1
+  END IF
+  IF ( .NOT. ALLOCATED(InData%Lines) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%Lines,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%Lines,1)
+    Int_Xferred = Int_Xferred + 2
+
+    DO i1 = LBOUND(InData%Lines,1), UBOUND(InData%Lines,1)
+        DO I = 1, LEN(InData%Lines)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%Lines(i1)(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+    END DO !i1
+  END IF
  END SUBROUTINE NWTC_Library_PackFileInfoType
 
  SUBROUTINE NWTC_Library_UnPackFileInfoType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -680,52 +1032,135 @@ ENDIF
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
-  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Buf_size
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
-  INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
-  INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
-  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  INTEGER(IntKi)                 :: i
+  LOGICAL                        :: mask0
   LOGICAL, ALLOCATABLE           :: mask1(:)
   LOGICAL, ALLOCATABLE           :: mask2(:,:)
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_UnPackFileInfoType'
  ! buffers to store meshes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-  Re_BufSz  = 0
-  Db_BufSz  = 0
-  Int_BufSz  = 0
-  OutData%NumLines = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%NumFiles = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( ALLOCATED(OutData%FileLine) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%FileLine,1)))
-  mask1 = .TRUE.
-    OutData%FileLine = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%FileLine))-1 ),mask1,OutData%FileLine)
-  DEALLOCATE(mask1)
-    Int_Xferred   = Int_Xferred   + SIZE(OutData%FileLine)
-  ENDIF
-  IF ( ALLOCATED(OutData%FileIndx) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%FileIndx,1)))
-  mask1 = .TRUE.
-    OutData%FileIndx = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%FileIndx))-1 ),mask1,OutData%FileIndx)
-  DEALLOCATE(mask1)
-    Int_Xferred   = Int_Xferred   + SIZE(OutData%FileIndx)
-  ENDIF
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
+      OutData%NumLines = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%NumFiles = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! FileLine not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%FileLine)) DEALLOCATE(OutData%FileLine)
+    ALLOCATE(OutData%FileLine(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%FileLine.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%FileLine)>0) OutData%FileLine = UNPACK( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%FileLine))-1 ), mask1, 0_IntKi )
+      Int_Xferred   = Int_Xferred   + SIZE(OutData%FileLine)
+    DEALLOCATE(mask1)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! FileIndx not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%FileIndx)) DEALLOCATE(OutData%FileIndx)
+    ALLOCATE(OutData%FileIndx(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%FileIndx.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%FileIndx)>0) OutData%FileIndx = UNPACK( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%FileIndx))-1 ), mask1, 0_IntKi )
+      Int_Xferred   = Int_Xferred   + SIZE(OutData%FileIndx)
+    DEALLOCATE(mask1)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! FileList not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%FileList)) DEALLOCATE(OutData%FileList)
+    ALLOCATE(OutData%FileList(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%FileList.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+    DO i1 = LBOUND(OutData%FileList,1), UBOUND(OutData%FileList,1)
+        DO I = 1, LEN(OutData%FileList)
+          OutData%FileList(i1)(I:I) = CHAR(IntKiBuf(Int_Xferred))
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+    END DO !i1
+    DEALLOCATE(mask1)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! Lines not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%Lines)) DEALLOCATE(OutData%Lines)
+    ALLOCATE(OutData%Lines(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%Lines.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+    DO i1 = LBOUND(OutData%Lines,1), UBOUND(OutData%Lines,1)
+        DO I = 1, LEN(OutData%Lines)
+          OutData%Lines(i1)(I:I) = CHAR(IntKiBuf(Int_Xferred))
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+    END DO !i1
+    DEALLOCATE(mask1)
+  END IF
  END SUBROUTINE NWTC_Library_UnPackFileInfoType
 
  SUBROUTINE NWTC_Library_CopyQuaternion( SrcQuaternionData, DstQuaternionData, CtrlCode, ErrStat, ErrMsg )
@@ -737,20 +1172,21 @@ ENDIF
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
-   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_CopyQuaternion'
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstQuaternionData%q0 = SrcQuaternionData%q0
-   DstQuaternionData%v = SrcQuaternionData%v
+    DstQuaternionData%q0 = SrcQuaternionData%q0
+    DstQuaternionData%v = SrcQuaternionData%v
  END SUBROUTINE NWTC_Library_CopyQuaternion
 
  SUBROUTINE NWTC_Library_DestroyQuaternion( QuaternionData, ErrStat, ErrMsg )
   TYPE(Quaternion), INTENT(INOUT) :: QuaternionData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  CHARACTER(*),    PARAMETER :: RoutineName = 'NWTC_Library_DestroyQuaternion'
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
@@ -761,23 +1197,27 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Quaternion),  INTENT(INOUT) :: InData
+  TYPE(Quaternion),  INTENT(IN) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
     ! Local variables
   INTEGER(IntKi)                 :: Re_BufSz
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
   INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
- ! buffers to store meshes, if any
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_PackQuaternion'
+ ! buffers to store subtypes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -785,21 +1225,42 @@ ENDIF
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz   = Re_BufSz   + 1  ! q0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%v )  ! v 
-  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
-  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
-  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%q0 )
-  Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%v))-1 ) =  PACK(InData%v ,.TRUE.)
-  Re_Xferred   = Re_Xferred   + SIZE(InData%v)
+      Re_BufSz   = Re_BufSz   + 1  ! q0
+      Re_BufSz   = Re_BufSz   + SIZE(InData%v)  ! v
+  IF ( Re_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Db_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Int_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
+
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred = 1
+
+       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%q0
+      Re_Xferred   = Re_Xferred   + 1
+       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%v))-1 ) = PACK(InData%v,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%v)
  END SUBROUTINE NWTC_Library_PackQuaternion
 
  SUBROUTINE NWTC_Library_UnPackQuaternion( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -810,41 +1271,44 @@ ENDIF
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
-  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Buf_size
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
-  INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
-  INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
-  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  INTEGER(IntKi)                 :: i
+  LOGICAL                        :: mask0
   LOGICAL, ALLOCATABLE           :: mask1(:)
   LOGICAL, ALLOCATABLE           :: mask2(:,:)
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_UnPackQuaternion'
  ! buffers to store meshes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-  Re_BufSz  = 0
-  Db_BufSz  = 0
-  Int_BufSz  = 0
-  OutData%q0 = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%v,1)))
-  mask1 = .TRUE.
-  OutData%v = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%v))-1 ),mask1,OutData%v)
-  DEALLOCATE(mask1)
-  Re_Xferred   = Re_Xferred   + SIZE(OutData%v)
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
+      OutData%q0 = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+    i1_l = LBOUND(OutData%v,1)
+    i1_u = UBOUND(OutData%v,1)
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+       OutData%v = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%v))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%v)
+    DEALLOCATE(mask1)
  END SUBROUTINE NWTC_Library_UnPackQuaternion
 
 END MODULE NWTC_Library_Types

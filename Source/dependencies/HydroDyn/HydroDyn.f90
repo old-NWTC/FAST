@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-03-25 11:29:23 -0600 (Wed, 25 Mar 2015) $
-! (File) Revision #: $Rev: 610 $
+! File last committed: $Date: 2015-04-14 14:27:12 -0600 (Tue, 14 Apr 2015) $
+! (File) Revision #: $Rev: 614 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/HydroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn
@@ -109,9 +109,9 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
       TYPE(Waves_InitOutputType)             :: Waves_InitOut                       ! Initialization Outputs from the Waves module initialization
 !      TYPE(Waves2_InitOutputType)            :: Waves2_InitOut                      ! Initialization Outputs from the Waves2 module initialization
       TYPE(Current_InitOutputType)           :: Current_InitOut                     ! Initialization Outputs from the Current module initialization
-      LOGICAL                                :: hasWAMITOuts                        ! Are there any WAMIT-related outputs
-      LOGICAL                                :: hasMorisonOuts                      ! Are there any Morison-related outputs
-      INTEGER                                :: numHydroOuts                        ! total number of WAMIT and Morison outputs
+!      LOGICAL                                :: hasWAMITOuts                        ! Are there any WAMIT-related outputs
+!      LOGICAL                                :: hasMorisonOuts                      ! Are there any Morison-related outputs
+!      INTEGER                                :: numHydroOuts                        ! total number of WAMIT and Morison outputs
       INTEGER                                :: I, J                                ! Generic counters
       REAL(ReKi)                             :: WaveNmbr                            ! Wavenumber of the current frequency component (1/meter)
          ! These are dummy variables to satisfy the framework, but are not used 

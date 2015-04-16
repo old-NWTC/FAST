@@ -1,4 +1,4 @@
-------- FAST v8.10.* INPUT FILE ------------------------------------------------
+------- FAST v8.11.* INPUT FILE ------------------------------------------------
 FAST Certification Test #24: NREL 5.0 MW Baseline Wind Turbine with OC3 Hywind Configuration, for use in offshore analysis
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
@@ -33,6 +33,7 @@ False         CompUserTwrLd   - Compute additional tower loading (flag) {false: 
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime        - Amount of time between screen status messages (s)
+      99999   ChkptTime       - Amount of time between creating checkpoint files for potential restart (s)
      0.0125   DT_Out          - Time step for tabular output (s)
           0   TStart          - Time to begin tabular output (s)
           2   OutFileFmt      - Format for tabular (time-marching) output file (switch) {1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both}

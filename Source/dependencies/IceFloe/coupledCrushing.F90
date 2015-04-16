@@ -18,8 +18,8 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-09-18 10:40:05 -0600 (Thu, 18 Sep 2014) $
-! (File) Revision #: $Rev: 775 $
+! File last committed: $Date: 2015-04-14 14:30:21 -0600 (Tue, 14 Apr 2015) $
+! (File) Revision #: $Rev: 975 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/coupledCrushing.F90 $
 !**********************************************************************************************************************************!
  
@@ -53,7 +53,7 @@ contains
       type(inputParams)                            :: inParams    ! specific input parameter variable list
 
       real(ReKi)     :: defaultWidth
-      integer(IntKi) :: err
+!      integer(IntKi) :: err
 
 !  initialize the common parmeters
       call initIceFloe(iceInput, inParams, myIceParams, iceLog)

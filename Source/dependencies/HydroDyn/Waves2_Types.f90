@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.05.00, 14-Jan-2015)
+! FAST Registry (v2.06.00, 14-Apr-2015)
 !*********************************************************************************************************************************
 ! Waves2_Types
 !.................................................................................................................................
@@ -145,148 +145,150 @@ CONTAINS
    INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_CopyInitInput'
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstInitInputData%UnSum = SrcInitInputData%UnSum
-   DstInitInputData%Gravity = SrcInitInputData%Gravity
-   DstInitInputData%WtrDens = SrcInitInputData%WtrDens
-   DstInitInputData%WtrDpth = SrcInitInputData%WtrDpth
-   DstInitInputData%NStepWave = SrcInitInputData%NStepWave
-   DstInitInputData%NStepWave2 = SrcInitInputData%NStepWave2
-   DstInitInputData%WaveDOmega = SrcInitInputData%WaveDOmega
-   DstInitInputData%WaveStMod = SrcInitInputData%WaveStMod
-   DstInitInputData%WaveMultiDir = SrcInitInputData%WaveMultiDir
+    DstInitInputData%UnSum = SrcInitInputData%UnSum
+    DstInitInputData%Gravity = SrcInitInputData%Gravity
+    DstInitInputData%WtrDens = SrcInitInputData%WtrDens
+    DstInitInputData%WtrDpth = SrcInitInputData%WtrDpth
+    DstInitInputData%NStepWave = SrcInitInputData%NStepWave
+    DstInitInputData%NStepWave2 = SrcInitInputData%NStepWave2
+    DstInitInputData%WaveDOmega = SrcInitInputData%WaveDOmega
+    DstInitInputData%WaveStMod = SrcInitInputData%WaveStMod
+    DstInitInputData%WaveMultiDir = SrcInitInputData%WaveMultiDir
 IF (ALLOCATED(SrcInitInputData%WaveDirArr)) THEN
-   i1_l = LBOUND(SrcInitInputData%WaveDirArr,1)
-   i1_u = UBOUND(SrcInitInputData%WaveDirArr,1)
-   IF (.NOT. ALLOCATED(DstInitInputData%WaveDirArr)) THEN 
-      ALLOCATE(DstInitInputData%WaveDirArr(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveDirArr.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
-         RETURN
-      END IF
-   END IF
-   DstInitInputData%WaveDirArr = SrcInitInputData%WaveDirArr
+  i1_l = LBOUND(SrcInitInputData%WaveDirArr,1)
+  i1_u = UBOUND(SrcInitInputData%WaveDirArr,1)
+  IF (.NOT. ALLOCATED(DstInitInputData%WaveDirArr)) THEN 
+    ALLOCATE(DstInitInputData%WaveDirArr(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveDirArr.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitInputData%WaveDirArr = SrcInitInputData%WaveDirArr
 ENDIF
 IF (ALLOCATED(SrcInitInputData%WaveElevC0)) THEN
-   i1_l = LBOUND(SrcInitInputData%WaveElevC0,1)
-   i1_u = UBOUND(SrcInitInputData%WaveElevC0,1)
-   i2_l = LBOUND(SrcInitInputData%WaveElevC0,2)
-   i2_u = UBOUND(SrcInitInputData%WaveElevC0,2)
-   IF (.NOT. ALLOCATED(DstInitInputData%WaveElevC0)) THEN 
-      ALLOCATE(DstInitInputData%WaveElevC0(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveElevC0.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
-         RETURN
-      END IF
-   END IF
-   DstInitInputData%WaveElevC0 = SrcInitInputData%WaveElevC0
+  i1_l = LBOUND(SrcInitInputData%WaveElevC0,1)
+  i1_u = UBOUND(SrcInitInputData%WaveElevC0,1)
+  i2_l = LBOUND(SrcInitInputData%WaveElevC0,2)
+  i2_u = UBOUND(SrcInitInputData%WaveElevC0,2)
+  IF (.NOT. ALLOCATED(DstInitInputData%WaveElevC0)) THEN 
+    ALLOCATE(DstInitInputData%WaveElevC0(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveElevC0.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitInputData%WaveElevC0 = SrcInitInputData%WaveElevC0
 ENDIF
 IF (ALLOCATED(SrcInitInputData%WaveTime)) THEN
-   i1_l = LBOUND(SrcInitInputData%WaveTime,1)
-   i1_u = UBOUND(SrcInitInputData%WaveTime,1)
-   IF (.NOT. ALLOCATED(DstInitInputData%WaveTime)) THEN 
-      ALLOCATE(DstInitInputData%WaveTime(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveTime.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
-         RETURN
-      END IF
-   END IF
-   DstInitInputData%WaveTime = SrcInitInputData%WaveTime
+  i1_l = LBOUND(SrcInitInputData%WaveTime,1)
+  i1_u = UBOUND(SrcInitInputData%WaveTime,1)
+  IF (.NOT. ALLOCATED(DstInitInputData%WaveTime)) THEN 
+    ALLOCATE(DstInitInputData%WaveTime(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveTime.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitInputData%WaveTime = SrcInitInputData%WaveTime
 ENDIF
-   DstInitInputData%NWaveElev = SrcInitInputData%NWaveElev
+    DstInitInputData%NWaveElev = SrcInitInputData%NWaveElev
 IF (ALLOCATED(SrcInitInputData%WaveElevxi)) THEN
-   i1_l = LBOUND(SrcInitInputData%WaveElevxi,1)
-   i1_u = UBOUND(SrcInitInputData%WaveElevxi,1)
-   IF (.NOT. ALLOCATED(DstInitInputData%WaveElevxi)) THEN 
-      ALLOCATE(DstInitInputData%WaveElevxi(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveElevxi.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
-         RETURN
-      END IF
-   END IF
-   DstInitInputData%WaveElevxi = SrcInitInputData%WaveElevxi
+  i1_l = LBOUND(SrcInitInputData%WaveElevxi,1)
+  i1_u = UBOUND(SrcInitInputData%WaveElevxi,1)
+  IF (.NOT. ALLOCATED(DstInitInputData%WaveElevxi)) THEN 
+    ALLOCATE(DstInitInputData%WaveElevxi(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveElevxi.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitInputData%WaveElevxi = SrcInitInputData%WaveElevxi
 ENDIF
 IF (ALLOCATED(SrcInitInputData%WaveElevyi)) THEN
-   i1_l = LBOUND(SrcInitInputData%WaveElevyi,1)
-   i1_u = UBOUND(SrcInitInputData%WaveElevyi,1)
-   IF (.NOT. ALLOCATED(DstInitInputData%WaveElevyi)) THEN 
-      ALLOCATE(DstInitInputData%WaveElevyi(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveElevyi.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
-         RETURN
-      END IF
-   END IF
-   DstInitInputData%WaveElevyi = SrcInitInputData%WaveElevyi
+  i1_l = LBOUND(SrcInitInputData%WaveElevyi,1)
+  i1_u = UBOUND(SrcInitInputData%WaveElevyi,1)
+  IF (.NOT. ALLOCATED(DstInitInputData%WaveElevyi)) THEN 
+    ALLOCATE(DstInitInputData%WaveElevyi(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveElevyi.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitInputData%WaveElevyi = SrcInitInputData%WaveElevyi
 ENDIF
 IF (ALLOCATED(SrcInitInputData%WaveElevXY)) THEN
-   i1_l = LBOUND(SrcInitInputData%WaveElevXY,1)
-   i1_u = UBOUND(SrcInitInputData%WaveElevXY,1)
-   i2_l = LBOUND(SrcInitInputData%WaveElevXY,2)
-   i2_u = UBOUND(SrcInitInputData%WaveElevXY,2)
-   IF (.NOT. ALLOCATED(DstInitInputData%WaveElevXY)) THEN 
-      ALLOCATE(DstInitInputData%WaveElevXY(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveElevXY.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
-         RETURN
-      END IF
-   END IF
-   DstInitInputData%WaveElevXY = SrcInitInputData%WaveElevXY
+  i1_l = LBOUND(SrcInitInputData%WaveElevXY,1)
+  i1_u = UBOUND(SrcInitInputData%WaveElevXY,1)
+  i2_l = LBOUND(SrcInitInputData%WaveElevXY,2)
+  i2_u = UBOUND(SrcInitInputData%WaveElevXY,2)
+  IF (.NOT. ALLOCATED(DstInitInputData%WaveElevXY)) THEN 
+    ALLOCATE(DstInitInputData%WaveElevXY(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveElevXY.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitInputData%WaveElevXY = SrcInitInputData%WaveElevXY
 ENDIF
-   DstInitInputData%NWaveKin0 = SrcInitInputData%NWaveKin0
+    DstInitInputData%NWaveKin0 = SrcInitInputData%NWaveKin0
 IF (ALLOCATED(SrcInitInputData%WaveKinxi0)) THEN
-   i1_l = LBOUND(SrcInitInputData%WaveKinxi0,1)
-   i1_u = UBOUND(SrcInitInputData%WaveKinxi0,1)
-   IF (.NOT. ALLOCATED(DstInitInputData%WaveKinxi0)) THEN 
-      ALLOCATE(DstInitInputData%WaveKinxi0(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveKinxi0.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
-         RETURN
-      END IF
-   END IF
-   DstInitInputData%WaveKinxi0 = SrcInitInputData%WaveKinxi0
+  i1_l = LBOUND(SrcInitInputData%WaveKinxi0,1)
+  i1_u = UBOUND(SrcInitInputData%WaveKinxi0,1)
+  IF (.NOT. ALLOCATED(DstInitInputData%WaveKinxi0)) THEN 
+    ALLOCATE(DstInitInputData%WaveKinxi0(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveKinxi0.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitInputData%WaveKinxi0 = SrcInitInputData%WaveKinxi0
 ENDIF
 IF (ALLOCATED(SrcInitInputData%WaveKinyi0)) THEN
-   i1_l = LBOUND(SrcInitInputData%WaveKinyi0,1)
-   i1_u = UBOUND(SrcInitInputData%WaveKinyi0,1)
-   IF (.NOT. ALLOCATED(DstInitInputData%WaveKinyi0)) THEN 
-      ALLOCATE(DstInitInputData%WaveKinyi0(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveKinyi0.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
-         RETURN
-      END IF
-   END IF
-   DstInitInputData%WaveKinyi0 = SrcInitInputData%WaveKinyi0
+  i1_l = LBOUND(SrcInitInputData%WaveKinyi0,1)
+  i1_u = UBOUND(SrcInitInputData%WaveKinyi0,1)
+  IF (.NOT. ALLOCATED(DstInitInputData%WaveKinyi0)) THEN 
+    ALLOCATE(DstInitInputData%WaveKinyi0(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveKinyi0.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitInputData%WaveKinyi0 = SrcInitInputData%WaveKinyi0
 ENDIF
 IF (ALLOCATED(SrcInitInputData%WaveKinzi0)) THEN
-   i1_l = LBOUND(SrcInitInputData%WaveKinzi0,1)
-   i1_u = UBOUND(SrcInitInputData%WaveKinzi0,1)
-   IF (.NOT. ALLOCATED(DstInitInputData%WaveKinzi0)) THEN 
-      ALLOCATE(DstInitInputData%WaveKinzi0(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveKinzi0.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
-         RETURN
-      END IF
-   END IF
-   DstInitInputData%WaveKinzi0 = SrcInitInputData%WaveKinzi0
+  i1_l = LBOUND(SrcInitInputData%WaveKinzi0,1)
+  i1_u = UBOUND(SrcInitInputData%WaveKinzi0,1)
+  IF (.NOT. ALLOCATED(DstInitInputData%WaveKinzi0)) THEN 
+    ALLOCATE(DstInitInputData%WaveKinzi0(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveKinzi0.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitInputData%WaveKinzi0 = SrcInitInputData%WaveKinzi0
 ENDIF
-   DstInitInputData%WvDiffQTFF = SrcInitInputData%WvDiffQTFF
-   DstInitInputData%WvSumQTFF = SrcInitInputData%WvSumQTFF
-   DstInitInputData%WvLowCOffD = SrcInitInputData%WvLowCOffD
-   DstInitInputData%WvHiCOffD = SrcInitInputData%WvHiCOffD
-   DstInitInputData%WvLowCOffS = SrcInitInputData%WvLowCOffS
-   DstInitInputData%WvHiCOffS = SrcInitInputData%WvHiCOffS
-   DstInitInputData%OutList = SrcInitInputData%OutList
-   DstInitInputData%OutAll = SrcInitInputData%OutAll
-   DstInitInputData%NumOuts = SrcInitInputData%NumOuts
-   DstInitInputData%NumOutAll = SrcInitInputData%NumOutAll
+    DstInitInputData%WvDiffQTFF = SrcInitInputData%WvDiffQTFF
+    DstInitInputData%WvSumQTFF = SrcInitInputData%WvSumQTFF
+    DstInitInputData%WvLowCOffD = SrcInitInputData%WvLowCOffD
+    DstInitInputData%WvHiCOffD = SrcInitInputData%WvHiCOffD
+    DstInitInputData%WvLowCOffS = SrcInitInputData%WvLowCOffS
+    DstInitInputData%WvHiCOffS = SrcInitInputData%WvHiCOffS
+    DstInitInputData%OutList = SrcInitInputData%OutList
+    DstInitInputData%OutAll = SrcInitInputData%OutAll
+    DstInitInputData%NumOuts = SrcInitInputData%NumOuts
+    DstInitInputData%NumOutAll = SrcInitInputData%NumOutAll
  END SUBROUTINE Waves2_CopyInitInput
 
  SUBROUTINE Waves2_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
   TYPE(Waves2_InitInputType), INTENT(INOUT) :: InitInputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  CHARACTER(*),    PARAMETER :: RoutineName = 'Waves2_DestroyInitInput'
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
@@ -324,23 +326,27 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Waves2_InitInputType),  INTENT(INOUT) :: InData
+  TYPE(Waves2_InitInputType),  INTENT(IN) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
     ! Local variables
   INTEGER(IntKi)                 :: Re_BufSz
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
   INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
- ! buffers to store meshes, if any
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_PackInitInput'
+ ! buffers to store subtypes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -348,121 +354,271 @@ ENDIF
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Int_BufSz  = Int_BufSz  + 1  ! UnSum
-  Re_BufSz   = Re_BufSz   + 1  ! Gravity
-  Re_BufSz   = Re_BufSz   + 1  ! WtrDens
-  Re_BufSz   = Re_BufSz   + 1  ! WtrDpth
-  Int_BufSz  = Int_BufSz  + 1  ! NStepWave
-  Int_BufSz  = Int_BufSz  + 1  ! NStepWave2
-  Re_BufSz   = Re_BufSz   + 1  ! WaveDOmega
-  Int_BufSz  = Int_BufSz  + 1  ! WaveStMod
-  Int_BufSz  = Int_BufSz  + 1  ! WaveMultiDir
-  IF ( ALLOCATED(InData%WaveDirArr) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDirArr )  ! WaveDirArr 
-  IF ( ALLOCATED(InData%WaveElevC0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevC0 )  ! WaveElevC0 
-  IF ( ALLOCATED(InData%WaveTime) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
-  Int_BufSz  = Int_BufSz  + 1  ! NWaveElev
-  IF ( ALLOCATED(InData%WaveElevxi) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevxi )  ! WaveElevxi 
-  IF ( ALLOCATED(InData%WaveElevyi) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevyi )  ! WaveElevyi 
-  IF ( ALLOCATED(InData%WaveElevXY) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevXY )  ! WaveElevXY 
-  Int_BufSz  = Int_BufSz  + 1  ! NWaveKin0
-  IF ( ALLOCATED(InData%WaveKinxi0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveKinxi0 )  ! WaveKinxi0 
-  IF ( ALLOCATED(InData%WaveKinyi0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveKinyi0 )  ! WaveKinyi0 
-  IF ( ALLOCATED(InData%WaveKinzi0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveKinzi0 )  ! WaveKinzi0 
-  Int_BufSz  = Int_BufSz  + 1  ! WvDiffQTFF
-  Int_BufSz  = Int_BufSz  + 1  ! WvSumQTFF
-  Re_BufSz   = Re_BufSz   + 1  ! WvLowCOffD
-  Re_BufSz   = Re_BufSz   + 1  ! WvHiCOffD
-  Re_BufSz   = Re_BufSz   + 1  ! WvLowCOffS
-  Re_BufSz   = Re_BufSz   + 1  ! WvHiCOffS
-!  missing buffer for OutList
-  Int_BufSz  = Int_BufSz  + 1  ! OutAll
-  Int_BufSz  = Int_BufSz  + 1  ! NumOuts
-  Int_BufSz  = Int_BufSz  + 1  ! NumOutAll
-  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
-  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
-  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnSum )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Gravity )
-  Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WtrDens )
-  Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WtrDpth )
-  Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NStepWave )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NStepWave2 )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WaveDOmega )
-  Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%WaveStMod )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%WaveMultiDir ), IntKiBuf(1), 1)
-  Int_Xferred   = Int_Xferred   + 1
+      Int_BufSz  = Int_BufSz  + 1  ! UnSum
+      Re_BufSz   = Re_BufSz   + 1  ! Gravity
+      Re_BufSz   = Re_BufSz   + 1  ! WtrDens
+      Re_BufSz   = Re_BufSz   + 1  ! WtrDpth
+      Int_BufSz  = Int_BufSz  + 1  ! NStepWave
+      Int_BufSz  = Int_BufSz  + 1  ! NStepWave2
+      Re_BufSz   = Re_BufSz   + 1  ! WaveDOmega
+      Int_BufSz  = Int_BufSz  + 1  ! WaveStMod
+      Int_BufSz  = Int_BufSz  + 1  ! WaveMultiDir
+  Int_BufSz   = Int_BufSz   + 1     ! WaveDirArr allocated yes/no
   IF ( ALLOCATED(InData%WaveDirArr) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveDirArr))-1 ) =  PACK(InData%WaveDirArr ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveDirArr)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*1  ! WaveDirArr upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveDirArr)  ! WaveDirArr
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! WaveElevC0 allocated yes/no
   IF ( ALLOCATED(InData%WaveElevC0) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElevC0))-1 ) =  PACK(InData%WaveElevC0 ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElevC0)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*2  ! WaveElevC0 upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveElevC0)  ! WaveElevC0
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! WaveTime allocated yes/no
   IF ( ALLOCATED(InData%WaveTime) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveTime))-1 ) =  PACK(InData%WaveTime ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveTime)
-  ENDIF
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NWaveElev )
-  Int_Xferred   = Int_Xferred   + 1
+    Int_BufSz   = Int_BufSz   + 2*1  ! WaveTime upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveTime)  ! WaveTime
+  END IF
+      Int_BufSz  = Int_BufSz  + 1  ! NWaveElev
+  Int_BufSz   = Int_BufSz   + 1     ! WaveElevxi allocated yes/no
   IF ( ALLOCATED(InData%WaveElevxi) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElevxi))-1 ) =  PACK(InData%WaveElevxi ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElevxi)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*1  ! WaveElevxi upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveElevxi)  ! WaveElevxi
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! WaveElevyi allocated yes/no
   IF ( ALLOCATED(InData%WaveElevyi) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElevyi))-1 ) =  PACK(InData%WaveElevyi ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElevyi)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*1  ! WaveElevyi upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveElevyi)  ! WaveElevyi
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! WaveElevXY allocated yes/no
   IF ( ALLOCATED(InData%WaveElevXY) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElevXY))-1 ) =  PACK(InData%WaveElevXY ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElevXY)
-  ENDIF
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NWaveKin0 )
-  Int_Xferred   = Int_Xferred   + 1
+    Int_BufSz   = Int_BufSz   + 2*2  ! WaveElevXY upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveElevXY)  ! WaveElevXY
+  END IF
+      Int_BufSz  = Int_BufSz  + 1  ! NWaveKin0
+  Int_BufSz   = Int_BufSz   + 1     ! WaveKinxi0 allocated yes/no
   IF ( ALLOCATED(InData%WaveKinxi0) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveKinxi0))-1 ) =  PACK(InData%WaveKinxi0 ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveKinxi0)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*1  ! WaveKinxi0 upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveKinxi0)  ! WaveKinxi0
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! WaveKinyi0 allocated yes/no
   IF ( ALLOCATED(InData%WaveKinyi0) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveKinyi0))-1 ) =  PACK(InData%WaveKinyi0 ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveKinyi0)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*1  ! WaveKinyi0 upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveKinyi0)  ! WaveKinyi0
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! WaveKinzi0 allocated yes/no
   IF ( ALLOCATED(InData%WaveKinzi0) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveKinzi0))-1 ) =  PACK(InData%WaveKinzi0 ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveKinzi0)
-  ENDIF
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%WvDiffQTFF ), IntKiBuf(1), 1)
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%WvSumQTFF ), IntKiBuf(1), 1)
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WvLowCOffD )
-  Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WvHiCOffD )
-  Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WvLowCOffS )
-  Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WvHiCOffS )
-  Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%OutAll ), IntKiBuf(1), 1)
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumOuts )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumOutAll )
-  Int_Xferred   = Int_Xferred   + 1
+    Int_BufSz   = Int_BufSz   + 2*1  ! WaveKinzi0 upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveKinzi0)  ! WaveKinzi0
+  END IF
+      Int_BufSz  = Int_BufSz  + 1  ! WvDiffQTFF
+      Int_BufSz  = Int_BufSz  + 1  ! WvSumQTFF
+      Re_BufSz   = Re_BufSz   + 1  ! WvLowCOffD
+      Re_BufSz   = Re_BufSz   + 1  ! WvHiCOffD
+      Re_BufSz   = Re_BufSz   + 1  ! WvLowCOffS
+      Re_BufSz   = Re_BufSz   + 1  ! WvHiCOffS
+      Int_BufSz  = Int_BufSz  + SIZE(InData%OutList)*LEN(InData%OutList)  ! OutList
+      Int_BufSz  = Int_BufSz  + 1  ! OutAll
+      Int_BufSz  = Int_BufSz  + 1  ! NumOuts
+      Int_BufSz  = Int_BufSz  + 1  ! NumOutAll
+  IF ( Re_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Db_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Int_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
+
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred = 1
+
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%UnSum
+      Int_Xferred   = Int_Xferred   + 1
+       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%Gravity
+      Re_Xferred   = Re_Xferred   + 1
+       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%WtrDens
+      Re_Xferred   = Re_Xferred   + 1
+       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%WtrDpth
+      Re_Xferred   = Re_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NStepWave
+      Int_Xferred   = Int_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NStepWave2
+      Int_Xferred   = Int_Xferred   + 1
+       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%WaveDOmega
+      Re_Xferred   = Re_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%WaveStMod
+      Int_Xferred   = Int_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%WaveMultiDir , IntKiBuf(1), 1)
+      Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. ALLOCATED(InData%WaveDirArr) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveDirArr,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveDirArr,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveDirArr)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveDirArr))-1 ) = PACK(InData%WaveDirArr,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveDirArr)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%WaveElevC0) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveElevC0,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveElevC0,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveElevC0,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveElevC0,2)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveElevC0)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElevC0))-1 ) = PACK(InData%WaveElevC0,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElevC0)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%WaveTime) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveTime,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveTime,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveTime)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveTime))-1 ) = PACK(InData%WaveTime,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveTime)
+  END IF
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NWaveElev
+      Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. ALLOCATED(InData%WaveElevxi) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveElevxi,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveElevxi,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveElevxi)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElevxi))-1 ) = PACK(InData%WaveElevxi,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElevxi)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%WaveElevyi) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveElevyi,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveElevyi,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveElevyi)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElevyi))-1 ) = PACK(InData%WaveElevyi,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElevyi)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%WaveElevXY) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveElevXY,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveElevXY,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveElevXY,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveElevXY,2)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveElevXY)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElevXY))-1 ) = PACK(InData%WaveElevXY,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElevXY)
+  END IF
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NWaveKin0
+      Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. ALLOCATED(InData%WaveKinxi0) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveKinxi0,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveKinxi0,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveKinxi0)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveKinxi0))-1 ) = PACK(InData%WaveKinxi0,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveKinxi0)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%WaveKinyi0) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveKinyi0,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveKinyi0,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveKinyi0)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveKinyi0))-1 ) = PACK(InData%WaveKinyi0,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveKinyi0)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%WaveKinzi0) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveKinzi0,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveKinzi0,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveKinzi0)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveKinzi0))-1 ) = PACK(InData%WaveKinzi0,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveKinzi0)
+  END IF
+       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%WvDiffQTFF , IntKiBuf(1), 1)
+      Int_Xferred   = Int_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%WvSumQTFF , IntKiBuf(1), 1)
+      Int_Xferred   = Int_Xferred   + 1
+       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%WvLowCOffD
+      Re_Xferred   = Re_Xferred   + 1
+       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%WvHiCOffD
+      Re_Xferred   = Re_Xferred   + 1
+       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%WvLowCOffS
+      Re_Xferred   = Re_Xferred   + 1
+       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%WvHiCOffS
+      Re_Xferred   = Re_Xferred   + 1
+    DO i1 = LBOUND(InData%OutList,1), UBOUND(InData%OutList,1)
+        DO I = 1, LEN(InData%OutList)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%OutList(i1)(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+    END DO !i1
+       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%OutAll , IntKiBuf(1), 1)
+      Int_Xferred   = Int_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumOuts
+      Int_Xferred   = Int_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumOutAll
+      Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE Waves2_PackInitInput
 
  SUBROUTINE Waves2_UnPackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -473,129 +629,301 @@ ENDIF
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
-  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Buf_size
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
-  INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
-  INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
-  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  INTEGER(IntKi)                 :: i
+  LOGICAL                        :: mask0
   LOGICAL, ALLOCATABLE           :: mask1(:)
   LOGICAL, ALLOCATABLE           :: mask2(:,:)
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+  INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+  INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_UnPackInitInput'
  ! buffers to store meshes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-  Re_BufSz  = 0
-  Db_BufSz  = 0
-  Int_BufSz  = 0
-  OutData%UnSum = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%Gravity = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  OutData%WtrDens = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  OutData%WtrDpth = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  OutData%NStepWave = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%NStepWave2 = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%WaveDOmega = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  OutData%WaveStMod = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( ALLOCATED(OutData%WaveDirArr) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WaveDirArr,1)))
-  mask1 = .TRUE.
-    OutData%WaveDirArr = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveDirArr))-1 ),mask1,OutData%WaveDirArr)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveDirArr)
-  ENDIF
-  IF ( ALLOCATED(OutData%WaveElevC0) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveElevC0,1),SIZE(OutData%WaveElevC0,2)))
-  mask2 = .TRUE.
-    OutData%WaveElevC0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevC0))-1 ),mask2,OutData%WaveElevC0)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevC0)
-  ENDIF
-  IF ( ALLOCATED(OutData%WaveTime) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WaveTime,1)))
-  mask1 = .TRUE.
-    OutData%WaveTime = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ),mask1,OutData%WaveTime)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveTime)
-  ENDIF
-  OutData%NWaveElev = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( ALLOCATED(OutData%WaveElevxi) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WaveElevxi,1)))
-  mask1 = .TRUE.
-    OutData%WaveElevxi = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevxi))-1 ),mask1,OutData%WaveElevxi)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevxi)
-  ENDIF
-  IF ( ALLOCATED(OutData%WaveElevyi) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WaveElevyi,1)))
-  mask1 = .TRUE.
-    OutData%WaveElevyi = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevyi))-1 ),mask1,OutData%WaveElevyi)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevyi)
-  ENDIF
-  IF ( ALLOCATED(OutData%WaveElevXY) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveElevXY,1),SIZE(OutData%WaveElevXY,2)))
-  mask2 = .TRUE.
-    OutData%WaveElevXY = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevXY))-1 ),mask2,OutData%WaveElevXY)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevXY)
-  ENDIF
-  OutData%NWaveKin0 = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( ALLOCATED(OutData%WaveKinxi0) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WaveKinxi0,1)))
-  mask1 = .TRUE.
-    OutData%WaveKinxi0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveKinxi0))-1 ),mask1,OutData%WaveKinxi0)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveKinxi0)
-  ENDIF
-  IF ( ALLOCATED(OutData%WaveKinyi0) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WaveKinyi0,1)))
-  mask1 = .TRUE.
-    OutData%WaveKinyi0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveKinyi0))-1 ),mask1,OutData%WaveKinyi0)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveKinyi0)
-  ENDIF
-  IF ( ALLOCATED(OutData%WaveKinzi0) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WaveKinzi0,1)))
-  mask1 = .TRUE.
-    OutData%WaveKinzi0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveKinzi0))-1 ),mask1,OutData%WaveKinzi0)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveKinzi0)
-  ENDIF
-  OutData%WvLowCOffD = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  OutData%WvHiCOffD = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  OutData%WvLowCOffS = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  OutData%WvHiCOffS = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  OutData%NumOuts = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%NumOutAll = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
+      OutData%UnSum = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%Gravity = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+      OutData%WtrDens = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+      OutData%WtrDpth = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+      OutData%NStepWave = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%NStepWave2 = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%WaveDOmega = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+      OutData%WaveStMod = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%WaveMultiDir = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
+      Int_Xferred   = Int_Xferred + 1
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveDirArr not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveDirArr)) DEALLOCATE(OutData%WaveDirArr)
+    ALLOCATE(OutData%WaveDirArr(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveDirArr.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%WaveDirArr)>0) OutData%WaveDirArr = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveDirArr))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveDirArr)
+    DEALLOCATE(mask1)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveElevC0 not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveElevC0)) DEALLOCATE(OutData%WaveElevC0)
+    ALLOCATE(OutData%WaveElevC0(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveElevC0.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask2.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask2 = .TRUE. 
+      IF (SIZE(OutData%WaveElevC0)>0) OutData%WaveElevC0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevC0))-1 ), mask2, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevC0)
+    DEALLOCATE(mask2)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveTime not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveTime)) DEALLOCATE(OutData%WaveTime)
+    ALLOCATE(OutData%WaveTime(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveTime.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%WaveTime)>0) OutData%WaveTime = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveTime)
+    DEALLOCATE(mask1)
+  END IF
+      OutData%NWaveElev = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveElevxi not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveElevxi)) DEALLOCATE(OutData%WaveElevxi)
+    ALLOCATE(OutData%WaveElevxi(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveElevxi.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%WaveElevxi)>0) OutData%WaveElevxi = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevxi))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevxi)
+    DEALLOCATE(mask1)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveElevyi not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveElevyi)) DEALLOCATE(OutData%WaveElevyi)
+    ALLOCATE(OutData%WaveElevyi(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveElevyi.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%WaveElevyi)>0) OutData%WaveElevyi = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevyi))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevyi)
+    DEALLOCATE(mask1)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveElevXY not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveElevXY)) DEALLOCATE(OutData%WaveElevXY)
+    ALLOCATE(OutData%WaveElevXY(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveElevXY.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask2.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask2 = .TRUE. 
+      IF (SIZE(OutData%WaveElevXY)>0) OutData%WaveElevXY = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevXY))-1 ), mask2, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevXY)
+    DEALLOCATE(mask2)
+  END IF
+      OutData%NWaveKin0 = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveKinxi0 not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveKinxi0)) DEALLOCATE(OutData%WaveKinxi0)
+    ALLOCATE(OutData%WaveKinxi0(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveKinxi0.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%WaveKinxi0)>0) OutData%WaveKinxi0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveKinxi0))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveKinxi0)
+    DEALLOCATE(mask1)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveKinyi0 not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveKinyi0)) DEALLOCATE(OutData%WaveKinyi0)
+    ALLOCATE(OutData%WaveKinyi0(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveKinyi0.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%WaveKinyi0)>0) OutData%WaveKinyi0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveKinyi0))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveKinyi0)
+    DEALLOCATE(mask1)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveKinzi0 not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveKinzi0)) DEALLOCATE(OutData%WaveKinzi0)
+    ALLOCATE(OutData%WaveKinzi0(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveKinzi0.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%WaveKinzi0)>0) OutData%WaveKinzi0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveKinzi0))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveKinzi0)
+    DEALLOCATE(mask1)
+  END IF
+      OutData%WvDiffQTFF = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
+      Int_Xferred   = Int_Xferred + 1
+      OutData%WvSumQTFF = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
+      Int_Xferred   = Int_Xferred + 1
+      OutData%WvLowCOffD = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+      OutData%WvHiCOffD = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+      OutData%WvLowCOffS = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+      OutData%WvHiCOffS = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+    i1_l = LBOUND(OutData%OutList,1)
+    i1_u = UBOUND(OutData%OutList,1)
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+    DO i1 = LBOUND(OutData%OutList,1), UBOUND(OutData%OutList,1)
+        DO I = 1, LEN(OutData%OutList)
+          OutData%OutList(i1)(I:I) = CHAR(IntKiBuf(Int_Xferred))
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+    END DO !i1
+    DEALLOCATE(mask1)
+      OutData%OutAll = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
+      Int_Xferred   = Int_Xferred + 1
+      OutData%NumOuts = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%NumOutAll = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
  END SUBROUTINE Waves2_UnPackInitInput
 
  SUBROUTINE Waves2_CopyInitOutput( SrcInitOutputData, DstInitOutputData, CtrlCode, ErrStat, ErrMsg )
@@ -611,138 +939,139 @@ ENDIF
    INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_CopyInitOutput'
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
 IF (ALLOCATED(SrcInitOutputData%WriteOutputHdr)) THEN
-   i1_l = LBOUND(SrcInitOutputData%WriteOutputHdr,1)
-   i1_u = UBOUND(SrcInitOutputData%WriteOutputHdr,1)
-   IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
-      ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WriteOutputHdr.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
-         RETURN
-      END IF
-   END IF
-   DstInitOutputData%WriteOutputHdr = SrcInitOutputData%WriteOutputHdr
+  i1_l = LBOUND(SrcInitOutputData%WriteOutputHdr,1)
+  i1_u = UBOUND(SrcInitOutputData%WriteOutputHdr,1)
+  IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
+    ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WriteOutputHdr.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitOutputData%WriteOutputHdr = SrcInitOutputData%WriteOutputHdr
 ENDIF
 IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
-   i1_l = LBOUND(SrcInitOutputData%WriteOutputUnt,1)
-   i1_u = UBOUND(SrcInitOutputData%WriteOutputUnt,1)
-   IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
-      ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WriteOutputUnt.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
-         RETURN
-      END IF
-   END IF
-   DstInitOutputData%WriteOutputUnt = SrcInitOutputData%WriteOutputUnt
+  i1_l = LBOUND(SrcInitOutputData%WriteOutputUnt,1)
+  i1_u = UBOUND(SrcInitOutputData%WriteOutputUnt,1)
+  IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
+    ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WriteOutputUnt.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitOutputData%WriteOutputUnt = SrcInitOutputData%WriteOutputUnt
 ENDIF
 IF (ALLOCATED(SrcInitOutputData%WaveElevSeries2)) THEN
-   i1_l = LBOUND(SrcInitOutputData%WaveElevSeries2,1)
-   i1_u = UBOUND(SrcInitOutputData%WaveElevSeries2,1)
-   i2_l = LBOUND(SrcInitOutputData%WaveElevSeries2,2)
-   i2_u = UBOUND(SrcInitOutputData%WaveElevSeries2,2)
-   IF (.NOT. ALLOCATED(DstInitOutputData%WaveElevSeries2)) THEN 
-      ALLOCATE(DstInitOutputData%WaveElevSeries2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveElevSeries2.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
-         RETURN
-      END IF
-   END IF
-   DstInitOutputData%WaveElevSeries2 = SrcInitOutputData%WaveElevSeries2
+  i1_l = LBOUND(SrcInitOutputData%WaveElevSeries2,1)
+  i1_u = UBOUND(SrcInitOutputData%WaveElevSeries2,1)
+  i2_l = LBOUND(SrcInitOutputData%WaveElevSeries2,2)
+  i2_u = UBOUND(SrcInitOutputData%WaveElevSeries2,2)
+  IF (.NOT. ALLOCATED(DstInitOutputData%WaveElevSeries2)) THEN 
+    ALLOCATE(DstInitOutputData%WaveElevSeries2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveElevSeries2.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitOutputData%WaveElevSeries2 = SrcInitOutputData%WaveElevSeries2
 ENDIF
 IF (ALLOCATED(SrcInitOutputData%WaveAcc2D)) THEN
-   i1_l = LBOUND(SrcInitOutputData%WaveAcc2D,1)
-   i1_u = UBOUND(SrcInitOutputData%WaveAcc2D,1)
-   i2_l = LBOUND(SrcInitOutputData%WaveAcc2D,2)
-   i2_u = UBOUND(SrcInitOutputData%WaveAcc2D,2)
-   i3_l = LBOUND(SrcInitOutputData%WaveAcc2D,3)
-   i3_u = UBOUND(SrcInitOutputData%WaveAcc2D,3)
-   IF (.NOT. ALLOCATED(DstInitOutputData%WaveAcc2D)) THEN 
-      ALLOCATE(DstInitOutputData%WaveAcc2D(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveAcc2D.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
-         RETURN
-      END IF
-   END IF
-   DstInitOutputData%WaveAcc2D = SrcInitOutputData%WaveAcc2D
+  i1_l = LBOUND(SrcInitOutputData%WaveAcc2D,1)
+  i1_u = UBOUND(SrcInitOutputData%WaveAcc2D,1)
+  i2_l = LBOUND(SrcInitOutputData%WaveAcc2D,2)
+  i2_u = UBOUND(SrcInitOutputData%WaveAcc2D,2)
+  i3_l = LBOUND(SrcInitOutputData%WaveAcc2D,3)
+  i3_u = UBOUND(SrcInitOutputData%WaveAcc2D,3)
+  IF (.NOT. ALLOCATED(DstInitOutputData%WaveAcc2D)) THEN 
+    ALLOCATE(DstInitOutputData%WaveAcc2D(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveAcc2D.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitOutputData%WaveAcc2D = SrcInitOutputData%WaveAcc2D
 ENDIF
 IF (ALLOCATED(SrcInitOutputData%WaveDynP2D)) THEN
-   i1_l = LBOUND(SrcInitOutputData%WaveDynP2D,1)
-   i1_u = UBOUND(SrcInitOutputData%WaveDynP2D,1)
-   i2_l = LBOUND(SrcInitOutputData%WaveDynP2D,2)
-   i2_u = UBOUND(SrcInitOutputData%WaveDynP2D,2)
-   IF (.NOT. ALLOCATED(DstInitOutputData%WaveDynP2D)) THEN 
-      ALLOCATE(DstInitOutputData%WaveDynP2D(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveDynP2D.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
-         RETURN
-      END IF
-   END IF
-   DstInitOutputData%WaveDynP2D = SrcInitOutputData%WaveDynP2D
+  i1_l = LBOUND(SrcInitOutputData%WaveDynP2D,1)
+  i1_u = UBOUND(SrcInitOutputData%WaveDynP2D,1)
+  i2_l = LBOUND(SrcInitOutputData%WaveDynP2D,2)
+  i2_u = UBOUND(SrcInitOutputData%WaveDynP2D,2)
+  IF (.NOT. ALLOCATED(DstInitOutputData%WaveDynP2D)) THEN 
+    ALLOCATE(DstInitOutputData%WaveDynP2D(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveDynP2D.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitOutputData%WaveDynP2D = SrcInitOutputData%WaveDynP2D
 ENDIF
 IF (ALLOCATED(SrcInitOutputData%WaveAcc2S)) THEN
-   i1_l = LBOUND(SrcInitOutputData%WaveAcc2S,1)
-   i1_u = UBOUND(SrcInitOutputData%WaveAcc2S,1)
-   i2_l = LBOUND(SrcInitOutputData%WaveAcc2S,2)
-   i2_u = UBOUND(SrcInitOutputData%WaveAcc2S,2)
-   i3_l = LBOUND(SrcInitOutputData%WaveAcc2S,3)
-   i3_u = UBOUND(SrcInitOutputData%WaveAcc2S,3)
-   IF (.NOT. ALLOCATED(DstInitOutputData%WaveAcc2S)) THEN 
-      ALLOCATE(DstInitOutputData%WaveAcc2S(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveAcc2S.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
-         RETURN
-      END IF
-   END IF
-   DstInitOutputData%WaveAcc2S = SrcInitOutputData%WaveAcc2S
+  i1_l = LBOUND(SrcInitOutputData%WaveAcc2S,1)
+  i1_u = UBOUND(SrcInitOutputData%WaveAcc2S,1)
+  i2_l = LBOUND(SrcInitOutputData%WaveAcc2S,2)
+  i2_u = UBOUND(SrcInitOutputData%WaveAcc2S,2)
+  i3_l = LBOUND(SrcInitOutputData%WaveAcc2S,3)
+  i3_u = UBOUND(SrcInitOutputData%WaveAcc2S,3)
+  IF (.NOT. ALLOCATED(DstInitOutputData%WaveAcc2S)) THEN 
+    ALLOCATE(DstInitOutputData%WaveAcc2S(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveAcc2S.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitOutputData%WaveAcc2S = SrcInitOutputData%WaveAcc2S
 ENDIF
 IF (ALLOCATED(SrcInitOutputData%WaveDynP2S)) THEN
-   i1_l = LBOUND(SrcInitOutputData%WaveDynP2S,1)
-   i1_u = UBOUND(SrcInitOutputData%WaveDynP2S,1)
-   i2_l = LBOUND(SrcInitOutputData%WaveDynP2S,2)
-   i2_u = UBOUND(SrcInitOutputData%WaveDynP2S,2)
-   IF (.NOT. ALLOCATED(DstInitOutputData%WaveDynP2S)) THEN 
-      ALLOCATE(DstInitOutputData%WaveDynP2S(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveDynP2S.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
-         RETURN
-      END IF
-   END IF
-   DstInitOutputData%WaveDynP2S = SrcInitOutputData%WaveDynP2S
+  i1_l = LBOUND(SrcInitOutputData%WaveDynP2S,1)
+  i1_u = UBOUND(SrcInitOutputData%WaveDynP2S,1)
+  i2_l = LBOUND(SrcInitOutputData%WaveDynP2S,2)
+  i2_u = UBOUND(SrcInitOutputData%WaveDynP2S,2)
+  IF (.NOT. ALLOCATED(DstInitOutputData%WaveDynP2S)) THEN 
+    ALLOCATE(DstInitOutputData%WaveDynP2S(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveDynP2S.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitOutputData%WaveDynP2S = SrcInitOutputData%WaveDynP2S
 ENDIF
 IF (ALLOCATED(SrcInitOutputData%WaveVel2D)) THEN
-   i1_l = LBOUND(SrcInitOutputData%WaveVel2D,1)
-   i1_u = UBOUND(SrcInitOutputData%WaveVel2D,1)
-   i2_l = LBOUND(SrcInitOutputData%WaveVel2D,2)
-   i2_u = UBOUND(SrcInitOutputData%WaveVel2D,2)
-   i3_l = LBOUND(SrcInitOutputData%WaveVel2D,3)
-   i3_u = UBOUND(SrcInitOutputData%WaveVel2D,3)
-   IF (.NOT. ALLOCATED(DstInitOutputData%WaveVel2D)) THEN 
-      ALLOCATE(DstInitOutputData%WaveVel2D(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveVel2D.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
-         RETURN
-      END IF
-   END IF
-   DstInitOutputData%WaveVel2D = SrcInitOutputData%WaveVel2D
+  i1_l = LBOUND(SrcInitOutputData%WaveVel2D,1)
+  i1_u = UBOUND(SrcInitOutputData%WaveVel2D,1)
+  i2_l = LBOUND(SrcInitOutputData%WaveVel2D,2)
+  i2_u = UBOUND(SrcInitOutputData%WaveVel2D,2)
+  i3_l = LBOUND(SrcInitOutputData%WaveVel2D,3)
+  i3_u = UBOUND(SrcInitOutputData%WaveVel2D,3)
+  IF (.NOT. ALLOCATED(DstInitOutputData%WaveVel2D)) THEN 
+    ALLOCATE(DstInitOutputData%WaveVel2D(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveVel2D.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitOutputData%WaveVel2D = SrcInitOutputData%WaveVel2D
 ENDIF
 IF (ALLOCATED(SrcInitOutputData%WaveVel2S)) THEN
-   i1_l = LBOUND(SrcInitOutputData%WaveVel2S,1)
-   i1_u = UBOUND(SrcInitOutputData%WaveVel2S,1)
-   i2_l = LBOUND(SrcInitOutputData%WaveVel2S,2)
-   i2_u = UBOUND(SrcInitOutputData%WaveVel2S,2)
-   i3_l = LBOUND(SrcInitOutputData%WaveVel2S,3)
-   i3_u = UBOUND(SrcInitOutputData%WaveVel2S,3)
-   IF (.NOT. ALLOCATED(DstInitOutputData%WaveVel2S)) THEN 
-      ALLOCATE(DstInitOutputData%WaveVel2S(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveVel2S.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
-         RETURN
-      END IF
-   END IF
-   DstInitOutputData%WaveVel2S = SrcInitOutputData%WaveVel2S
+  i1_l = LBOUND(SrcInitOutputData%WaveVel2S,1)
+  i1_u = UBOUND(SrcInitOutputData%WaveVel2S,1)
+  i2_l = LBOUND(SrcInitOutputData%WaveVel2S,2)
+  i2_u = UBOUND(SrcInitOutputData%WaveVel2S,2)
+  i3_l = LBOUND(SrcInitOutputData%WaveVel2S,3)
+  i3_u = UBOUND(SrcInitOutputData%WaveVel2S,3)
+  IF (.NOT. ALLOCATED(DstInitOutputData%WaveVel2S)) THEN 
+    ALLOCATE(DstInitOutputData%WaveVel2S(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveVel2S.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitOutputData%WaveVel2S = SrcInitOutputData%WaveVel2S
 ENDIF
  END SUBROUTINE Waves2_CopyInitOutput
 
@@ -750,6 +1079,7 @@ ENDIF
   TYPE(Waves2_InitOutputType), INTENT(INOUT) :: InitOutputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  CHARACTER(*),    PARAMETER :: RoutineName = 'Waves2_DestroyInitOutput'
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
@@ -787,23 +1117,27 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Waves2_InitOutputType),  INTENT(INOUT) :: InData
+  TYPE(Waves2_InitOutputType),  INTENT(IN) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
     ! Local variables
   INTEGER(IntKi)                 :: Re_BufSz
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
   INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
- ! buffers to store meshes, if any
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_PackInitOutput'
+ ! buffers to store subtypes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -811,52 +1145,239 @@ ENDIF
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-!  missing buffer for WriteOutputHdr
-!  missing buffer for WriteOutputUnt
-  IF ( ALLOCATED(InData%WaveElevSeries2) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevSeries2 )  ! WaveElevSeries2 
-  IF ( ALLOCATED(InData%WaveAcc2D) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveAcc2D )  ! WaveAcc2D 
-  IF ( ALLOCATED(InData%WaveDynP2D) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDynP2D )  ! WaveDynP2D 
-  IF ( ALLOCATED(InData%WaveAcc2S) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveAcc2S )  ! WaveAcc2S 
-  IF ( ALLOCATED(InData%WaveDynP2S) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDynP2S )  ! WaveDynP2S 
-  IF ( ALLOCATED(InData%WaveVel2D) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveVel2D )  ! WaveVel2D 
-  IF ( ALLOCATED(InData%WaveVel2S) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveVel2S )  ! WaveVel2S 
-  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
-  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
-  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
+  Int_BufSz   = Int_BufSz   + 1     ! WriteOutputHdr allocated yes/no
+  IF ( ALLOCATED(InData%WriteOutputHdr) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! WriteOutputHdr upper/lower bounds for each dimension
+      Int_BufSz  = Int_BufSz  + SIZE(InData%WriteOutputHdr)*LEN(InData%WriteOutputHdr)  ! WriteOutputHdr
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! WriteOutputUnt allocated yes/no
+  IF ( ALLOCATED(InData%WriteOutputUnt) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! WriteOutputUnt upper/lower bounds for each dimension
+      Int_BufSz  = Int_BufSz  + SIZE(InData%WriteOutputUnt)*LEN(InData%WriteOutputUnt)  ! WriteOutputUnt
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! WaveElevSeries2 allocated yes/no
   IF ( ALLOCATED(InData%WaveElevSeries2) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElevSeries2))-1 ) =  PACK(InData%WaveElevSeries2 ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElevSeries2)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*2  ! WaveElevSeries2 upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveElevSeries2)  ! WaveElevSeries2
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! WaveAcc2D allocated yes/no
   IF ( ALLOCATED(InData%WaveAcc2D) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveAcc2D))-1 ) =  PACK(InData%WaveAcc2D ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveAcc2D)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*3  ! WaveAcc2D upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveAcc2D)  ! WaveAcc2D
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! WaveDynP2D allocated yes/no
   IF ( ALLOCATED(InData%WaveDynP2D) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveDynP2D))-1 ) =  PACK(InData%WaveDynP2D ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveDynP2D)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*2  ! WaveDynP2D upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveDynP2D)  ! WaveDynP2D
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! WaveAcc2S allocated yes/no
   IF ( ALLOCATED(InData%WaveAcc2S) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveAcc2S))-1 ) =  PACK(InData%WaveAcc2S ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveAcc2S)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*3  ! WaveAcc2S upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveAcc2S)  ! WaveAcc2S
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! WaveDynP2S allocated yes/no
   IF ( ALLOCATED(InData%WaveDynP2S) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveDynP2S))-1 ) =  PACK(InData%WaveDynP2S ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveDynP2S)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*2  ! WaveDynP2S upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveDynP2S)  ! WaveDynP2S
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! WaveVel2D allocated yes/no
   IF ( ALLOCATED(InData%WaveVel2D) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveVel2D))-1 ) =  PACK(InData%WaveVel2D ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveVel2D)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*3  ! WaveVel2D upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveVel2D)  ! WaveVel2D
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! WaveVel2S allocated yes/no
   IF ( ALLOCATED(InData%WaveVel2S) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveVel2S))-1 ) =  PACK(InData%WaveVel2S ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveVel2S)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*3  ! WaveVel2S upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveVel2S)  ! WaveVel2S
+  END IF
+  IF ( Re_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Db_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Int_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
+
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred = 1
+
+  IF ( .NOT. ALLOCATED(InData%WriteOutputHdr) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WriteOutputHdr,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WriteOutputHdr,1)
+    Int_Xferred = Int_Xferred + 2
+
+    DO i1 = LBOUND(InData%WriteOutputHdr,1), UBOUND(InData%WriteOutputHdr,1)
+        DO I = 1, LEN(InData%WriteOutputHdr)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%WriteOutputHdr(i1)(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+    END DO !i1
+  END IF
+  IF ( .NOT. ALLOCATED(InData%WriteOutputUnt) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WriteOutputUnt,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WriteOutputUnt,1)
+    Int_Xferred = Int_Xferred + 2
+
+    DO i1 = LBOUND(InData%WriteOutputUnt,1), UBOUND(InData%WriteOutputUnt,1)
+        DO I = 1, LEN(InData%WriteOutputUnt)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%WriteOutputUnt(i1)(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+    END DO !i1
+  END IF
+  IF ( .NOT. ALLOCATED(InData%WaveElevSeries2) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveElevSeries2,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveElevSeries2,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveElevSeries2,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveElevSeries2,2)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveElevSeries2)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElevSeries2))-1 ) = PACK(InData%WaveElevSeries2,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElevSeries2)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%WaveAcc2D) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveAcc2D,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveAcc2D,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveAcc2D,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveAcc2D,2)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveAcc2D,3)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveAcc2D,3)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveAcc2D)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveAcc2D))-1 ) = PACK(InData%WaveAcc2D,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveAcc2D)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%WaveDynP2D) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveDynP2D,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveDynP2D,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveDynP2D,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveDynP2D,2)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveDynP2D)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveDynP2D))-1 ) = PACK(InData%WaveDynP2D,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveDynP2D)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%WaveAcc2S) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveAcc2S,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveAcc2S,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveAcc2S,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveAcc2S,2)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveAcc2S,3)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveAcc2S,3)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveAcc2S)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveAcc2S))-1 ) = PACK(InData%WaveAcc2S,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveAcc2S)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%WaveDynP2S) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveDynP2S,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveDynP2S,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveDynP2S,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveDynP2S,2)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveDynP2S)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveDynP2S))-1 ) = PACK(InData%WaveDynP2S,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveDynP2S)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%WaveVel2D) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveVel2D,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveVel2D,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveVel2D,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveVel2D,2)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveVel2D,3)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveVel2D,3)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveVel2D)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveVel2D))-1 ) = PACK(InData%WaveVel2D,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveVel2D)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%WaveVel2S) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveVel2S,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveVel2S,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveVel2S,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveVel2S,2)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveVel2S,3)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveVel2S,3)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveVel2S)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveVel2S))-1 ) = PACK(InData%WaveVel2S,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveVel2S)
+  END IF
  END SUBROUTINE Waves2_PackInitOutput
 
  SUBROUTINE Waves2_UnPackInitOutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -867,83 +1388,281 @@ ENDIF
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
-  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Buf_size
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
-  INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
-  INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
-  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  INTEGER(IntKi)                 :: i
+  LOGICAL                        :: mask0
   LOGICAL, ALLOCATABLE           :: mask1(:)
   LOGICAL, ALLOCATABLE           :: mask2(:,:)
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+  INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+  INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_UnPackInitOutput'
  ! buffers to store meshes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-  Re_BufSz  = 0
-  Db_BufSz  = 0
-  Int_BufSz  = 0
-  IF ( ALLOCATED(OutData%WaveElevSeries2) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveElevSeries2,1),SIZE(OutData%WaveElevSeries2,2)))
-  mask2 = .TRUE.
-    OutData%WaveElevSeries2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevSeries2))-1 ),mask2,OutData%WaveElevSeries2)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevSeries2)
-  ENDIF
-  IF ( ALLOCATED(OutData%WaveAcc2D) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%WaveAcc2D,1),SIZE(OutData%WaveAcc2D,2),SIZE(OutData%WaveAcc2D,3)))
-  mask3 = .TRUE.
-    OutData%WaveAcc2D = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveAcc2D))-1 ),mask3,OutData%WaveAcc2D)
-  DEALLOCATE(mask3)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveAcc2D)
-  ENDIF
-  IF ( ALLOCATED(OutData%WaveDynP2D) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveDynP2D,1),SIZE(OutData%WaveDynP2D,2)))
-  mask2 = .TRUE.
-    OutData%WaveDynP2D = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveDynP2D))-1 ),mask2,OutData%WaveDynP2D)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveDynP2D)
-  ENDIF
-  IF ( ALLOCATED(OutData%WaveAcc2S) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%WaveAcc2S,1),SIZE(OutData%WaveAcc2S,2),SIZE(OutData%WaveAcc2S,3)))
-  mask3 = .TRUE.
-    OutData%WaveAcc2S = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveAcc2S))-1 ),mask3,OutData%WaveAcc2S)
-  DEALLOCATE(mask3)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveAcc2S)
-  ENDIF
-  IF ( ALLOCATED(OutData%WaveDynP2S) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveDynP2S,1),SIZE(OutData%WaveDynP2S,2)))
-  mask2 = .TRUE.
-    OutData%WaveDynP2S = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveDynP2S))-1 ),mask2,OutData%WaveDynP2S)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveDynP2S)
-  ENDIF
-  IF ( ALLOCATED(OutData%WaveVel2D) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%WaveVel2D,1),SIZE(OutData%WaveVel2D,2),SIZE(OutData%WaveVel2D,3)))
-  mask3 = .TRUE.
-    OutData%WaveVel2D = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveVel2D))-1 ),mask3,OutData%WaveVel2D)
-  DEALLOCATE(mask3)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveVel2D)
-  ENDIF
-  IF ( ALLOCATED(OutData%WaveVel2S) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%WaveVel2S,1),SIZE(OutData%WaveVel2S,2),SIZE(OutData%WaveVel2S,3)))
-  mask3 = .TRUE.
-    OutData%WaveVel2S = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveVel2S))-1 ),mask3,OutData%WaveVel2S)
-  DEALLOCATE(mask3)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveVel2S)
-  ENDIF
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WriteOutputHdr not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WriteOutputHdr)) DEALLOCATE(OutData%WriteOutputHdr)
+    ALLOCATE(OutData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WriteOutputHdr.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+    DO i1 = LBOUND(OutData%WriteOutputHdr,1), UBOUND(OutData%WriteOutputHdr,1)
+        DO I = 1, LEN(OutData%WriteOutputHdr)
+          OutData%WriteOutputHdr(i1)(I:I) = CHAR(IntKiBuf(Int_Xferred))
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+    END DO !i1
+    DEALLOCATE(mask1)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WriteOutputUnt not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WriteOutputUnt)) DEALLOCATE(OutData%WriteOutputUnt)
+    ALLOCATE(OutData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WriteOutputUnt.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+    DO i1 = LBOUND(OutData%WriteOutputUnt,1), UBOUND(OutData%WriteOutputUnt,1)
+        DO I = 1, LEN(OutData%WriteOutputUnt)
+          OutData%WriteOutputUnt(i1)(I:I) = CHAR(IntKiBuf(Int_Xferred))
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+    END DO !i1
+    DEALLOCATE(mask1)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveElevSeries2 not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveElevSeries2)) DEALLOCATE(OutData%WaveElevSeries2)
+    ALLOCATE(OutData%WaveElevSeries2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveElevSeries2.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask2.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask2 = .TRUE. 
+      IF (SIZE(OutData%WaveElevSeries2)>0) OutData%WaveElevSeries2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevSeries2))-1 ), mask2, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevSeries2)
+    DEALLOCATE(mask2)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveAcc2D not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i3_l = IntKiBuf( Int_Xferred    )
+    i3_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveAcc2D)) DEALLOCATE(OutData%WaveAcc2D)
+    ALLOCATE(OutData%WaveAcc2D(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveAcc2D.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask3(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask3.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask3 = .TRUE. 
+      IF (SIZE(OutData%WaveAcc2D)>0) OutData%WaveAcc2D = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveAcc2D))-1 ), mask3, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveAcc2D)
+    DEALLOCATE(mask3)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveDynP2D not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveDynP2D)) DEALLOCATE(OutData%WaveDynP2D)
+    ALLOCATE(OutData%WaveDynP2D(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveDynP2D.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask2.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask2 = .TRUE. 
+      IF (SIZE(OutData%WaveDynP2D)>0) OutData%WaveDynP2D = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveDynP2D))-1 ), mask2, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveDynP2D)
+    DEALLOCATE(mask2)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveAcc2S not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i3_l = IntKiBuf( Int_Xferred    )
+    i3_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveAcc2S)) DEALLOCATE(OutData%WaveAcc2S)
+    ALLOCATE(OutData%WaveAcc2S(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveAcc2S.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask3(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask3.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask3 = .TRUE. 
+      IF (SIZE(OutData%WaveAcc2S)>0) OutData%WaveAcc2S = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveAcc2S))-1 ), mask3, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveAcc2S)
+    DEALLOCATE(mask3)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveDynP2S not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveDynP2S)) DEALLOCATE(OutData%WaveDynP2S)
+    ALLOCATE(OutData%WaveDynP2S(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveDynP2S.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask2.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask2 = .TRUE. 
+      IF (SIZE(OutData%WaveDynP2S)>0) OutData%WaveDynP2S = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveDynP2S))-1 ), mask2, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveDynP2S)
+    DEALLOCATE(mask2)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveVel2D not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i3_l = IntKiBuf( Int_Xferred    )
+    i3_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveVel2D)) DEALLOCATE(OutData%WaveVel2D)
+    ALLOCATE(OutData%WaveVel2D(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveVel2D.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask3(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask3.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask3 = .TRUE. 
+      IF (SIZE(OutData%WaveVel2D)>0) OutData%WaveVel2D = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveVel2D))-1 ), mask3, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveVel2D)
+    DEALLOCATE(mask3)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveVel2S not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i3_l = IntKiBuf( Int_Xferred    )
+    i3_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveVel2S)) DEALLOCATE(OutData%WaveVel2S)
+    ALLOCATE(OutData%WaveVel2S(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveVel2S.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask3(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask3.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask3 = .TRUE. 
+      IF (SIZE(OutData%WaveVel2S)>0) OutData%WaveVel2S = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveVel2S))-1 ), mask3, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveVel2S)
+    DEALLOCATE(mask3)
+  END IF
  END SUBROUTINE Waves2_UnPackInitOutput
 
  SUBROUTINE Waves2_CopyContState( SrcContStateData, DstContStateData, CtrlCode, ErrStat, ErrMsg )
@@ -956,16 +1675,18 @@ ENDIF
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_CopyContState'
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstContStateData%DummyContState = SrcContStateData%DummyContState
+    DstContStateData%DummyContState = SrcContStateData%DummyContState
  END SUBROUTINE Waves2_CopyContState
 
  SUBROUTINE Waves2_DestroyContState( ContStateData, ErrStat, ErrMsg )
   TYPE(Waves2_ContinuousStateType), INTENT(INOUT) :: ContStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  CHARACTER(*),    PARAMETER :: RoutineName = 'Waves2_DestroyContState'
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
@@ -976,23 +1697,27 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Waves2_ContinuousStateType),  INTENT(INOUT) :: InData
+  TYPE(Waves2_ContinuousStateType),  INTENT(IN) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
     ! Local variables
   INTEGER(IntKi)                 :: Re_BufSz
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
   INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
- ! buffers to store meshes, if any
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_PackContState'
+ ! buffers to store subtypes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -1000,18 +1725,39 @@ ENDIF
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz   = Re_BufSz   + 1  ! DummyContState
-  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
-  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
-  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DummyContState )
-  Re_Xferred   = Re_Xferred   + 1
+      Re_BufSz   = Re_BufSz   + 1  ! DummyContState
+  IF ( Re_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Db_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Int_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
+
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred = 1
+
+       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%DummyContState
+      Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE Waves2_PackContState
 
  SUBROUTINE Waves2_UnPackContState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1022,36 +1768,32 @@ ENDIF
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
-  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Buf_size
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
-  INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
-  INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
-  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  INTEGER(IntKi)                 :: i
+  LOGICAL                        :: mask0
   LOGICAL, ALLOCATABLE           :: mask1(:)
   LOGICAL, ALLOCATABLE           :: mask2(:,:)
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_UnPackContState'
  ! buffers to store meshes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-  Re_BufSz  = 0
-  Db_BufSz  = 0
-  Int_BufSz  = 0
-  OutData%DummyContState = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
+      OutData%DummyContState = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE Waves2_UnPackContState
 
  SUBROUTINE Waves2_CopyDiscState( SrcDiscStateData, DstDiscStateData, CtrlCode, ErrStat, ErrMsg )
@@ -1064,16 +1806,18 @@ ENDIF
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_CopyDiscState'
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstDiscStateData%DummyDiscState = SrcDiscStateData%DummyDiscState
+    DstDiscStateData%DummyDiscState = SrcDiscStateData%DummyDiscState
  END SUBROUTINE Waves2_CopyDiscState
 
  SUBROUTINE Waves2_DestroyDiscState( DiscStateData, ErrStat, ErrMsg )
   TYPE(Waves2_DiscreteStateType), INTENT(INOUT) :: DiscStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  CHARACTER(*),    PARAMETER :: RoutineName = 'Waves2_DestroyDiscState'
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
@@ -1084,23 +1828,27 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Waves2_DiscreteStateType),  INTENT(INOUT) :: InData
+  TYPE(Waves2_DiscreteStateType),  INTENT(IN) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
     ! Local variables
   INTEGER(IntKi)                 :: Re_BufSz
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
   INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
- ! buffers to store meshes, if any
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_PackDiscState'
+ ! buffers to store subtypes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -1108,18 +1856,39 @@ ENDIF
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz   = Re_BufSz   + 1  ! DummyDiscState
-  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
-  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
-  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DummyDiscState )
-  Re_Xferred   = Re_Xferred   + 1
+      Re_BufSz   = Re_BufSz   + 1  ! DummyDiscState
+  IF ( Re_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Db_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Int_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
+
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred = 1
+
+       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%DummyDiscState
+      Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE Waves2_PackDiscState
 
  SUBROUTINE Waves2_UnPackDiscState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1130,36 +1899,32 @@ ENDIF
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
-  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Buf_size
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
-  INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
-  INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
-  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  INTEGER(IntKi)                 :: i
+  LOGICAL                        :: mask0
   LOGICAL, ALLOCATABLE           :: mask1(:)
   LOGICAL, ALLOCATABLE           :: mask2(:,:)
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_UnPackDiscState'
  ! buffers to store meshes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-  Re_BufSz  = 0
-  Db_BufSz  = 0
-  Int_BufSz  = 0
-  OutData%DummyDiscState = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
+      OutData%DummyDiscState = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE Waves2_UnPackDiscState
 
  SUBROUTINE Waves2_CopyConstrState( SrcConstrStateData, DstConstrStateData, CtrlCode, ErrStat, ErrMsg )
@@ -1172,16 +1937,18 @@ ENDIF
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_CopyConstrState'
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstConstrStateData%DummyConstrState = SrcConstrStateData%DummyConstrState
+    DstConstrStateData%DummyConstrState = SrcConstrStateData%DummyConstrState
  END SUBROUTINE Waves2_CopyConstrState
 
  SUBROUTINE Waves2_DestroyConstrState( ConstrStateData, ErrStat, ErrMsg )
   TYPE(Waves2_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  CHARACTER(*),    PARAMETER :: RoutineName = 'Waves2_DestroyConstrState'
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
@@ -1192,23 +1959,27 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Waves2_ConstraintStateType),  INTENT(INOUT) :: InData
+  TYPE(Waves2_ConstraintStateType),  INTENT(IN) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
     ! Local variables
   INTEGER(IntKi)                 :: Re_BufSz
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
   INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
- ! buffers to store meshes, if any
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_PackConstrState'
+ ! buffers to store subtypes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -1216,18 +1987,39 @@ ENDIF
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz   = Re_BufSz   + 1  ! DummyConstrState
-  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
-  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
-  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DummyConstrState )
-  Re_Xferred   = Re_Xferred   + 1
+      Re_BufSz   = Re_BufSz   + 1  ! DummyConstrState
+  IF ( Re_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Db_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Int_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
+
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred = 1
+
+       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%DummyConstrState
+      Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE Waves2_PackConstrState
 
  SUBROUTINE Waves2_UnPackConstrState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1238,36 +2030,32 @@ ENDIF
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
-  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Buf_size
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
-  INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
-  INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
-  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  INTEGER(IntKi)                 :: i
+  LOGICAL                        :: mask0
   LOGICAL, ALLOCATABLE           :: mask1(:)
   LOGICAL, ALLOCATABLE           :: mask2(:,:)
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_UnPackConstrState'
  ! buffers to store meshes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-  Re_BufSz  = 0
-  Db_BufSz  = 0
-  Int_BufSz  = 0
-  OutData%DummyConstrState = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
+      OutData%DummyConstrState = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE Waves2_UnPackConstrState
 
  SUBROUTINE Waves2_CopyOtherState( SrcOtherStateData, DstOtherStateData, CtrlCode, ErrStat, ErrMsg )
@@ -1280,17 +2068,19 @@ ENDIF
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_CopyOtherState'
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstOtherStateData%DummyOtherState = SrcOtherStateData%DummyOtherState
-   DstOtherStateData%LastIndWave = SrcOtherStateData%LastIndWave
+    DstOtherStateData%DummyOtherState = SrcOtherStateData%DummyOtherState
+    DstOtherStateData%LastIndWave = SrcOtherStateData%LastIndWave
  END SUBROUTINE Waves2_CopyOtherState
 
  SUBROUTINE Waves2_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
   TYPE(Waves2_OtherStateType), INTENT(INOUT) :: OtherStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  CHARACTER(*),    PARAMETER :: RoutineName = 'Waves2_DestroyOtherState'
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
@@ -1301,23 +2091,27 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Waves2_OtherStateType),  INTENT(INOUT) :: InData
+  TYPE(Waves2_OtherStateType),  INTENT(IN) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
     ! Local variables
   INTEGER(IntKi)                 :: Re_BufSz
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
   INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
- ! buffers to store meshes, if any
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_PackOtherState'
+ ! buffers to store subtypes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -1325,21 +2119,42 @@ ENDIF
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Int_BufSz  = Int_BufSz  + 1  ! DummyOtherState
-  Int_BufSz  = Int_BufSz  + 1  ! LastIndWave
-  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
-  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
-  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%DummyOtherState )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%LastIndWave )
-  Int_Xferred   = Int_Xferred   + 1
+      Int_BufSz  = Int_BufSz  + 1  ! DummyOtherState
+      Int_BufSz  = Int_BufSz  + 1  ! LastIndWave
+  IF ( Re_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Db_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Int_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
+
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred = 1
+
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%DummyOtherState
+      Int_Xferred   = Int_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%LastIndWave
+      Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE Waves2_PackOtherState
 
  SUBROUTINE Waves2_UnPackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1350,38 +2165,34 @@ ENDIF
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
-  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Buf_size
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
-  INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
-  INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
-  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  INTEGER(IntKi)                 :: i
+  LOGICAL                        :: mask0
   LOGICAL, ALLOCATABLE           :: mask1(:)
   LOGICAL, ALLOCATABLE           :: mask2(:,:)
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_UnPackOtherState'
  ! buffers to store meshes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-  Re_BufSz  = 0
-  Db_BufSz  = 0
-  Int_BufSz  = 0
-  OutData%DummyOtherState = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%LastIndWave = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
+      OutData%DummyOtherState = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%LastIndWave = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
  END SUBROUTINE Waves2_UnPackOtherState
 
  SUBROUTINE Waves2_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )
@@ -1396,69 +2207,71 @@ ENDIF
    INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_CopyParam'
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstParamData%DT = SrcParamData%DT
-   DstParamData%WvDiffQTFF = SrcParamData%WvDiffQTFF
-   DstParamData%WvSumQTFF = SrcParamData%WvSumQTFF
-   DstParamData%NWaveElev = SrcParamData%NWaveElev
-   DstParamData%NStepWave = SrcParamData%NStepWave
-   DstParamData%NStepWave2 = SrcParamData%NStepWave2
+    DstParamData%DT = SrcParamData%DT
+    DstParamData%WvDiffQTFF = SrcParamData%WvDiffQTFF
+    DstParamData%WvSumQTFF = SrcParamData%WvSumQTFF
+    DstParamData%NWaveElev = SrcParamData%NWaveElev
+    DstParamData%NStepWave = SrcParamData%NStepWave
+    DstParamData%NStepWave2 = SrcParamData%NStepWave2
 IF (ALLOCATED(SrcParamData%WaveTime)) THEN
-   i1_l = LBOUND(SrcParamData%WaveTime,1)
-   i1_u = UBOUND(SrcParamData%WaveTime,1)
-   IF (.NOT. ALLOCATED(DstParamData%WaveTime)) THEN 
-      ALLOCATE(DstParamData%WaveTime(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveTime.', ErrStat, ErrMsg,'Waves2_CopyParam')
-         RETURN
-      END IF
-   END IF
-   DstParamData%WaveTime = SrcParamData%WaveTime
+  i1_l = LBOUND(SrcParamData%WaveTime,1)
+  i1_u = UBOUND(SrcParamData%WaveTime,1)
+  IF (.NOT. ALLOCATED(DstParamData%WaveTime)) THEN 
+    ALLOCATE(DstParamData%WaveTime(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveTime.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstParamData%WaveTime = SrcParamData%WaveTime
 ENDIF
 IF (ALLOCATED(SrcParamData%WaveElev2)) THEN
-   i1_l = LBOUND(SrcParamData%WaveElev2,1)
-   i1_u = UBOUND(SrcParamData%WaveElev2,1)
-   i2_l = LBOUND(SrcParamData%WaveElev2,2)
-   i2_u = UBOUND(SrcParamData%WaveElev2,2)
-   IF (.NOT. ALLOCATED(DstParamData%WaveElev2)) THEN 
-      ALLOCATE(DstParamData%WaveElev2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveElev2.', ErrStat, ErrMsg,'Waves2_CopyParam')
-         RETURN
-      END IF
-   END IF
-   DstParamData%WaveElev2 = SrcParamData%WaveElev2
+  i1_l = LBOUND(SrcParamData%WaveElev2,1)
+  i1_u = UBOUND(SrcParamData%WaveElev2,1)
+  i2_l = LBOUND(SrcParamData%WaveElev2,2)
+  i2_u = UBOUND(SrcParamData%WaveElev2,2)
+  IF (.NOT. ALLOCATED(DstParamData%WaveElev2)) THEN 
+    ALLOCATE(DstParamData%WaveElev2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveElev2.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstParamData%WaveElev2 = SrcParamData%WaveElev2
 ENDIF
 IF (ALLOCATED(SrcParamData%OutParam)) THEN
-   i1_l = LBOUND(SrcParamData%OutParam,1)
-   i1_u = UBOUND(SrcParamData%OutParam,1)
-   IF (.NOT. ALLOCATED(DstParamData%OutParam)) THEN 
-      ALLOCATE(DstParamData%OutParam(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%OutParam.', ErrStat, ErrMsg,'Waves2_CopyParam')
-         RETURN
-      END IF
-   END IF
-   DO i1 = LBOUND(SrcParamData%OutParam,1), UBOUND(SrcParamData%OutParam,1)
+  i1_l = LBOUND(SrcParamData%OutParam,1)
+  i1_u = UBOUND(SrcParamData%OutParam,1)
+  IF (.NOT. ALLOCATED(DstParamData%OutParam)) THEN 
+    ALLOCATE(DstParamData%OutParam(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%OutParam.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DO i1 = LBOUND(SrcParamData%OutParam,1), UBOUND(SrcParamData%OutParam,1)
       CALL NWTC_Library_Copyoutparmtype( SrcParamData%OutParam(i1), DstParamData%OutParam(i1), CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Waves2_CopyParam:OutParam(i1)')
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
-   ENDDO
+    ENDDO
 ENDIF
-   DstParamData%NumOuts = SrcParamData%NumOuts
-   DstParamData%NumOutAll = SrcParamData%NumOutAll
-   DstParamData%OutFmt = SrcParamData%OutFmt
-   DstParamData%OutSFmt = SrcParamData%OutSFmt
-   DstParamData%Delim = SrcParamData%Delim
-   DstParamData%UnOutFile = SrcParamData%UnOutFile
+    DstParamData%NumOuts = SrcParamData%NumOuts
+    DstParamData%NumOutAll = SrcParamData%NumOutAll
+    DstParamData%OutFmt = SrcParamData%OutFmt
+    DstParamData%OutSFmt = SrcParamData%OutSFmt
+    DstParamData%Delim = SrcParamData%Delim
+    DstParamData%UnOutFile = SrcParamData%UnOutFile
  END SUBROUTINE Waves2_CopyParam
 
  SUBROUTINE Waves2_DestroyParam( ParamData, ErrStat, ErrMsg )
   TYPE(Waves2_ParameterType), INTENT(INOUT) :: ParamData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  CHARACTER(*),    PARAMETER :: RoutineName = 'Waves2_DestroyParam'
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
@@ -1481,26 +2294,27 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Waves2_ParameterType),  INTENT(INOUT) :: InData
+  TYPE(Waves2_ParameterType),  INTENT(IN) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
     ! Local variables
   INTEGER(IntKi)                 :: Re_BufSz
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
   INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
- ! buffers to store meshes, if any
-  REAL(ReKi),     ALLOCATABLE :: Re_OutParam_Buf(:)
-  REAL(DbKi),     ALLOCATABLE :: Db_OutParam_Buf(:)
-  INTEGER(IntKi), ALLOCATABLE :: Int_OutParam_Buf(:)
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_PackParam'
+ ! buffers to store subtypes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -1508,82 +2322,182 @@ ENDIF
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Db_BufSz   = Db_BufSz   + 1  ! DT
-  Int_BufSz  = Int_BufSz  + 1  ! WvDiffQTFF
-  Int_BufSz  = Int_BufSz  + 1  ! WvSumQTFF
-  Int_BufSz  = Int_BufSz  + 1  ! NWaveElev
-  Int_BufSz  = Int_BufSz  + 1  ! NStepWave
-  Int_BufSz  = Int_BufSz  + 1  ! NStepWave2
-  IF ( ALLOCATED(InData%WaveTime) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
-  IF ( ALLOCATED(InData%WaveElev2) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev2 )  ! WaveElev2 
-DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
-  CALL NWTC_Library_Packoutparmtype( Re_OutParam_Buf, Db_OutParam_Buf, Int_OutParam_Buf, InData%OutParam(i1), ErrStat, ErrMsg, .TRUE. ) ! OutParam 
-  IF(ALLOCATED(Re_OutParam_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_OutParam_Buf  ) ! OutParam
-  IF(ALLOCATED(Db_OutParam_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_OutParam_Buf  ) ! OutParam
-  IF(ALLOCATED(Int_OutParam_Buf))Int_BufSz = Int_BufSz + SIZE( Int_OutParam_Buf ) ! OutParam
-  IF(ALLOCATED(Re_OutParam_Buf))  DEALLOCATE(Re_OutParam_Buf)
-  IF(ALLOCATED(Db_OutParam_Buf))  DEALLOCATE(Db_OutParam_Buf)
-  IF(ALLOCATED(Int_OutParam_Buf)) DEALLOCATE(Int_OutParam_Buf)
-ENDDO
-  Int_BufSz  = Int_BufSz  + 1  ! NumOuts
-  Int_BufSz  = Int_BufSz  + 1  ! NumOutAll
-!  missing buffer for OutFmt
-!  missing buffer for OutSFmt
-!  missing buffer for Delim
-  Int_BufSz  = Int_BufSz  + 1  ! UnOutFile
-  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
-  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
-  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%DT )
-  Db_Xferred   = Db_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%WvDiffQTFF ), IntKiBuf(1), 1)
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%WvSumQTFF ), IntKiBuf(1), 1)
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NWaveElev )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NStepWave )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NStepWave2 )
-  Int_Xferred   = Int_Xferred   + 1
+      Db_BufSz   = Db_BufSz   + 1  ! DT
+      Int_BufSz  = Int_BufSz  + 1  ! WvDiffQTFF
+      Int_BufSz  = Int_BufSz  + 1  ! WvSumQTFF
+      Int_BufSz  = Int_BufSz  + 1  ! NWaveElev
+      Int_BufSz  = Int_BufSz  + 1  ! NStepWave
+      Int_BufSz  = Int_BufSz  + 1  ! NStepWave2
+  Int_BufSz   = Int_BufSz   + 1     ! WaveTime allocated yes/no
   IF ( ALLOCATED(InData%WaveTime) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveTime))-1 ) =  PACK(InData%WaveTime ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveTime)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*1  ! WaveTime upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveTime)  ! WaveTime
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! WaveElev2 allocated yes/no
   IF ( ALLOCATED(InData%WaveElev2) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElev2))-1 ) =  PACK(InData%WaveElev2 ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElev2)
-  ENDIF
-DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
-  CALL NWTC_Library_Packoutparmtype( Re_OutParam_Buf, Db_OutParam_Buf, Int_OutParam_Buf, InData%OutParam(i1), ErrStat, ErrMsg, OnlySize ) ! OutParam 
-  IF(ALLOCATED(Re_OutParam_Buf)) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_OutParam_Buf)-1 ) = Re_OutParam_Buf
-    Re_Xferred = Re_Xferred + SIZE(Re_OutParam_Buf)
-  ENDIF
-  IF(ALLOCATED(Db_OutParam_Buf)) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_OutParam_Buf)-1 ) = Db_OutParam_Buf
-    Db_Xferred = Db_Xferred + SIZE(Db_OutParam_Buf)
-  ENDIF
-  IF(ALLOCATED(Int_OutParam_Buf)) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_OutParam_Buf)-1 ) = Int_OutParam_Buf
-    Int_Xferred = Int_Xferred + SIZE(Int_OutParam_Buf)
-  ENDIF
-  IF( ALLOCATED(Re_OutParam_Buf) )  DEALLOCATE(Re_OutParam_Buf)
-  IF( ALLOCATED(Db_OutParam_Buf) )  DEALLOCATE(Db_OutParam_Buf)
-  IF( ALLOCATED(Int_OutParam_Buf) ) DEALLOCATE(Int_OutParam_Buf)
-ENDDO
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumOuts )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumOutAll )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnOutFile )
-  Int_Xferred   = Int_Xferred   + 1
+    Int_BufSz   = Int_BufSz   + 2*2  ! WaveElev2 upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveElev2)  ! WaveElev2
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! OutParam allocated yes/no
+  IF ( ALLOCATED(InData%OutParam) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! OutParam upper/lower bounds for each dimension
+   ! Allocate buffers for subtypes, if any (we'll get sizes from these) 
+    DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
+      Int_BufSz   = Int_BufSz + 3  ! OutParam: size of buffers for each call to pack subtype
+      CALL NWTC_Library_Packoutparmtype( Re_Buf, Db_Buf, Int_Buf, InData%OutParam(i1), ErrStat2, ErrMsg2, .TRUE. ) ! OutParam 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN ! OutParam
+         Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
+         DEALLOCATE(Re_Buf)
+      END IF
+      IF(ALLOCATED(Db_Buf)) THEN ! OutParam
+         Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
+         DEALLOCATE(Db_Buf)
+      END IF
+      IF(ALLOCATED(Int_Buf)) THEN ! OutParam
+         Int_BufSz = Int_BufSz + SIZE( Int_Buf )
+         DEALLOCATE(Int_Buf)
+      END IF
+    END DO
+  END IF
+      Int_BufSz  = Int_BufSz  + 1  ! NumOuts
+      Int_BufSz  = Int_BufSz  + 1  ! NumOutAll
+      Int_BufSz  = Int_BufSz  + 1*LEN(InData%OutFmt)  ! OutFmt
+      Int_BufSz  = Int_BufSz  + 1*LEN(InData%OutSFmt)  ! OutSFmt
+      Int_BufSz  = Int_BufSz  + 1*LEN(InData%Delim)  ! Delim
+      Int_BufSz  = Int_BufSz  + 1  ! UnOutFile
+  IF ( Re_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Db_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Int_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
+
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred = 1
+
+       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%DT
+      Db_Xferred   = Db_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%WvDiffQTFF , IntKiBuf(1), 1)
+      Int_Xferred   = Int_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%WvSumQTFF , IntKiBuf(1), 1)
+      Int_Xferred   = Int_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NWaveElev
+      Int_Xferred   = Int_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NStepWave
+      Int_Xferred   = Int_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NStepWave2
+      Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. ALLOCATED(InData%WaveTime) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveTime,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveTime,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveTime)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveTime))-1 ) = PACK(InData%WaveTime,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveTime)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%WaveElev2) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveElev2,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveElev2,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveElev2,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveElev2,2)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveElev2)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElev2))-1 ) = PACK(InData%WaveElev2,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElev2)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%OutParam) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%OutParam,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%OutParam,1)
+    Int_Xferred = Int_Xferred + 2
+
+    DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
+      CALL NWTC_Library_Packoutparmtype( Re_Buf, Db_Buf, Int_Buf, InData%OutParam(i1), ErrStat2, ErrMsg2, OnlySize ) ! OutParam 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Re_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Re_Buf) > 0) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Buf)-1 ) = Re_Buf
+        Re_Xferred = Re_Xferred + SIZE(Re_Buf)
+        DEALLOCATE(Re_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Db_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Db_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Db_Buf) > 0) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Buf)-1 ) = Db_Buf
+        Db_Xferred = Db_Xferred + SIZE(Db_Buf)
+        DEALLOCATE(Db_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Int_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Int_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Int_Buf) > 0) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Buf)-1 ) = Int_Buf
+        Int_Xferred = Int_Xferred + SIZE(Int_Buf)
+        DEALLOCATE(Int_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+    END DO
+  END IF
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumOuts
+      Int_Xferred   = Int_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumOutAll
+      Int_Xferred   = Int_Xferred   + 1
+        DO I = 1, LEN(InData%OutFmt)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%OutFmt(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+        DO I = 1, LEN(InData%OutSFmt)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%OutSFmt(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+        DO I = 1, LEN(InData%Delim)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%Delim(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%UnOutFile
+      Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE Waves2_PackParam
 
  SUBROUTINE Waves2_UnPackParam( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1594,82 +2508,167 @@ ENDDO
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
-  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Buf_size
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
-  INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
-  INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
-  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  INTEGER(IntKi)                 :: i
+  LOGICAL                        :: mask0
   LOGICAL, ALLOCATABLE           :: mask1(:)
   LOGICAL, ALLOCATABLE           :: mask2(:,:)
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+  INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_UnPackParam'
  ! buffers to store meshes, if any
-  REAL(ReKi),    ALLOCATABLE :: Re_OutParam_Buf(:)
-  REAL(DbKi),    ALLOCATABLE :: Db_OutParam_Buf(:)
-  INTEGER(IntKi),    ALLOCATABLE :: Int_OutParam_Buf(:)
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-  Re_BufSz  = 0
-  Db_BufSz  = 0
-  Int_BufSz  = 0
-  OutData%DT = DbKiBuf ( Db_Xferred )
-  Db_Xferred   = Db_Xferred   + 1
-  OutData%NWaveElev = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%NStepWave = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%NStepWave2 = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( ALLOCATED(OutData%WaveTime) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WaveTime,1)))
-  mask1 = .TRUE.
-    OutData%WaveTime = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ),mask1,OutData%WaveTime)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveTime)
-  ENDIF
-  IF ( ALLOCATED(OutData%WaveElev2) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveElev2,1),SIZE(OutData%WaveElev2,2)))
-  mask2 = .TRUE.
-    OutData%WaveElev2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev2))-1 ),mask2,OutData%WaveElev2)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev2)
-  ENDIF
-DO i1 = LBOUND(OutData%OutParam,1), UBOUND(OutData%OutParam,1)
- ! first call NWTC_Library_Packoutparmtype to get correctly sized buffers for unpacking
-  CALL NWTC_Library_Packoutparmtype( Re_OutParam_Buf, Db_OutParam_Buf, Int_OutParam_Buf, OutData%OutParam(i1), ErrStat, ErrMsg, .TRUE. ) ! OutParam 
-  IF(ALLOCATED(Re_OutParam_Buf)) THEN
-    Re_OutParam_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_OutParam_Buf)-1 )
-    Re_Xferred = Re_Xferred + SIZE(Re_OutParam_Buf)
-  ENDIF
-  IF(ALLOCATED(Db_OutParam_Buf)) THEN
-    Db_OutParam_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_OutParam_Buf)-1 )
-    Db_Xferred = Db_Xferred + SIZE(Db_OutParam_Buf)
-  ENDIF
-  IF(ALLOCATED(Int_OutParam_Buf)) THEN
-    Int_OutParam_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_OutParam_Buf)-1 )
-    Int_Xferred = Int_Xferred + SIZE(Int_OutParam_Buf)
-  ENDIF
-  CALL NWTC_Library_UnPackoutparmtype( Re_OutParam_Buf, Db_OutParam_Buf, Int_OutParam_Buf, OutData%OutParam(i1), ErrStat, ErrMsg ) ! OutParam 
-ENDDO
-  OutData%NumOuts = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%NumOutAll = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%UnOutFile = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
+      OutData%DT = DbKiBuf( Db_Xferred ) 
+      Db_Xferred   = Db_Xferred + 1
+      OutData%WvDiffQTFF = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
+      Int_Xferred   = Int_Xferred + 1
+      OutData%WvSumQTFF = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
+      Int_Xferred   = Int_Xferred + 1
+      OutData%NWaveElev = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%NStepWave = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%NStepWave2 = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveTime not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveTime)) DEALLOCATE(OutData%WaveTime)
+    ALLOCATE(OutData%WaveTime(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveTime.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%WaveTime)>0) OutData%WaveTime = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveTime)
+    DEALLOCATE(mask1)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveElev2 not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveElev2)) DEALLOCATE(OutData%WaveElev2)
+    ALLOCATE(OutData%WaveElev2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveElev2.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask2.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask2 = .TRUE. 
+      IF (SIZE(OutData%WaveElev2)>0) OutData%WaveElev2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev2))-1 ), mask2, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev2)
+    DEALLOCATE(mask2)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! OutParam not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%OutParam)) DEALLOCATE(OutData%OutParam)
+    ALLOCATE(OutData%OutParam(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%OutParam.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    DO i1 = LBOUND(OutData%OutParam,1), UBOUND(OutData%OutParam,1)
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Re_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Re_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Re_Buf = ReKiBuf( Re_Xferred:Re_Xferred+Buf_size-1 )
+        Re_Xferred = Re_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Db_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Db_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Db_Buf = DbKiBuf( Db_Xferred:Db_Xferred+Buf_size-1 )
+        Db_Xferred = Db_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Int_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Int_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
+        Int_Xferred = Int_Xferred + Buf_size
+      END IF
+      CALL NWTC_Library_Unpackoutparmtype( Re_Buf, Db_Buf, Int_Buf, OutData%OutParam(i1), ErrStat2, ErrMsg2 ) ! OutParam 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
+      IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
+      IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+    END DO
+  END IF
+      OutData%NumOuts = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%NumOutAll = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      DO I = 1, LEN(OutData%OutFmt)
+        OutData%OutFmt(I:I) = CHAR(IntKiBuf(Int_Xferred))
+        Int_Xferred = Int_Xferred   + 1
+      END DO ! I
+      DO I = 1, LEN(OutData%OutSFmt)
+        OutData%OutSFmt(I:I) = CHAR(IntKiBuf(Int_Xferred))
+        Int_Xferred = Int_Xferred   + 1
+      END DO ! I
+      DO I = 1, LEN(OutData%Delim)
+        OutData%Delim(I:I) = CHAR(IntKiBuf(Int_Xferred))
+        Int_Xferred = Int_Xferred   + 1
+      END DO ! I
+      OutData%UnOutFile = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
  END SUBROUTINE Waves2_UnPackParam
 
  SUBROUTINE Waves2_CopyInput( SrcInputData, DstInputData, CtrlCode, ErrStat, ErrMsg )
@@ -1682,16 +2681,18 @@ ENDDO
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_CopyInput'
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstInputData%DummyInput = SrcInputData%DummyInput
+    DstInputData%DummyInput = SrcInputData%DummyInput
  END SUBROUTINE Waves2_CopyInput
 
  SUBROUTINE Waves2_DestroyInput( InputData, ErrStat, ErrMsg )
   TYPE(Waves2_InputType), INTENT(INOUT) :: InputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  CHARACTER(*),    PARAMETER :: RoutineName = 'Waves2_DestroyInput'
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
@@ -1702,23 +2703,27 @@ ENDDO
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Waves2_InputType),  INTENT(INOUT) :: InData
+  TYPE(Waves2_InputType),  INTENT(IN) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
     ! Local variables
   INTEGER(IntKi)                 :: Re_BufSz
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
   INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
- ! buffers to store meshes, if any
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_PackInput'
+ ! buffers to store subtypes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -1726,18 +2731,39 @@ ENDDO
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz   = Re_BufSz   + 1  ! DummyInput
-  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
-  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
-  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DummyInput )
-  Re_Xferred   = Re_Xferred   + 1
+      Re_BufSz   = Re_BufSz   + 1  ! DummyInput
+  IF ( Re_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Db_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Int_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
+
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred = 1
+
+       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%DummyInput
+      Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE Waves2_PackInput
 
  SUBROUTINE Waves2_UnPackInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1748,36 +2774,32 @@ ENDDO
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
-  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Buf_size
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
-  INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
-  INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
-  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  INTEGER(IntKi)                 :: i
+  LOGICAL                        :: mask0
   LOGICAL, ALLOCATABLE           :: mask1(:)
   LOGICAL, ALLOCATABLE           :: mask2(:,:)
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_UnPackInput'
  ! buffers to store meshes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-  Re_BufSz  = 0
-  Db_BufSz  = 0
-  Int_BufSz  = 0
-  OutData%DummyInput = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
+      OutData%DummyInput = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE Waves2_UnPackInput
 
  SUBROUTINE Waves2_CopyOutput( SrcOutputData, DstOutputData, CtrlCode, ErrStat, ErrMsg )
@@ -1791,20 +2813,21 @@ ENDDO
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_CopyOutput'
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
 IF (ALLOCATED(SrcOutputData%WriteOutput)) THEN
-   i1_l = LBOUND(SrcOutputData%WriteOutput,1)
-   i1_u = UBOUND(SrcOutputData%WriteOutput,1)
-   IF (.NOT. ALLOCATED(DstOutputData%WriteOutput)) THEN 
-      ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%WriteOutput.', ErrStat, ErrMsg,'Waves2_CopyOutput')
-         RETURN
-      END IF
-   END IF
-   DstOutputData%WriteOutput = SrcOutputData%WriteOutput
+  i1_l = LBOUND(SrcOutputData%WriteOutput,1)
+  i1_u = UBOUND(SrcOutputData%WriteOutput,1)
+  IF (.NOT. ALLOCATED(DstOutputData%WriteOutput)) THEN 
+    ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%WriteOutput.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstOutputData%WriteOutput = SrcOutputData%WriteOutput
 ENDIF
  END SUBROUTINE Waves2_CopyOutput
 
@@ -1812,6 +2835,7 @@ ENDIF
   TYPE(Waves2_OutputType), INTENT(INOUT) :: OutputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  CHARACTER(*),    PARAMETER :: RoutineName = 'Waves2_DestroyOutput'
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
@@ -1825,23 +2849,27 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(Waves2_OutputType),  INTENT(INOUT) :: InData
+  TYPE(Waves2_OutputType),  INTENT(IN) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
     ! Local variables
   INTEGER(IntKi)                 :: Re_BufSz
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
   INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
- ! buffers to store meshes, if any
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_PackOutput'
+ ! buffers to store subtypes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -1849,20 +2877,54 @@ ENDIF
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  IF ( ALLOCATED(InData%WriteOutput) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WriteOutput )  ! WriteOutput 
-  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
-  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
-  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
+  Int_BufSz   = Int_BufSz   + 1     ! WriteOutput allocated yes/no
   IF ( ALLOCATED(InData%WriteOutput) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WriteOutput))-1 ) =  PACK(InData%WriteOutput ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WriteOutput)
-  ENDIF
+    Int_BufSz   = Int_BufSz   + 2*1  ! WriteOutput upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WriteOutput)  ! WriteOutput
+  END IF
+  IF ( Re_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Db_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Int_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
+
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred = 1
+
+  IF ( .NOT. ALLOCATED(InData%WriteOutput) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WriteOutput,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WriteOutput,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WriteOutput)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WriteOutput))-1 ) = PACK(InData%WriteOutput,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WriteOutput)
+  END IF
  END SUBROUTINE Waves2_PackOutput
 
  SUBROUTINE Waves2_UnPackOutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1873,41 +2935,54 @@ ENDIF
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
-  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Buf_size
   INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Re_CurrSz
-  INTEGER(IntKi)                 :: Db_BufSz
   INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Db_CurrSz
-  INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: Int_CurrSz
-  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  INTEGER(IntKi)                 :: i
+  LOGICAL                        :: mask0
   LOGICAL, ALLOCATABLE           :: mask1(:)
   LOGICAL, ALLOCATABLE           :: mask2(:,:)
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'Waves2_UnPackOutput'
  ! buffers to store meshes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-  Re_BufSz  = 0
-  Db_BufSz  = 0
-  Int_BufSz  = 0
-  IF ( ALLOCATED(OutData%WriteOutput) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%WriteOutput,1)))
-  mask1 = .TRUE.
-    OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ),mask1,OutData%WriteOutput)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WriteOutput)
-  ENDIF
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WriteOutput not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WriteOutput)) DEALLOCATE(OutData%WriteOutput)
+    ALLOCATE(OutData%WriteOutput(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WriteOutput.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%WriteOutput)>0) OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WriteOutput)
+    DEALLOCATE(mask1)
+  END IF
  END SUBROUTINE Waves2_UnPackOutput
 
 
@@ -1927,16 +3002,17 @@ ENDIF
 !
 !..................................................................................................................................
 
- TYPE(Waves2_inputtype), INTENT(INOUT)  :: u(:)      ! Inputs at t1 > t2 > t3
- REAL(DbKi),         INTENT(IN   )  :: tin(:)      ! Times associated with the inputs
- TYPE(Waves2_inputtype), INTENT(INOUT)  :: u_out     ! Inputs at tin_out
+ TYPE(Waves2_inputtype), INTENT(INOUT)  :: u(:)      ! Input at t1 > t2 > t3
+ REAL(DbKi),         INTENT(IN   )  :: tin(:)      ! Times associated with the Inputs
+ TYPE(Waves2_inputtype), INTENT(INOUT)  :: u_out     ! Input at tin_out
  REAL(DbKi),         INTENT(IN   )  :: tin_out     ! time to be extrap/interp'd to
  INTEGER(IntKi),     INTENT(  OUT)  :: ErrStat   ! Error status of the operation
  CHARACTER(*),       INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
    ! local variables
- REAL(DbKi) :: t(SIZE(tin))    ! Times associated with the inputs
+ REAL(DbKi) :: t(SIZE(tin))    ! Times associated with the Inputs
  REAL(DbKi) :: t_out           ! Time to which to be extrap/interpd
  INTEGER(IntKi)                 :: order    ! order of polynomial fit (max 2)
+ CHARACTER(*),    PARAMETER :: RoutineName = 'Waves2_Input_ExtrapInterp'
  REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
  INTEGER(IntKi)                             :: ErrStat2 ! local errors
@@ -2013,16 +3089,17 @@ ENDIF
 !
 !..................................................................................................................................
 
- TYPE(Waves2_outputtype), INTENT(INOUT)  :: u(:)      ! Inputs at t1 > t2 > t3
- REAL(DbKi),         INTENT(IN   )  :: tin(:)      ! Times associated with the inputs
- TYPE(Waves2_outputtype), INTENT(INOUT)  :: u_out     ! Inputs at tin_out
+ TYPE(Waves2_outputtype), INTENT(INOUT)  :: u(:)      ! Output at t1 > t2 > t3
+ REAL(DbKi),         INTENT(IN   )  :: tin(:)      ! Times associated with the Outputs
+ TYPE(Waves2_outputtype), INTENT(INOUT)  :: u_out     ! Output at tin_out
  REAL(DbKi),         INTENT(IN   )  :: tin_out     ! time to be extrap/interp'd to
  INTEGER(IntKi),     INTENT(  OUT)  :: ErrStat   ! Error status of the operation
  CHARACTER(*),       INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
    ! local variables
- REAL(DbKi) :: t(SIZE(tin))    ! Times associated with the inputs
+ REAL(DbKi) :: t(SIZE(tin))    ! Times associated with the Outputs
  REAL(DbKi) :: t_out           ! Time to which to be extrap/interpd
  INTEGER(IntKi)                 :: order    ! order of polynomial fit (max 2)
+ CHARACTER(*),    PARAMETER :: RoutineName = 'Waves2_Output_ExtrapInterp'
  REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation

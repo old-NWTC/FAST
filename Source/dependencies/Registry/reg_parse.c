@@ -228,9 +228,23 @@ gotit:
     for ( i = 0 ; i < MAXTOKENS ; i++ ) tokens[i] = NULL ;
     i = 0 ;
 
-    strcpy( parseline_save, parseline ) ;
-//fprintf(stderr,"parseline_save |%s|\n",parseline_save) ;
+    // get parsline_save, the value written to the output file...
+    //fprintf(stderr,"parseline_save |%s|\n",parseline_save) ;
+    //strcpy(parseline_save, parseline);
+    for (p = parseline; (*p == ' ' || *p == '\t') && *p != '\0'; p++);
+    strcpy(parseline_save, p);  // get rid of leading spaces
 
+    if (!strncmp(parseline_save, "typedef", 7))
+    {
+       char tmp[PARSELINE_SIZE], *x;
+       strcpy(tmp, parseline_save);
+       x = strpbrk(tmp, " \t"); // find the first space or tab
+       if (usefrom_sw && x) {
+          sprintf(parseline_save, "usefrom %s", x);
+       }
+    }
+
+    // parse tokens from parseline
     if ((tokens[i] = my_strtok(parseline)) != NULL ) i++ ;
     while (( tokens[i] = my_strtok(NULL) ) != NULL && i < MAXTOKENS ) i++ ;
     if ( i <= 0 ) continue ;
@@ -239,6 +253,7 @@ gotit:
     {
       if ( tokens[i] == NULL ) tokens[i] = "-" ;
     }
+
 /* remove quotes from quoted entries */
     for ( i = 0 ; i < MAXTOKENS ; i++ )
     {
@@ -246,17 +261,9 @@ gotit:
       if ( tokens[i][0] == '"' ) tokens[i]++ ;
       if ((pp=rindex( tokens[i], '"' )) != NULL ) *pp = '\0' ;
     }
-    for ( p = parseline_save ; ( *p == ' ' || *p == '\t') && *p != '\0' ; p++ ) ;
-    strcpy(parseline_save,p) ;  // get rid of leading spaces
-    if      ( !strncmp( parseline_save , "typedef", 7 ) )
-    {
-        char tmp[NAMELEN], *x ;
-        strcpy( tmp, parseline_save ) ;
-        x = strpbrk(tmp," \t"); // find the first space or tab
-        if (usefrom_sw && x ) {
-          sprintf( parseline_save, "usefrom %s", x ) ;
-        }
-    }
+
+
+
 normal:
     /* otherwise output the line as is */
     fprintf(outfile,"%s\n",parseline_save) ;
@@ -688,37 +695,40 @@ must_have_real_or_double( char *str )
 char *
 fast_interface_type_shortname( char *str )
 {
-   char * retval ;
+   char * retval, *str2;
+   str2 = make_lower_temp(str);
 
-   retval = str ;
-
-   if        (  !strcmp(make_lower_temp(str), "initinputtype") )  {
+   if        (  !strcmp(str2, "initinputtype") )  {
      retval = "InitInput" ;
-   } else if (  !strcmp(make_lower_temp(str), "initoutputtype") ) {
+   } else if (  !strcmp(str2, "initoutputtype") ) {
      retval = "InitOutput" ;
-   } else if (  !strcmp(make_lower_temp(str), "inputtype") ) {
+   } else if (  !strcmp(str2, "inputtype") ) {
      retval = "Input" ;
-   } else if (  !strcmp(make_lower_temp(str), "outputtype") ) {
+   } else if (  !strcmp(str2, "outputtype") ) {
      retval = "Output" ;
-   } else if (  !strcmp(make_lower_temp(str), "continuousstatetype") ) {
+   } else if (  !strcmp(str2, "continuousstatetype") ) {
      retval = "ContState" ;
-   } else if (  !strcmp(make_lower_temp(str), "discretestatetype") )  {
+   } else if (  !strcmp(str2, "discretestatetype") )  {
      retval = "DiscState" ;
-   } else if (  !strcmp(make_lower_temp(str), "constraintstatetype") ) {
+   } else if (  !strcmp(str2, "constraintstatetype") ) {
      retval = "ConstrState" ;
-   } else if (  !strcmp(make_lower_temp(str), "otherstatetype") ) {
+   } else if (  !strcmp(str2, "otherstatetype") ) {
      retval = "OtherState" ;
-   } else if (  !strcmp(make_lower_temp(str), "parametertype") ) {
+   } else if (  !strcmp(str2, "parametertype") ) {
      retval = "Param" ;
-   } else if (  !strcmp(make_lower_temp(str), "partialoutputpinputtype") ) {
+   } else if (  !strcmp(str2, "partialoutputpinputtype") ) {
      retval = "dYdu" ;
-   } else if (  !strcmp(make_lower_temp(str), "partialcontstatepinputtype") ) {
+   } else if (  !strcmp(str2, "partialcontstatepinputtype") ) {
      retval = "dXdu" ;
-   } else if (  !strcmp(make_lower_temp(str), "partialdiscstatepinputtype") ) {
+   } else if (  !strcmp(str2, "partialdiscstatepinputtype") ) {
      retval = "dXddu" ;
-   } else if (  !strcmp(make_lower_temp(str), "partialconstrstatepinputtype") ) {
+   } else if (  !strcmp(str2, "partialconstrstatepinputtype") ) {
      retval = "dZdu" ;
    }
+   else{ 
+      retval = str; 
+   }
+
 
    return(retval) ;
 }

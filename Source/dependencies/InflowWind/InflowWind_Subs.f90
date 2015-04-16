@@ -12,8 +12,8 @@ MODULE InflowWind_Subs
 !  1 Aug 2012    v1.01.00a-bjj                              B. Jonkman
 ! 10 Aug 2012    v1.01.00b-bjj                              B. Jonkman
 !----------------------------------------------------------------------------------------------------
-! File last committed: $Date: 2015-02-06 09:35:46 -0700 (Fri, 06 Feb 2015) $
-! (File) Revision #: $Rev: 139 $
+! File last committed: $Date: 2015-04-14 14:33:00 -0600 (Tue, 14 Apr 2015) $
+! (File) Revision #: $Rev: 161 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/InflowWind_Subs.f90 $
 !----------------------------------------------------------------------------------------------------
 !
@@ -85,7 +85,7 @@ SUBROUTINE GetWindType( ParamData, ErrStat, ErrMsg )
    CHARACTER(  3)                                     :: FileNameEnd
    CHARACTER(  8)                                     :: WndFilNam      ! Temporary name holder
 
-   CHARACTER(1024)                                    :: FileRoot
+!   CHARACTER(1024)                                    :: FileRoot
 
 
    ErrStat  = ErrID_None

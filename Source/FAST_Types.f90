@@ -106,10 +106,10 @@ IMPLICIT NONE
     CHARACTER(1024)  :: SubFile      ! Name of file containing sub-structural input parameters [-]
     CHARACTER(1024)  :: MooringFile      ! Name of file containing mooring system input parameters [-]
     CHARACTER(1024)  :: IceFile      ! Name of file containing ice loading input parameters [-]
-    REAL(DbKi)  :: SttsTime      ! Amount of time between screen status messages [s]
     REAL(DbKi)  :: TStart      ! Time to begin tabular output [s]
     REAL(DbKi)  :: DT_Out      ! Time step for tabular output [s]
     INTEGER(IntKi)  :: n_SttsTime      ! Number of time steps between screen status messages [-]
+    INTEGER(IntKi)  :: n_ChkptTime      ! Number of time steps between writing checkpoint files [-]
     INTEGER(IntKi)  :: TurbineType      ! Type_LandBased, Type_Offshore_Fixed, or Type_Offshore_Floating [-]
     LOGICAL  :: WrBinOutFile      ! Write a binary output file? (.outb) [-]
     LOGICAL  :: WrTxtOutFile      ! Write a text (formatted) output file? (.out) [-]
@@ -423,10 +423,10 @@ CONTAINS
     DstParamData%SubFile = SrcParamData%SubFile
     DstParamData%MooringFile = SrcParamData%MooringFile
     DstParamData%IceFile = SrcParamData%IceFile
-    DstParamData%SttsTime = SrcParamData%SttsTime
     DstParamData%TStart = SrcParamData%TStart
     DstParamData%DT_Out = SrcParamData%DT_Out
     DstParamData%n_SttsTime = SrcParamData%n_SttsTime
+    DstParamData%n_ChkptTime = SrcParamData%n_ChkptTime
     DstParamData%TurbineType = SrcParamData%TurbineType
     DstParamData%WrBinOutFile = SrcParamData%WrBinOutFile
     DstParamData%WrTxtOutFile = SrcParamData%WrTxtOutFile
@@ -514,10 +514,10 @@ CONTAINS
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%SubFile)  ! SubFile
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%MooringFile)  ! MooringFile
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%IceFile)  ! IceFile
-      Db_BufSz   = Db_BufSz   + 1  ! SttsTime
       Db_BufSz   = Db_BufSz   + 1  ! TStart
       Db_BufSz   = Db_BufSz   + 1  ! DT_Out
       Int_BufSz  = Int_BufSz  + 1  ! n_SttsTime
+      Int_BufSz  = Int_BufSz  + 1  ! n_ChkptTime
       Int_BufSz  = Int_BufSz  + 1  ! TurbineType
       Int_BufSz  = Int_BufSz  + 1  ! WrBinOutFile
       Int_BufSz  = Int_BufSz  + 1  ! WrTxtOutFile
@@ -632,13 +632,13 @@ CONTAINS
           IntKiBuf(Int_Xferred) = ICHAR(InData%IceFile(I:I), IntKi)
           Int_Xferred = Int_Xferred   + 1
         END DO ! I
-       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%SttsTime
-      Db_Xferred   = Db_Xferred   + 1
        DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%TStart
       Db_Xferred   = Db_Xferred   + 1
        DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%DT_Out
       Db_Xferred   = Db_Xferred   + 1
        IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%n_SttsTime
+      Int_Xferred   = Int_Xferred   + 1
+       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%n_ChkptTime
       Int_Xferred   = Int_Xferred   + 1
        IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%TurbineType
       Int_Xferred   = Int_Xferred   + 1
@@ -825,13 +825,13 @@ CONTAINS
         OutData%IceFile(I:I) = CHAR(IntKiBuf(Int_Xferred))
         Int_Xferred = Int_Xferred   + 1
       END DO ! I
-      OutData%SttsTime = DbKiBuf( Db_Xferred ) 
-      Db_Xferred   = Db_Xferred + 1
       OutData%TStart = DbKiBuf( Db_Xferred ) 
       Db_Xferred   = Db_Xferred + 1
       OutData%DT_Out = DbKiBuf( Db_Xferred ) 
       Db_Xferred   = Db_Xferred + 1
       OutData%n_SttsTime = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%n_ChkptTime = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%TurbineType = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1

@@ -22,9 +22,9 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-27 09:46:36 -0600 (Fri, 27 Jun 2014) $
-! (File) Revision #: $Rev: 463 $
-! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/SS_Radiation.f90 $
+! File last committed: $Date: 2015-04-14 14:27:12 -0600 (Tue, 14 Apr 2015) $
+! (File) Revision #: $Rev: 614 $
+! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/SS_Radiation.f90 $
 !**********************************************************************************************************************************
 MODULE SS_Radiation
 
@@ -98,7 +98,7 @@ SUBROUTINE SS_Rad_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOu
     REAL(ReKi), ALLOCATABLE                :: Rad_C (:,:)                          ! C matrix of the radiation state-space system on the input file ss
 
     INTEGER                                :: I                                    ! Generic index
-    INTEGER                                :: J                                    ! Generic index  
+!    INTEGER                                :: J                                    ! Generic index  
     INTEGER                                :: xx (1,6)                             ! Active DOF's on the input file .ss
     INTEGER(IntKi)                         :: spdof (1,6)                          ! States per dof  
     INTEGER                                :: DOFs                                 ! Number of DOFS  
@@ -438,7 +438,7 @@ SUBROUTINE SS_Rad_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, ErrM
                                                                        !   nectivity information does not have to be recalculated)
       INTEGER(IntKi),                    INTENT(  OUT)  :: ErrStat     ! Error status of the operation
       CHARACTER(*),                      INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-      REAL(DbKi)  :: test(6,1)
+!      REAL(DbKi)  :: test(6,1)
       
       ! Initialize ErrStat    
       ErrStat = ErrID_None         

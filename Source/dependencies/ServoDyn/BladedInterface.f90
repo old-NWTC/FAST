@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-03-06 14:54:39 -0700 (Fri, 06 Mar 2015) $
-! (File) Revision #: $Rev: 932 $
+! File last committed: $Date: 2015-04-14 14:53:47 -0600 (Tue, 14 Apr 2015) $
+! (File) Revision #: $Rev: 977 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/BladedInterface.f90 $
 !**********************************************************************************************************************************
 MODULE BladedInterface
@@ -84,7 +84,6 @@ SUBROUTINE CallBladedDLL ( DLL, dll_data, p, ErrStat, ErrMsg )
    CHARACTER(KIND=C_CHAR)                    :: avcOUTNAME(LEN_TRIM(p%RootName)+1)   ! OUTNAME (Simulation RootName)
    CHARACTER(KIND=C_CHAR)                    :: avcMSG(LEN(ErrMsg)+1)                ! MESSAGE (Message from DLL to simulation code [ErrMsg])   
    
-   INTEGER(IntKi)                            :: I                              ! generic counter
       
    PROCEDURE(BladedDLL_Procedure), POINTER   :: DLL_Subroutine                 ! The address of the procedure in the Bladed DLL
 
@@ -139,7 +138,6 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
    
       ! local variables
    
-   INTEGER(IntKi)                                  :: I              ! generic loop index
    INTEGER(IntKi)                                  :: ErrStat2       ! The error status code
    CHARACTER(LEN(ErrMsg))                          :: ErrMsg2        ! The error message, if an error occurred
       

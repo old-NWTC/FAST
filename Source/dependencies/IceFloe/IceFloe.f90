@@ -18,8 +18,8 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-09-18 10:40:05 -0600 (Thu, 18 Sep 2014) $
-! (File) Revision #: $Rev: 775 $
+! File last committed: $Date: 2015-04-14 14:30:21 -0600 (Tue, 14 Apr 2015) $
+! (File) Revision #: $Rev: 975 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFloe.f90 $
 !**********************************************************************************************************************************!
 
@@ -562,8 +562,8 @@ SUBROUTINE IceFloe_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, ErrSt
 
       ! local variables
 
-      TYPE(IceFloe_InputType)            :: u_interp  ! input interpolated from given u at utimes
-      TYPE(IceFloe_ContinuousStateType)  :: xdot      ! continuous state time derivative
+!      TYPE(IceFloe_InputType)            :: u_interp  ! input interpolated from given u at utimes
+!      TYPE(IceFloe_ContinuousStateType)  :: xdot      ! continuous state time derivative
 
       type(iceFloe_LoggingType)   :: iceLog   ! structure with message and error logging variables
 
