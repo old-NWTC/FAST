@@ -12,6 +12,7 @@ static int NumOutputs = 28;
 static int ErrStat = 0;
 static char ErrMsg[INTERFACE_STRING_LENGTH];        // make sure this is the same size as IntfStrLen in FAST_Library.f90
 static char InputFileName[INTERFACE_STRING_LENGTH]; // make sure this is the same size as IntfStrLen in FAST_Library.f90
+static char CheckpointFileRoot[INTERFACE_STRING_LENGTH]; // make sure this is the same size as IntfStrLen in FAST_Library.f90
 
 int checkError(const int ErrStat, const char * ErrMsg);
 
@@ -28,21 +29,31 @@ main(int argc, char *argv[], char *env[])
   // char OutList[MAXIMUM_OUTPUTS][CHANNEL_LENGTH + 1];
    char OutList[CHANNEL_LENGTH + 1];
 
-      // initialization
+
+   /* ******************************
+   restart
+   ********************************* */
+   /* note that this will set n_t_global inside the FAST library; so the loop below would need to be changed. I can easily return the 
+   current value of n_t_global if you need it. */
+   strcpy(CheckpointFileRoot, "../../CertTest/Test18.1200");
+   // FAST_Restart(CheckpointFileRoot, &ErrStat, ErrMsg); 
+   // checkError(ErrStat, ErrMsg);
+
+
+   /* ******************************
+   initialization
+   ********************************* */
    InitInputAry[0] = 1.0;
    InitInputAry[1] = 0.0;
 
-
+      // this calls the Init() routines of each module
    strcpy(InputFileName, "../../CertTest/Test18.fst");
    FAST_Sizes(&TMax, InitInputAry, InputFileName, &AbortErrLev, &NumOutputs, &dt, &ErrStat, ErrMsg, ChannelNames);
-
    checkError(ErrStat, ErrMsg);
 
-   fprintf(stderr, "DT = %f;", dt);
+
+   // prepare to pass the channel names to Simulink (wouldn't do this in OpenFOAM):
    sprintf(ErrMsg, "DT = %f;", dt);
-   fprintf(stderr, "%s\n", ErrMsg);
-
-
    for (i = 0; i < NumOutputs; i++){
       j = CHANNEL_LENGTH - 1;
       while (ChannelNames[i*CHANNEL_LENGTH + j] == ' '){
@@ -52,67 +63,43 @@ main(int argc, char *argv[], char *env[])
       OutList[j + 1] = '\0';
 
       fprintf(stderr, "%d %s\n", i, OutList);
-
-      /*chrAry = mxCreateString(OutList);
-      mxSetCell(pm, i, chrAry);
-      mxDestroyArray(chrAry);*/
    }
 
-
-
-   /*
-   // put the names of the output channels in a variable called "OutList" in the base matlab workspace
-   for (i = 0; i < NumOutputs; i++){
-      strncpy(&OutList[i][0], &ChannelNames[i*CHANNEL_LENGTH], CHANNEL_LENGTH);
-      OutList[i][CHANNEL_LENGTH] = '\0'; // null terminator
-      for (j = CHANNEL_LENGTH - 1; j > 0; j--){
-         if (OutList[i][j] == ' ') OutList[i][j] = '\0'; // null terminator
-      }
-
-      fprintf(stderr, "%d %s\n", i, OutList[i]);
-   }
-   */
-
-
-
-   /*
-   for (i = 0; i < NumOutputs; i++){
-      //strncpy(&OutList[i][0], &ChannelNames[i*CHANNEL_LENGTH], CHANNEL_LENGTH);
-      OutList[i][CHANNEL_LENGTH] = '\0'; // null terminator
-      for (j = CHANNEL_LENGTH - 1; j >= 0; j--){ // remove trailing spaces (not sure this is necessary)
-         if (ChannelNames[i*CHANNEL_LENGTH + j] == ' ') {
-            OutList[i][j] = '\0'; // null terminator
-         }
-         else{
-            for (k = j; k >= 0; k--){
-               OutList[i][k] = ChannelNames[i*CHANNEL_LENGTH + k];
-            }
-            break;
-         }
-      }
-   }
-
-   for (i = 0; i < NumOutputs; i++){
-      fprintf(stderr, "%s\n", OutList[i]);
-   }
-   */
-
+   // this does the first CalcOutput() [at t=0]
    FAST_Start(&NumInputs, &NumOutputs, InputAry, OutputAry, &ErrStat, ErrMsg);
    if (checkError(ErrStat, ErrMsg)) return 1;
 
-   // update
+
+   /* ******************************
+   call FAST once per time step
+   ********************************* */
+
    for (n_t_global = 0; n_t_global < 20 ; n_t_global++){
 
+      /* ******************************
+      if you want to create a checkpoint file:
+      ********************************* */
+      sprintf(CheckpointFileRoot, "../../CertTest/Test18.%d",n_t_global);
+      // FAST_CreateCheckpoint(CheckpointFileRoot, &ErrStat, ErrMsg);
+      // checkError(ErrStat, ErrMsg);
+
+
+      /* ******************************
+      set inputs from this code and call FAST:
+      ********************************* */
       InputAry[7] = 50.0;
       InputAry[8] = 0.0;
       InputAry[9] = 0.0;
 
+      // this advances the states, calls CalcOutput, and solves for next inputs. Predictor-corrector loop is imbeded here:
       FAST_Update(&NumInputs, &NumOutputs, InputAry, OutputAry, &ErrStat, ErrMsg);
       if (checkError(ErrStat, ErrMsg)) return 1;
    }
    
-      // end
-      
+   /* ******************************
+   End the program
+   ********************************* */
+
    FAST_End();
 
 

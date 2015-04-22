@@ -4,8 +4,10 @@ extern void FAST_Sizes(double *TMax, double *InitInputAry, char *InputFileName, 
 extern void FAST_Start( int *NumInputs_c, int *NumOutputs_c, double *InputAry, double *OutputAry, int *ErrStat, char *ErrMsg);
 extern void FAST_Update(int *NumInputs_c, int *NumOutputs_c, double *InputAry, double *OutputAry, int *ErrStat, char *ErrMsg);
 extern void FAST_End();
+extern void FAST_CreateCheckpoint(char *CheckpointRootName, int *ErrStat, char *ErrMsg);
+extern void FAST_Restart(char *CheckpointRootName, int *ErrStat, char *ErrMsg);
 
-// some constants (keep these synced with values in FAST's fortran code
+// some constants (keep these synced with values in FAST's fortran code)
 #define INTERFACE_STRING_LENGTH 1025
 
 #define ErrID_None 0 

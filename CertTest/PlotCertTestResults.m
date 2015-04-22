@@ -416,7 +416,10 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
                    ,'Name',oldCols{iFile}{yCol_old});
             
             if savePlts
-                print(['-f' num2str(fig)],'-dpng','-r150',[OutFileRoot '_' num2str(iPlot-1) '.png']);
+                %Matlab 2012:
+                %print(['-f' num2str(fig)],'-dpng','-r150',[OutFileRoot '_' num2str(iPlot-1) '.png']);
+                %Matlab 2014b:
+                print(fig,'-dpng','-r150',[OutFileRoot '_' num2str(iPlot-1) '.png']);
                 close(fig)
             end
         else
