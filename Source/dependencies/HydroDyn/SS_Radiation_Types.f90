@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.06.00, 14-Apr-2015)
+! FAST Registry (v2.06.01, 21-Apr-2015)
 !*********************************************************************************************************************************
 ! SS_Radiation_Types
 !.................................................................................................................................
@@ -133,7 +133,7 @@ CONTAINS
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -186,7 +186,7 @@ CONTAINS
           IntKiBuf(Int_Xferred) = ICHAR(InData%InputFile(I:I), IntKi)
           Int_Xferred = Int_Xferred   + 1
         END DO ! I
-       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%DOFs))-1 ) = PACK(InData%DOFs,.TRUE.)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%DOFs))-1 ) = PACK(InData%DOFs,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%DOFs)
  END SUBROUTINE SS_Rad_PackInitInput
 
@@ -238,7 +238,7 @@ CONTAINS
        RETURN
     END IF
     mask2 = .TRUE. 
-       OutData%DOFs = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DOFs))-1 ), mask2, 0.0_ReKi )
+      OutData%DOFs = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DOFs))-1 ), mask2, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%DOFs)
     DEALLOCATE(mask2)
  END SUBROUTINE SS_Rad_UnPackInitInput
@@ -288,7 +288,7 @@ CONTAINS
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -458,7 +458,7 @@ ENDIF
   ErrStat = ErrID_None
   ErrMsg  = ""
 IF (ALLOCATED(ContStateData%x)) THEN
-   DEALLOCATE(ContStateData%x)
+  DEALLOCATE(ContStateData%x)
 ENDIF
  END SUBROUTINE SS_Rad_DestroyContState
 
@@ -477,7 +477,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -652,7 +652,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -700,7 +700,7 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%DummyDiscState
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%DummyDiscState
       Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE SS_Rad_PackDiscState
 
@@ -783,7 +783,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -831,7 +831,7 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%DummyConstrState
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%DummyConstrState
       Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE SS_Rad_PackConstrState
 
@@ -923,7 +923,7 @@ ENDDO
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -991,7 +991,7 @@ ENDDO
   Db_Xferred  = 1
   Int_Xferred = 1
 
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%n
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%n
       Int_Xferred   = Int_Xferred   + 1
     DO i1 = LBOUND(InData%xdot,1), UBOUND(InData%xdot,1)
       CALL SS_Rad_PackContState( Re_Buf, Db_Buf, Int_Buf, InData%xdot(i1), ErrStat2, ErrMsg2, OnlySize ) ! xdot 
@@ -1178,13 +1178,13 @@ ENDIF
   ErrStat = ErrID_None
   ErrMsg  = ""
 IF (ALLOCATED(ParamData%A)) THEN
-   DEALLOCATE(ParamData%A)
+  DEALLOCATE(ParamData%A)
 ENDIF
 IF (ALLOCATED(ParamData%B)) THEN
-   DEALLOCATE(ParamData%B)
+  DEALLOCATE(ParamData%B)
 ENDIF
 IF (ALLOCATED(ParamData%C)) THEN
-   DEALLOCATE(ParamData%C)
+  DEALLOCATE(ParamData%C)
 ENDIF
  END SUBROUTINE SS_Rad_DestroyParam
 
@@ -1203,7 +1203,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -1267,7 +1267,7 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%DT
+      DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%DT
       Db_Xferred   = Db_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%A) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -1317,7 +1317,7 @@ ENDIF
       IF (SIZE(InData%C)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%C))-1 ) = PACK(InData%C,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%C)
   END IF
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%N
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%N
       Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE SS_Rad_PackParam
 
@@ -1484,7 +1484,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -1532,7 +1532,7 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%dq))-1 ) = PACK(InData%dq,.TRUE.)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%dq))-1 ) = PACK(InData%dq,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%dq)
  END SUBROUTINE SS_Rad_PackInput
 
@@ -1580,7 +1580,7 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-       OutData%dq = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%dq))-1 ), mask2, 0.0_ReKi )
+      OutData%dq = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%dq))-1 ), mask2, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%dq)
     DEALLOCATE(mask2)
  END SUBROUTINE SS_Rad_UnPackInput
@@ -1631,7 +1631,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -1680,9 +1680,9 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%y))-1 ) = PACK(InData%y,.TRUE.)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%y))-1 ) = PACK(InData%y,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%y)
-       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WriteOutput))-1 ) = PACK(InData%WriteOutput,.TRUE.)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WriteOutput))-1 ) = PACK(InData%WriteOutput,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%WriteOutput)
  END SUBROUTINE SS_Rad_PackOutput
 
@@ -1730,7 +1730,7 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-       OutData%y = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%y))-1 ), mask2, 0.0_ReKi )
+      OutData%y = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%y))-1 ), mask2, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%y)
     DEALLOCATE(mask2)
     i1_l = LBOUND(OutData%WriteOutput,1)
@@ -1743,7 +1743,7 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-       OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ), mask2, 0.0_ReKi )
+      OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ), mask2, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%WriteOutput)
     DEALLOCATE(mask2)
  END SUBROUTINE SS_Rad_UnPackOutput
@@ -1751,7 +1751,7 @@ ENDIF
 
  SUBROUTINE SS_Rad_Input_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )
 !
-! This subroutine calculates a extrapolated (or interpolated) input u_out at time t_out, from previous/future time
+! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
 ! values of u (which has values associated with times in t).  Order of the interpolation is given by the size of u
 !
 !  expressions below based on either
@@ -1848,10 +1848,10 @@ ENDIF
  END SUBROUTINE SS_Rad_Input_ExtrapInterp
 
 
- SUBROUTINE SS_Rad_Output_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )
+ SUBROUTINE SS_Rad_Output_ExtrapInterp(y, tin, y_out, tin_out, ErrStat, ErrMsg )
 !
-! This subroutine calculates a extrapolated (or interpolated) input u_out at time t_out, from previous/future time
-! values of u (which has values associated with times in t).  Order of the interpolation is given by the size of u
+! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
+! values of y (which has values associated with times in t).  Order of the interpolation is given by the size of y
 !
 !  expressions below based on either
 !
@@ -1860,13 +1860,13 @@ ENDIF
 !  f(t) = a + b * t + c * t**2
 !
 !  where a, b and c are determined as the solution to
-!  f(t1) = u1, f(t2) = u2, f(t3) = u3  (as appropriate)
+!  f(t1) = y1, f(t2) = y2, f(t3) = y3  (as appropriate)
 !
 !..................................................................................................................................
 
- TYPE(SS_Rad_outputtype), INTENT(INOUT)  :: u(:)      ! Output at t1 > t2 > t3
+ TYPE(SS_Rad_outputtype), INTENT(INOUT)  :: y(:)      ! Output at t1 > t2 > t3
  REAL(DbKi),         INTENT(IN   )  :: tin(:)      ! Times associated with the Outputs
- TYPE(SS_Rad_outputtype), INTENT(INOUT)  :: u_out     ! Output at tin_out
+ TYPE(SS_Rad_outputtype), INTENT(INOUT)  :: y_out     ! Output at tin_out
  REAL(DbKi),         INTENT(IN   )  :: tin_out     ! time to be extrap/interp'd to
  INTEGER(IntKi),     INTENT(  OUT)  :: ErrStat   ! Error status of the operation
  CHARACTER(*),       INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
@@ -1891,36 +1891,36 @@ ENDIF
  t = tin - tin(1)
  t_out = tin_out - tin(1)
 
- if ( size(t) .ne. size(u)) then
+ if ( size(t) .ne. size(y)) then
     ErrStat = ErrID_Fatal
-    ErrMsg = ' Error in SS_Rad_Output_ExtrapInterp: size(t) must equal size(u) '
+    ErrMsg = ' Error in SS_Rad_Output_ExtrapInterp: size(t) must equal size(y) '
     RETURN
  endif
- if (size(u) .gt. 3) then
+ if (size(y) .gt. 3) then
     ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in SS_Rad_Output_ExtrapInterp: size(u) must be less than 4 '
+    ErrMsg  = ' Error in SS_Rad_Output_ExtrapInterp: size(y) must be less than 4 '
     RETURN
  endif
- order = SIZE(u) - 1
+ order = SIZE(y) - 1
  IF ( order .eq. 0 ) THEN
-  u_out%y = u(1)%y
-  u_out%WriteOutput = u(1)%WriteOutput
+  y_out%y = y(1)%y
+  y_out%WriteOutput = y(1)%WriteOutput
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
     ErrMsg  = ' Error in SS_Rad_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
-  ALLOCATE(b2(SIZE(u_out%y,1),SIZE(u_out%y,2) ))
-  ALLOCATE(c2(SIZE(u_out%y,1),SIZE(u_out%y,2) ))
-  b2 = -(u(1)%y - u(2)%y)/t(2)
-  u_out%y = u(1)%y + b2 * t_out
+  ALLOCATE(b2(SIZE(y_out%y,1),SIZE(y_out%y,2) ))
+  ALLOCATE(c2(SIZE(y_out%y,1),SIZE(y_out%y,2) ))
+  b2 = -(y(1)%y - y(2)%y)/t(2)
+  y_out%y = y(1)%y + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
-  ALLOCATE(b2(SIZE(u_out%WriteOutput,1),SIZE(u_out%WriteOutput,2) ))
-  ALLOCATE(c2(SIZE(u_out%WriteOutput,1),SIZE(u_out%WriteOutput,2) ))
-  b2 = -(u(1)%WriteOutput - u(2)%WriteOutput)/t(2)
-  u_out%WriteOutput = u(1)%WriteOutput + b2 * t_out
+  ALLOCATE(b2(SIZE(y_out%WriteOutput,1),SIZE(y_out%WriteOutput,2) ))
+  ALLOCATE(c2(SIZE(y_out%WriteOutput,1),SIZE(y_out%WriteOutput,2) ))
+  b2 = -(y(1)%WriteOutput - y(2)%WriteOutput)/t(2)
+  y_out%WriteOutput = y(1)%WriteOutput + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
  ELSE IF ( order .eq. 2 ) THEN
@@ -1939,18 +1939,18 @@ ENDIF
     ErrMsg  = ' Error in SS_Rad_Output_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
-  ALLOCATE(b2(SIZE(u_out%y,1),SIZE(u_out%y,2) ))
-  ALLOCATE(c2(SIZE(u_out%y,1),SIZE(u_out%y,2) ))
-  b2 = (t(3)**2*(u(1)%y - u(2)%y) + t(2)**2*(-u(1)%y + u(3)%y))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%y + t(3)*u(2)%y - t(2)*u(3)%y ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%y = u(1)%y + b2 * t_out + c2 * t_out**2
+  ALLOCATE(b2(SIZE(y_out%y,1),SIZE(y_out%y,2) ))
+  ALLOCATE(c2(SIZE(y_out%y,1),SIZE(y_out%y,2) ))
+  b2 = (t(3)**2*(y(1)%y - y(2)%y) + t(2)**2*(-y(1)%y + y(3)%y))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*y(1)%y + t(3)*y(2)%y - t(2)*y(3)%y ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%y = y(1)%y + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
-  ALLOCATE(b2(SIZE(u_out%WriteOutput,1),SIZE(u_out%WriteOutput,2) ))
-  ALLOCATE(c2(SIZE(u_out%WriteOutput,1),SIZE(u_out%WriteOutput,2) ))
-  b2 = (t(3)**2*(u(1)%WriteOutput - u(2)%WriteOutput) + t(2)**2*(-u(1)%WriteOutput + u(3)%WriteOutput))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%WriteOutput + t(3)*u(2)%WriteOutput - t(2)*u(3)%WriteOutput ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%WriteOutput = u(1)%WriteOutput + b2 * t_out + c2 * t_out**2
+  ALLOCATE(b2(SIZE(y_out%WriteOutput,1),SIZE(y_out%WriteOutput,2) ))
+  ALLOCATE(c2(SIZE(y_out%WriteOutput,1),SIZE(y_out%WriteOutput,2) ))
+  b2 = (t(3)**2*(y(1)%WriteOutput - y(2)%WriteOutput) + t(2)**2*(-y(1)%WriteOutput + y(3)%WriteOutput))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*y(1)%WriteOutput + t(3)*y(2)%WriteOutput - t(2)*y(3)%WriteOutput ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%WriteOutput = y(1)%WriteOutput + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
  ELSE 

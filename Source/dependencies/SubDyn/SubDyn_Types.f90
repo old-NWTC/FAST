@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.06.00, 14-Apr-2015)
+! FAST Registry (v2.06.01, 21-Apr-2015)
 !*********************************************************************************************************************************
 ! SubDyn_Types
 !.................................................................................................................................
@@ -400,7 +400,7 @@ CONTAINS
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -461,13 +461,13 @@ CONTAINS
           IntKiBuf(Int_Xferred) = ICHAR(InData%RootName(I:I), IntKi)
           Int_Xferred = Int_Xferred   + 1
         END DO ! I
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%g
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%g
       Re_Xferred   = Re_Xferred   + 1
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%WtrDpth
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%WtrDpth
       Re_Xferred   = Re_Xferred   + 1
-       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TP_RefPoint))-1 ) = PACK(InData%TP_RefPoint,.TRUE.)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TP_RefPoint))-1 ) = PACK(InData%TP_RefPoint,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%TP_RefPoint)
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%SubRotateZ
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%SubRotateZ
       Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE SD_PackInitInput
 
@@ -527,7 +527,7 @@ CONTAINS
        RETURN
     END IF
     mask1 = .TRUE. 
-       OutData%TP_RefPoint = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TP_RefPoint))-1 ), mask1, 0.0_ReKi )
+      OutData%TP_RefPoint = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TP_RefPoint))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%TP_RefPoint)
     DEALLOCATE(mask1)
       OutData%SubRotateZ = ReKiBuf( Re_Xferred )
@@ -588,10 +588,10 @@ ENDIF
   ErrStat = ErrID_None
   ErrMsg  = ""
 IF (ALLOCATED(InitOutputData%WriteOutputHdr)) THEN
-   DEALLOCATE(InitOutputData%WriteOutputHdr)
+  DEALLOCATE(InitOutputData%WriteOutputHdr)
 ENDIF
 IF (ALLOCATED(InitOutputData%WriteOutputUnt)) THEN
-   DEALLOCATE(InitOutputData%WriteOutputUnt)
+  DEALLOCATE(InitOutputData%WriteOutputUnt)
 ENDIF
   CALL NWTC_Library_Destroyprogdesc( InitOutputData%Ver, ErrStat, ErrMsg )
  END SUBROUTINE SD_DestroyInitOutput
@@ -611,7 +611,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -1020,25 +1020,25 @@ ENDIF
   ErrStat = ErrID_None
   ErrMsg  = ""
 IF (ALLOCATED(MeshAuxDataTypeData%NodeCnt)) THEN
-   DEALLOCATE(MeshAuxDataTypeData%NodeCnt)
+  DEALLOCATE(MeshAuxDataTypeData%NodeCnt)
 ENDIF
 IF (ALLOCATED(MeshAuxDataTypeData%NodeIDs)) THEN
-   DEALLOCATE(MeshAuxDataTypeData%NodeIDs)
+  DEALLOCATE(MeshAuxDataTypeData%NodeIDs)
 ENDIF
 IF (ALLOCATED(MeshAuxDataTypeData%ElmIDs)) THEN
-   DEALLOCATE(MeshAuxDataTypeData%ElmIDs)
+  DEALLOCATE(MeshAuxDataTypeData%ElmIDs)
 ENDIF
 IF (ALLOCATED(MeshAuxDataTypeData%ElmNds)) THEN
-   DEALLOCATE(MeshAuxDataTypeData%ElmNds)
+  DEALLOCATE(MeshAuxDataTypeData%ElmNds)
 ENDIF
 IF (ALLOCATED(MeshAuxDataTypeData%Me)) THEN
-   DEALLOCATE(MeshAuxDataTypeData%Me)
+  DEALLOCATE(MeshAuxDataTypeData%Me)
 ENDIF
 IF (ALLOCATED(MeshAuxDataTypeData%Ke)) THEN
-   DEALLOCATE(MeshAuxDataTypeData%Ke)
+  DEALLOCATE(MeshAuxDataTypeData%Ke)
 ENDIF
 IF (ALLOCATED(MeshAuxDataTypeData%Fg)) THEN
-   DEALLOCATE(MeshAuxDataTypeData%Fg)
+  DEALLOCATE(MeshAuxDataTypeData%Fg)
 ENDIF
  END SUBROUTINE SD_DestroyMeshAuxDataType
 
@@ -1057,7 +1057,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -1146,9 +1146,9 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%MemberID
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%MemberID
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NOutCnt
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NOutCnt
       Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%NodeCnt) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -1208,9 +1208,9 @@ ENDIF
       IF (SIZE(InData%ElmNds)>0) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%ElmNds))-1 ) = PACK(InData%ElmNds,.TRUE.)
       Int_Xferred   = Int_Xferred   + SIZE(InData%ElmNds)
   END IF
-       IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%ElmID2s))-1 ) = PACK(InData%ElmID2s,.TRUE.)
+      IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%ElmID2s))-1 ) = PACK(InData%ElmID2s,.TRUE.)
       Int_Xferred   = Int_Xferred   + SIZE(InData%ElmID2s)
-       IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%ElmNd2s))-1 ) = PACK(InData%ElmNd2s,.TRUE.)
+      IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%ElmNd2s))-1 ) = PACK(InData%ElmNd2s,.TRUE.)
       Int_Xferred   = Int_Xferred   + SIZE(InData%ElmNd2s)
   IF ( .NOT. ALLOCATED(InData%Me) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -1275,11 +1275,11 @@ ENDIF
       IF (SIZE(InData%Fg)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Fg))-1 ) = PACK(InData%Fg,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%Fg)
   END IF
-       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Me2))-1 ) = PACK(InData%Me2,.TRUE.)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Me2))-1 ) = PACK(InData%Me2,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%Me2)
-       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Ke2))-1 ) = PACK(InData%Ke2,.TRUE.)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Ke2))-1 ) = PACK(InData%Ke2,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%Ke2)
-       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Fg2))-1 ) = PACK(InData%Fg2,.TRUE.)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Fg2))-1 ) = PACK(InData%Fg2,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%Fg2)
  END SUBROUTINE SD_PackMeshAuxDataType
 
@@ -1429,7 +1429,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-       OutData%ElmID2s = UNPACK( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%ElmID2s))-1 ), mask1, 0_IntKi )
+      OutData%ElmID2s = UNPACK( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%ElmID2s))-1 ), mask1, 0_IntKi )
       Int_Xferred   = Int_Xferred   + SIZE(OutData%ElmID2s)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%ElmNd2s,1)
@@ -1440,7 +1440,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-       OutData%ElmNd2s = UNPACK( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%ElmNd2s))-1 ), mask1, 0_IntKi )
+      OutData%ElmNd2s = UNPACK( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%ElmNd2s))-1 ), mask1, 0_IntKi )
       Int_Xferred   = Int_Xferred   + SIZE(OutData%ElmNd2s)
     DEALLOCATE(mask1)
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! Me not allocated
@@ -1548,7 +1548,7 @@ ENDIF
        RETURN
     END IF
     mask3 = .TRUE. 
-       OutData%Me2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Me2))-1 ), mask3, 0.0_ReKi )
+      OutData%Me2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Me2))-1 ), mask3, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%Me2)
     DEALLOCATE(mask3)
     i1_l = LBOUND(OutData%Ke2,1)
@@ -1563,7 +1563,7 @@ ENDIF
        RETURN
     END IF
     mask3 = .TRUE. 
-       OutData%Ke2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Ke2))-1 ), mask3, 0.0_ReKi )
+      OutData%Ke2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Ke2))-1 ), mask3, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%Ke2)
     DEALLOCATE(mask3)
     i1_l = LBOUND(OutData%Fg2,1)
@@ -1576,7 +1576,7 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-       OutData%Fg2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Fg2))-1 ), mask2, 0.0_ReKi )
+      OutData%Fg2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Fg2))-1 ), mask2, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%Fg2)
     DEALLOCATE(mask2)
  END SUBROUTINE SD_UnPackMeshAuxDataType
@@ -1706,25 +1706,25 @@ ENDIF
   ErrStat = ErrID_None
   ErrMsg  = ""
 IF (ALLOCATED(CB_MatArraysData%TI2)) THEN
-   DEALLOCATE(CB_MatArraysData%TI2)
+  DEALLOCATE(CB_MatArraysData%TI2)
 ENDIF
 IF (ALLOCATED(CB_MatArraysData%MBB)) THEN
-   DEALLOCATE(CB_MatArraysData%MBB)
+  DEALLOCATE(CB_MatArraysData%MBB)
 ENDIF
 IF (ALLOCATED(CB_MatArraysData%MBM)) THEN
-   DEALLOCATE(CB_MatArraysData%MBM)
+  DEALLOCATE(CB_MatArraysData%MBM)
 ENDIF
 IF (ALLOCATED(CB_MatArraysData%KBB)) THEN
-   DEALLOCATE(CB_MatArraysData%KBB)
+  DEALLOCATE(CB_MatArraysData%KBB)
 ENDIF
 IF (ALLOCATED(CB_MatArraysData%PhiL)) THEN
-   DEALLOCATE(CB_MatArraysData%PhiL)
+  DEALLOCATE(CB_MatArraysData%PhiL)
 ENDIF
 IF (ALLOCATED(CB_MatArraysData%PhiR)) THEN
-   DEALLOCATE(CB_MatArraysData%PhiR)
+  DEALLOCATE(CB_MatArraysData%PhiR)
 ENDIF
 IF (ALLOCATED(CB_MatArraysData%OmegaL)) THEN
-   DEALLOCATE(CB_MatArraysData%OmegaL)
+  DEALLOCATE(CB_MatArraysData%OmegaL)
 ENDIF
  END SUBROUTINE SD_DestroyCB_MatArrays
 
@@ -1743,7 +1743,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -1826,7 +1826,7 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%DOFM
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%DOFM
       Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%TI2) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -2211,10 +2211,10 @@ ENDIF
   ErrStat = ErrID_None
   ErrMsg  = ""
 IF (ALLOCATED(FEM_MatArraysData%Omega)) THEN
-   DEALLOCATE(FEM_MatArraysData%Omega)
+  DEALLOCATE(FEM_MatArraysData%Omega)
 ENDIF
 IF (ALLOCATED(FEM_MatArraysData%Modes)) THEN
-   DEALLOCATE(FEM_MatArraysData%Modes)
+  DEALLOCATE(FEM_MatArraysData%Modes)
 ENDIF
  END SUBROUTINE SD_DestroyFEM_MatArrays
 
@@ -2233,7 +2233,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -2304,7 +2304,7 @@ ENDIF
       IF (SIZE(InData%Omega)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Omega))-1 ) = PACK(InData%Omega,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%Omega)
   END IF
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NOmega
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NOmega
       Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%Modes) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -2466,7 +2466,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -2524,27 +2524,27 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%Area
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%Area
       Re_Xferred   = Re_Xferred   + 1
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%Length
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%Length
       Re_Xferred   = Re_Xferred   + 1
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%Ixx
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%Ixx
       Re_Xferred   = Re_Xferred   + 1
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%Iyy
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%Iyy
       Re_Xferred   = Re_Xferred   + 1
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%Jzz
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%Jzz
       Re_Xferred   = Re_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%Shear , IntKiBuf(1), 1)
+      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%Shear , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%Kappa
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%Kappa
       Re_Xferred   = Re_Xferred   + 1
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%YoungE
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%YoungE
       Re_Xferred   = Re_Xferred   + 1
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%ShearG
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%ShearG
       Re_Xferred   = Re_Xferred   + 1
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%Rho
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%Rho
       Re_Xferred   = Re_Xferred   + 1
-       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%DirCos))-1 ) = PACK(InData%DirCos,.TRUE.)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%DirCos))-1 ) = PACK(InData%DirCos,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%DirCos)
  END SUBROUTINE SD_PackElemPropType
 
@@ -2612,7 +2612,7 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-       OutData%DirCos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DirCos))-1 ), mask2, 0.0_ReKi )
+      OutData%DirCos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DirCos))-1 ), mask2, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%DirCos)
     DEALLOCATE(mask2)
  END SUBROUTINE SD_UnPackElemPropType
@@ -2952,67 +2952,67 @@ ENDIF
   ErrStat = ErrID_None
   ErrMsg  = ""
 IF (ALLOCATED(InitTypeData%Joints)) THEN
-   DEALLOCATE(InitTypeData%Joints)
+  DEALLOCATE(InitTypeData%Joints)
 ENDIF
 IF (ALLOCATED(InitTypeData%PropSets)) THEN
-   DEALLOCATE(InitTypeData%PropSets)
+  DEALLOCATE(InitTypeData%PropSets)
 ENDIF
 IF (ALLOCATED(InitTypeData%XPropSets)) THEN
-   DEALLOCATE(InitTypeData%XPropSets)
+  DEALLOCATE(InitTypeData%XPropSets)
 ENDIF
 IF (ALLOCATED(InitTypeData%COSMs)) THEN
-   DEALLOCATE(InitTypeData%COSMs)
+  DEALLOCATE(InitTypeData%COSMs)
 ENDIF
 IF (ALLOCATED(InitTypeData%CMass)) THEN
-   DEALLOCATE(InitTypeData%CMass)
+  DEALLOCATE(InitTypeData%CMass)
 ENDIF
 IF (ALLOCATED(InitTypeData%JDampings)) THEN
-   DEALLOCATE(InitTypeData%JDampings)
+  DEALLOCATE(InitTypeData%JDampings)
 ENDIF
 IF (ALLOCATED(InitTypeData%Members)) THEN
-   DEALLOCATE(InitTypeData%Members)
+  DEALLOCATE(InitTypeData%Members)
 ENDIF
 IF (ALLOCATED(InitTypeData%Interf)) THEN
-   DEALLOCATE(InitTypeData%Interf)
+  DEALLOCATE(InitTypeData%Interf)
 ENDIF
 IF (ALLOCATED(InitTypeData%SSOutList)) THEN
-   DEALLOCATE(InitTypeData%SSOutList)
+  DEALLOCATE(InitTypeData%SSOutList)
 ENDIF
 IF (ALLOCATED(InitTypeData%Nodes)) THEN
-   DEALLOCATE(InitTypeData%Nodes)
+  DEALLOCATE(InitTypeData%Nodes)
 ENDIF
 IF (ALLOCATED(InitTypeData%Props)) THEN
-   DEALLOCATE(InitTypeData%Props)
+  DEALLOCATE(InitTypeData%Props)
 ENDIF
 IF (ALLOCATED(InitTypeData%K)) THEN
-   DEALLOCATE(InitTypeData%K)
+  DEALLOCATE(InitTypeData%K)
 ENDIF
 IF (ALLOCATED(InitTypeData%M)) THEN
-   DEALLOCATE(InitTypeData%M)
+  DEALLOCATE(InitTypeData%M)
 ENDIF
 IF (ALLOCATED(InitTypeData%F)) THEN
-   DEALLOCATE(InitTypeData%F)
+  DEALLOCATE(InitTypeData%F)
 ENDIF
 IF (ALLOCATED(InitTypeData%FG)) THEN
-   DEALLOCATE(InitTypeData%FG)
+  DEALLOCATE(InitTypeData%FG)
 ENDIF
 IF (ALLOCATED(InitTypeData%ElemProps)) THEN
-   DEALLOCATE(InitTypeData%ElemProps)
+  DEALLOCATE(InitTypeData%ElemProps)
 ENDIF
 IF (ALLOCATED(InitTypeData%BCs)) THEN
-   DEALLOCATE(InitTypeData%BCs)
+  DEALLOCATE(InitTypeData%BCs)
 ENDIF
 IF (ALLOCATED(InitTypeData%IntFc)) THEN
-   DEALLOCATE(InitTypeData%IntFc)
+  DEALLOCATE(InitTypeData%IntFc)
 ENDIF
 IF (ALLOCATED(InitTypeData%MemberNodes)) THEN
-   DEALLOCATE(InitTypeData%MemberNodes)
+  DEALLOCATE(InitTypeData%MemberNodes)
 ENDIF
 IF (ALLOCATED(InitTypeData%NodesConnN)) THEN
-   DEALLOCATE(InitTypeData%NodesConnN)
+  DEALLOCATE(InitTypeData%NodesConnN)
 ENDIF
 IF (ALLOCATED(InitTypeData%NodesConnE)) THEN
-   DEALLOCATE(InitTypeData%NodesConnE)
+  DEALLOCATE(InitTypeData%NodesConnE)
 ENDIF
  END SUBROUTINE SD_DestroyInitType
 
@@ -3031,7 +3031,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -3208,31 +3208,31 @@ ENDIF
           IntKiBuf(Int_Xferred) = ICHAR(InData%RootName(I:I), IntKi)
           Int_Xferred = Int_Xferred   + 1
         END DO ! I
-       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TP_RefPoint))-1 ) = PACK(InData%TP_RefPoint,.TRUE.)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TP_RefPoint))-1 ) = PACK(InData%TP_RefPoint,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%TP_RefPoint)
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%SubRotateZ
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%SubRotateZ
       Re_Xferred   = Re_Xferred   + 1
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%g
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%g
       Re_Xferred   = Re_Xferred   + 1
-       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%DT
+      DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%DT
       Db_Xferred   = Db_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NJoints
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NJoints
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NPropSets
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NPropSets
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NXPropSets
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NXPropSets
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NInterf
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NInterf
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NCMass
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NCMass
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NCOSMs
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NCOSMs
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%FEMMod
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%FEMMod
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NDiv
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NDiv
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%CBMod , IntKiBuf(1), 1)
+      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%CBMod , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%Joints) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -3376,17 +3376,17 @@ ENDIF
         END DO ! I
     END DO !i1
   END IF
-       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%OutCOSM , IntKiBuf(1), 1)
+      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%OutCOSM , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%TabDelim , IntKiBuf(1), 1)
+      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%TabDelim , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NNode
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NNode
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NElem
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NElem
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NProp
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NProp
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%TDOF
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%TDOF
       Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%Nodes) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -3574,7 +3574,7 @@ ENDIF
       IF (SIZE(InData%NodesConnE)>0) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%NodesConnE))-1 ) = PACK(InData%NodesConnE,.TRUE.)
       Int_Xferred   = Int_Xferred   + SIZE(InData%NodesConnE)
   END IF
-       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%SSSum , IntKiBuf(1), 1)
+      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%SSSum , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE SD_PackInitType
 
@@ -3624,7 +3624,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-       OutData%TP_RefPoint = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TP_RefPoint))-1 ), mask1, 0.0_ReKi )
+      OutData%TP_RefPoint = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TP_RefPoint))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%TP_RefPoint)
     DEALLOCATE(mask1)
       OutData%SubRotateZ = ReKiBuf( Re_Xferred )
@@ -4256,10 +4256,10 @@ ENDIF
   ErrStat = ErrID_None
   ErrMsg  = ""
 IF (ALLOCATED(ContStateData%qm)) THEN
-   DEALLOCATE(ContStateData%qm)
+  DEALLOCATE(ContStateData%qm)
 ENDIF
 IF (ALLOCATED(ContStateData%qmdot)) THEN
-   DEALLOCATE(ContStateData%qmdot)
+  DEALLOCATE(ContStateData%qmdot)
 ENDIF
  END SUBROUTINE SD_DestroyContState
 
@@ -4278,7 +4278,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -4487,7 +4487,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -4535,7 +4535,7 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%DummyDiscState
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%DummyDiscState
       Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE SD_PackDiscState
 
@@ -4618,7 +4618,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -4666,7 +4666,7 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%DummyConstrState
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%DummyConstrState
       Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE SD_PackConstrState
 
@@ -4866,34 +4866,34 @@ IF (ALLOCATED(OtherStateData%xdot)) THEN
 DO i1 = LBOUND(OtherStateData%xdot,1), UBOUND(OtherStateData%xdot,1)
   CALL SD_DestroyContState( OtherStateData%xdot(i1), ErrStat, ErrMsg )
 ENDDO
-   DEALLOCATE(OtherStateData%xdot)
+  DEALLOCATE(OtherStateData%xdot)
 ENDIF
 IF (ALLOCATED(OtherStateData%SDWrOutput)) THEN
-   DEALLOCATE(OtherStateData%SDWrOutput)
+  DEALLOCATE(OtherStateData%SDWrOutput)
 ENDIF
 IF (ALLOCATED(OtherStateData%qmdotdot)) THEN
-   DEALLOCATE(OtherStateData%qmdotdot)
+  DEALLOCATE(OtherStateData%qmdotdot)
 ENDIF
 IF (ALLOCATED(OtherStateData%UFL)) THEN
-   DEALLOCATE(OtherStateData%UFL)
+  DEALLOCATE(OtherStateData%UFL)
 ENDIF
 IF (ALLOCATED(OtherStateData%UR_bar)) THEN
-   DEALLOCATE(OtherStateData%UR_bar)
+  DEALLOCATE(OtherStateData%UR_bar)
 ENDIF
 IF (ALLOCATED(OtherStateData%UR_bar_dot)) THEN
-   DEALLOCATE(OtherStateData%UR_bar_dot)
+  DEALLOCATE(OtherStateData%UR_bar_dot)
 ENDIF
 IF (ALLOCATED(OtherStateData%UR_bar_dotdot)) THEN
-   DEALLOCATE(OtherStateData%UR_bar_dotdot)
+  DEALLOCATE(OtherStateData%UR_bar_dotdot)
 ENDIF
 IF (ALLOCATED(OtherStateData%UL)) THEN
-   DEALLOCATE(OtherStateData%UL)
+  DEALLOCATE(OtherStateData%UL)
 ENDIF
 IF (ALLOCATED(OtherStateData%UL_dot)) THEN
-   DEALLOCATE(OtherStateData%UL_dot)
+  DEALLOCATE(OtherStateData%UL_dot)
 ENDIF
 IF (ALLOCATED(OtherStateData%UL_dotdot)) THEN
-   DEALLOCATE(OtherStateData%UL_dotdot)
+  DEALLOCATE(OtherStateData%UL_dotdot)
 ENDIF
  END SUBROUTINE SD_DestroyOtherState
 
@@ -4912,7 +4912,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -5075,7 +5075,7 @@ ENDIF
       ENDIF
     END DO
   END IF
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%n
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%n
       Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%SDWrOutput) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -5090,9 +5090,9 @@ ENDIF
       IF (SIZE(InData%SDWrOutput)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%SDWrOutput))-1 ) = PACK(InData%SDWrOutput,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%SDWrOutput)
   END IF
-       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%LastOutTime
+      DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%LastOutTime
       Db_Xferred   = Db_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%Decimat
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%Decimat
       Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%qmdotdot) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -5107,11 +5107,11 @@ ENDIF
       IF (SIZE(InData%qmdotdot)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%qmdotdot))-1 ) = PACK(InData%qmdotdot,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%qmdotdot)
   END IF
-       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%u_TP))-1 ) = PACK(InData%u_TP,.TRUE.)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%u_TP))-1 ) = PACK(InData%u_TP,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%u_TP)
-       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%udot_TP))-1 ) = PACK(InData%udot_TP,.TRUE.)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%udot_TP))-1 ) = PACK(InData%udot_TP,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%udot_TP)
-       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%udotdot_TP))-1 ) = PACK(InData%udotdot_TP,.TRUE.)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%udotdot_TP))-1 ) = PACK(InData%udotdot_TP,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%udotdot_TP)
   IF ( .NOT. ALLOCATED(InData%UFL) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -5355,7 +5355,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-       OutData%u_TP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%u_TP))-1 ), mask1, 0.0_ReKi )
+      OutData%u_TP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%u_TP))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%u_TP)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%udot_TP,1)
@@ -5366,7 +5366,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-       OutData%udot_TP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%udot_TP))-1 ), mask1, 0.0_ReKi )
+      OutData%udot_TP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%udot_TP))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%udot_TP)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%udotdot_TP,1)
@@ -5377,7 +5377,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-       OutData%udotdot_TP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%udotdot_TP))-1 ), mask1, 0.0_ReKi )
+      OutData%udotdot_TP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%udotdot_TP))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%udotdot_TP)
     DEALLOCATE(mask1)
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! UFL not allocated
@@ -6117,133 +6117,133 @@ ENDIF
   ErrStat = ErrID_None
   ErrMsg  = ""
 IF (ALLOCATED(ParamData%NOmegaM2)) THEN
-   DEALLOCATE(ParamData%NOmegaM2)
+  DEALLOCATE(ParamData%NOmegaM2)
 ENDIF
 IF (ALLOCATED(ParamData%N2OmegaMJDamp)) THEN
-   DEALLOCATE(ParamData%N2OmegaMJDamp)
+  DEALLOCATE(ParamData%N2OmegaMJDamp)
 ENDIF
 IF (ALLOCATED(ParamData%MMB)) THEN
-   DEALLOCATE(ParamData%MMB)
+  DEALLOCATE(ParamData%MMB)
 ENDIF
 IF (ALLOCATED(ParamData%FX)) THEN
-   DEALLOCATE(ParamData%FX)
+  DEALLOCATE(ParamData%FX)
 ENDIF
 IF (ALLOCATED(ParamData%C1_11)) THEN
-   DEALLOCATE(ParamData%C1_11)
+  DEALLOCATE(ParamData%C1_11)
 ENDIF
 IF (ALLOCATED(ParamData%C1_12)) THEN
-   DEALLOCATE(ParamData%C1_12)
+  DEALLOCATE(ParamData%C1_12)
 ENDIF
 IF (ALLOCATED(ParamData%D1_13)) THEN
-   DEALLOCATE(ParamData%D1_13)
+  DEALLOCATE(ParamData%D1_13)
 ENDIF
 IF (ALLOCATED(ParamData%D1_14)) THEN
-   DEALLOCATE(ParamData%D1_14)
+  DEALLOCATE(ParamData%D1_14)
 ENDIF
 IF (ALLOCATED(ParamData%FY)) THEN
-   DEALLOCATE(ParamData%FY)
+  DEALLOCATE(ParamData%FY)
 ENDIF
 IF (ALLOCATED(ParamData%PhiM)) THEN
-   DEALLOCATE(ParamData%PhiM)
+  DEALLOCATE(ParamData%PhiM)
 ENDIF
 IF (ALLOCATED(ParamData%C2_61)) THEN
-   DEALLOCATE(ParamData%C2_61)
+  DEALLOCATE(ParamData%C2_61)
 ENDIF
 IF (ALLOCATED(ParamData%C2_62)) THEN
-   DEALLOCATE(ParamData%C2_62)
+  DEALLOCATE(ParamData%C2_62)
 ENDIF
 IF (ALLOCATED(ParamData%PhiRb_TI)) THEN
-   DEALLOCATE(ParamData%PhiRb_TI)
+  DEALLOCATE(ParamData%PhiRb_TI)
 ENDIF
 IF (ALLOCATED(ParamData%D2_63)) THEN
-   DEALLOCATE(ParamData%D2_63)
+  DEALLOCATE(ParamData%D2_63)
 ENDIF
 IF (ALLOCATED(ParamData%D2_64)) THEN
-   DEALLOCATE(ParamData%D2_64)
+  DEALLOCATE(ParamData%D2_64)
 ENDIF
 IF (ALLOCATED(ParamData%F2_61)) THEN
-   DEALLOCATE(ParamData%F2_61)
+  DEALLOCATE(ParamData%F2_61)
 ENDIF
 IF (ALLOCATED(ParamData%MBB)) THEN
-   DEALLOCATE(ParamData%MBB)
+  DEALLOCATE(ParamData%MBB)
 ENDIF
 IF (ALLOCATED(ParamData%KBB)) THEN
-   DEALLOCATE(ParamData%KBB)
+  DEALLOCATE(ParamData%KBB)
 ENDIF
 IF (ALLOCATED(ParamData%MBM)) THEN
-   DEALLOCATE(ParamData%MBM)
+  DEALLOCATE(ParamData%MBM)
 ENDIF
 IF (ALLOCATED(ParamData%PhiL_T)) THEN
-   DEALLOCATE(ParamData%PhiL_T)
+  DEALLOCATE(ParamData%PhiL_T)
 ENDIF
 IF (ALLOCATED(ParamData%PhiLInvOmgL2)) THEN
-   DEALLOCATE(ParamData%PhiLInvOmgL2)
+  DEALLOCATE(ParamData%PhiLInvOmgL2)
 ENDIF
 IF (ALLOCATED(ParamData%FGL)) THEN
-   DEALLOCATE(ParamData%FGL)
+  DEALLOCATE(ParamData%FGL)
 ENDIF
 IF (ALLOCATED(ParamData%AM2Jac)) THEN
-   DEALLOCATE(ParamData%AM2Jac)
+  DEALLOCATE(ParamData%AM2Jac)
 ENDIF
 IF (ALLOCATED(ParamData%AM2JacPiv)) THEN
-   DEALLOCATE(ParamData%AM2JacPiv)
+  DEALLOCATE(ParamData%AM2JacPiv)
 ENDIF
 IF (ALLOCATED(ParamData%TI)) THEN
-   DEALLOCATE(ParamData%TI)
+  DEALLOCATE(ParamData%TI)
 ENDIF
 IF (ALLOCATED(ParamData%TIreact)) THEN
-   DEALLOCATE(ParamData%TIreact)
+  DEALLOCATE(ParamData%TIreact)
 ENDIF
 IF (ALLOCATED(ParamData%Elems)) THEN
-   DEALLOCATE(ParamData%Elems)
+  DEALLOCATE(ParamData%Elems)
 ENDIF
 IF (ALLOCATED(ParamData%Reacts)) THEN
-   DEALLOCATE(ParamData%Reacts)
+  DEALLOCATE(ParamData%Reacts)
 ENDIF
 IF (ALLOCATED(ParamData%IDI)) THEN
-   DEALLOCATE(ParamData%IDI)
+  DEALLOCATE(ParamData%IDI)
 ENDIF
 IF (ALLOCATED(ParamData%IDR)) THEN
-   DEALLOCATE(ParamData%IDR)
+  DEALLOCATE(ParamData%IDR)
 ENDIF
 IF (ALLOCATED(ParamData%IDL)) THEN
-   DEALLOCATE(ParamData%IDL)
+  DEALLOCATE(ParamData%IDL)
 ENDIF
 IF (ALLOCATED(ParamData%IDC)) THEN
-   DEALLOCATE(ParamData%IDC)
+  DEALLOCATE(ParamData%IDC)
 ENDIF
 IF (ALLOCATED(ParamData%IDY)) THEN
-   DEALLOCATE(ParamData%IDY)
+  DEALLOCATE(ParamData%IDY)
 ENDIF
 IF (ALLOCATED(ParamData%MoutLst)) THEN
 DO i1 = LBOUND(ParamData%MoutLst,1), UBOUND(ParamData%MoutLst,1)
   CALL SD_Destroymeshauxdatatype( ParamData%MoutLst(i1), ErrStat, ErrMsg )
 ENDDO
-   DEALLOCATE(ParamData%MoutLst)
+  DEALLOCATE(ParamData%MoutLst)
 ENDIF
 IF (ALLOCATED(ParamData%MoutLst2)) THEN
 DO i1 = LBOUND(ParamData%MoutLst2,1), UBOUND(ParamData%MoutLst2,1)
   CALL SD_Destroymeshauxdatatype( ParamData%MoutLst2(i1), ErrStat, ErrMsg )
 ENDDO
-   DEALLOCATE(ParamData%MoutLst2)
+  DEALLOCATE(ParamData%MoutLst2)
 ENDIF
 IF (ALLOCATED(ParamData%MoutLst3)) THEN
 DO i1 = LBOUND(ParamData%MoutLst3,1), UBOUND(ParamData%MoutLst3,1)
   CALL SD_Destroymeshauxdatatype( ParamData%MoutLst3(i1), ErrStat, ErrMsg )
 ENDDO
-   DEALLOCATE(ParamData%MoutLst3)
+  DEALLOCATE(ParamData%MoutLst3)
 ENDIF
 IF (ALLOCATED(ParamData%ElemProps)) THEN
 DO i1 = LBOUND(ParamData%ElemProps,1), UBOUND(ParamData%ElemProps,1)
   CALL SD_Destroyelemproptype( ParamData%ElemProps(i1), ErrStat, ErrMsg )
 ENDDO
-   DEALLOCATE(ParamData%ElemProps)
+  DEALLOCATE(ParamData%ElemProps)
 ENDIF
 IF (ALLOCATED(ParamData%OutParam)) THEN
 DO i1 = LBOUND(ParamData%OutParam,1), UBOUND(ParamData%OutParam,1)
   CALL NWTC_Library_Destroyoutparmtype( ParamData%OutParam(i1), ErrStat, ErrMsg )
 ENDDO
-   DEALLOCATE(ParamData%OutParam)
+  DEALLOCATE(ParamData%OutParam)
 ENDIF
  END SUBROUTINE SD_DestroyParam
 
@@ -6262,7 +6262,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -6618,9 +6618,9 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%SDDeltaT
+      DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%SDDeltaT
       Db_Xferred   = Db_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%SttcSolve , IntKiBuf(1), 1)
+      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%SttcSolve , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%NOmegaM2) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -7017,7 +7017,7 @@ ENDIF
       IF (SIZE(InData%TIreact)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TIreact))-1 ) = PACK(InData%TIreact,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%TIreact)
   END IF
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NModes
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NModes
       Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%Elems) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -7035,23 +7035,23 @@ ENDIF
       IF (SIZE(InData%Elems)>0) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%Elems))-1 ) = PACK(InData%Elems,.TRUE.)
       Int_Xferred   = Int_Xferred   + SIZE(InData%Elems)
   END IF
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%qmL
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%qmL
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%DofL
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%DofL
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NNodes_I
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NNodes_I
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NNodes_L
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NNodes_L
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NNodes_RbarL
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NNodes_RbarL
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%DofI
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%DofI
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%DofR
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%DofR
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%DofC
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%DofC
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NReact
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NReact
       Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%Reacts) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -7069,13 +7069,13 @@ ENDIF
       IF (SIZE(InData%Reacts)>0) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%Reacts))-1 ) = PACK(InData%Reacts,.TRUE.)
       Int_Xferred   = Int_Xferred   + SIZE(InData%Reacts)
   END IF
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%Nmembers
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%Nmembers
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%URbarL
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%URbarL
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%IntMethod
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%IntMethod
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NAvgEls
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NAvgEls
       Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%IDI) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -7142,13 +7142,13 @@ ENDIF
       IF (SIZE(InData%IDY)>0) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%IDY))-1 ) = PACK(InData%IDY,.TRUE.)
       Int_Xferred   = Int_Xferred   + SIZE(InData%IDY)
   END IF
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NMOutputs
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NMOutputs
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumOuts
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumOuts
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%OutSwtch
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%OutSwtch
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%UnJckF
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%UnJckF
       Int_Xferred   = Int_Xferred   + 1
         DO I = 1, LEN(InData%Delim)
           IntKiBuf(Int_Xferred) = ICHAR(InData%Delim(I:I), IntKi)
@@ -7367,15 +7367,15 @@ ENDIF
       ENDIF
     END DO
   END IF
-       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%OutAll , IntKiBuf(1), 1)
+      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%OutAll , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%OutReact , IntKiBuf(1), 1)
+      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%OutReact , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%OutAllInt
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%OutAllInt
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%OutAllDims
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%OutAllDims
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%OutDec
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%OutDec
       Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE SD_PackParam
 
@@ -8629,7 +8629,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -8930,7 +8930,7 @@ ENDIF
   CALL MeshDestroy( OutputData%Y1Mesh, ErrStat, ErrMsg )
   CALL MeshDestroy( OutputData%Y2Mesh, ErrStat, ErrMsg )
 IF (ALLOCATED(OutputData%WriteOutput)) THEN
-   DEALLOCATE(OutputData%WriteOutput)
+  DEALLOCATE(OutputData%WriteOutput)
 ENDIF
  END SUBROUTINE SD_DestroyOutput
 
@@ -8949,7 +8949,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -9291,7 +9291,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -9506,7 +9506,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -9721,7 +9721,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -9936,7 +9936,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -10151,7 +10151,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -10366,7 +10366,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -10581,7 +10581,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -10796,7 +10796,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -11011,7 +11011,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -11226,7 +11226,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -11441,7 +11441,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -11656,7 +11656,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -11871,7 +11871,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -12086,7 +12086,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -12301,7 +12301,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -12516,7 +12516,7 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(1024)                :: ErrMsg2
@@ -12688,7 +12688,7 @@ ENDIF
 
  SUBROUTINE SD_Input_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )
 !
-! This subroutine calculates a extrapolated (or interpolated) input u_out at time t_out, from previous/future time
+! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
 ! values of u (which has values associated with times in t).  Order of the interpolation is given by the size of u
 !
 !  expressions below based on either
@@ -12785,10 +12785,10 @@ ENDIF
  END SUBROUTINE SD_Input_ExtrapInterp
 
 
- SUBROUTINE SD_Output_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )
+ SUBROUTINE SD_Output_ExtrapInterp(y, tin, y_out, tin_out, ErrStat, ErrMsg )
 !
-! This subroutine calculates a extrapolated (or interpolated) input u_out at time t_out, from previous/future time
-! values of u (which has values associated with times in t).  Order of the interpolation is given by the size of u
+! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
+! values of y (which has values associated with times in t).  Order of the interpolation is given by the size of y
 !
 !  expressions below based on either
 !
@@ -12797,13 +12797,13 @@ ENDIF
 !  f(t) = a + b * t + c * t**2
 !
 !  where a, b and c are determined as the solution to
-!  f(t1) = u1, f(t2) = u2, f(t3) = u3  (as appropriate)
+!  f(t1) = y1, f(t2) = y2, f(t3) = y3  (as appropriate)
 !
 !..................................................................................................................................
 
- TYPE(SD_outputtype), INTENT(INOUT)  :: u(:)      ! Output at t1 > t2 > t3
+ TYPE(SD_outputtype), INTENT(INOUT)  :: y(:)      ! Output at t1 > t2 > t3
  REAL(DbKi),         INTENT(IN   )  :: tin(:)      ! Times associated with the Outputs
- TYPE(SD_outputtype), INTENT(INOUT)  :: u_out     ! Output at tin_out
+ TYPE(SD_outputtype), INTENT(INOUT)  :: y_out     ! Output at tin_out
  REAL(DbKi),         INTENT(IN   )  :: tin_out     ! time to be extrap/interp'd to
  INTEGER(IntKi),     INTENT(  OUT)  :: ErrStat   ! Error status of the operation
  CHARACTER(*),       INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
@@ -12826,26 +12826,26 @@ ENDIF
  t = tin - tin(1)
  t_out = tin_out - tin(1)
 
- if ( size(t) .ne. size(u)) then
+ if ( size(t) .ne. size(y)) then
     ErrStat = ErrID_Fatal
-    ErrMsg = ' Error in SD_Output_ExtrapInterp: size(t) must equal size(u) '
+    ErrMsg = ' Error in SD_Output_ExtrapInterp: size(t) must equal size(y) '
     RETURN
  endif
- if (size(u) .gt. 3) then
+ if (size(y) .gt. 3) then
     ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in SD_Output_ExtrapInterp: size(u) must be less than 4 '
+    ErrMsg  = ' Error in SD_Output_ExtrapInterp: size(y) must be less than 4 '
     RETURN
  endif
- order = SIZE(u) - 1
+ order = SIZE(y) - 1
  IF ( order .eq. 0 ) THEN
-  CALL MeshCopy(u(1)%Y1Mesh, u_out%Y1Mesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+  CALL MeshCopy(y(1)%Y1Mesh, y_out%Y1Mesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshCopy(u(1)%Y2Mesh, u_out%Y2Mesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+  CALL MeshCopy(y(1)%Y2Mesh, y_out%Y2Mesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
-IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
-  u_out%WriteOutput = u(1)%WriteOutput
+IF (ALLOCATED(y_out%WriteOutput) .AND. ALLOCATED(y(1)%WriteOutput)) THEN
+  y_out%WriteOutput = y(1)%WriteOutput
 END IF ! check if allocated
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
@@ -12853,17 +12853,17 @@ END IF ! check if allocated
     ErrMsg  = ' Error in SD_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
-  CALL MeshExtrapInterp1(u(1)%Y1Mesh, u(2)%Y1Mesh, tin, u_out%Y1Mesh, tin_out, ErrStat2, ErrMsg2 )
+  CALL MeshExtrapInterp1(y(1)%Y1Mesh, y(2)%Y1Mesh, tin, y_out%Y1Mesh, tin_out, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp1(u(1)%Y2Mesh, u(2)%Y2Mesh, tin, u_out%Y2Mesh, tin_out, ErrStat2, ErrMsg2 )
+  CALL MeshExtrapInterp1(y(1)%Y2Mesh, y(2)%Y2Mesh, tin, y_out%Y2Mesh, tin_out, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
-IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
-  ALLOCATE(b1(SIZE(u_out%WriteOutput,1)))
-  ALLOCATE(c1(SIZE(u_out%WriteOutput,1)))
-  b1 = -(u(1)%WriteOutput - u(2)%WriteOutput)/t(2)
-  u_out%WriteOutput = u(1)%WriteOutput + b1 * t_out
+IF (ALLOCATED(y_out%WriteOutput) .AND. ALLOCATED(y(1)%WriteOutput)) THEN
+  ALLOCATE(b1(SIZE(y_out%WriteOutput,1)))
+  ALLOCATE(c1(SIZE(y_out%WriteOutput,1)))
+  b1 = -(y(1)%WriteOutput - y(2)%WriteOutput)/t(2)
+  y_out%WriteOutput = y(1)%WriteOutput + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
@@ -12883,18 +12883,18 @@ END IF ! check if allocated
     ErrMsg  = ' Error in SD_Output_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
-  CALL MeshExtrapInterp2(u(1)%Y1Mesh, u(2)%Y1Mesh, u(3)%Y1Mesh, tin, u_out%Y1Mesh, tin_out, ErrStat2, ErrMsg2 )
+  CALL MeshExtrapInterp2(y(1)%Y1Mesh, y(2)%Y1Mesh, y(3)%Y1Mesh, tin, y_out%Y1Mesh, tin_out, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp2(u(1)%Y2Mesh, u(2)%Y2Mesh, u(3)%Y2Mesh, tin, u_out%Y2Mesh, tin_out, ErrStat2, ErrMsg2 )
+  CALL MeshExtrapInterp2(y(1)%Y2Mesh, y(2)%Y2Mesh, y(3)%Y2Mesh, tin, y_out%Y2Mesh, tin_out, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
-IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
-  ALLOCATE(b1(SIZE(u_out%WriteOutput,1)))
-  ALLOCATE(c1(SIZE(u_out%WriteOutput,1)))
-  b1 = (t(3)**2*(u(1)%WriteOutput - u(2)%WriteOutput) + t(2)**2*(-u(1)%WriteOutput + u(3)%WriteOutput))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%WriteOutput + t(3)*u(2)%WriteOutput - t(2)*u(3)%WriteOutput ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%WriteOutput = u(1)%WriteOutput + b1 * t_out + c1 * t_out**2
+IF (ALLOCATED(y_out%WriteOutput) .AND. ALLOCATED(y(1)%WriteOutput)) THEN
+  ALLOCATE(b1(SIZE(y_out%WriteOutput,1)))
+  ALLOCATE(c1(SIZE(y_out%WriteOutput,1)))
+  b1 = (t(3)**2*(y(1)%WriteOutput - y(2)%WriteOutput) + t(2)**2*(-y(1)%WriteOutput + y(3)%WriteOutput))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*y(1)%WriteOutput + t(3)*y(2)%WriteOutput - t(2)*y(3)%WriteOutput ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%WriteOutput = y(1)%WriteOutput + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
