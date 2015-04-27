@@ -19,8 +19,8 @@ REM -- NOTE: do not use quotation marks around the path names!!!! --------------
 REM ----------------------------------------------------------------------------
 REM ----------------------------------------------------------------------------
 
-SET Registry=..\..\bin\Registry_win32.exe
 SET FAST_Loc=..\..\Source
+SET Registry=..\..\bin\Registry_win32.exe
 
 SET NWTC_Lib_Loc=%FAST_Loc%\dependencies\NWTC_Library
 SET ED_Loc=%FAST_Loc%\dependencies\ElastoDyn
@@ -82,8 +82,10 @@ GOTO checkError
 
 
 :InflowWind
-:IfW_FFWind
-:IfW_HHWind
+:IfW_TSFFWind
+:IfW_BladedFFWind
+:IfW_UniformWind
+:IfW_UserWind
 :Lidar
 SET CURR_LOC=%IfW_Loc%
 %REGISTRY% "%IfW_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%"

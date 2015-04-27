@@ -454,7 +454,14 @@ function [ChannelName_new,scaleFact] = getNewChannelName(ChannelName)
         elseif strcmpi(ChannelName,'ReactYss')
             ChannelName_new = 'ReactFYss';            
         elseif strcmpi(ChannelName,'ReactZss')
-            ChannelName_new = 'ReactFZss';            
+            ChannelName_new = 'ReactFZss';    
+        elseif strcmpi(ChannelName,'WindVxi')
+            ChannelName_new = 'Wind1VelX';            
+        elseif strcmpi(ChannelName,'WindVyi')
+            ChannelName_new = 'Wind1VelY';            
+        elseif strcmpi(ChannelName,'WindVzi')
+            ChannelName_new = 'Wind1VelZ';            
+            
             
             
 %         elseif strcmpi(ChannelName,'TTDspFA')

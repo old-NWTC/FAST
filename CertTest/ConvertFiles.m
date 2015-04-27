@@ -1,7 +1,7 @@
-%Conversion of FAST v 7.x or FAST v8.08.x files to FAST v8.9.x
+%Conversion of FAST v 7.x or FAST v8.10.x files to FAST v8.12.x
 % by Bonnie Jonkman
 %  based on work by Paul Fleming
-% (c) 2011, 2013-2014 National Renewable Energy Laboratory
+% (c) 2011, 2013-2015 National Renewable Energy Laboratory
 %--------------------------------------------------------------------------
 clear all;
 
@@ -12,7 +12,7 @@ addpath( genpath( FASTSimulationToolbox ) );
 
 
 %% ------------------------------------------------------------------------
-% Convert FAST v8.08.* files to FAST v8.09.*
+% Convert FAST v8.10.* files to FAST v8.12.*
 % -------------------------------------------------------------------------
 oldDir = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\CertTest';
 newDir = '.';
@@ -23,19 +23,26 @@ for i=1:25
     inputfile = [oldDir filesep baseFileName '.fst'];      
     
     
-    ConvertFAST8_9to10(inputfile,newDir);
+    ConvertFAST8_10to12(inputfile,newDir);
+    
+    if (i>22)
+        baseFileName  = ['Test' num2str(i,'%02.0f') '_MD' ]; %'_noHD'
+        inputfile = [oldDir filesep baseFileName '.fst'];      
+        ConvertFAST8_10to12(inputfile,newDir);
+    end
     
 end
-ConvertFAST8_9to10([oldDir filesep 'Test19_noHD.fst'],newDir);
-ConvertFAST8_9to10([oldDir filesep 'Test19_withIce.fst'],newDir);
-ConvertFAST8_9to10([oldDir filesep 'Test21_withIce.fst'],newDir);
+
+ConvertFAST8_10to12([oldDir filesep 'Test19_noHD.fst'],newDir);
+ConvertFAST8_10to12([oldDir filesep 'Test19_withIce.fst'],newDir);
+ConvertFAST8_10to12([oldDir filesep 'Test21_withIce.fst'],newDir);
 
 return;
 
 
 
 %% ------------------------------------------------------------------------
-% Convert FAST v7.* files to FAST v8.08.*
+% Convert FAST v7.* files to FAST v8.12.*
 % -------------------------------------------------------------------------
 oldDir      = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest';
 newDir      = '.';

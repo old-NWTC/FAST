@@ -11,6 +11,7 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
       1E+06   UJacSclFact     - Scaling factor used in Jacobians (-)
 ---------------------- FEATURE SWITCHES AND FLAGS ------------------------------
           1   CompElast       - Compute structural dynamics (switch) {1=ElastoDyn; 2=ElastoDyn + BeamDyn for blades}
+          1   CompInflow      - Compute inflow wind velocities (switch) {0=still air; 1=InflowWind}
           1   CompAero        - Compute aerodynamic loads (switch) {0=None; 1=AeroDyn}
           1   CompServo       - Compute control and electrical-drive dynamics (switch) {0=None; 1=ServoDyn}
           1   CompHydro       - Compute hydrodynamic loads (switch) {0=None; 1=HydroDyn}
@@ -24,6 +25,7 @@ False         CompUserTwrLd   - Compute additional tower loading (flag) {false: 
 "unused"      BDBldFile(1)    - Name of file containing BeamDyn input parameters for blade 1 (quoted string)
 "unused"      BDBldFile(2)    - Name of file containing BeamDyn input parameters for blade 2 (quoted string)
 "unused"      BDBldFile(3)    - Name of file containing BeamDyn input parameters for blade 3 (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_InflowWind_12mps.dat"    InflowFile      - Name of file containing inflow wind input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_OC3Monopile_AeroDyn.dat"    AeroFile        - Name of file containing aerodynamic input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_OC3Monopile_ServoDyn.dat"    ServoFile       - Name of file containing control and electrical-drive input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_OC3Monopile_HydroDyn_withIce.dat"    HydroFile       - Name of file containing hydrodynamic input parameters (quoted string)
@@ -33,7 +35,7 @@ False         CompUserTwrLd   - Compute additional tower loading (flag) {false: 
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime        - Amount of time between screen status messages (s)
-       1000   ChkptTime       - Amount of time between creating checkpoint files for potential restart (s)
+      99999   ChkptTime       - Amount of time between creating checkpoint files for potential restart (s)
       0.005   DT_Out          - Time step for tabular output (s)
           0   TStart          - Time to begin tabular output (s)
           2   OutFileFmt      - Format for tabular (time-marching) output file (switch) {1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both}

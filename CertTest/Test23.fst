@@ -11,6 +11,7 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
       1E+06   UJacSclFact     - Scaling factor used in Jacobians (-)
 ---------------------- FEATURE SWITCHES AND FLAGS ------------------------------
           1   CompElast       - Compute structural dynamics (switch) {1=ElastoDyn; 2=ElastoDyn + BeamDyn for blades}
+          1   CompInflow      - Compute inflow wind velocities (switch) {0=still air; 1=InflowWind}
           1   CompAero        - Compute aerodynamic loads (switch) {0=None; 1=AeroDyn}
           1   CompServo       - Compute control and electrical-drive dynamics (switch) {0=None; 1=ServoDyn}
           1   CompHydro       - Compute hydrodynamic loads (switch) {0=None; 1=HydroDyn}
@@ -24,7 +25,8 @@ False         CompUserTwrLd   - Compute additional tower loading (flag) {false: 
 "unused"      BDBldFile(1)    - Name of file containing BeamDyn input parameters for blade 1 (quoted string)
 "unused"      BDBldFile(2)    - Name of file containing BeamDyn input parameters for blade 2 (quoted string)
 "unused"      BDBldFile(3)    - Name of file containing BeamDyn input parameters for blade 3 (quoted string)
-"5MW_Baseline/NRELOffshrBsline5MW_MIT_NREL_TLP_AeroDyn.dat"    AeroFile        - Name of file containing aerodynamic input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_InflowWind_12mps.dat"    InflowFile      - Name of file containing inflow wind input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_AeroDyn_Equil_noTwr.dat"    AeroFile        - Name of file containing aerodynamic input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_MIT_NREL_TLP_ServoDyn.dat"    ServoFile       - Name of file containing control and electrical-drive input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_MIT_NREL_TLP_HydroDyn.dat"    HydroFile       - Name of file containing hydrodynamic input parameters (quoted string)
 "unused"      SubFile         - Name of file containing sub-structural input parameters (quoted string)

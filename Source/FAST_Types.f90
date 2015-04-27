@@ -34,8 +34,10 @@ MODULE FAST_Types
 USE ElastoDyn_Types
 USE TMD_Types
 USE ServoDyn_Types
-USE IfW_FFWind_Types
-USE IfW_HHWind_Types
+USE IfW_UniformWind_Types
+USE IfW_TSFFWind_Types
+USE IfW_BladedFFWind_Types
+USE IfW_UserWind_Types
 USE Lidar_Types
 USE InflowWind_Types
 USE DWM_Types
@@ -79,6 +81,7 @@ IMPLICIT NONE
     REAL(DbKi)  :: DT      ! Integration time step [global time] [s]
     REAL(DbKi) , DIMENSION(NumModules)  :: DT_module      ! Integration time step [global time] [s]
     INTEGER(IntKi) , DIMENSION(NumModules)  :: n_substeps      ! The number of module substeps for advancing states from t_global to t_global_next [-]
+    INTEGER(IntKi)  :: n_TMax_m1      ! The time step of TMax - dt (the end time of the simulation) [(-)]
     REAL(DbKi)  :: TMax      ! Total run time [s]
     INTEGER(IntKi)  :: InterpOrder      ! Interpolation order {0,1,2} [-]
     INTEGER(IntKi)  :: NumCrctn      ! Number of correction iterations [-]
@@ -89,6 +92,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: UJacSclFact      ! Scaling factor used to get similar magnitudes between accelerations, forces, and moments in Jacobians [-]
     INTEGER(IntKi) , DIMENSION(1:4)  :: SizeJac_ED_SD_HD      ! (1)=size of ED portion; (2)=size of SD portion [2 meshes]; (3)=size of HD portion; (4)=size of matrix [-]
     INTEGER(IntKi)  :: CompElast      ! Compute blade loads (switch) {Module_ED; Module_BD} [-]
+    INTEGER(IntKi)  :: CompInflow      ! Compute inflow wind conditions (switch) {Module_None; Module_IfW} [-]
     INTEGER(IntKi)  :: CompAero      ! Compute aerodynamic loads (switch) {Module_None; Module_AD} [-]
     INTEGER(IntKi)  :: CompServo      ! Compute control and electrical-drive dynamics (switch) {Module_None; Module_SrvD} [-]
     INTEGER(IntKi)  :: CompHydro      ! Compute hydrodynamic loads (switch) {Module_None; Module_HD} [-]
@@ -100,6 +104,7 @@ IMPLICIT NONE
     LOGICAL  :: UseDWM      ! Use the DWM module in AeroDyn [-]
     CHARACTER(1024)  :: EDFile      ! The name of the ElastoDyn input file [-]
     CHARACTER(1024) , DIMENSION(MaxNBlades)  :: BDBldFile      ! Name of files containing BeamDyn inputs for each blade [-]
+    CHARACTER(1024)  :: InflowFile      ! Name of file containing inflow wind input parameters [-]
     CHARACTER(1024)  :: AeroFile      ! Name of file containing aerodynamic input parameters [-]
     CHARACTER(1024)  :: ServoFile      ! Name of file containing control and electrical-drive input parameters [-]
     CHARACTER(1024)  :: HydroFile      ! Name of file containing hydrodynamic input parameters [-]
@@ -197,7 +202,16 @@ IMPLICIT NONE
 ! =======================
 ! =========  InflowWind_Data  =======
   TYPE, PUBLIC :: InflowWind_Data
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      ! Temporary hack for getting wind-speed outputs from InflowWind [-]
+    TYPE(InflowWind_ContinuousStateType) , DIMENSION(1:2)  :: x      ! Continuous states [-]
+    TYPE(InflowWind_DiscreteStateType) , DIMENSION(1:2)  :: xd      ! Discrete states [-]
+    TYPE(InflowWind_ConstraintStateType) , DIMENSION(1:2)  :: z      ! Constraint states [-]
+    TYPE(InflowWind_OtherStateType)  :: OtherSt      ! Other/optimization states [-]
+    TYPE(InflowWind_ParameterType)  :: p      ! Parameters [-]
+    TYPE(InflowWind_InputType)  :: u      ! System inputs [-]
+    TYPE(InflowWind_OutputType)  :: y      ! System outputs [-]
+    TYPE(InflowWind_OtherStateType)  :: OtherSt_old      ! Other/optimization states (copied for the case of subcycling) [-]
+    TYPE(InflowWind_InputType) , DIMENSION(:), ALLOCATABLE  :: Input      ! Array of inputs associated with InputTimes [-]
+    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: InputTimes      ! Array of times associated with Input Array [-]
   END TYPE InflowWind_Data
 ! =======================
 ! =========  SubDyn_Data  =======
@@ -344,7 +358,6 @@ IMPLICIT NONE
     REAL(ReKi)  :: UsrTime2      ! User CPU time for simulation (without intialization) [(s)]
     INTEGER(IntKi) , DIMENSION(1:8)  :: StrtTime      ! Start time of simulation (including intialization) [-]
     INTEGER(IntKi) , DIMENSION(1:8)  :: SimStrtTime      ! Start time of simulation (after initialization) [-]
-    INTEGER(IntKi)  :: n_TMax_m1      ! The time step of TMax - dt (the end time of the simulation) [(-)]
     LOGICAL  :: calcJacobian      ! Should we calculate Jacobians in Option 1? [(flag)]
     TYPE(FAST_ExternInputType)  :: ExternInput      ! external input values [-]
   END TYPE FAST_MiscVarType
@@ -396,6 +409,7 @@ CONTAINS
     DstParamData%DT = SrcParamData%DT
     DstParamData%DT_module = SrcParamData%DT_module
     DstParamData%n_substeps = SrcParamData%n_substeps
+    DstParamData%n_TMax_m1 = SrcParamData%n_TMax_m1
     DstParamData%TMax = SrcParamData%TMax
     DstParamData%InterpOrder = SrcParamData%InterpOrder
     DstParamData%NumCrctn = SrcParamData%NumCrctn
@@ -406,6 +420,7 @@ CONTAINS
     DstParamData%UJacSclFact = SrcParamData%UJacSclFact
     DstParamData%SizeJac_ED_SD_HD = SrcParamData%SizeJac_ED_SD_HD
     DstParamData%CompElast = SrcParamData%CompElast
+    DstParamData%CompInflow = SrcParamData%CompInflow
     DstParamData%CompAero = SrcParamData%CompAero
     DstParamData%CompServo = SrcParamData%CompServo
     DstParamData%CompHydro = SrcParamData%CompHydro
@@ -417,6 +432,7 @@ CONTAINS
     DstParamData%UseDWM = SrcParamData%UseDWM
     DstParamData%EDFile = SrcParamData%EDFile
     DstParamData%BDBldFile = SrcParamData%BDBldFile
+    DstParamData%InflowFile = SrcParamData%InflowFile
     DstParamData%AeroFile = SrcParamData%AeroFile
     DstParamData%ServoFile = SrcParamData%ServoFile
     DstParamData%HydroFile = SrcParamData%HydroFile
@@ -487,6 +503,7 @@ CONTAINS
       Db_BufSz   = Db_BufSz   + 1  ! DT
       Db_BufSz   = Db_BufSz   + SIZE(InData%DT_module)  ! DT_module
       Int_BufSz  = Int_BufSz  + SIZE(InData%n_substeps)  ! n_substeps
+      Int_BufSz  = Int_BufSz  + 1  ! n_TMax_m1
       Db_BufSz   = Db_BufSz   + 1  ! TMax
       Int_BufSz  = Int_BufSz  + 1  ! InterpOrder
       Int_BufSz  = Int_BufSz  + 1  ! NumCrctn
@@ -497,6 +514,7 @@ CONTAINS
       Re_BufSz   = Re_BufSz   + 1  ! UJacSclFact
       Int_BufSz  = Int_BufSz  + SIZE(InData%SizeJac_ED_SD_HD)  ! SizeJac_ED_SD_HD
       Int_BufSz  = Int_BufSz  + 1  ! CompElast
+      Int_BufSz  = Int_BufSz  + 1  ! CompInflow
       Int_BufSz  = Int_BufSz  + 1  ! CompAero
       Int_BufSz  = Int_BufSz  + 1  ! CompServo
       Int_BufSz  = Int_BufSz  + 1  ! CompHydro
@@ -508,6 +526,7 @@ CONTAINS
       Int_BufSz  = Int_BufSz  + 1  ! UseDWM
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%EDFile)  ! EDFile
       Int_BufSz  = Int_BufSz  + SIZE(InData%BDBldFile)*LEN(InData%BDBldFile)  ! BDBldFile
+      Int_BufSz  = Int_BufSz  + 1*LEN(InData%InflowFile)  ! InflowFile
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%AeroFile)  ! AeroFile
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%ServoFile)  ! ServoFile
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%HydroFile)  ! HydroFile
@@ -560,6 +579,8 @@ CONTAINS
       Db_Xferred   = Db_Xferred   + SIZE(InData%DT_module)
       IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%n_substeps))-1 ) = PACK(InData%n_substeps,.TRUE.)
       Int_Xferred   = Int_Xferred   + SIZE(InData%n_substeps)
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%n_TMax_m1
+      Int_Xferred   = Int_Xferred   + 1
       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%TMax
       Db_Xferred   = Db_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%InterpOrder
@@ -579,6 +600,8 @@ CONTAINS
       IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%SizeJac_ED_SD_HD))-1 ) = PACK(InData%SizeJac_ED_SD_HD,.TRUE.)
       Int_Xferred   = Int_Xferred   + SIZE(InData%SizeJac_ED_SD_HD)
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%CompElast
+      Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%CompInflow
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%CompAero
       Int_Xferred   = Int_Xferred   + 1
@@ -608,6 +631,10 @@ CONTAINS
           Int_Xferred = Int_Xferred   + 1
         END DO ! I
     END DO !i1
+        DO I = 1, LEN(InData%InflowFile)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%InflowFile(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
         DO I = 1, LEN(InData%AeroFile)
           IntKiBuf(Int_Xferred) = ICHAR(InData%AeroFile(I:I), IntKi)
           Int_Xferred = Int_Xferred   + 1
@@ -726,6 +753,8 @@ CONTAINS
       OutData%n_substeps = UNPACK( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%n_substeps))-1 ), mask1, 0_IntKi )
       Int_Xferred   = Int_Xferred   + SIZE(OutData%n_substeps)
     DEALLOCATE(mask1)
+      OutData%n_TMax_m1 = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
       OutData%TMax = DbKiBuf( Db_Xferred ) 
       Db_Xferred   = Db_Xferred + 1
       OutData%InterpOrder = IntKiBuf( Int_Xferred ) 
@@ -764,6 +793,8 @@ CONTAINS
     DEALLOCATE(mask1)
       OutData%CompElast = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
+      OutData%CompInflow = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
       OutData%CompAero = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%CompServo = IntKiBuf( Int_Xferred ) 
@@ -801,6 +832,10 @@ CONTAINS
         END DO ! I
     END DO !i1
     DEALLOCATE(mask1)
+      DO I = 1, LEN(OutData%InflowFile)
+        OutData%InflowFile(I:I) = CHAR(IntKiBuf(Int_Xferred))
+        Int_Xferred = Int_Xferred   + 1
+      END DO ! I
       DO I = 1, LEN(OutData%AeroFile)
         OutData%AeroFile(I:I) = CHAR(IntKiBuf(Int_Xferred))
         Int_Xferred = Int_Xferred   + 1
@@ -6420,17 +6455,63 @@ ENDIF
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ALLOCATED(SrcInflowWind_DataData%WriteOutput)) THEN
-  i1_l = LBOUND(SrcInflowWind_DataData%WriteOutput,1)
-  i1_u = UBOUND(SrcInflowWind_DataData%WriteOutput,1)
-  IF (.NOT. ALLOCATED(DstInflowWind_DataData%WriteOutput)) THEN 
-    ALLOCATE(DstInflowWind_DataData%WriteOutput(i1_l:i1_u),STAT=ErrStat2)
+    DO i1 = LBOUND(SrcInflowWind_DataData%x,1), UBOUND(SrcInflowWind_DataData%x,1)
+      CALL InflowWind_CopyContState( SrcInflowWind_DataData%x(i1), DstInflowWind_DataData%x(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
+    ENDDO
+    DO i1 = LBOUND(SrcInflowWind_DataData%xd,1), UBOUND(SrcInflowWind_DataData%xd,1)
+      CALL InflowWind_CopyDiscState( SrcInflowWind_DataData%xd(i1), DstInflowWind_DataData%xd(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
+    ENDDO
+    DO i1 = LBOUND(SrcInflowWind_DataData%z,1), UBOUND(SrcInflowWind_DataData%z,1)
+      CALL InflowWind_CopyConstrState( SrcInflowWind_DataData%z(i1), DstInflowWind_DataData%z(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
+    ENDDO
+      CALL InflowWind_CopyOtherState( SrcInflowWind_DataData%OtherSt, DstInflowWind_DataData%OtherSt, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL InflowWind_CopyParam( SrcInflowWind_DataData%p, DstInflowWind_DataData%p, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL InflowWind_CopyInput( SrcInflowWind_DataData%u, DstInflowWind_DataData%u, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL InflowWind_CopyOutput( SrcInflowWind_DataData%y, DstInflowWind_DataData%y, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL InflowWind_CopyOtherState( SrcInflowWind_DataData%OtherSt_old, DstInflowWind_DataData%OtherSt_old, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
+IF (ALLOCATED(SrcInflowWind_DataData%Input)) THEN
+  i1_l = LBOUND(SrcInflowWind_DataData%Input,1)
+  i1_u = UBOUND(SrcInflowWind_DataData%Input,1)
+  IF (.NOT. ALLOCATED(DstInflowWind_DataData%Input)) THEN 
+    ALLOCATE(DstInflowWind_DataData%Input(i1_l:i1_u),STAT=ErrStat2)
     IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInflowWind_DataData%WriteOutput.', ErrStat, ErrMsg,RoutineName)
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInflowWind_DataData%Input.', ErrStat, ErrMsg,RoutineName)
       RETURN
     END IF
   END IF
-    DstInflowWind_DataData%WriteOutput = SrcInflowWind_DataData%WriteOutput
+    DO i1 = LBOUND(SrcInflowWind_DataData%Input,1), UBOUND(SrcInflowWind_DataData%Input,1)
+      CALL InflowWind_CopyInput( SrcInflowWind_DataData%Input(i1), DstInflowWind_DataData%Input(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
+    ENDDO
+ENDIF
+IF (ALLOCATED(SrcInflowWind_DataData%InputTimes)) THEN
+  i1_l = LBOUND(SrcInflowWind_DataData%InputTimes,1)
+  i1_u = UBOUND(SrcInflowWind_DataData%InputTimes,1)
+  IF (.NOT. ALLOCATED(DstInflowWind_DataData%InputTimes)) THEN 
+    ALLOCATE(DstInflowWind_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInflowWind_DataData%InputTimes.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInflowWind_DataData%InputTimes = SrcInflowWind_DataData%InputTimes
 ENDIF
  END SUBROUTINE FAST_CopyInflowWind_Data
 
@@ -6443,8 +6524,28 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(InflowWind_DataData%WriteOutput)) THEN
-  DEALLOCATE(InflowWind_DataData%WriteOutput)
+DO i1 = LBOUND(InflowWind_DataData%x,1), UBOUND(InflowWind_DataData%x,1)
+  CALL InflowWind_DestroyContState( InflowWind_DataData%x(i1), ErrStat, ErrMsg )
+ENDDO
+DO i1 = LBOUND(InflowWind_DataData%xd,1), UBOUND(InflowWind_DataData%xd,1)
+  CALL InflowWind_DestroyDiscState( InflowWind_DataData%xd(i1), ErrStat, ErrMsg )
+ENDDO
+DO i1 = LBOUND(InflowWind_DataData%z,1), UBOUND(InflowWind_DataData%z,1)
+  CALL InflowWind_DestroyConstrState( InflowWind_DataData%z(i1), ErrStat, ErrMsg )
+ENDDO
+  CALL InflowWind_DestroyOtherState( InflowWind_DataData%OtherSt, ErrStat, ErrMsg )
+  CALL InflowWind_DestroyParam( InflowWind_DataData%p, ErrStat, ErrMsg )
+  CALL InflowWind_DestroyInput( InflowWind_DataData%u, ErrStat, ErrMsg )
+  CALL InflowWind_DestroyOutput( InflowWind_DataData%y, ErrStat, ErrMsg )
+  CALL InflowWind_DestroyOtherState( InflowWind_DataData%OtherSt_old, ErrStat, ErrMsg )
+IF (ALLOCATED(InflowWind_DataData%Input)) THEN
+DO i1 = LBOUND(InflowWind_DataData%Input,1), UBOUND(InflowWind_DataData%Input,1)
+  CALL InflowWind_DestroyInput( InflowWind_DataData%Input(i1), ErrStat, ErrMsg )
+ENDDO
+  DEALLOCATE(InflowWind_DataData%Input)
+ENDIF
+IF (ALLOCATED(InflowWind_DataData%InputTimes)) THEN
+  DEALLOCATE(InflowWind_DataData%InputTimes)
 ENDIF
  END SUBROUTINE FAST_DestroyInflowWind_Data
 
@@ -6483,10 +6584,176 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Int_BufSz   = Int_BufSz   + 1     ! WriteOutput allocated yes/no
-  IF ( ALLOCATED(InData%WriteOutput) ) THEN
-    Int_BufSz   = Int_BufSz   + 2*1  ! WriteOutput upper/lower bounds for each dimension
-      Re_BufSz   = Re_BufSz   + SIZE(InData%WriteOutput)  ! WriteOutput
+   ! Allocate buffers for subtypes, if any (we'll get sizes from these) 
+    DO i1 = LBOUND(InData%x,1), UBOUND(InData%x,1)
+      Int_BufSz   = Int_BufSz + 3  ! x: size of buffers for each call to pack subtype
+      CALL InflowWind_PackContState( Re_Buf, Db_Buf, Int_Buf, InData%x(i1), ErrStat2, ErrMsg2, .TRUE. ) ! x 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN ! x
+         Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
+         DEALLOCATE(Re_Buf)
+      END IF
+      IF(ALLOCATED(Db_Buf)) THEN ! x
+         Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
+         DEALLOCATE(Db_Buf)
+      END IF
+      IF(ALLOCATED(Int_Buf)) THEN ! x
+         Int_BufSz = Int_BufSz + SIZE( Int_Buf )
+         DEALLOCATE(Int_Buf)
+      END IF
+    END DO
+    DO i1 = LBOUND(InData%xd,1), UBOUND(InData%xd,1)
+      Int_BufSz   = Int_BufSz + 3  ! xd: size of buffers for each call to pack subtype
+      CALL InflowWind_PackDiscState( Re_Buf, Db_Buf, Int_Buf, InData%xd(i1), ErrStat2, ErrMsg2, .TRUE. ) ! xd 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN ! xd
+         Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
+         DEALLOCATE(Re_Buf)
+      END IF
+      IF(ALLOCATED(Db_Buf)) THEN ! xd
+         Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
+         DEALLOCATE(Db_Buf)
+      END IF
+      IF(ALLOCATED(Int_Buf)) THEN ! xd
+         Int_BufSz = Int_BufSz + SIZE( Int_Buf )
+         DEALLOCATE(Int_Buf)
+      END IF
+    END DO
+    DO i1 = LBOUND(InData%z,1), UBOUND(InData%z,1)
+      Int_BufSz   = Int_BufSz + 3  ! z: size of buffers for each call to pack subtype
+      CALL InflowWind_PackConstrState( Re_Buf, Db_Buf, Int_Buf, InData%z(i1), ErrStat2, ErrMsg2, .TRUE. ) ! z 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN ! z
+         Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
+         DEALLOCATE(Re_Buf)
+      END IF
+      IF(ALLOCATED(Db_Buf)) THEN ! z
+         Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
+         DEALLOCATE(Db_Buf)
+      END IF
+      IF(ALLOCATED(Int_Buf)) THEN ! z
+         Int_BufSz = Int_BufSz + SIZE( Int_Buf )
+         DEALLOCATE(Int_Buf)
+      END IF
+    END DO
+      Int_BufSz   = Int_BufSz + 3  ! OtherSt: size of buffers for each call to pack subtype
+      CALL InflowWind_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt, ErrStat2, ErrMsg2, .TRUE. ) ! OtherSt 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN ! OtherSt
+         Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
+         DEALLOCATE(Re_Buf)
+      END IF
+      IF(ALLOCATED(Db_Buf)) THEN ! OtherSt
+         Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
+         DEALLOCATE(Db_Buf)
+      END IF
+      IF(ALLOCATED(Int_Buf)) THEN ! OtherSt
+         Int_BufSz = Int_BufSz + SIZE( Int_Buf )
+         DEALLOCATE(Int_Buf)
+      END IF
+      Int_BufSz   = Int_BufSz + 3  ! p: size of buffers for each call to pack subtype
+      CALL InflowWind_PackParam( Re_Buf, Db_Buf, Int_Buf, InData%p, ErrStat2, ErrMsg2, .TRUE. ) ! p 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN ! p
+         Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
+         DEALLOCATE(Re_Buf)
+      END IF
+      IF(ALLOCATED(Db_Buf)) THEN ! p
+         Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
+         DEALLOCATE(Db_Buf)
+      END IF
+      IF(ALLOCATED(Int_Buf)) THEN ! p
+         Int_BufSz = Int_BufSz + SIZE( Int_Buf )
+         DEALLOCATE(Int_Buf)
+      END IF
+      Int_BufSz   = Int_BufSz + 3  ! u: size of buffers for each call to pack subtype
+      CALL InflowWind_PackInput( Re_Buf, Db_Buf, Int_Buf, InData%u, ErrStat2, ErrMsg2, .TRUE. ) ! u 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN ! u
+         Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
+         DEALLOCATE(Re_Buf)
+      END IF
+      IF(ALLOCATED(Db_Buf)) THEN ! u
+         Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
+         DEALLOCATE(Db_Buf)
+      END IF
+      IF(ALLOCATED(Int_Buf)) THEN ! u
+         Int_BufSz = Int_BufSz + SIZE( Int_Buf )
+         DEALLOCATE(Int_Buf)
+      END IF
+      Int_BufSz   = Int_BufSz + 3  ! y: size of buffers for each call to pack subtype
+      CALL InflowWind_PackOutput( Re_Buf, Db_Buf, Int_Buf, InData%y, ErrStat2, ErrMsg2, .TRUE. ) ! y 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN ! y
+         Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
+         DEALLOCATE(Re_Buf)
+      END IF
+      IF(ALLOCATED(Db_Buf)) THEN ! y
+         Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
+         DEALLOCATE(Db_Buf)
+      END IF
+      IF(ALLOCATED(Int_Buf)) THEN ! y
+         Int_BufSz = Int_BufSz + SIZE( Int_Buf )
+         DEALLOCATE(Int_Buf)
+      END IF
+      Int_BufSz   = Int_BufSz + 3  ! OtherSt_old: size of buffers for each call to pack subtype
+      CALL InflowWind_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt_old, ErrStat2, ErrMsg2, .TRUE. ) ! OtherSt_old 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN ! OtherSt_old
+         Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
+         DEALLOCATE(Re_Buf)
+      END IF
+      IF(ALLOCATED(Db_Buf)) THEN ! OtherSt_old
+         Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
+         DEALLOCATE(Db_Buf)
+      END IF
+      IF(ALLOCATED(Int_Buf)) THEN ! OtherSt_old
+         Int_BufSz = Int_BufSz + SIZE( Int_Buf )
+         DEALLOCATE(Int_Buf)
+      END IF
+  Int_BufSz   = Int_BufSz   + 1     ! Input allocated yes/no
+  IF ( ALLOCATED(InData%Input) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! Input upper/lower bounds for each dimension
+    DO i1 = LBOUND(InData%Input,1), UBOUND(InData%Input,1)
+      Int_BufSz   = Int_BufSz + 3  ! Input: size of buffers for each call to pack subtype
+      CALL InflowWind_PackInput( Re_Buf, Db_Buf, Int_Buf, InData%Input(i1), ErrStat2, ErrMsg2, .TRUE. ) ! Input 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN ! Input
+         Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
+         DEALLOCATE(Re_Buf)
+      END IF
+      IF(ALLOCATED(Db_Buf)) THEN ! Input
+         Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
+         DEALLOCATE(Db_Buf)
+      END IF
+      IF(ALLOCATED(Int_Buf)) THEN ! Input
+         Int_BufSz = Int_BufSz + SIZE( Int_Buf )
+         DEALLOCATE(Int_Buf)
+      END IF
+    END DO
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! InputTimes allocated yes/no
+  IF ( ALLOCATED(InData%InputTimes) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! InputTimes upper/lower bounds for each dimension
+      Db_BufSz   = Db_BufSz   + SIZE(InData%InputTimes)  ! InputTimes
   END IF
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
@@ -6515,18 +6782,289 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-  IF ( .NOT. ALLOCATED(InData%WriteOutput) ) THEN
+    DO i1 = LBOUND(InData%x,1), UBOUND(InData%x,1)
+      CALL InflowWind_PackContState( Re_Buf, Db_Buf, Int_Buf, InData%x(i1), ErrStat2, ErrMsg2, OnlySize ) ! x 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Re_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Re_Buf) > 0) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Buf)-1 ) = Re_Buf
+        Re_Xferred = Re_Xferred + SIZE(Re_Buf)
+        DEALLOCATE(Re_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Db_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Db_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Db_Buf) > 0) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Buf)-1 ) = Db_Buf
+        Db_Xferred = Db_Xferred + SIZE(Db_Buf)
+        DEALLOCATE(Db_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Int_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Int_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Int_Buf) > 0) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Buf)-1 ) = Int_Buf
+        Int_Xferred = Int_Xferred + SIZE(Int_Buf)
+        DEALLOCATE(Int_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+    END DO
+    DO i1 = LBOUND(InData%xd,1), UBOUND(InData%xd,1)
+      CALL InflowWind_PackDiscState( Re_Buf, Db_Buf, Int_Buf, InData%xd(i1), ErrStat2, ErrMsg2, OnlySize ) ! xd 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Re_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Re_Buf) > 0) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Buf)-1 ) = Re_Buf
+        Re_Xferred = Re_Xferred + SIZE(Re_Buf)
+        DEALLOCATE(Re_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Db_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Db_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Db_Buf) > 0) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Buf)-1 ) = Db_Buf
+        Db_Xferred = Db_Xferred + SIZE(Db_Buf)
+        DEALLOCATE(Db_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Int_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Int_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Int_Buf) > 0) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Buf)-1 ) = Int_Buf
+        Int_Xferred = Int_Xferred + SIZE(Int_Buf)
+        DEALLOCATE(Int_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+    END DO
+    DO i1 = LBOUND(InData%z,1), UBOUND(InData%z,1)
+      CALL InflowWind_PackConstrState( Re_Buf, Db_Buf, Int_Buf, InData%z(i1), ErrStat2, ErrMsg2, OnlySize ) ! z 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Re_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Re_Buf) > 0) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Buf)-1 ) = Re_Buf
+        Re_Xferred = Re_Xferred + SIZE(Re_Buf)
+        DEALLOCATE(Re_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Db_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Db_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Db_Buf) > 0) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Buf)-1 ) = Db_Buf
+        Db_Xferred = Db_Xferred + SIZE(Db_Buf)
+        DEALLOCATE(Db_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Int_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Int_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Int_Buf) > 0) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Buf)-1 ) = Int_Buf
+        Int_Xferred = Int_Xferred + SIZE(Int_Buf)
+        DEALLOCATE(Int_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+    END DO
+      CALL InflowWind_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt, ErrStat2, ErrMsg2, OnlySize ) ! OtherSt 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Re_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Re_Buf) > 0) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Buf)-1 ) = Re_Buf
+        Re_Xferred = Re_Xferred + SIZE(Re_Buf)
+        DEALLOCATE(Re_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Db_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Db_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Db_Buf) > 0) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Buf)-1 ) = Db_Buf
+        Db_Xferred = Db_Xferred + SIZE(Db_Buf)
+        DEALLOCATE(Db_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Int_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Int_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Int_Buf) > 0) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Buf)-1 ) = Int_Buf
+        Int_Xferred = Int_Xferred + SIZE(Int_Buf)
+        DEALLOCATE(Int_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      CALL InflowWind_PackParam( Re_Buf, Db_Buf, Int_Buf, InData%p, ErrStat2, ErrMsg2, OnlySize ) ! p 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Re_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Re_Buf) > 0) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Buf)-1 ) = Re_Buf
+        Re_Xferred = Re_Xferred + SIZE(Re_Buf)
+        DEALLOCATE(Re_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Db_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Db_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Db_Buf) > 0) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Buf)-1 ) = Db_Buf
+        Db_Xferred = Db_Xferred + SIZE(Db_Buf)
+        DEALLOCATE(Db_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Int_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Int_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Int_Buf) > 0) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Buf)-1 ) = Int_Buf
+        Int_Xferred = Int_Xferred + SIZE(Int_Buf)
+        DEALLOCATE(Int_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      CALL InflowWind_PackInput( Re_Buf, Db_Buf, Int_Buf, InData%u, ErrStat2, ErrMsg2, OnlySize ) ! u 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Re_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Re_Buf) > 0) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Buf)-1 ) = Re_Buf
+        Re_Xferred = Re_Xferred + SIZE(Re_Buf)
+        DEALLOCATE(Re_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Db_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Db_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Db_Buf) > 0) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Buf)-1 ) = Db_Buf
+        Db_Xferred = Db_Xferred + SIZE(Db_Buf)
+        DEALLOCATE(Db_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Int_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Int_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Int_Buf) > 0) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Buf)-1 ) = Int_Buf
+        Int_Xferred = Int_Xferred + SIZE(Int_Buf)
+        DEALLOCATE(Int_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      CALL InflowWind_PackOutput( Re_Buf, Db_Buf, Int_Buf, InData%y, ErrStat2, ErrMsg2, OnlySize ) ! y 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Re_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Re_Buf) > 0) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Buf)-1 ) = Re_Buf
+        Re_Xferred = Re_Xferred + SIZE(Re_Buf)
+        DEALLOCATE(Re_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Db_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Db_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Db_Buf) > 0) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Buf)-1 ) = Db_Buf
+        Db_Xferred = Db_Xferred + SIZE(Db_Buf)
+        DEALLOCATE(Db_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Int_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Int_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Int_Buf) > 0) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Buf)-1 ) = Int_Buf
+        Int_Xferred = Int_Xferred + SIZE(Int_Buf)
+        DEALLOCATE(Int_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      CALL InflowWind_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt_old, ErrStat2, ErrMsg2, OnlySize ) ! OtherSt_old 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Re_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Re_Buf) > 0) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Buf)-1 ) = Re_Buf
+        Re_Xferred = Re_Xferred + SIZE(Re_Buf)
+        DEALLOCATE(Re_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Db_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Db_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Db_Buf) > 0) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Buf)-1 ) = Db_Buf
+        Db_Xferred = Db_Xferred + SIZE(Db_Buf)
+        DEALLOCATE(Db_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Int_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Int_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Int_Buf) > 0) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Buf)-1 ) = Int_Buf
+        Int_Xferred = Int_Xferred + SIZE(Int_Buf)
+        DEALLOCATE(Int_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+  IF ( .NOT. ALLOCATED(InData%Input) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
   ELSE
     IntKiBuf( Int_Xferred ) = 1
     Int_Xferred = Int_Xferred + 1
-    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WriteOutput,1)
-    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WriteOutput,1)
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%Input,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%Input,1)
     Int_Xferred = Int_Xferred + 2
 
-      IF (SIZE(InData%WriteOutput)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WriteOutput))-1 ) = PACK(InData%WriteOutput,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%WriteOutput)
+    DO i1 = LBOUND(InData%Input,1), UBOUND(InData%Input,1)
+      CALL InflowWind_PackInput( Re_Buf, Db_Buf, Int_Buf, InData%Input(i1), ErrStat2, ErrMsg2, OnlySize ) ! Input 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Re_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Re_Buf) > 0) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Buf)-1 ) = Re_Buf
+        Re_Xferred = Re_Xferred + SIZE(Re_Buf)
+        DEALLOCATE(Re_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Db_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Db_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Db_Buf) > 0) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Buf)-1 ) = Db_Buf
+        Db_Xferred = Db_Xferred + SIZE(Db_Buf)
+        DEALLOCATE(Db_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Int_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Int_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Int_Buf) > 0) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Buf)-1 ) = Int_Buf
+        Int_Xferred = Int_Xferred + SIZE(Int_Buf)
+        DEALLOCATE(Int_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+    END DO
+  END IF
+  IF ( .NOT. ALLOCATED(InData%InputTimes) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%InputTimes,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%InputTimes,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%InputTimes)>0) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%InputTimes))-1 ) = PACK(InData%InputTimes,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%InputTimes)
   END IF
  END SUBROUTINE FAST_PackInflowWind_Data
 
@@ -6563,17 +7101,405 @@ ENDIF
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WriteOutput not allocated
+    i1_l = LBOUND(OutData%x,1)
+    i1_u = UBOUND(OutData%x,1)
+    DO i1 = LBOUND(OutData%x,1), UBOUND(OutData%x,1)
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Re_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Re_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Re_Buf = ReKiBuf( Re_Xferred:Re_Xferred+Buf_size-1 )
+        Re_Xferred = Re_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Db_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Db_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Db_Buf = DbKiBuf( Db_Xferred:Db_Xferred+Buf_size-1 )
+        Db_Xferred = Db_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Int_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Int_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
+        Int_Xferred = Int_Xferred + Buf_size
+      END IF
+      CALL InflowWind_UnpackContState( Re_Buf, Db_Buf, Int_Buf, OutData%x(i1), ErrStat2, ErrMsg2 ) ! x 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
+      IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
+      IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+    END DO
+    i1_l = LBOUND(OutData%xd,1)
+    i1_u = UBOUND(OutData%xd,1)
+    DO i1 = LBOUND(OutData%xd,1), UBOUND(OutData%xd,1)
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Re_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Re_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Re_Buf = ReKiBuf( Re_Xferred:Re_Xferred+Buf_size-1 )
+        Re_Xferred = Re_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Db_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Db_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Db_Buf = DbKiBuf( Db_Xferred:Db_Xferred+Buf_size-1 )
+        Db_Xferred = Db_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Int_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Int_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
+        Int_Xferred = Int_Xferred + Buf_size
+      END IF
+      CALL InflowWind_UnpackDiscState( Re_Buf, Db_Buf, Int_Buf, OutData%xd(i1), ErrStat2, ErrMsg2 ) ! xd 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
+      IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
+      IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+    END DO
+    i1_l = LBOUND(OutData%z,1)
+    i1_u = UBOUND(OutData%z,1)
+    DO i1 = LBOUND(OutData%z,1), UBOUND(OutData%z,1)
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Re_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Re_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Re_Buf = ReKiBuf( Re_Xferred:Re_Xferred+Buf_size-1 )
+        Re_Xferred = Re_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Db_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Db_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Db_Buf = DbKiBuf( Db_Xferred:Db_Xferred+Buf_size-1 )
+        Db_Xferred = Db_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Int_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Int_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
+        Int_Xferred = Int_Xferred + Buf_size
+      END IF
+      CALL InflowWind_UnpackConstrState( Re_Buf, Db_Buf, Int_Buf, OutData%z(i1), ErrStat2, ErrMsg2 ) ! z 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
+      IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
+      IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+    END DO
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Re_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Re_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Re_Buf = ReKiBuf( Re_Xferred:Re_Xferred+Buf_size-1 )
+        Re_Xferred = Re_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Db_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Db_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Db_Buf = DbKiBuf( Db_Xferred:Db_Xferred+Buf_size-1 )
+        Db_Xferred = Db_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Int_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Int_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
+        Int_Xferred = Int_Xferred + Buf_size
+      END IF
+      CALL InflowWind_UnpackOtherState( Re_Buf, Db_Buf, Int_Buf, OutData%OtherSt, ErrStat2, ErrMsg2 ) ! OtherSt 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
+      IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
+      IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Re_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Re_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Re_Buf = ReKiBuf( Re_Xferred:Re_Xferred+Buf_size-1 )
+        Re_Xferred = Re_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Db_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Db_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Db_Buf = DbKiBuf( Db_Xferred:Db_Xferred+Buf_size-1 )
+        Db_Xferred = Db_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Int_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Int_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
+        Int_Xferred = Int_Xferred + Buf_size
+      END IF
+      CALL InflowWind_UnpackParam( Re_Buf, Db_Buf, Int_Buf, OutData%p, ErrStat2, ErrMsg2 ) ! p 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
+      IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
+      IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Re_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Re_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Re_Buf = ReKiBuf( Re_Xferred:Re_Xferred+Buf_size-1 )
+        Re_Xferred = Re_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Db_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Db_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Db_Buf = DbKiBuf( Db_Xferred:Db_Xferred+Buf_size-1 )
+        Db_Xferred = Db_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Int_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Int_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
+        Int_Xferred = Int_Xferred + Buf_size
+      END IF
+      CALL InflowWind_UnpackInput( Re_Buf, Db_Buf, Int_Buf, OutData%u, ErrStat2, ErrMsg2 ) ! u 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
+      IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
+      IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Re_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Re_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Re_Buf = ReKiBuf( Re_Xferred:Re_Xferred+Buf_size-1 )
+        Re_Xferred = Re_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Db_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Db_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Db_Buf = DbKiBuf( Db_Xferred:Db_Xferred+Buf_size-1 )
+        Db_Xferred = Db_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Int_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Int_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
+        Int_Xferred = Int_Xferred + Buf_size
+      END IF
+      CALL InflowWind_UnpackOutput( Re_Buf, Db_Buf, Int_Buf, OutData%y, ErrStat2, ErrMsg2 ) ! y 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
+      IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
+      IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Re_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Re_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Re_Buf = ReKiBuf( Re_Xferred:Re_Xferred+Buf_size-1 )
+        Re_Xferred = Re_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Db_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Db_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Db_Buf = DbKiBuf( Db_Xferred:Db_Xferred+Buf_size-1 )
+        Db_Xferred = Db_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Int_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Int_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
+        Int_Xferred = Int_Xferred + Buf_size
+      END IF
+      CALL InflowWind_UnpackOtherState( Re_Buf, Db_Buf, Int_Buf, OutData%OtherSt_old, ErrStat2, ErrMsg2 ) ! OtherSt_old 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
+      IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
+      IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! Input not allocated
     Int_Xferred = Int_Xferred + 1
   ELSE
     Int_Xferred = Int_Xferred + 1
     i1_l = IntKiBuf( Int_Xferred    )
     i1_u = IntKiBuf( Int_Xferred + 1)
     Int_Xferred = Int_Xferred + 2
-    IF (ALLOCATED(OutData%WriteOutput)) DEALLOCATE(OutData%WriteOutput)
-    ALLOCATE(OutData%WriteOutput(i1_l:i1_u),STAT=ErrStat2)
+    IF (ALLOCATED(OutData%Input)) DEALLOCATE(OutData%Input)
+    ALLOCATE(OutData%Input(i1_l:i1_u),STAT=ErrStat2)
     IF (ErrStat2 /= 0) THEN 
-       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WriteOutput.', ErrStat, ErrMsg,RoutineName)
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%Input.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    DO i1 = LBOUND(OutData%Input,1), UBOUND(OutData%Input,1)
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Re_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Re_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Re_Buf = ReKiBuf( Re_Xferred:Re_Xferred+Buf_size-1 )
+        Re_Xferred = Re_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Db_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Db_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Db_Buf = DbKiBuf( Db_Xferred:Db_Xferred+Buf_size-1 )
+        Db_Xferred = Db_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Int_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Int_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
+        Int_Xferred = Int_Xferred + Buf_size
+      END IF
+      CALL InflowWind_UnpackInput( Re_Buf, Db_Buf, Int_Buf, OutData%Input(i1), ErrStat2, ErrMsg2 ) ! Input 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
+      IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
+      IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+    END DO
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! InputTimes not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%InputTimes)) DEALLOCATE(OutData%InputTimes)
+    ALLOCATE(OutData%InputTimes(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%InputTimes.', ErrStat, ErrMsg,RoutineName)
        RETURN
     END IF
     ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
@@ -6582,8 +7508,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%WriteOutput)>0) OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%WriteOutput)
+      IF (SIZE(OutData%InputTimes)>0) OutData%InputTimes = UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%InputTimes))-1 ), mask1, 0.0_DbKi )
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%InputTimes)
     DEALLOCATE(mask1)
   END IF
  END SUBROUTINE FAST_UnPackInflowWind_Data
@@ -16616,7 +17542,6 @@ ENDIF
     DstMiscVarTypeData%UsrTime2 = SrcMiscVarTypeData%UsrTime2
     DstMiscVarTypeData%StrtTime = SrcMiscVarTypeData%StrtTime
     DstMiscVarTypeData%SimStrtTime = SrcMiscVarTypeData%SimStrtTime
-    DstMiscVarTypeData%n_TMax_m1 = SrcMiscVarTypeData%n_TMax_m1
     DstMiscVarTypeData%calcJacobian = SrcMiscVarTypeData%calcJacobian
       CALL FAST_Copyexterninputtype( SrcMiscVarTypeData%ExternInput, DstMiscVarTypeData%ExternInput, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
@@ -16678,7 +17603,6 @@ ENDIF
       Re_BufSz   = Re_BufSz   + 1  ! UsrTime2
       Int_BufSz  = Int_BufSz  + SIZE(InData%StrtTime)  ! StrtTime
       Int_BufSz  = Int_BufSz  + SIZE(InData%SimStrtTime)  ! SimStrtTime
-      Int_BufSz  = Int_BufSz  + 1  ! n_TMax_m1
       Int_BufSz  = Int_BufSz  + 1  ! calcJacobian
    ! Allocate buffers for subtypes, if any (we'll get sizes from these) 
       Int_BufSz   = Int_BufSz + 3  ! ExternInput: size of buffers for each call to pack subtype
@@ -16741,8 +17665,6 @@ ENDIF
       Int_Xferred   = Int_Xferred   + SIZE(InData%StrtTime)
       IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%SimStrtTime))-1 ) = PACK(InData%SimStrtTime,.TRUE.)
       Int_Xferred   = Int_Xferred   + SIZE(InData%SimStrtTime)
-      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%n_TMax_m1
-      Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%calcJacobian , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
       CALL FAST_Packexterninputtype( Re_Buf, Db_Buf, Int_Buf, InData%ExternInput, ErrStat2, ErrMsg2, OnlySize ) ! ExternInput 
@@ -16842,8 +17764,6 @@ ENDIF
       OutData%SimStrtTime = UNPACK( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%SimStrtTime))-1 ), mask1, 0_IntKi )
       Int_Xferred   = Int_Xferred   + SIZE(OutData%SimStrtTime)
     DEALLOCATE(mask1)
-      OutData%n_TMax_m1 = IntKiBuf( Int_Xferred ) 
-      Int_Xferred   = Int_Xferred + 1
       OutData%calcJacobian = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
       Buf_size=IntKiBuf( Int_Xferred )

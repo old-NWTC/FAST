@@ -266,9 +266,9 @@ vpath %     $(IceF_DIR)
 ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD_SOURCES) $(SrvD_SOURCES) $(ED_SOURCES) \
               $(HD_SOURCES) $(SD_SOURCES) $(MAP_SOURCES) $(FEAM_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES) $(DWM_SOURCES) \
               $(TMD_SOURCES) $(MD_SOURCES)
-tmp_objs1   = $(ALL_SOURCES:.f90=.obj)
-tmp_objs2   = $(tmp_objs1:.F90=.obj)       #note the upper case here (from IceFloe)
-ALL_OBJS    = $(tmp_objs2:.f=.obj)
+ALL_OBJS    = $(ALL_SOURCES:.f90=.obj)
+ALL_OBJS   := $(ALL_OBJS:.F90=.obj)       #note the upper case here (from IceFloe)
+ALL_OBJS   := $(ALL_OBJS:.f=.obj)
 
 
    # Rule to do everything.

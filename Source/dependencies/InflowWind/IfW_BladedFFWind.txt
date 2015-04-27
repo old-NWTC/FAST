@@ -1,14 +1,14 @@
 ###################################################################################################################################
-# Registry for IfW_FFWind, creates MODULE IfW_FFWind_Types
-# Module IfW_FFWind_Types contains all of the user-defined types needed in IfW_FFWind. It also contains copy, destroy, pack, and
+# Registry for IfW_BladedFFWind, creates MODULE IfW_BladedFFWind_Types
+# Module IfW_BladedFFWind_Types contains all of the user-defined types needed in IfW_BladedFFWind. It also contains copy, destroy, pack, and
 # unpack routines associated with each defined data types.
 ###################################################################################################################################
-# File last committed: $Date: 2014-07-23 11:40:57 -0600 (Wed, 23 Jul 2014) $
-# (File) Revision #: $Rev: 115 $
-# URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/Registry/IfW_FFWind.txt $
+# File last committed: $Date: 2015-04-20 18:50:53 -0600 (Mon, 20 Apr 2015) $
+# (File) Revision #: $Rev: 163 $
+# URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization2/Source/Registry/IfW_BladedFFWind.txt $
 ###################################################################################################################################
 # Entries are of the form
-# keyword <IfW_FFWind[/ModuleAbvr]> <TypeName>   <FieldType>    <FieldName>  <Dims>  <Ctrl> <DNAME> <DESCRIP> <UNITS>
+# keyword <IfW_BladedFFWind[/ModuleAbvr]> <TypeName>   <FieldType>    <FieldName>  <Dims>  <Ctrl> <DNAME> <DESCRIP> <UNITS>
 ###################################################################################################################################
 
 include Registry_NWTC_Library.txt
@@ -16,25 +16,33 @@ include Registry_NWTC_Library.txt
 
 #########################
 
-typedef  IfW_FFWind/IfW_FFWind   InitInputType   CHARACTER(1024)  WindFileName      -     -     -     "Name of the wind file to use"                                 -
-typedef  ^                       ^                       ReKi     ReferenceHeight   -     -     -     "Hub height of the turbine"                                    meters
-typedef  ^                       ^                       ReKi     Width             -     -     -     "Width of the wind field to use"                               meters
+typedef  IfW_BladedFFWind/IfW_BladedFFWind   InitInputType   CHARACTER(1024)  WindFileName      -     -     -     "Name of the wind file to use"                                 -
+typedef  ^                       ^                       Logical  TowerFileExist    -     -     -     "Tower file exists"                                            -
+typedef  ^                       ^                       IntKi    SumFileUnit       -     -     -     "Unit number for the summary file (-1 for none).  Provided by IfW." -
 
 
 # Init Output
-typedef  ^                       InitOutputType  CHARACTER(10)    WriteOutputHdr    :     -     -     "Names of output-to-file channels"                             -
-typedef  ^                       ^               CHARACTER(10)    WriteOutputUnt    :     -     -     "Units of output-to-file channels"                             -
-typedef  ^                       ^                    ProgDesc    Ver               -     -     -     "Version information off FFWind submodule"                     -
-typedef  ^                       ^                       ReKi     HubHeight         -     -     -     "Height of the hub"                                            meters
+typedef  ^                       InitOutputType       ProgDesc    Ver               -     -     -     "Version information off FFWind submodule"                     -
+typedef  ^                       ^                       ReKi     TI                {3}   -     -     "Turbulence intensity given in the file"                       -
 
 
 # Define any data that are not considered actual states here:
 #   e.g. data used only for efficiency purposes (indices for searching in an array, copies of previous calculations of output
 #   at a given time, etc.)
 typedef  ^                       OtherStateType          IntKi    TimeIndex         -     0     -     "An Index into the TData array"                                -
+typedef  ^                       ^                       Logical  Initialized       -  .FALSE.  -     "Flag to indicate if the module was initialized"               -
+
+# ..... Parameters ................................................................................................................
+# Define parameters here:
+# Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
+typedef  ^                    ParameterType       CHARACTER(1024) WindFileName      -     -     -     "Name of the wind file to use"                                 -
+typedef  ^                       ^                       Logical  Periodic          -  .FALSE.  -     "Flag to indicate if the wind file is periodic"                -
+typedef  ^                       ^                       Logical  Linearize         -  .FALSE.  -     "If this is true, we are linearizing"                          -
+typedef  ^                       ^                       Logical  TowerDataExist    -  .FALSE.  -     "If true, we specified a tower file"                           -
+typedef  ^                       ^                       DbKi     DT                -     -     -     "Time step for cont. state integration & disc. state update"   seconds
+
 typedef  ^                       ^                       ReKi     FFData            ::::  -     -     "Array of FF data"                                             -
 typedef  ^                       ^                       ReKi     FFTower           :::   -     -     "Array of data along tower, below FF array"                    -
-typedef  ^                       ^                       IntKi    UnitWind          -     -     -     "Unit number for the wind file opened"                         -
 typedef  ^                       ^                       ReKi     FFDTime           -     0     -     "Delta time"                                                   seconds
 typedef  ^                       ^                       ReKi     FFRate            -     0     -     "Data rate (1/FFTime)"                                         Hertz
 typedef  ^                       ^                       ReKi     FFYHWid           -     0     -     "Half the grid width"                                          meters
@@ -52,32 +60,10 @@ typedef  ^                       ^                       IntKi    NFFSteps      
 typedef  ^                       ^                       IntKi    NYGrids           -     0     -     "Number of points in the lateral (y) direction of the grids"   -
 typedef  ^                       ^                       IntKi    NZGrids           -     0     -     "Number of points in the vertical (z) direction of the grids"  -
 typedef  ^                       ^                       IntKi    NTGrids           -     0     -     "Number of points in the vertical (z) direction on the tower (below the grids)"  -
-
-# ..... Parameters ................................................................................................................
-# Define parameters here:
-# Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
-typedef  ^                    ParameterType       CHARACTER(1024) WindFileName      -     -     -     "Name of the wind file to use"                                 -
-typedef  ^                       ^                       Logical  Initialized       -  .FALSE.  -     "Flag to indicate if the module was initialized"               -
-typedef  ^                       ^                       Logical  Periodic          -  .FALSE.  -     "Flag to indicate if the wind file is periodic"                -
-typedef  ^                       ^                       Logical  Linearize         -  .FALSE.  -     "If this is true, we are linearizing"                          -
-typedef  ^                       ^                       ReKi     ReferenceHeight   -     -     -     "Height of the hub"                                            meters
-typedef  ^                       ^                       ReKi     Width             -     -     -     "Width of the wind field"                                      meters
-typedef  ^                       ^                       DbKi     DT                -     -     -     "Time step for cont. state integration & disc. state update"   seconds
-
-
-
-# ..... Inputs ....................................................................................................................
-# Define inputs that are not on this mesh here:
-typedef  ^                    InputType                  ReKi     Position          ::    -     -     "Array holding the input positions at a given timestep"        meters
+typedef  ^                       ^                       IntKi    WindFileFormat    -     -     -     "Binary file format description number"                        -
 
 
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:
 typedef  ^                    OutputType                 ReKi     Velocity          ::    -     -     "Array holding the U,V,W velocity for a given timestep"        meters/sec
-
-
-
-# ..... States not used by this module ...................................................................................................................
-typedef  ^                    ContinuousStateType        ReKi     DummyContState    -     -     -     "Remove this variable if you have continuous states"           -
-typedef  ^                    DiscreteStateType          ReKi     DummyDiscState    -     -     -     "Remove this variable if you have discrete states"             -
-typedef  ^                    ConstraintStateType        ReKi     DummyConstrState  -     -     -     "Remove this variable if you have constraint states"           -
+typedef  ^                       ^                       ReKi     DiskVel           {3}   -     -     "Vector holding the U,V,W average velocity of the disk"        meters/sec

@@ -5963,7 +5963,7 @@ SUBROUTINE ReadBladeMeshFile( BladeKInputFileMesh, MeshFile, UnEc, ErrStat, ErrM
    ! structural dynamics input, we will get this information from AeroDyn like we
    ! used to.
 
-   DO I = 1,11
+   DO I = 1,9
       CALL ReadCom ( UnIn, MeshFile, 'AeroDyn input (for structural dynamics mesh)', ErrStat2, ErrMsg2  )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF ( ErrStat >= AbortErrLev ) RETURN

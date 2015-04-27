@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-14 14:23:46 -0600 (Tue, 14 Apr 2015) $
-! (File) Revision #: $Rev: 187 $
+! File last committed: $Date: 2015-04-27 14:13:02 -0600 (Mon, 27 Apr 2015) $
+! (File) Revision #: $Rev: 188 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/AeroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE AeroDyn
@@ -32,7 +32,7 @@ MODULE AeroDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: AD_Ver = ProgDesc( 'AeroDyn', 'v14.03.01a-bjj', '13-Mar-2015' )
+   TYPE(ProgDesc), PARAMETER            :: AD_Ver = ProgDesc( 'AeroDyn', 'v14.04.00a-bjj', '14-Apr-2015' )
 
       ! ..... Public Subroutines ............
 
@@ -157,24 +157,12 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
       CALL SetErrStat( ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,RoutineName)
       IF (ErrStat >= AbortErrLev ) RETURN 
 
-   p%WindFileName      = InitInp%WindFileName ! InitInp%WindFileName  gets set in AD_GetInput
-
 
       ! allocate variables for aerodyn forces
    p%LinearizeFlag     = .FALSE.
 
    Interval = p%DtAero
-   
-   !   IF ( ABS( InitInp%IfW_InitInputs%lidar,HubPosition(3) - p%Rotor%HH ) > 0.1*( InitInp%IfW_InitInputs%lidar,HubPosition(3) ) )  THEN  
-   !
-   !      CALL ProgWarn( ' The ElastoDyn hub height ('//TRIM(Num2LStr( InitInp%IfW_InitInputs%lidar,HubPosition(3) ))//') and AeroDyn input'// &
-   !                    ' reference hub height ('//TRIM(Num2LStr(p%Rotor%HH))//') differ by more than 10%.' )
-   !   ENDIF
-   
-   IF (.NOT. EqualRealNos( InitInp%IfW_InitInputs%lidar%HubPosition(3), p%Rotor%HH ) ) THEN
-      call SetErrStat( ErrID_Warn,'ElastoDyn and AeroDyn have different hub heights',ErrStat,ErrMess,RoutineName)      
-   END IF
-   
+      
 
    IF ( .NOT. ALLOCATED( o%StoredForces  )) THEN
       CALL AllocAry(O%StoredForces, 3,p%Element%NELM,p%NumBl,'O%StoredForces',ErrStatLcl,ErrMessLcl  )
@@ -420,41 +408,19 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
 
 
    !-------------------------------------------------------------------------------------------------
-   ! Initialize the wind inflow module
+   ! Initialize the inputs from the wind inflow module
    !-------------------------------------------------------------------------------------------------
-
-   InitInp%IfW_InitInputs%WindFileName = p%WindFileName
-   InitInp%IfW_InitInputs%ReferenceHeight = p%Rotor%HH
-   InitInp%IfW_InitInputs%Width = 2 * p%Blade%R
-   InitInp%IfW_InitInputs%WindFileType = DEFAULT_WindNumber
-
-!bjj: make sure p%Element%NElm, p%NumBl, and u%Twr_InputMarkers%Nnodes are set first
-
-   CALL IfW_Init( InitInp%IfW_InitInputs,   o%IfW_Inputs,    p%IfW_Params,                          &
-                     x%IfW_ContStates, xd%IfW_DiscStates,   z%IfW_ConstrStates,    O%IfW_OtherStates,   &
-                     y%IfW_Outputs,    Interval,  InitOut%IfW_InitOutput,   ErrStatLcl,    ErrMessLcl )
-
-   CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,RoutineName )
-   IF (ErrStat >= AbortErrLev) RETURN
-   
-   
-         ! Allocate the InflowWind derived types.  This is OK for now because InflowWind is being used as a submodule of AeroDyn.
-   IF (.NOT. ALLOCATED(o%IfW_Inputs%Position) ) THEN      
-      CALL AllocAry( o%IfW_Inputs%Position, 3, p%Element%NElm*p%NumBl + u%Twr_InputMarkers%Nnodes + 1, "position vectors to be sent to IfW_CalcOutput", ErrStatLcl, ErrMessLcl )
-         CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,RoutineName )
-         IF (ErrStat >= AbortErrLev) RETURN
-   END IF     
-   
+   CALL AllocAry( u%InflowVelocity, 3, p%Element%NElm*p%NumBl + u%Twr_InputMarkers%Nnodes, 'u%InflowVelocity', ErrStatLcl, ErrMessLcl )
+         CALL SetErrStat(ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,RoutineName )
+         IF ( ErrStat >= AbortErrLev )  RETURN
+   u%InflowVelocity = 0.0_ReKi
    
    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    ! Calling the DWM
    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    IF ( p%UseDWM ) THEN   
-      InitInp%DWM_InitInputs%IfW_InitInputs%WindFileName    = p%WindFileName
-      InitInp%DWM_InitInputs%IfW_InitInputs%ReferenceHeight = p%Rotor%HH
-      InitInp%DWM_InitInputs%IfW_InitInputs%Width           = 2 * p%Blade%R
-      InitInp%DWM_InitInputs%IfW_InitInputs%WindFileType    = DEFAULT_WindNumber !bjj: I also set this in DWM for future when we don't use InflowWind in AeroDyn
-   
+      ! InitInp%DWM_InitInputs%InputFileName is already set in FAST
+         
          ! bjj: all this stuff should be put in DWM_Init.....>
       p%DWM_Params%RR              = p%Blade%R
       p%DWM_Params%BNum            = p%NumBl
@@ -483,18 +449,17 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    ! BJJ: FIX THIS!!!!
    !-------------------------------------------------------------------------------------------------
 
-   IF (p%DynInfl) THEN
-
-      IF ( p%IfW_Params%WindFileType /= FF_WINDNumber ) THEN
-         CALL SetErrStat(ErrID_Info,'Dynamic inflow will not check for low mean wind speed.',ErrStat,ErrMess,RoutineName )
-         IF ( ErrStat >= AbortErrLev )  RETURN
-      ELSE IF ( O%IfW_OtherStates%FFWind%MeanFFWS  < 8.0 ) THEN
-         p%DynInfl = .FALSE.
-         CALL SetErrStat(ErrID_Info,'Estimated average wind speed in FF wind file is less than 8 m/s. Dynamic Inflow will be turned off.',ErrStat,ErrMess,RoutineName )
-         IF ( ErrStat >= AbortErrLev )  RETURN
-      END IF
-
-   ENDIF
+   ! BJJ: can't put this here b/c we need InitInp%MWS from InflowWind
+   !IF (p%DynInfl) THEN
+   !            
+   !   IF ( InitInp%MWS  < 8.0 ) THEN
+   !      p%DynInfl = .FALSE.
+   !      CALL SetErrStat(ErrID_Info,'Estimated average inflow wind speed is less than 8 m/s. Dynamic Inflow will be turned off.',ErrStat,ErrMess,RoutineName )
+   !      IF ( ErrStat >= AbortErrLev )  RETURN      
+   !   END IF
+   !
+   !ENDIF   
+   
 
    !-------------------------------------------------------------------------------------------------
    ! Set initial guesses for inputs:
@@ -699,8 +664,6 @@ SUBROUTINE AD_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMess )
       
       !--------------------------
 
-      CALL IfW_End(  OtherState%IfW_Inputs, p%IfW_Params, x%IfW_ContStates, xd%IfW_DiscStates, z%IfW_ConstrStates, &
-                     OtherState%IfW_OtherStates, y%IfW_Outputs, ErrStat, ErrMess )
 
          ! Close files here:
 
@@ -889,51 +852,6 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
    ENDIF
 
    
-      ! Fill input array for InflowWind
-      
-   Node = 0
-   DO IBlade = 1,p%NumBl
-      DO IElement = 1,p%Element%NElm      
-         Node = Node + 1
-         o%IfW_Inputs%Position(:,Node) = u%InputMarkers(IBlade)%Position(:,IElement)
-      END DO
-   END DO
-   
-   DO Node=1,u%Twr_InputMarkers%Nnodes
-      o%IfW_Inputs%Position(:,p%Element%NElm*p%NumBl + Node) = u%Twr_InputMarkers%TranslationDisp(:,Node) + u%Twr_InputMarkers%Position(:,Node)
-   END DO      
-   o%IfW_Inputs%Position(:,p%Element%NElm*p%NumBl+u%Twr_InputMarkers%Nnodes+1) = (/0.0_ReKi, 0.0_ReKi, p%Rotor%HH /)
-
-      ! Calculate the wind-speed inputs
-  
-   CALL IfW_CalcOutput( Time, o%IfW_Inputs, p%IfW_Params, &
-                           x%IfW_ContStates, xd%IfW_DiscStates, z%IfW_ConstrStates, O%IfW_OtherStates, &   ! States -- none in this case
-                           y%IfW_Outputs, ErrStatLcl, ErrMessLcl )
-
-   CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD_CalcOutput' )
-   IF (ErrStat >= AbortErrLev) THEN
-      CALL CleanUp()
-      RETURN
-   END IF
-
-   
-      ! set outputs from InflowWind
-      
-   if (.not. allocated( y%IfW_Outputs%WriteOutput ) ) then
-      CALL AllocAry( y%IfW_Outputs%WriteOutput,3 + min(5,p%IfW_Params%lidar%NumPulseGate), "y%IfW_Outputs%WriteOutput", ErrStatLcl, ErrMessLcl )
-         CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD_CalcOutput' )
-         IF (ErrStat >= AbortErrLev) THEN
-            CALL CleanUp()
-            RETURN
-         END IF   
-   end if
-
-   y%IfW_Outputs%WriteOutput(1:3) = y%IfW_Outputs%Velocity(:,p%Element%NElm*p%NumBl+u%Twr_InputMarkers%Nnodes+1)
-   do i=1,min(5,p%IfW_Params%lidar%NumPulseGate)
-      y%IfW_Outputs%WriteOutput(3+i) = y%IfW_Outputs%lidar%lidSpeed(i)
-   end do
-   
-
    !-------------------------------------------------------------------------------------------------
    ! Calculate the forces and moments for the blade: SUBROUTINE AeroFrcIntrface( FirstLoop, JElemt, DFN, DFT, PMA )
    !-------------------------------------------------------------------------------------------------
@@ -988,7 +906,7 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
    o%Rotor%AvgInfl = o%InducedVel%SumInfl * 2.0 / (p%Blade%R*p%Blade%R*p%NumBl)  ! Average inflow from the previous time step
    o%InducedVel%SumInfl = 0.0   ! reset to sum for the current time step
 
-   CALL DiskVel(Time, P, O, ErrStatLcl, ErrMessLcl)  ! Get a sort of "Average velocity" - sets a bunch of stored variables...
+   CALL DiskVel(Time, P, O, u%AvgInfVel, ErrStatLcl, ErrMessLcl)  ! Get a sort of "Average velocity" - sets a bunch of stored variables...
       CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD_CalcOutput/DiskVel' )
       IF (ErrStat >= AbortErrLev) THEN
          CALL CleanUp()
@@ -1059,7 +977,7 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
          Node = Node + 1
          VelocityVec(:)    = AD_WindVelocityWithDisturbance( Time, u, p, x, xd, z, O, y, ErrStatLcl, ErrMessLcl, &
                                                              u%InputMarkers(IBlade)%Position(:,IElement), &
-                                                             y%IfW_Outputs%Velocity(:,Node) )
+                                                             u%InflowVelocity(:,Node) )
             CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD_CalcOutput' )
             IF (ErrStat >= AbortErrLev) THEN
                CALL CleanUp()
@@ -1261,7 +1179,7 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
             ! Calculate the aerodynamic load on this tower node: TwrAeroLoads ( p, Node, NodeDCMGbl, NodeVelGbl, NodeWindVelGbl, NodeFrcGbl )
 
          CALL TwrAeroLoads ( p, Node, u%Twr_InputMarkers%Orientation(:,:,Node), u%Twr_InputMarkers%TranslationVel(:,Node) &
-                           , y%IfW_Outputs%Velocity(:,Node+p%NumBl*p%Element%NElm), y%Twr_OutputLoads%Force(:,Node) )
+                           , u%InflowVelocity(:,Node+p%NumBl*p%Element%NElm), y%Twr_OutputLoads%Force(:,Node) )
 
       END DO ! Node
 

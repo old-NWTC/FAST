@@ -24,6 +24,7 @@
 MODULE Lidar
 
    USE InflowWind_Subs
+   USE InflowWind_Types
    USE Lidar_Types
 
    IMPLICIT NONE
@@ -67,52 +68,39 @@ SUBROUTINE Lidar_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut
 ! note that we're calling this with the InflowWind data types, so that data is INOUT instead of OUT
 !..................................................................................................................................
 
-   TYPE(IfW_InitInputType),         INTENT(IN   )  :: InitInp     ! Input data for initialization routine
-   TYPE(IfW_InputType),             INTENT(INOUT)  :: u           ! An initial guess for the input; input mesh must be defined
-   TYPE(IfW_ParameterType),         INTENT(INOUT)  :: p           ! Parameters
-   TYPE(IfW_ContinuousStateType),   INTENT(INOUT)  :: x           ! Initial continuous states
-   TYPE(IfW_DiscreteStateType),     INTENT(INOUT)  :: xd          ! Initial discrete states
-   TYPE(IfW_ConstraintStateType),   INTENT(INOUT)  :: z           ! Initial guess of the constraint states
-   TYPE(IfW_OtherStateType),        INTENT(INOUT)  :: OtherState  ! Initial other/optimization states
-   TYPE(IfW_OutputType),            INTENT(INOUT)  :: y           ! Initial system outputs (outputs are not calculated;
-                                                                  !   only the output mesh is initialized)
-   REAL(DbKi),                      INTENT(IN )    :: Interval    ! Coupling interval in seconds: the rate that
-                                                                  !   (1) Lidar_UpdateStates() is called in loose coupling &
-                                                                  !   (2) Lidar_UpdateDiscState() is called in tight coupling.
-                                                                  !   Input is the suggested time from the glue code;
-                                                                  !   Output is the actual coupling interval that will be used
-                                                                  !   by the glue code.
-   TYPE(IfW_InitOutputType),        INTENT(INOUT)  :: InitOut     ! Output for initialization routine
-   INTEGER(IntKi),                  INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-   CHARACTER(*),                    INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-
-      ! local variables
-
-   INTEGER(IntKi)                                  :: ErrStat2       ! temporary Error status of the operation
-   CHARACTER(LEN(ErrMsg))                          :: ErrMsg2        ! temporary Error message if ErrStat /= ErrID_None
-
-   CHARACTER(*),   PARAMETER                       :: RoutineName = 'Lidar_Init'
-   
-   REAL(ReKi)                                      :: TempWindSpeed(3)
+   TYPE(InflowWind_InitInputType),        INTENT(IN   )  :: InitInp     ! Input data for initialization routine
+   TYPE(InflowWind_InputType),            INTENT(INOUT)  :: u           ! An initial guess for the input; input mesh must be defined
+   TYPE(InflowWind_ParameterType),        INTENT(INOUT)  :: p           ! Parameters
+   TYPE(InflowWind_ContinuousStateType),  INTENT(INOUT)  :: x           ! Initial continuous states
+   TYPE(InflowWind_DiscreteStateType),    INTENT(INOUT)  :: xd          ! Initial discrete states
+   TYPE(InflowWind_ConstraintStateType),  INTENT(INOUT)  :: z           ! Initial guess of the constraint states
+   TYPE(InflowWind_OtherStateType),       INTENT(INOUT)  :: OtherState  ! Initial other/optimization states
+   TYPE(InflowWind_OutputType),           INTENT(INOUT)  :: y           ! Initial system outputs (outputs are not calculated;
+                                                                        !   only the output mesh is initialized)
+   REAL(DbKi),                            INTENT(IN )    :: Interval    ! Coupling interval in seconds: the rate that
+                                                                        !   (1) Lidar_UpdateStates() is called in loose coupling &
+                                                                        !   (2) Lidar_UpdateDiscState() is called in tight coupling.
+                                                                        !   Input is the suggested time from the glue code;
+                                                                        !   Output is the actual coupling interval that will be used
+                                                                        !   by the glue code.
+   TYPE(InflowWind_InitOutputType),       INTENT(INOUT)  :: InitOut     ! Output for initialization routine
+   INTEGER(IntKi),                        INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+   CHARACTER(*),                          INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+                                          
+      ! local variables                   
+                                          
+   INTEGER(IntKi)                                        :: ErrStat2    ! temporary Error status of the operation
+   CHARACTER(LEN(ErrMsg))                                :: ErrMsg2     ! temporary Error message if ErrStat /= ErrID_None
+                                          
+   CHARACTER(*),   PARAMETER                             :: RoutineName = 'Lidar_Init'
+                                          
+   REAL(ReKi)                                            :: TempWindSpeed(3)
 
       ! Initialize variables
 
    ErrStat = ErrID_None
    ErrMsg  = ""
 
-      
-   !   ! Initialize the NWTC Subroutine Library
-   !
-   !CALL NWTC_Init( EchoLibVer=.FALSE. )
-
-      ! Display the module information
-
-   !CALL DispNVD( Lidar_Ver )
-
-      !............................................................................................      
-      ! Read the input file and validate the data
-      !............................................................................................      
-   !p%RootName = TRIM(InitInp%RootName)//'.'//Lidar_Nickname ! all of the output file names from this module will end with '.ModName'
       
       
       !............................................................................................
@@ -232,15 +220,15 @@ SUBROUTINE Lidar_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 ! This routine is called at the end of the simulation.
 !..................................................................................................................................
 
-      TYPE(IfW_InputType),             INTENT(INOUT)  :: u           ! System inputs
-      TYPE(IfW_ParameterType),         INTENT(INOUT)  :: p           ! Parameters
-      TYPE(IfW_ContinuousStateType),   INTENT(INOUT)  :: x           ! Continuous states
-      TYPE(IfW_DiscreteStateType),     INTENT(INOUT)  :: xd          ! Discrete states
-      TYPE(IfW_ConstraintStateType),   INTENT(INOUT)  :: z           ! Constraint states
-      TYPE(IfW_OtherStateType),        INTENT(INOUT)  :: OtherState  ! Other/optimization states
-      TYPE(IfW_OutputType),            INTENT(INOUT)  :: y           ! System outputs
-      INTEGER(IntKi),                  INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                    INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+      TYPE(InflowWind_InputType),            INTENT(INOUT)  :: u           ! System inputs
+      TYPE(InflowWind_ParameterType),        INTENT(INOUT)  :: p           ! Parameters
+      TYPE(InflowWind_ContinuousStateType),  INTENT(INOUT)  :: x           ! Continuous states
+      TYPE(InflowWind_DiscreteStateType),    INTENT(INOUT)  :: xd          ! Discrete states
+      TYPE(InflowWind_ConstraintStateType),  INTENT(INOUT)  :: z           ! Constraint states
+      TYPE(InflowWind_OtherStateType),       INTENT(INOUT)  :: OtherState  ! Other/optimization states
+      TYPE(InflowWind_OutputType),           INTENT(INOUT)  :: y           ! System outputs
+      INTEGER(IntKi),                        INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                          INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
 
 
@@ -285,45 +273,45 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 !    appropriate wind speeds for the lidar measurements. 
 !..................................................................................................................................
 
-   REAL(DbKi),                      INTENT(IN   )  :: t                    ! Current simulation time in seconds
-   TYPE(IfW_InputType),             INTENT(IN   )  :: u                    ! Inputs at t
-   TYPE(IfW_ParameterType),         INTENT(IN   )  :: p                    ! Parameters
-   TYPE(IfW_ContinuousStateType),   INTENT(IN   )  :: x                    ! Continuous states at t
-   TYPE(IfW_DiscreteStateType),     INTENT(IN   )  :: xd                   ! Discrete states at t
-   TYPE(IfW_ConstraintStateType),   INTENT(IN   )  :: z                    ! Constraint states at t
-   TYPE(IfW_OtherStateType),        INTENT(INOUT)  :: OtherState           ! Other/optimization states
-   TYPE(IfW_OutputType),            INTENT(INOUT)  :: y                    ! Outputs computed at t (Input only so that mesh con-
-                                                                           !   nectivity information does not have to be recalculated)
-   INTEGER(IntKi),                  INTENT(  OUT)  :: ErrStat              ! Error status of the operation
-   CHARACTER(*),                    INTENT(  OUT)  :: ErrMsg               ! Error message if ErrStat /= ErrID_None
+   REAL(DbKi),                            INTENT(IN   )  :: t                    ! Current simulation time in seconds
+   TYPE(InflowWind_InputType),            INTENT(IN   )  :: u                    ! Inputs at t
+   TYPE(InflowWind_ParameterType),        INTENT(IN   )  :: p                    ! Parameters
+   TYPE(InflowWind_ContinuousStateType),  INTENT(IN   )  :: x                    ! Continuous states at t
+   TYPE(InflowWind_DiscreteStateType),    INTENT(IN   )  :: xd                   ! Discrete states at t
+   TYPE(InflowWind_ConstraintStateType),  INTENT(IN   )  :: z                    ! Constraint states at t
+   TYPE(InflowWind_OtherStateType),       INTENT(INOUT)  :: OtherState           ! Other/optimization states
+   TYPE(InflowWind_OutputType),           INTENT(INOUT)  :: y                    ! Outputs computed at t (Input only so that mesh con-
+                                                                                 !   nectivity information does not have to be recalculated)
+   INTEGER(IntKi),                        INTENT(  OUT)  :: ErrStat              ! Error status of the operation
+   CHARACTER(*),                          INTENT(  OUT)  :: ErrMsg               ! Error message if ErrStat /= ErrID_None
 
       ! Local variables
             
-   REAL(ReKi)                                      :: FocDist              ! Focus Distance of the laser
-   REAL(ReKi)                                      :: FocDistMod           ! Focus Distance of the laser?
-   REAL(ReKi)                                      :: LidPhi               ! angle used with LidTheta to describe the direction the lidar is pointed
-   REAL(ReKi)                                      :: LidTheta             ! angle used with LidPhi to describe the direction the lidar is pointed
-   REAL(ReKi)                                      :: LidRange             ! lidar range
-                                                                           
-   REAL(ReKi)                                      :: WtFuncSum            ! sum of weight function, used to normalize summation to 1
-   REAL(ReKi)                                      :: LidWt                ! The weighting function value
-   REAL(ReKi)                                      :: LidWtMax             ! maximum weighting function value?
-   REAL(ReKi)                                      :: LidWtRatio           ! LidWt/LidWtMax
-   REAL(ReKi)                                      :: LidDirUnVec(3)       ! lidar look direction unit vector
-            
-   REAL(ReKi)                                      :: Distance(3)          ! distance vector between input measurement and lidar positions
+   REAL(ReKi)                                            :: FocDist              ! Focus Distance of the laser
+   REAL(ReKi)                                            :: FocDistMod           ! Focus Distance of the laser?
+   REAL(ReKi)                                            :: LidPhi               ! angle used with LidTheta to describe the direction the lidar is pointed
+   REAL(ReKi)                                            :: LidTheta             ! angle used with LidPhi to describe the direction the lidar is pointed
+   REAL(ReKi)                                            :: LidRange             ! lidar range
+                                                                                 
+   REAL(ReKi)                                            :: WtFuncSum            ! sum of weight function, used to normalize summation to 1
+   REAL(ReKi)                                            :: LidWt                ! The weighting function value
+   REAL(ReKi)                                            :: LidWtMax             ! maximum weighting function value?
+   REAL(ReKi)                                            :: LidWtRatio           ! LidWt/LidWtMax
+   REAL(ReKi)                                            :: LidDirUnVec(3)       ! lidar look direction unit vector
+                                                       
+   REAL(ReKi)                                            :: Distance(3)          ! distance vector between input measurement and lidar positions
    
-   TYPE(IfW_InputType)                             :: Input                ! position where wind speed should be returned
-   TYPE(IfW_OutputType)                            :: Output               ! velocity at Input%Position
+   TYPE(InflowWind_InputType)                            :: Input                ! position where wind speed should be returned
+   TYPE(InflowWind_OutputType)                           :: Output               ! velocity at Input%Position
    
-   REAL(ReKi)                                      :: OutputVelocity(3)
+   REAL(ReKi)                                            :: OutputVelocity(3)
    
       
-   INTEGER(IntKi)                                  :: IRangeGt
-   INTEGER(IntKi)                                  :: ErrStat2
-   CHARACTER(LEN(ErrMsg))                          :: ErrMsg2
-         
-   CHARACTER(*), PARAMETER                         :: RoutineName = 'Lidar_CalcOutput'
+   INTEGER(IntKi)                                        :: IRangeGt
+   INTEGER(IntKi)                                        :: ErrStat2
+   CHARACTER(LEN(ErrMsg))                                :: ErrMsg2
+                                                         
+   CHARACTER(*), PARAMETER                               :: RoutineName = 'Lidar_CalcOutput'
    
    
       ! Initialize ErrStat
@@ -335,10 +323,10 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    
       
       ! allocate arrays to compute outputs
-   CALL AllocAry(Input%Position, 3,1, 'Input%Position',ErrStat2, ErrMsg2)
+   CALL AllocAry(Input%PositionXYZ, 3,1, 'Input%PositionXYZ',ErrStat2, ErrMsg2)
       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
-   CALL AllocAry(Output%Velocity, 3,1, 'Output%Position',ErrStat2, ErrMsg2)
+   CALL AllocAry(Output%VelocityUVW, 3,1, 'Output%VelocityUVW',ErrStat2, ErrMsg2)
       CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       
    IF (ErrStat >= AbortErrLev) THEN
@@ -354,11 +342,11 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    IF (p%lidar%SensorType == SensorType_SinglePoint) THEN
       
       !get lidar speed at the focal point to see if it is out of bounds   
-      Input%Position(:,1) = u%lidar%MsrPosition      
-      CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, ErrStat2, ErrMsg2 )      
+      Input%PositionXYZ(:,1) = u%lidar%MsrPosition      
+      CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, .FALSE., ErrStat2, ErrMsg2 )      
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )                
       
-      y%lidar%LidSpeed = Output%Velocity(:,1)
+      y%lidar%LidSpeed = Output%VelocityUVW(:,1)
       y%lidar%WtTrunc  = 1.0_ReKi
          
    ELSEIF (p%lidar%SensorType == SensorType_ContinuousLidar) THEN
@@ -392,8 +380,8 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       LidWtRatio = 1.0_ReKi !LidWt/LidWtMax
    
       !get lidar speed at the focal point to see if it is out of bounds   
-      Input%Position(:,1) = u%lidar%MsrPosition      
-      CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, ErrStat2, ErrMsg2 )      
+      Input%PositionXYZ(:,1) = u%lidar%MsrPosition      
+      CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, .FALSE., ErrStat2, ErrMsg2 )      
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )                
     
          !if out of bounds
@@ -404,7 +392,7 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
          RETURN !escape function
       ENDIF
     
-      y%lidar%LidSpeed = LidWt*DOT_PRODUCT(-1*LidDirUnVec,Output%Velocity(:,1))
+      y%lidar%LidSpeed = LidWt*DOT_PRODUCT(-1*LidDirUnVec,Output%VelocityUVW(:,1))
     
       WtFuncSum = LidWt
       y%lidar%WtTrunc = p%lidar%WtFnTrunc
@@ -441,11 +429,11 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
           
           
          !calculate points to scan for current beam point
-         Input%Position(3,1) = u%lidar%LidPosition(3) + SIN(LidPhi)*(LidRange + FocDist)
-         Input%Position(1,1) = u%lidar%LidPosition(1) - COS(LidTheta)*COS(LidPhi)*(LidRange + FocDist)
-         Input%Position(2,1) = u%lidar%LidPosition(2) + SIN(LidTheta)*COS(LidPhi)*(LidRange + FocDist)                     
+         Input%PositionXYZ(3,1) = u%lidar%LidPosition(3) + SIN(LidPhi)*(LidRange + FocDist)
+         Input%PositionXYZ(1,1) = u%lidar%LidPosition(1) - COS(LidTheta)*COS(LidPhi)*(LidRange + FocDist)
+         Input%PositionXYZ(2,1) = u%lidar%LidPosition(2) + SIN(LidTheta)*COS(LidPhi)*(LidRange + FocDist)                     
           
-         CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, ErrStat2, ErrMsg2 )    
+         CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, .FALSE., ErrStat2, ErrMsg2 )    
             IF (ErrStat2 >= AbortErrLev ) THEN !out of bounds
                IF (NWTC_VerboseLevel == NWTC_Verbose) &
                   CALL SetErrStat( ErrID_Warn, "Lidar speed truncated. Truncation ratio is "//trim(num2lstr(LidWtRatio))//".", ErrStat, ErrMsg, RoutineName )
@@ -454,15 +442,15 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
                EXIT
             ENDIF
                 
-         OutputVelocity = Output%Velocity(:,1)
+         OutputVelocity = Output%VelocityUVW(:,1)
           
        
          !calculate points to scan for current beam point
-         Input%Position(3,1) = u%lidar%LidPosition(3) + SIN(LidPhi)*(FocDist - LidRange)
-         Input%Position(1,1) = u%lidar%LidPosition(1) - COS(LidTheta)*COS(LidPhi)*(FocDist - LidRange)
-         Input%Position(2,1) = u%lidar%LidPosition(2) + SIN(LidTheta)*COS(LidPhi)*(FocDist - LidRange)
+         Input%PositionXYZ(3,1) = u%lidar%LidPosition(3) + SIN(LidPhi)*(FocDist - LidRange)
+         Input%PositionXYZ(1,1) = u%lidar%LidPosition(1) - COS(LidTheta)*COS(LidPhi)*(FocDist - LidRange)
+         Input%PositionXYZ(2,1) = u%lidar%LidPosition(2) + SIN(LidTheta)*COS(LidPhi)*(FocDist - LidRange)
        
-         CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, ErrStat2, ErrMsg2 )      
+         CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, .FALSE., ErrStat2, ErrMsg2 )      
             IF (ErrStat2 >= AbortErrLev) THEN !out of bounds
                IF (NWTC_VerboseLevel == NWTC_Verbose) &
                   CALL SetErrStat( ErrID_Warn, "Lidar speed truncated. Truncation ratio is "//trim(num2lstr(LidWtRatio))//".", ErrStat, ErrMsg, RoutineName )
@@ -472,7 +460,7 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
             ENDIF
        
       
-         y%lidar%LidSpeed = y%lidar%LidSpeed + LidWt*DOT_PRODUCT(-1*LidDirUnVec, OutputVelocity + Output%Velocity(:,1))      
+         y%lidar%LidSpeed = y%lidar%LidSpeed + LidWt*DOT_PRODUCT(-1*LidDirUnVec, OutputVelocity + Output%VelocityUVW(:,1))      
          WtFuncSum = WtFuncSum + 2*LidWt
            
        
@@ -502,8 +490,8 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
          !y%lidar%LidErr(IRangeGt) = 0
    
          !get lidar speed at the focal point to see if it is out of bounds
-         Input%Position(:,1) = u%lidar%LidPosition + LidDirUnVec*(p%lidar%PulseRangeOne + (IRangeGt-1)*p%lidar%DeltaP)                 
-         CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, ErrStat2, ErrMsg2 )      
+         Input%PositionXYZ(:,1) = u%lidar%LidPosition + LidDirUnVec*(p%lidar%PulseRangeOne + (IRangeGt-1)*p%lidar%DeltaP)                 
+         CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, .FALSE., ErrStat2, ErrMsg2 )      
             CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
                 
          LidWt = NWTC_ERF((p%lidar%DeltaP/2)/p%lidar%r_p)/p%lidar%DeltaP        
@@ -519,7 +507,7 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
             RETURN !escape function
          ENDIF
         
-         y%lidar%LidSpeed(IRangeGt) = LidWt*DOT_PRODUCT(-1*LidDirUnVec,Output%Velocity(:,1))
+         y%lidar%LidSpeed(IRangeGt) = LidWt*DOT_PRODUCT(-1*LidDirUnVec,Output%VelocityUVW(:,1))
         
          WtFuncSum = LidWt
          y%lidar%WtTrunc(IRangeGt) = p%lidar%WtFnTrunc
@@ -552,8 +540,8 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
                                      
            
             !calculate points to scan for current beam point
-            Input%Position(:,1) = u%lidar%LidPosition + LidDirUnVec*(p%lidar%PulseRangeOne + (IRangeGt-1)*p%lidar%DeltaP + LidRange)              
-            CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, ErrStat2, ErrMsg2 )   
+            Input%PositionXYZ(:,1) = u%lidar%LidPosition + LidDirUnVec*(p%lidar%PulseRangeOne + (IRangeGt-1)*p%lidar%DeltaP + LidRange)              
+            CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, .FALSE., ErrStat2, ErrMsg2 )   
                IF (ErrStat2 >= AbortErrLev) THEN !out of bounds
                IF (NWTC_VerboseLevel == NWTC_Verbose) &
                   CALL SetErrStat( ErrID_Warn, "Lidar speed at gate "//trim(num2lstr(IRangeGt))//" truncated. Truncation ratio is "//trim(num2lstr(LidWtRatio))//".", ErrStat, ErrMsg, RoutineName )
@@ -561,11 +549,11 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
                   y%lidar%WtTrunc(IRangeGt) = LidWtRatio
                   EXIT
                ENDIF
-            OutputVelocity = Output%Velocity(:,1)
+            OutputVelocity = Output%VelocityUVW(:,1)
                                                                                
             !calculate points to scan for current beam point
-            Input%Position(:,1) = u%lidar%LidPosition + LidDirUnVec*(p%lidar%PulseRangeOne + (IRangeGt-1)*p%lidar%DeltaP - LidRange)    
-            CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, ErrStat2, ErrMsg2 )      
+            Input%PositionXYZ(:,1) = u%lidar%LidPosition + LidDirUnVec*(p%lidar%PulseRangeOne + (IRangeGt-1)*p%lidar%DeltaP - LidRange)    
+            CALL CalculateOutput( t, Input, p, x, xd, z, OtherState, Output, .FALSE., ErrStat2, ErrMsg2 )      
                IF (ErrStat2 >= AbortErrLev) THEN !out of bounds
                IF (NWTC_VerboseLevel == NWTC_Verbose) &
                   CALL SetErrStat( ErrID_Warn, "Lidar speed at gate "//trim(num2lstr(IRangeGt))//" truncated. Truncation ratio is "//trim(num2lstr(LidWtRatio))//".", ErrStat, ErrMsg, RoutineName )
@@ -575,7 +563,7 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
                ENDIF
            
            
-            y%lidar%LidSpeed(IRangeGt) = y%lidar%LidSpeed(IRangeGt) + LidWt*DOT_PRODUCT(-1*LidDirUnVec,Output%Velocity(:,1) + OutputVelocity)           
+            y%lidar%LidSpeed(IRangeGt) = y%lidar%LidSpeed(IRangeGt) + LidWt*DOT_PRODUCT(-1*LidDirUnVec,Output%VelocityUVW(:,1) + OutputVelocity)           
             WtFuncSum = WtFuncSum + 2*LidWt
            
          END DO
@@ -601,8 +589,8 @@ SUBROUTINE Lidar_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 CONTAINS
    SUBROUTINE Cleanup()
       
-      IF (ALLOCATED(Input%Position)) DEALLOCATE(Input%Position)
-      IF (ALLOCATED(Output%Velocity)) DEALLOCATE(Output%Velocity)
+      IF (ALLOCATED(Input%PositionXYZ)) DEALLOCATE(Input%PositionXYZ)
+      IF (ALLOCATED(Output%VelocityUVW)) DEALLOCATE(Output%VelocityUVW)
    
    END SUBROUTINE Cleanup
    

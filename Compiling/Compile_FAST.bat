@@ -32,10 +32,10 @@ IF "%INCLUDE%"=="" (
 rem we haven't called the compiler, yet
 
 IF /I "%1"=="64" ( ECHO %Lines% Using intel64 compiler %Lines%
-CALL "C:\Program Files (x86)\Intel\Composer XE 2011 SP1\bin\ipsxe-comp-vars.bat" intel64 vs2010
+CALL "C:\Program Files (x86)\Intel\Composer XE 2013 SP1\bin\ipsxe-comp-vars.bat" intel64 vs2013
 SET BITS=64
 ) ELSE ( ECHO  %Lines% Using ia32 compiler %Lines%
-call "C:\Program Files (x86)\Intel\Composer XE 2011 SP1\bin\ipsxe-comp-vars.bat" ia32 vs2010
+CALL "C:\Program Files (x86)\Intel\Composer XE 2013 SP1\bin\ipsxe-comp-vars.bat" ia32 vs2013
 SET BITS=32
 )
 
@@ -60,9 +60,7 @@ REM -- NOTE: do not use quotation marks around the path names!!!! --------------
 REM ----------------------------------------------------------------------------
 REM ----------------------------------------------------------------------------
 
-rem SET Registry=CALL Registry
 SET Registry=..\bin\Registry_win32.exe
-
 SET FAST_Loc=..\Source
 
 SET NWTC_Lib_Loc=%FAST_Loc%\dependencies\NWTC_Library
@@ -139,10 +137,14 @@ SET NWTC_SOURCES=^
 
 
 SET IfW_SOURCES=^
- "%IfW_Loc%\IFW_FFWind_Types.f90" ^
- "%IfW_Loc%\IFW_FFWind.f90" ^
- "%IfW_Loc%\IFW_HHWind_Types.f90"^
- "%IfW_Loc%\IFW_HHWind.f90" ^
+ "%IfW_Loc%\IFW_BladedFFWind_Types.f90" ^
+ "%IfW_Loc%\IFW_BladedFFWind.f90" ^
+ "%IfW_Loc%\IFW_TSFFWind_Types.f90" ^
+ "%IfW_Loc%\IFW_TSFFWind.f90" ^
+ "%IfW_Loc%\IFW_UniformWind_Types.f90"^
+ "%IfW_Loc%\IFW_UniformWind.f90" ^
+ "%IfW_Loc%\IFW_UserWind_Types.f90"^
+ "%IfW_Loc%\IFW_UserWind.f90" ^
  "%IfW_Loc%\Lidar_Types.f90"^
  "%IfW_Loc%\InflowWind_Types.f90"^
  "%IfW_Loc%\InflowWind_Subs.f90"^
@@ -294,8 +296,10 @@ CALL ::RunRegistry_fmt1 ServoDyn
 
 ECHO %Lines%
 SET CURR_LOC=%IfW_Loc%
-CALL :RunRegistry_IfW IfW_FFWind
-CALL :RunRegistry_IfW IfW_HHWind
+CALL :RunRegistry_IfW BladedFFWind
+CALL :RunRegistry_IfW TSFFWind
+CALL :RunRegistry_IfW UniformWind
+CALL :RunRegistry_IfW UserWind
 CALL :RunRegistry_IfW Lidar
 CALL :RunRegistry_IfW InflowWind
 

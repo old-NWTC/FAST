@@ -11,6 +11,7 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
       1E+06   UJacSclFact     - Scaling factor used in Jacobians (-)
 ---------------------- FEATURE SWITCHES AND FLAGS ------------------------------
           1   CompElast       - Compute structural dynamics (switch) {1=ElastoDyn; 2=ElastoDyn + BeamDyn for blades}
+          1   CompInflow      - Compute inflow wind velocities (switch) {0=still air; 1=InflowWind}
           1   CompAero        - Compute aerodynamic loads (switch) {0=None; 1=AeroDyn}
           1   CompServo       - Compute control and electrical-drive dynamics (switch) {0=None; 1=ServoDyn}
           0   CompHydro       - Compute hydrodynamic loads (switch) {0=None; 1=HydroDyn}
@@ -24,6 +25,7 @@ False         CompUserTwrLd   - Compute additional tower loading (flag) {false: 
 "unused"      BDBldFile(1)    - Name of file containing BeamDyn input parameters for blade 1 (quoted string)
 "unused"      BDBldFile(2)    - Name of file containing BeamDyn input parameters for blade 2 (quoted string)
 "unused"      BDBldFile(3)    - Name of file containing BeamDyn input parameters for blade 3 (quoted string)
+"AOC/Test06_InflowWind.dat"    InflowFile      - Name of file containing inflow wind input parameters (quoted string)
 "AOC/Test06_AD.ipt"    AeroFile        - Name of file containing aerodynamic input parameters (quoted string)
 "AOC/Test06_ServoDyn.dat"    ServoFile       - Name of file containing control and electrical-drive input parameters (quoted string)
 "unused"      HydroFile       - Name of file containing hydrodynamic input parameters (quoted string)
