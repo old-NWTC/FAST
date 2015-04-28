@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-27 14:13:02 -0600 (Mon, 27 Apr 2015) $
-! (File) Revision #: $Rev: 188 $
+! File last committed: $Date: 2015-04-28 14:10:42 -0600 (Tue, 28 Apr 2015) $
+! (File) Revision #: $Rev: 189 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/AeroSubs.f90 $
 !**********************************************************************************************************************************
 MODULE AeroSubs
@@ -534,16 +534,18 @@ SUBROUTINE AD_GetInput(InitInp, P, x, xd, z, O, y, ErrStat, ErrMess )
          END IF
 
       ELSE IF ( ErrStat < 0 ) THEN
-         CALL ProgWarn(' Error reading from line '//TRIM(Int2Lstr(IElm))//' of the AeroDyn element table.' )
 
          CALL ProgWarn( ' Premature end of file while reading line '//TRIM(Int2Lstr(IElm))// &
                      ' of the AeroDyn element table in file "'//TRIM(InitInp%ADFileName)//'."' )
          close(unin)
+         ErrStat = ErrID_Fatal
+         ErrMess = 'Error reading from line '//TRIM(Int2Lstr(IElm))//' of the AeroDyn element table.' )
          RETURN
       ELSE
-         CALL ProgWarn(' Error reading from line '//TRIM(Int2Lstr(IElm))// &
-                       ' of the AeroDyn element table in file "'//TRIM(InitInp%ADFileName)//'."' )
          close(unin)
+         ErrStat = ErrID_Fatal
+         ErrMess = 'Error reading from line '//TRIM(Int2Lstr(IElm))// &
+                       ' of the AeroDyn element table in file "'//TRIM(InitInp%ADFileName)//'."'
          RETURN
       END IF
 
