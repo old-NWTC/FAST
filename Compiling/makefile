@@ -58,11 +58,11 @@ endif
    # Name of compiler to use and flags to use.
 FC      = gfortran
 
-FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
-LDFLAGS = -O2 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware
+#FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
+#LDFLAGS = -O2 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware
 
-#FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -g -pg
-#LDFLAGS = -O0 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware -g -pg
+FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -g -pg
+LDFLAGS = -O0 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware -g -pg
 
 #-DDOUBLE_PRECISION
 
@@ -136,15 +136,19 @@ NETLIB_SOURCES=            \
 	slasrt2.f
 
 
-IfW_SOURCES =            \
-	IfW_FFWind_Types.f90  \
-	IfW_FFWind.f90        \
-	IfW_HHWind_Types.f90  \
-	IfW_HHWind.f90        \
-	InflowWind_Subs.f90   \
-	InflowWind_Types.f90  \
-	Lidar_Types.f90       \
-	Lidar.f90             \
+IfW_SOURCES =                  \
+	IfW_BladedFFWind_Types.f90  \
+	IfW_BladedFFWind.f90        \
+	IfW_TSFFWind_Types.f90      \
+	IfW_TSFFWind.f90            \
+	IfW_UniformWind_Types.f90   \
+	IfW_UniformWind.f90         \
+	IfW_UserWind_Types.f90      \
+	IfW_UserWind.f90            \
+	InflowWind_Subs.f90         \
+	InflowWind_Types.f90        \
+	Lidar_Types.f90             \
+	Lidar.f90                   \
 	InflowWind.f90
 
 AD_SOURCES =             \
@@ -397,15 +401,21 @@ fftpack4.1.obj:             SingPrec.obj
 
 
 #InflowWind dependency rules:
-IfW_HHWind_Types.obj:       NWTC_Library.obj  IfW_HHWind.txt
-IfW_HHWind.obj:             IfW_HHWind_Types.obj
-IfW_FFWind_Types.obj:       NWTC_Library.obj  IfW_FFWind.txt
-IfW_FFWind.obj:             IfW_FFWind_Types.obj
-InflowWind_Types.obj:       NWTC_Library.obj  IfW_FFWind_Types.obj  IfW_HHWind_Types.obj  Lidar_Types.obj InflowWind.txt
-InflowWind_Subs.obj:        InflowWind_Types.obj IfW_FFWind.obj  IfW_HHWind.obj
-Lidar_Types.obj:            NWTC_Library.obj  Lidar.txt
-Lidar.obj:                  Lidar_Types.obj   InflowWind_Subs.obj
-InflowWind.obj:             InflowWind_Subs.obj  Lidar.obj
+IfW_UniformWind_Types.obj:    NWTC_Library.obj IfW_UniformWind.txt
+IfW_IniformWind.obj:          NWTC_Library.obj IfW_UniformWind_Types.obj
+IfW_TSFFWind_Types.obj:       NWTC_Library.obj IfW_TSFFWind.txt
+IfW_TSFFWind.obj:             NWTC_Library.obj IfW_TSFFWind_Types.obj
+IfW_BladedFFWind_Types.obj:   NWTC_Library.obj IfW_BladedFFWind.txt
+IfW_BladedFFWind.obj:         NWTC_Library.obj IfW_BladedFFWind_Types.obj
+IfW_UserWind_Types.obj:       NWTC_Library.obj IfW_UserWind.txt
+IfW_UserWind.obj:             NWTC_Library.obj IfW_UserWind_Types.obj
+Lidar_Types.obj:              NWTC_Library.obj Lidar.txt
+Lidar.obj:                    NWTC_Library.obj Lidar_Types.obj InflowWind_Subs.obj
+InflowWind_Types.obj:         NWTC_Library.obj  IfW_UniformWind_Types.obj  \
+                                    IfW_TSFFWind_Types.obj IfW_BladedFFWind_Types.obj IfW_UserWind_Types.obj Lidar_Types.obj
+InflowWind_Subs.obj:          NWTC_Library.obj  InflowWind_Types.obj IfW_UniformWind.obj IfW_TSFFWind.obj IfW_BladedFFWind.obj IfW_UserWind.obj
+InflowWind.obj:               NWTC_Library.obj  InflowWind_Subs.obj Lidar.obj
+
 
 
 #AeroDyn dependency rules:
