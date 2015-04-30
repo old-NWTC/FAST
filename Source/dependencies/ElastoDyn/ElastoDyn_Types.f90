@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.06.01, 21-Apr-2015)
+! FAST Registry (v2.07.00, 28-Apr-2015)
 !*********************************************************************************************************************************
 ! ElastoDyn_Types
 !.................................................................................................................................
@@ -23445,7 +23445,7 @@ ENDIF
  END SUBROUTINE ED_UnPackOutput
 
 
- SUBROUTINE ED_Input_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )
+ SUBROUTINE ED_Input_ExtrapInterp(u, t, u_out, t_out, ErrStat, ErrMsg )
 !
 ! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
 ! values of u (which has values associated with times in t).  Order of the interpolation is given by the size of u
@@ -23461,17 +23461,64 @@ ENDIF
 !
 !..................................................................................................................................
 
- TYPE(ED_inputtype), INTENT(INOUT)  :: u(:)      ! Input at t1 > t2 > t3
- REAL(DbKi),         INTENT(IN   )  :: tin(:)      ! Times associated with the Inputs
- TYPE(ED_inputtype), INTENT(INOUT)  :: u_out     ! Input at tin_out
- REAL(DbKi),         INTENT(IN   )  :: tin_out     ! time to be extrap/interp'd to
- INTEGER(IntKi),     INTENT(  OUT)  :: ErrStat   ! Error status of the operation
- CHARACTER(*),       INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
+ TYPE(ED_InputType), INTENT(INOUT)  :: u(:) ! Input at t1 > t2 > t3
+ REAL(DbKi),                 INTENT(IN   )  :: t(:)           ! Times associated with the Inputs
+ TYPE(ED_InputType), INTENT(INOUT)  :: u_out ! Input at tin_out
+ REAL(DbKi),                 INTENT(IN   )  :: t_out           ! time to be extrap/interp'd to
+ INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat         ! Error status of the operation
+ CHARACTER(*),               INTENT(  OUT)  :: ErrMsg          ! Error message if ErrStat /= ErrID_None
    ! local variables
- REAL(DbKi) :: t(SIZE(tin))    ! Times associated with the Inputs
- REAL(DbKi) :: t_out           ! Time to which to be extrap/interpd
- INTEGER(IntKi)                 :: order    ! order of polynomial fit (max 2)
- CHARACTER(*),    PARAMETER :: RoutineName = 'ED_Input_ExtrapInterp'
+ INTEGER(IntKi)                             :: order           ! order of polynomial fit (max 2)
+ INTEGER(IntKi)                             :: ErrStat2        ! local errors
+ CHARACTER(1024)                            :: ErrMsg2         ! local errors
+ CHARACTER(*),    PARAMETER                 :: RoutineName = 'ED_Input_ExtrapInterp'
+    ! Initialize ErrStat
+ ErrStat = ErrID_None
+ ErrMsg  = ""
+ if ( size(t) .ne. size(u)) then
+    CALL SetErrStat(ErrID_Fatal,'size(t) must equal size(u)',ErrStat,ErrMsg,RoutineName)
+    RETURN
+ endif
+ order = SIZE(u) - 1
+ IF ( order .eq. 0 ) THEN
+   CALL ED_CopyInput(u(1), u_out, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE IF ( order .eq. 1 ) THEN
+   CALL ED_Input_ExtrapInterp1(u(1), u(2), t, u_out, t_out, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE IF ( order .eq. 2 ) THEN
+   CALL ED_Input_ExtrapInterp2(u(1), u(2), u(3), t, u_out, t_out, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE 
+   CALL SetErrStat(ErrID_Fatal,'size(u) must be less than 4 (order must be less than 3).',ErrStat,ErrMsg,RoutineName)
+   RETURN
+ ENDIF 
+ END SUBROUTINE ED_Input_ExtrapInterp
+
+
+ SUBROUTINE ED_Input_ExtrapInterp1(u1, u2, tin, u_out, tin_out, ErrStat, ErrMsg )
+!
+! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
+! values of u (which has values associated with times in t).  Order of the interpolation is 1.
+!
+!  f(t) = a + b * t, or
+!
+!  where a and b are determined as the solution to
+!  f(t1) = u1, f(t2) = u2
+!
+!..................................................................................................................................
+
+ TYPE(ED_InputType), INTENT(INOUT)  :: u1    ! Input at t1 > t2
+ TYPE(ED_InputType), INTENT(INOUT)  :: u2    ! Input at t2 
+ REAL(DbKi),         INTENT(IN   )          :: tin(2)   ! Times associated with the Inputs
+ TYPE(ED_InputType), INTENT(INOUT)  :: u_out ! Input at tin_out
+ REAL(DbKi),         INTENT(IN   )          :: tin_out  ! time to be extrap/interp'd to
+ INTEGER(IntKi),     INTENT(  OUT)          :: ErrStat  ! Error status of the operation
+ CHARACTER(*),       INTENT(  OUT)          :: ErrMsg   ! Error message if ErrStat /= ErrID_None
+   ! local variables
+ REAL(DbKi)                                 :: t(2)     ! Times associated with the Inputs
+ REAL(DbKi)                                 :: t_out    ! Time to which to be extrap/interpd
+ CHARACTER(*),                    PARAMETER :: RoutineName = 'ED_Input_ExtrapInterp1'
  REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
@@ -23491,173 +23538,163 @@ ENDIF
  t = tin - tin(1)
  t_out = tin_out - tin(1)
 
- if ( size(t) .ne. size(u)) then
-    ErrStat = ErrID_Fatal
-    ErrMsg = ' Error in ED_Input_ExtrapInterp: size(t) must equal size(u) '
-    RETURN
- endif
- if (size(u) .gt. 3) then
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ED_Input_ExtrapInterp: size(u) must be less than 4 '
-    RETURN
- endif
- order = SIZE(u) - 1
- IF ( order .eq. 0 ) THEN
-IF (ALLOCATED(u_out%BladeLn2Mesh) .AND. ALLOCATED(u(1)%BladeLn2Mesh)) THEN
+   IF ( EqualRealNos( t(1), t(2) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   END IF
+IF (ALLOCATED(u_out%BladeLn2Mesh) .AND. ALLOCATED(u1%BladeLn2Mesh)) THEN
   DO i01 = LBOUND(u_out%BladeLn2Mesh,1),UBOUND(u_out%BladeLn2Mesh,1)
-  CALL MeshCopy(u(1)%BladeLn2Mesh(i01), u_out%BladeLn2Mesh(i01), MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  ENDDO
+      CALL MeshExtrapInterp1(u1%BladeLn2Mesh(i01), u2%BladeLn2Mesh(i01), tin, u_out%BladeLn2Mesh(i01), tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+   ENDDO
 END IF ! check if allocated
-  CALL MeshCopy(u(1)%PlatformPtMesh, u_out%PlatformPtMesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshCopy(u(1)%TowerLn2Mesh, u_out%TowerLn2Mesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshCopy(u(1)%NacelleLoads, u_out%NacelleLoads, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-IF (ALLOCATED(u_out%TwrAddedMass) .AND. ALLOCATED(u(1)%TwrAddedMass)) THEN
-  u_out%TwrAddedMass = u(1)%TwrAddedMass
-END IF ! check if allocated
-  u_out%PtfmAddedMass = u(1)%PtfmAddedMass
-IF (ALLOCATED(u_out%BlPitchCom) .AND. ALLOCATED(u(1)%BlPitchCom)) THEN
-  u_out%BlPitchCom = u(1)%BlPitchCom
-END IF ! check if allocated
-  u_out%YawMom = u(1)%YawMom
-  u_out%GenTrq = u(1)%GenTrq
-  u_out%HSSBrTrqC = u(1)%HSSBrTrqC
- ELSE IF ( order .eq. 1 ) THEN
-  IF ( EqualRealNos( t(1), t(2) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ED_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-IF (ALLOCATED(u_out%BladeLn2Mesh) .AND. ALLOCATED(u(1)%BladeLn2Mesh)) THEN
-  DO i01 = LBOUND(u_out%BladeLn2Mesh,1),UBOUND(u_out%BladeLn2Mesh,1)
-  CALL MeshExtrapInterp1(u(1)%BladeLn2Mesh(i01), u(2)%BladeLn2Mesh(i01), tin, u_out%BladeLn2Mesh(i01), tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  ENDDO
-END IF ! check if allocated
-  CALL MeshExtrapInterp1(u(1)%PlatformPtMesh, u(2)%PlatformPtMesh, tin, u_out%PlatformPtMesh, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp1(u(1)%TowerLn2Mesh, u(2)%TowerLn2Mesh, tin, u_out%TowerLn2Mesh, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp1(u(1)%NacelleLoads, u(2)%NacelleLoads, tin, u_out%NacelleLoads, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-IF (ALLOCATED(u_out%TwrAddedMass) .AND. ALLOCATED(u(1)%TwrAddedMass)) THEN
+      CALL MeshExtrapInterp1(u1%PlatformPtMesh, u2%PlatformPtMesh, tin, u_out%PlatformPtMesh, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp1(u1%TowerLn2Mesh, u2%TowerLn2Mesh, tin, u_out%TowerLn2Mesh, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp1(u1%NacelleLoads, u2%NacelleLoads, tin, u_out%NacelleLoads, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+IF (ALLOCATED(u_out%TwrAddedMass) .AND. ALLOCATED(u1%TwrAddedMass)) THEN
   ALLOCATE(b3(SIZE(u_out%TwrAddedMass,1),SIZE(u_out%TwrAddedMass,2), &
               SIZE(u_out%TwrAddedMass,3)                     ))
   ALLOCATE(c3(SIZE(u_out%TwrAddedMass,1),SIZE(u_out%TwrAddedMass,2), &
               SIZE(u_out%TwrAddedMass,3)                     ))
-  b3 = -(u(1)%TwrAddedMass - u(2)%TwrAddedMass)/t(2)
-  u_out%TwrAddedMass = u(1)%TwrAddedMass + b3 * t_out
+  b3 = -(u1%TwrAddedMass - u2%TwrAddedMass)/t(2)
+  u_out%TwrAddedMass = u1%TwrAddedMass + b3 * t_out
   DEALLOCATE(b3)
   DEALLOCATE(c3)
 END IF ! check if allocated
   ALLOCATE(b2(SIZE(u_out%PtfmAddedMass,1),SIZE(u_out%PtfmAddedMass,2) ))
   ALLOCATE(c2(SIZE(u_out%PtfmAddedMass,1),SIZE(u_out%PtfmAddedMass,2) ))
-  b2 = -(u(1)%PtfmAddedMass - u(2)%PtfmAddedMass)/t(2)
-  u_out%PtfmAddedMass = u(1)%PtfmAddedMass + b2 * t_out
+  b2 = -(u1%PtfmAddedMass - u2%PtfmAddedMass)/t(2)
+  u_out%PtfmAddedMass = u1%PtfmAddedMass + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
-IF (ALLOCATED(u_out%BlPitchCom) .AND. ALLOCATED(u(1)%BlPitchCom)) THEN
+IF (ALLOCATED(u_out%BlPitchCom) .AND. ALLOCATED(u1%BlPitchCom)) THEN
   ALLOCATE(b1(SIZE(u_out%BlPitchCom,1)))
   ALLOCATE(c1(SIZE(u_out%BlPitchCom,1)))
-  b1 = -(u(1)%BlPitchCom - u(2)%BlPitchCom)/t(2)
-  u_out%BlPitchCom = u(1)%BlPitchCom + b1 * t_out
+  b1 = -(u1%BlPitchCom - u2%BlPitchCom)/t(2)
+  u_out%BlPitchCom = u1%BlPitchCom + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-  b0 = -(u(1)%YawMom - u(2)%YawMom)/t(2)
-  u_out%YawMom = u(1)%YawMom + b0 * t_out
-  b0 = -(u(1)%GenTrq - u(2)%GenTrq)/t(2)
-  u_out%GenTrq = u(1)%GenTrq + b0 * t_out
-  b0 = -(u(1)%HSSBrTrqC - u(2)%HSSBrTrqC)/t(2)
-  u_out%HSSBrTrqC = u(1)%HSSBrTrqC + b0 * t_out
- ELSE IF ( order .eq. 2 ) THEN
-  IF ( EqualRealNos( t(1), t(2) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ED_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-  IF ( EqualRealNos( t(2), t(3) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ED_Input_ExtrapInterp: t(2) must not equal t(3) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-  IF ( EqualRealNos( t(1), t(3) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ED_Input_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-IF (ALLOCATED(u_out%BladeLn2Mesh) .AND. ALLOCATED(u(1)%BladeLn2Mesh)) THEN
+  b0 = -(u1%YawMom - u2%YawMom)/t(2)
+  u_out%YawMom = u1%YawMom + b0 * t_out
+  b0 = -(u1%GenTrq - u2%GenTrq)/t(2)
+  u_out%GenTrq = u1%GenTrq + b0 * t_out
+  b0 = -(u1%HSSBrTrqC - u2%HSSBrTrqC)/t(2)
+  u_out%HSSBrTrqC = u1%HSSBrTrqC + b0 * t_out
+ END SUBROUTINE ED_Input_ExtrapInterp1
+
+
+ SUBROUTINE ED_Input_ExtrapInterp2(u1, u2, u3, tin, u_out, tin_out, ErrStat, ErrMsg )
+!
+! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
+! values of u (which has values associated with times in t).  Order of the interpolation is 2.
+!
+!  expressions below based on either
+!
+!  f(t) = a + b * t + c * t**2
+!
+!  where a, b and c are determined as the solution to
+!  f(t1) = u1, f(t2) = u2, f(t3) = u3
+!
+!..................................................................................................................................
+
+ TYPE(ED_InputType), INTENT(INOUT)  :: u1      ! Input at t1 > t2 > t3
+ TYPE(ED_InputType), INTENT(INOUT)  :: u2      ! Input at t2 > t3
+ TYPE(ED_InputType), INTENT(INOUT)  :: u3      ! Input at t3
+ REAL(DbKi),                 INTENT(IN   )  :: tin(3)    ! Times associated with the Inputs
+ TYPE(ED_InputType), INTENT(INOUT)  :: u_out     ! Input at tin_out
+ REAL(DbKi),                 INTENT(IN   )  :: tin_out   ! time to be extrap/interp'd to
+ INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat   ! Error status of the operation
+ CHARACTER(*),               INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
+   ! local variables
+ REAL(DbKi)                                 :: t(3)      ! Times associated with the Inputs
+ REAL(DbKi)                                 :: t_out     ! Time to which to be extrap/interpd
+ INTEGER(IntKi)                             :: order     ! order of polynomial fit (max 2)
+ REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
+ REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: c1       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: b2       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: c2       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: b3       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: c3       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
+ CHARACTER(*),            PARAMETER         :: RoutineName = 'ED_Input_ExtrapInterp2'
+ INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
+    ! Initialize ErrStat
+ ErrStat = ErrID_None
+ ErrMsg  = ""
+    ! we'll subtract a constant from the times to resolve some 
+    ! numerical issues when t gets large (and to simplify the equations)
+ t = tin - tin(1)
+ t_out = tin_out - tin(1)
+
+   IF ( EqualRealNos( t(1), t(2) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   ELSE IF ( EqualRealNos( t(2), t(3) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(2) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   ELSE IF ( EqualRealNos( t(1), t(3) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   END IF
+IF (ALLOCATED(u_out%BladeLn2Mesh) .AND. ALLOCATED(u1%BladeLn2Mesh)) THEN
   DO i01 = LBOUND(u_out%BladeLn2Mesh,1),UBOUND(u_out%BladeLn2Mesh,1)
-  CALL MeshExtrapInterp2(u(1)%BladeLn2Mesh(i01), u(2)%BladeLn2Mesh(i01), u(3)%BladeLn2Mesh(i01), tin, u_out%BladeLn2Mesh(i01), tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  ENDDO
+      CALL MeshExtrapInterp2(u1%BladeLn2Mesh(i01), u2%BladeLn2Mesh(i01), u3%BladeLn2Mesh(i01), tin, u_out%BladeLn2Mesh(i01), tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+   ENDDO
 END IF ! check if allocated
-  CALL MeshExtrapInterp2(u(1)%PlatformPtMesh, u(2)%PlatformPtMesh, u(3)%PlatformPtMesh, tin, u_out%PlatformPtMesh, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp2(u(1)%TowerLn2Mesh, u(2)%TowerLn2Mesh, u(3)%TowerLn2Mesh, tin, u_out%TowerLn2Mesh, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp2(u(1)%NacelleLoads, u(2)%NacelleLoads, u(3)%NacelleLoads, tin, u_out%NacelleLoads, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-IF (ALLOCATED(u_out%TwrAddedMass) .AND. ALLOCATED(u(1)%TwrAddedMass)) THEN
+      CALL MeshExtrapInterp2(u1%PlatformPtMesh, u2%PlatformPtMesh, u3%PlatformPtMesh, tin, u_out%PlatformPtMesh, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp2(u1%TowerLn2Mesh, u2%TowerLn2Mesh, u3%TowerLn2Mesh, tin, u_out%TowerLn2Mesh, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp2(u1%NacelleLoads, u2%NacelleLoads, u3%NacelleLoads, tin, u_out%NacelleLoads, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+IF (ALLOCATED(u_out%TwrAddedMass) .AND. ALLOCATED(u1%TwrAddedMass)) THEN
   ALLOCATE(b3(SIZE(u_out%TwrAddedMass,1),SIZE(u_out%TwrAddedMass,2), &
               SIZE(u_out%TwrAddedMass,3)                     ))
   ALLOCATE(c3(SIZE(u_out%TwrAddedMass,1),SIZE(u_out%TwrAddedMass,2), &
               SIZE(u_out%TwrAddedMass,3)                     ))
-  b3 = (t(3)**2*(u(1)%TwrAddedMass - u(2)%TwrAddedMass) + t(2)**2*(-u(1)%TwrAddedMass + u(3)%TwrAddedMass))/(t(2)*t(3)*(t(2) - t(3)))
-  c3 = ( (t(2)-t(3))*u(1)%TwrAddedMass + t(3)*u(2)%TwrAddedMass - t(2)*u(3)%TwrAddedMass ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TwrAddedMass = u(1)%TwrAddedMass + b3 * t_out + c3 * t_out**2
+  b3 = (t(3)**2*(u1%TwrAddedMass - u2%TwrAddedMass) + t(2)**2*(-u1%TwrAddedMass + u3%TwrAddedMass))/(t(2)*t(3)*(t(2) - t(3)))
+  c3 = ( (t(2)-t(3))*u1%TwrAddedMass + t(3)*u2%TwrAddedMass - t(2)*u3%TwrAddedMass ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TwrAddedMass = u1%TwrAddedMass + b3 * t_out + c3 * t_out**2
   DEALLOCATE(b3)
   DEALLOCATE(c3)
 END IF ! check if allocated
   ALLOCATE(b2(SIZE(u_out%PtfmAddedMass,1),SIZE(u_out%PtfmAddedMass,2) ))
   ALLOCATE(c2(SIZE(u_out%PtfmAddedMass,1),SIZE(u_out%PtfmAddedMass,2) ))
-  b2 = (t(3)**2*(u(1)%PtfmAddedMass - u(2)%PtfmAddedMass) + t(2)**2*(-u(1)%PtfmAddedMass + u(3)%PtfmAddedMass))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%PtfmAddedMass + t(3)*u(2)%PtfmAddedMass - t(2)*u(3)%PtfmAddedMass ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%PtfmAddedMass = u(1)%PtfmAddedMass + b2 * t_out + c2 * t_out**2
+  b2 = (t(3)**2*(u1%PtfmAddedMass - u2%PtfmAddedMass) + t(2)**2*(-u1%PtfmAddedMass + u3%PtfmAddedMass))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*u1%PtfmAddedMass + t(3)*u2%PtfmAddedMass - t(2)*u3%PtfmAddedMass ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%PtfmAddedMass = u1%PtfmAddedMass + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
-IF (ALLOCATED(u_out%BlPitchCom) .AND. ALLOCATED(u(1)%BlPitchCom)) THEN
+IF (ALLOCATED(u_out%BlPitchCom) .AND. ALLOCATED(u1%BlPitchCom)) THEN
   ALLOCATE(b1(SIZE(u_out%BlPitchCom,1)))
   ALLOCATE(c1(SIZE(u_out%BlPitchCom,1)))
-  b1 = (t(3)**2*(u(1)%BlPitchCom - u(2)%BlPitchCom) + t(2)**2*(-u(1)%BlPitchCom + u(3)%BlPitchCom))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%BlPitchCom + t(3)*u(2)%BlPitchCom - t(2)*u(3)%BlPitchCom ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%BlPitchCom = u(1)%BlPitchCom + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%BlPitchCom - u2%BlPitchCom) + t(2)**2*(-u1%BlPitchCom + u3%BlPitchCom))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%BlPitchCom + t(3)*u2%BlPitchCom - t(2)*u3%BlPitchCom ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%BlPitchCom = u1%BlPitchCom + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-  b0 = (t(3)**2*(u(1)%YawMom - u(2)%YawMom) + t(2)**2*(-u(1)%YawMom + u(3)%YawMom))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*u(1)%YawMom + t(3)*u(2)%YawMom - t(2)*u(3)%YawMom ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%YawMom = u(1)%YawMom + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(u(1)%GenTrq - u(2)%GenTrq) + t(2)**2*(-u(1)%GenTrq + u(3)%GenTrq))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*u(1)%GenTrq + t(3)*u(2)%GenTrq - t(2)*u(3)%GenTrq ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%GenTrq = u(1)%GenTrq + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(u(1)%HSSBrTrqC - u(2)%HSSBrTrqC) + t(2)**2*(-u(1)%HSSBrTrqC + u(3)%HSSBrTrqC))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*u(1)%HSSBrTrqC + t(3)*u(2)%HSSBrTrqC - t(2)*u(3)%HSSBrTrqC ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%HSSBrTrqC = u(1)%HSSBrTrqC + b0 * t_out + c0 * t_out**2
- ELSE 
-   ErrStat = ErrID_Fatal
-   ErrMsg = ' order must be less than 3 in ED_Input_ExtrapInterp '
-   RETURN
- ENDIF 
- END SUBROUTINE ED_Input_ExtrapInterp
+  b0 = (t(3)**2*(u1%YawMom - u2%YawMom) + t(2)**2*(-u1%YawMom + u3%YawMom))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*u1%YawMom + t(3)*u2%YawMom - t(2)*u3%YawMom ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%YawMom = u1%YawMom + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(u1%GenTrq - u2%GenTrq) + t(2)**2*(-u1%GenTrq + u3%GenTrq))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*u1%GenTrq + t(3)*u2%GenTrq - t(2)*u3%GenTrq ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%GenTrq = u1%GenTrq + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(u1%HSSBrTrqC - u2%HSSBrTrqC) + t(2)**2*(-u1%HSSBrTrqC + u3%HSSBrTrqC))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*u1%HSSBrTrqC + t(3)*u2%HSSBrTrqC - t(2)*u3%HSSBrTrqC ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%HSSBrTrqC = u1%HSSBrTrqC + b0 * t_out + c0 * t_out**2
+ END SUBROUTINE ED_Input_ExtrapInterp2
 
 
- SUBROUTINE ED_Output_ExtrapInterp(y, tin, y_out, tin_out, ErrStat, ErrMsg )
+ SUBROUTINE ED_Output_ExtrapInterp(y, t, y_out, t_out, ErrStat, ErrMsg )
 !
 ! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
 ! values of y (which has values associated with times in t).  Order of the interpolation is given by the size of y
@@ -23673,17 +23710,64 @@ END IF ! check if allocated
 !
 !..................................................................................................................................
 
- TYPE(ED_outputtype), INTENT(INOUT)  :: y(:)      ! Output at t1 > t2 > t3
- REAL(DbKi),         INTENT(IN   )  :: tin(:)      ! Times associated with the Outputs
- TYPE(ED_outputtype), INTENT(INOUT)  :: y_out     ! Output at tin_out
- REAL(DbKi),         INTENT(IN   )  :: tin_out     ! time to be extrap/interp'd to
- INTEGER(IntKi),     INTENT(  OUT)  :: ErrStat   ! Error status of the operation
- CHARACTER(*),       INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
+ TYPE(ED_OutputType), INTENT(INOUT)  :: y(:) ! Output at t1 > t2 > t3
+ REAL(DbKi),                 INTENT(IN   )  :: t(:)           ! Times associated with the Outputs
+ TYPE(ED_OutputType), INTENT(INOUT)  :: y_out ! Output at tin_out
+ REAL(DbKi),                 INTENT(IN   )  :: t_out           ! time to be extrap/interp'd to
+ INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat         ! Error status of the operation
+ CHARACTER(*),               INTENT(  OUT)  :: ErrMsg          ! Error message if ErrStat /= ErrID_None
    ! local variables
- REAL(DbKi) :: t(SIZE(tin))    ! Times associated with the Outputs
- REAL(DbKi) :: t_out           ! Time to which to be extrap/interpd
- INTEGER(IntKi)                 :: order    ! order of polynomial fit (max 2)
- CHARACTER(*),    PARAMETER :: RoutineName = 'ED_Output_ExtrapInterp'
+ INTEGER(IntKi)                             :: order           ! order of polynomial fit (max 2)
+ INTEGER(IntKi)                             :: ErrStat2        ! local errors
+ CHARACTER(1024)                            :: ErrMsg2         ! local errors
+ CHARACTER(*),    PARAMETER                 :: RoutineName = 'ED_Output_ExtrapInterp'
+    ! Initialize ErrStat
+ ErrStat = ErrID_None
+ ErrMsg  = ""
+ if ( size(t) .ne. size(y)) then
+    CALL SetErrStat(ErrID_Fatal,'size(t) must equal size(y)',ErrStat,ErrMsg,RoutineName)
+    RETURN
+ endif
+ order = SIZE(y) - 1
+ IF ( order .eq. 0 ) THEN
+   CALL ED_CopyOutput(y(1), y_out, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE IF ( order .eq. 1 ) THEN
+   CALL ED_Output_ExtrapInterp1(y(1), y(2), t, y_out, t_out, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE IF ( order .eq. 2 ) THEN
+   CALL ED_Output_ExtrapInterp2(y(1), y(2), y(3), t, y_out, t_out, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE 
+   CALL SetErrStat(ErrID_Fatal,'size(y) must be less than 4 (order must be less than 3).',ErrStat,ErrMsg,RoutineName)
+   RETURN
+ ENDIF 
+ END SUBROUTINE ED_Output_ExtrapInterp
+
+
+ SUBROUTINE ED_Output_ExtrapInterp1(y1, y2, tin, y_out, tin_out, ErrStat, ErrMsg )
+!
+! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
+! values of y (which has values associated with times in t).  Order of the interpolation is 1.
+!
+!  f(t) = a + b * t, or
+!
+!  where a and b are determined as the solution to
+!  f(t1) = y1, f(t2) = y2
+!
+!..................................................................................................................................
+
+ TYPE(ED_OutputType), INTENT(INOUT)  :: y1    ! Output at t1 > t2
+ TYPE(ED_OutputType), INTENT(INOUT)  :: y2    ! Output at t2 
+ REAL(DbKi),         INTENT(IN   )          :: tin(2)   ! Times associated with the Outputs
+ TYPE(ED_OutputType), INTENT(INOUT)  :: y_out ! Output at tin_out
+ REAL(DbKi),         INTENT(IN   )          :: tin_out  ! time to be extrap/interp'd to
+ INTEGER(IntKi),     INTENT(  OUT)          :: ErrStat  ! Error status of the operation
+ CHARACTER(*),       INTENT(  OUT)          :: ErrMsg   ! Error message if ErrStat /= ErrID_None
+   ! local variables
+ REAL(DbKi)                                 :: t(2)     ! Times associated with the Outputs
+ REAL(DbKi)                                 :: t_out    ! Time to which to be extrap/interpd
+ CHARACTER(*),                    PARAMETER :: RoutineName = 'ED_Output_ExtrapInterp1'
  REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
@@ -23699,327 +23783,270 @@ END IF ! check if allocated
  t = tin - tin(1)
  t_out = tin_out - tin(1)
 
- if ( size(t) .ne. size(y)) then
-    ErrStat = ErrID_Fatal
-    ErrMsg = ' Error in ED_Output_ExtrapInterp: size(t) must equal size(y) '
-    RETURN
- endif
- if (size(y) .gt. 3) then
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ED_Output_ExtrapInterp: size(y) must be less than 4 '
-    RETURN
- endif
- order = SIZE(y) - 1
- IF ( order .eq. 0 ) THEN
-IF (ALLOCATED(y_out%BladeLn2Mesh) .AND. ALLOCATED(y(1)%BladeLn2Mesh)) THEN
+   IF ( EqualRealNos( t(1), t(2) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   END IF
+IF (ALLOCATED(y_out%BladeLn2Mesh) .AND. ALLOCATED(y1%BladeLn2Mesh)) THEN
   DO i01 = LBOUND(y_out%BladeLn2Mesh,1),UBOUND(y_out%BladeLn2Mesh,1)
-  CALL MeshCopy(y(1)%BladeLn2Mesh(i01), y_out%BladeLn2Mesh(i01), MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  ENDDO
+      CALL MeshExtrapInterp1(y1%BladeLn2Mesh(i01), y2%BladeLn2Mesh(i01), tin, y_out%BladeLn2Mesh(i01), tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+   ENDDO
 END IF ! check if allocated
-  CALL MeshCopy(y(1)%PlatformPtMesh, y_out%PlatformPtMesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshCopy(y(1)%TowerLn2Mesh, y_out%TowerLn2Mesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshCopy(y(1)%RotorApexMotion, y_out%RotorApexMotion, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshCopy(y(1)%HubPtMotion, y_out%HubPtMotion, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshCopy(y(1)%BladeRootMotions, y_out%BladeRootMotions, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshCopy(y(1)%RotorFurlMotion, y_out%RotorFurlMotion, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshCopy(y(1)%NacelleMotion, y_out%NacelleMotion, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshCopy(y(1)%TowerMotion, y_out%TowerMotion, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-IF (ALLOCATED(y_out%WriteOutput) .AND. ALLOCATED(y(1)%WriteOutput)) THEN
-  y_out%WriteOutput = y(1)%WriteOutput
-END IF ! check if allocated
-IF (ALLOCATED(y_out%BlPitch) .AND. ALLOCATED(y(1)%BlPitch)) THEN
-  y_out%BlPitch = y(1)%BlPitch
-END IF ! check if allocated
-  y_out%Yaw = y(1)%Yaw
-  y_out%YawRate = y(1)%YawRate
-  y_out%LSS_Spd = y(1)%LSS_Spd
-  y_out%HSS_Spd = y(1)%HSS_Spd
-  y_out%RotSpeed = y(1)%RotSpeed
-  y_out%TwrAccel = y(1)%TwrAccel
-  y_out%YawAngle = y(1)%YawAngle
-  y_out%RootMyc = y(1)%RootMyc
-  y_out%YawBrTAxp = y(1)%YawBrTAxp
-  y_out%YawBrTAyp = y(1)%YawBrTAyp
-  y_out%LSSTipPxa = y(1)%LSSTipPxa
-  y_out%RootMxc = y(1)%RootMxc
-  y_out%LSSTipMya = y(1)%LSSTipMya
-  y_out%LSSTipMza = y(1)%LSSTipMza
-  y_out%LSSTipMys = y(1)%LSSTipMys
-  y_out%LSSTipMzs = y(1)%LSSTipMzs
-  y_out%YawBrMyn = y(1)%YawBrMyn
-  y_out%YawBrMzn = y(1)%YawBrMzn
-  y_out%NcIMURAxs = y(1)%NcIMURAxs
-  y_out%NcIMURAys = y(1)%NcIMURAys
-  y_out%NcIMURAzs = y(1)%NcIMURAzs
-  y_out%RotPwr = y(1)%RotPwr
- ELSE IF ( order .eq. 1 ) THEN
-  IF ( EqualRealNos( t(1), t(2) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ED_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-IF (ALLOCATED(y_out%BladeLn2Mesh) .AND. ALLOCATED(y(1)%BladeLn2Mesh)) THEN
-  DO i01 = LBOUND(y_out%BladeLn2Mesh,1),UBOUND(y_out%BladeLn2Mesh,1)
-  CALL MeshExtrapInterp1(y(1)%BladeLn2Mesh(i01), y(2)%BladeLn2Mesh(i01), tin, y_out%BladeLn2Mesh(i01), tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  ENDDO
-END IF ! check if allocated
-  CALL MeshExtrapInterp1(y(1)%PlatformPtMesh, y(2)%PlatformPtMesh, tin, y_out%PlatformPtMesh, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp1(y(1)%TowerLn2Mesh, y(2)%TowerLn2Mesh, tin, y_out%TowerLn2Mesh, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp1(y(1)%RotorApexMotion, y(2)%RotorApexMotion, tin, y_out%RotorApexMotion, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp1(y(1)%HubPtMotion, y(2)%HubPtMotion, tin, y_out%HubPtMotion, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp1(y(1)%BladeRootMotions, y(2)%BladeRootMotions, tin, y_out%BladeRootMotions, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp1(y(1)%RotorFurlMotion, y(2)%RotorFurlMotion, tin, y_out%RotorFurlMotion, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp1(y(1)%NacelleMotion, y(2)%NacelleMotion, tin, y_out%NacelleMotion, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp1(y(1)%TowerMotion, y(2)%TowerMotion, tin, y_out%TowerMotion, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-IF (ALLOCATED(y_out%WriteOutput) .AND. ALLOCATED(y(1)%WriteOutput)) THEN
+      CALL MeshExtrapInterp1(y1%PlatformPtMesh, y2%PlatformPtMesh, tin, y_out%PlatformPtMesh, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp1(y1%TowerLn2Mesh, y2%TowerLn2Mesh, tin, y_out%TowerLn2Mesh, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp1(y1%RotorApexMotion, y2%RotorApexMotion, tin, y_out%RotorApexMotion, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp1(y1%HubPtMotion, y2%HubPtMotion, tin, y_out%HubPtMotion, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp1(y1%BladeRootMotions, y2%BladeRootMotions, tin, y_out%BladeRootMotions, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp1(y1%RotorFurlMotion, y2%RotorFurlMotion, tin, y_out%RotorFurlMotion, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp1(y1%NacelleMotion, y2%NacelleMotion, tin, y_out%NacelleMotion, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp1(y1%TowerMotion, y2%TowerMotion, tin, y_out%TowerMotion, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+IF (ALLOCATED(y_out%WriteOutput) .AND. ALLOCATED(y1%WriteOutput)) THEN
   ALLOCATE(b1(SIZE(y_out%WriteOutput,1)))
   ALLOCATE(c1(SIZE(y_out%WriteOutput,1)))
-  b1 = -(y(1)%WriteOutput - y(2)%WriteOutput)/t(2)
-  y_out%WriteOutput = y(1)%WriteOutput + b1 * t_out
+  b1 = -(y1%WriteOutput - y2%WriteOutput)/t(2)
+  y_out%WriteOutput = y1%WriteOutput + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(y_out%BlPitch) .AND. ALLOCATED(y(1)%BlPitch)) THEN
+IF (ALLOCATED(y_out%BlPitch) .AND. ALLOCATED(y1%BlPitch)) THEN
   ALLOCATE(b1(SIZE(y_out%BlPitch,1)))
   ALLOCATE(c1(SIZE(y_out%BlPitch,1)))
-  b1 = -(y(1)%BlPitch - y(2)%BlPitch)/t(2)
-  y_out%BlPitch = y(1)%BlPitch + b1 * t_out
+  b1 = -(y1%BlPitch - y2%BlPitch)/t(2)
+  y_out%BlPitch = y1%BlPitch + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-  b0 = -(y(1)%Yaw - y(2)%Yaw)/t(2)
-  y_out%Yaw = y(1)%Yaw + b0 * t_out
-  b0 = -(y(1)%YawRate - y(2)%YawRate)/t(2)
-  y_out%YawRate = y(1)%YawRate + b0 * t_out
-  b0 = -(y(1)%LSS_Spd - y(2)%LSS_Spd)/t(2)
-  y_out%LSS_Spd = y(1)%LSS_Spd + b0 * t_out
-  b0 = -(y(1)%HSS_Spd - y(2)%HSS_Spd)/t(2)
-  y_out%HSS_Spd = y(1)%HSS_Spd + b0 * t_out
-  b0 = -(y(1)%RotSpeed - y(2)%RotSpeed)/t(2)
-  y_out%RotSpeed = y(1)%RotSpeed + b0 * t_out
-  b0 = -(y(1)%TwrAccel - y(2)%TwrAccel)/t(2)
-  y_out%TwrAccel = y(1)%TwrAccel + b0 * t_out
-  b0 = -(y(1)%YawAngle - y(2)%YawAngle)/t(2)
-  y_out%YawAngle = y(1)%YawAngle + b0 * t_out
+  b0 = -(y1%Yaw - y2%Yaw)/t(2)
+  y_out%Yaw = y1%Yaw + b0 * t_out
+  b0 = -(y1%YawRate - y2%YawRate)/t(2)
+  y_out%YawRate = y1%YawRate + b0 * t_out
+  b0 = -(y1%LSS_Spd - y2%LSS_Spd)/t(2)
+  y_out%LSS_Spd = y1%LSS_Spd + b0 * t_out
+  b0 = -(y1%HSS_Spd - y2%HSS_Spd)/t(2)
+  y_out%HSS_Spd = y1%HSS_Spd + b0 * t_out
+  b0 = -(y1%RotSpeed - y2%RotSpeed)/t(2)
+  y_out%RotSpeed = y1%RotSpeed + b0 * t_out
+  b0 = -(y1%TwrAccel - y2%TwrAccel)/t(2)
+  y_out%TwrAccel = y1%TwrAccel + b0 * t_out
+  b0 = -(y1%YawAngle - y2%YawAngle)/t(2)
+  y_out%YawAngle = y1%YawAngle + b0 * t_out
   ALLOCATE(b1(SIZE(y_out%RootMyc,1)))
   ALLOCATE(c1(SIZE(y_out%RootMyc,1)))
-  b1 = -(y(1)%RootMyc - y(2)%RootMyc)/t(2)
-  y_out%RootMyc = y(1)%RootMyc + b1 * t_out
+  b1 = -(y1%RootMyc - y2%RootMyc)/t(2)
+  y_out%RootMyc = y1%RootMyc + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
-  b0 = -(y(1)%YawBrTAxp - y(2)%YawBrTAxp)/t(2)
-  y_out%YawBrTAxp = y(1)%YawBrTAxp + b0 * t_out
-  b0 = -(y(1)%YawBrTAyp - y(2)%YawBrTAyp)/t(2)
-  y_out%YawBrTAyp = y(1)%YawBrTAyp + b0 * t_out
-  b0 = -(y(1)%LSSTipPxa - y(2)%LSSTipPxa)/t(2)
-  y_out%LSSTipPxa = y(1)%LSSTipPxa + b0 * t_out
+  b0 = -(y1%YawBrTAxp - y2%YawBrTAxp)/t(2)
+  y_out%YawBrTAxp = y1%YawBrTAxp + b0 * t_out
+  b0 = -(y1%YawBrTAyp - y2%YawBrTAyp)/t(2)
+  y_out%YawBrTAyp = y1%YawBrTAyp + b0 * t_out
+  b0 = -(y1%LSSTipPxa - y2%LSSTipPxa)/t(2)
+  y_out%LSSTipPxa = y1%LSSTipPxa + b0 * t_out
   ALLOCATE(b1(SIZE(y_out%RootMxc,1)))
   ALLOCATE(c1(SIZE(y_out%RootMxc,1)))
-  b1 = -(y(1)%RootMxc - y(2)%RootMxc)/t(2)
-  y_out%RootMxc = y(1)%RootMxc + b1 * t_out
+  b1 = -(y1%RootMxc - y2%RootMxc)/t(2)
+  y_out%RootMxc = y1%RootMxc + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
-  b0 = -(y(1)%LSSTipMya - y(2)%LSSTipMya)/t(2)
-  y_out%LSSTipMya = y(1)%LSSTipMya + b0 * t_out
-  b0 = -(y(1)%LSSTipMza - y(2)%LSSTipMza)/t(2)
-  y_out%LSSTipMza = y(1)%LSSTipMza + b0 * t_out
-  b0 = -(y(1)%LSSTipMys - y(2)%LSSTipMys)/t(2)
-  y_out%LSSTipMys = y(1)%LSSTipMys + b0 * t_out
-  b0 = -(y(1)%LSSTipMzs - y(2)%LSSTipMzs)/t(2)
-  y_out%LSSTipMzs = y(1)%LSSTipMzs + b0 * t_out
-  b0 = -(y(1)%YawBrMyn - y(2)%YawBrMyn)/t(2)
-  y_out%YawBrMyn = y(1)%YawBrMyn + b0 * t_out
-  b0 = -(y(1)%YawBrMzn - y(2)%YawBrMzn)/t(2)
-  y_out%YawBrMzn = y(1)%YawBrMzn + b0 * t_out
-  b0 = -(y(1)%NcIMURAxs - y(2)%NcIMURAxs)/t(2)
-  y_out%NcIMURAxs = y(1)%NcIMURAxs + b0 * t_out
-  b0 = -(y(1)%NcIMURAys - y(2)%NcIMURAys)/t(2)
-  y_out%NcIMURAys = y(1)%NcIMURAys + b0 * t_out
-  b0 = -(y(1)%NcIMURAzs - y(2)%NcIMURAzs)/t(2)
-  y_out%NcIMURAzs = y(1)%NcIMURAzs + b0 * t_out
-  b0 = -(y(1)%RotPwr - y(2)%RotPwr)/t(2)
-  y_out%RotPwr = y(1)%RotPwr + b0 * t_out
- ELSE IF ( order .eq. 2 ) THEN
-  IF ( EqualRealNos( t(1), t(2) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ED_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-  IF ( EqualRealNos( t(2), t(3) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ED_Output_ExtrapInterp: t(2) must not equal t(3) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-  IF ( EqualRealNos( t(1), t(3) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ED_Output_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-IF (ALLOCATED(y_out%BladeLn2Mesh) .AND. ALLOCATED(y(1)%BladeLn2Mesh)) THEN
+  b0 = -(y1%LSSTipMya - y2%LSSTipMya)/t(2)
+  y_out%LSSTipMya = y1%LSSTipMya + b0 * t_out
+  b0 = -(y1%LSSTipMza - y2%LSSTipMza)/t(2)
+  y_out%LSSTipMza = y1%LSSTipMza + b0 * t_out
+  b0 = -(y1%LSSTipMys - y2%LSSTipMys)/t(2)
+  y_out%LSSTipMys = y1%LSSTipMys + b0 * t_out
+  b0 = -(y1%LSSTipMzs - y2%LSSTipMzs)/t(2)
+  y_out%LSSTipMzs = y1%LSSTipMzs + b0 * t_out
+  b0 = -(y1%YawBrMyn - y2%YawBrMyn)/t(2)
+  y_out%YawBrMyn = y1%YawBrMyn + b0 * t_out
+  b0 = -(y1%YawBrMzn - y2%YawBrMzn)/t(2)
+  y_out%YawBrMzn = y1%YawBrMzn + b0 * t_out
+  b0 = -(y1%NcIMURAxs - y2%NcIMURAxs)/t(2)
+  y_out%NcIMURAxs = y1%NcIMURAxs + b0 * t_out
+  b0 = -(y1%NcIMURAys - y2%NcIMURAys)/t(2)
+  y_out%NcIMURAys = y1%NcIMURAys + b0 * t_out
+  b0 = -(y1%NcIMURAzs - y2%NcIMURAzs)/t(2)
+  y_out%NcIMURAzs = y1%NcIMURAzs + b0 * t_out
+  b0 = -(y1%RotPwr - y2%RotPwr)/t(2)
+  y_out%RotPwr = y1%RotPwr + b0 * t_out
+ END SUBROUTINE ED_Output_ExtrapInterp1
+
+
+ SUBROUTINE ED_Output_ExtrapInterp2(y1, y2, y3, tin, y_out, tin_out, ErrStat, ErrMsg )
+!
+! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
+! values of y (which has values associated with times in t).  Order of the interpolation is 2.
+!
+!  expressions below based on either
+!
+!  f(t) = a + b * t + c * t**2
+!
+!  where a, b and c are determined as the solution to
+!  f(t1) = y1, f(t2) = y2, f(t3) = y3
+!
+!..................................................................................................................................
+
+ TYPE(ED_OutputType), INTENT(INOUT)  :: y1      ! Output at t1 > t2 > t3
+ TYPE(ED_OutputType), INTENT(INOUT)  :: y2      ! Output at t2 > t3
+ TYPE(ED_OutputType), INTENT(INOUT)  :: y3      ! Output at t3
+ REAL(DbKi),                 INTENT(IN   )  :: tin(3)    ! Times associated with the Outputs
+ TYPE(ED_OutputType), INTENT(INOUT)  :: y_out     ! Output at tin_out
+ REAL(DbKi),                 INTENT(IN   )  :: tin_out   ! time to be extrap/interp'd to
+ INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat   ! Error status of the operation
+ CHARACTER(*),               INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
+   ! local variables
+ REAL(DbKi)                                 :: t(3)      ! Times associated with the Outputs
+ REAL(DbKi)                                 :: t_out     ! Time to which to be extrap/interpd
+ INTEGER(IntKi)                             :: order     ! order of polynomial fit (max 2)
+ REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
+ REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: c1       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
+ CHARACTER(*),            PARAMETER         :: RoutineName = 'ED_Output_ExtrapInterp2'
+ INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
+    ! Initialize ErrStat
+ ErrStat = ErrID_None
+ ErrMsg  = ""
+    ! we'll subtract a constant from the times to resolve some 
+    ! numerical issues when t gets large (and to simplify the equations)
+ t = tin - tin(1)
+ t_out = tin_out - tin(1)
+
+   IF ( EqualRealNos( t(1), t(2) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   ELSE IF ( EqualRealNos( t(2), t(3) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(2) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   ELSE IF ( EqualRealNos( t(1), t(3) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   END IF
+IF (ALLOCATED(y_out%BladeLn2Mesh) .AND. ALLOCATED(y1%BladeLn2Mesh)) THEN
   DO i01 = LBOUND(y_out%BladeLn2Mesh,1),UBOUND(y_out%BladeLn2Mesh,1)
-  CALL MeshExtrapInterp2(y(1)%BladeLn2Mesh(i01), y(2)%BladeLn2Mesh(i01), y(3)%BladeLn2Mesh(i01), tin, y_out%BladeLn2Mesh(i01), tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  ENDDO
+      CALL MeshExtrapInterp2(y1%BladeLn2Mesh(i01), y2%BladeLn2Mesh(i01), y3%BladeLn2Mesh(i01), tin, y_out%BladeLn2Mesh(i01), tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+   ENDDO
 END IF ! check if allocated
-  CALL MeshExtrapInterp2(y(1)%PlatformPtMesh, y(2)%PlatformPtMesh, y(3)%PlatformPtMesh, tin, y_out%PlatformPtMesh, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp2(y(1)%TowerLn2Mesh, y(2)%TowerLn2Mesh, y(3)%TowerLn2Mesh, tin, y_out%TowerLn2Mesh, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp2(y(1)%RotorApexMotion, y(2)%RotorApexMotion, y(3)%RotorApexMotion, tin, y_out%RotorApexMotion, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp2(y(1)%HubPtMotion, y(2)%HubPtMotion, y(3)%HubPtMotion, tin, y_out%HubPtMotion, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp2(y(1)%BladeRootMotions, y(2)%BladeRootMotions, y(3)%BladeRootMotions, tin, y_out%BladeRootMotions, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp2(y(1)%RotorFurlMotion, y(2)%RotorFurlMotion, y(3)%RotorFurlMotion, tin, y_out%RotorFurlMotion, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp2(y(1)%NacelleMotion, y(2)%NacelleMotion, y(3)%NacelleMotion, tin, y_out%NacelleMotion, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  CALL MeshExtrapInterp2(y(1)%TowerMotion, y(2)%TowerMotion, y(3)%TowerMotion, tin, y_out%TowerMotion, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-IF (ALLOCATED(y_out%WriteOutput) .AND. ALLOCATED(y(1)%WriteOutput)) THEN
+      CALL MeshExtrapInterp2(y1%PlatformPtMesh, y2%PlatformPtMesh, y3%PlatformPtMesh, tin, y_out%PlatformPtMesh, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp2(y1%TowerLn2Mesh, y2%TowerLn2Mesh, y3%TowerLn2Mesh, tin, y_out%TowerLn2Mesh, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp2(y1%RotorApexMotion, y2%RotorApexMotion, y3%RotorApexMotion, tin, y_out%RotorApexMotion, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp2(y1%HubPtMotion, y2%HubPtMotion, y3%HubPtMotion, tin, y_out%HubPtMotion, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp2(y1%BladeRootMotions, y2%BladeRootMotions, y3%BladeRootMotions, tin, y_out%BladeRootMotions, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp2(y1%RotorFurlMotion, y2%RotorFurlMotion, y3%RotorFurlMotion, tin, y_out%RotorFurlMotion, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp2(y1%NacelleMotion, y2%NacelleMotion, y3%NacelleMotion, tin, y_out%NacelleMotion, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL MeshExtrapInterp2(y1%TowerMotion, y2%TowerMotion, y3%TowerMotion, tin, y_out%TowerMotion, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+IF (ALLOCATED(y_out%WriteOutput) .AND. ALLOCATED(y1%WriteOutput)) THEN
   ALLOCATE(b1(SIZE(y_out%WriteOutput,1)))
   ALLOCATE(c1(SIZE(y_out%WriteOutput,1)))
-  b1 = (t(3)**2*(y(1)%WriteOutput - y(2)%WriteOutput) + t(2)**2*(-y(1)%WriteOutput + y(3)%WriteOutput))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*y(1)%WriteOutput + t(3)*y(2)%WriteOutput - t(2)*y(3)%WriteOutput ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%WriteOutput = y(1)%WriteOutput + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(y1%WriteOutput - y2%WriteOutput) + t(2)**2*(-y1%WriteOutput + y3%WriteOutput))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*y1%WriteOutput + t(3)*y2%WriteOutput - t(2)*y3%WriteOutput ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%WriteOutput = y1%WriteOutput + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(y_out%BlPitch) .AND. ALLOCATED(y(1)%BlPitch)) THEN
+IF (ALLOCATED(y_out%BlPitch) .AND. ALLOCATED(y1%BlPitch)) THEN
   ALLOCATE(b1(SIZE(y_out%BlPitch,1)))
   ALLOCATE(c1(SIZE(y_out%BlPitch,1)))
-  b1 = (t(3)**2*(y(1)%BlPitch - y(2)%BlPitch) + t(2)**2*(-y(1)%BlPitch + y(3)%BlPitch))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*y(1)%BlPitch + t(3)*y(2)%BlPitch - t(2)*y(3)%BlPitch ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%BlPitch = y(1)%BlPitch + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(y1%BlPitch - y2%BlPitch) + t(2)**2*(-y1%BlPitch + y3%BlPitch))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*y1%BlPitch + t(3)*y2%BlPitch - t(2)*y3%BlPitch ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%BlPitch = y1%BlPitch + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-  b0 = (t(3)**2*(y(1)%Yaw - y(2)%Yaw) + t(2)**2*(-y(1)%Yaw + y(3)%Yaw))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%Yaw + t(3)*y(2)%Yaw - t(2)*y(3)%Yaw ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%Yaw = y(1)%Yaw + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%YawRate - y(2)%YawRate) + t(2)**2*(-y(1)%YawRate + y(3)%YawRate))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%YawRate + t(3)*y(2)%YawRate - t(2)*y(3)%YawRate ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%YawRate = y(1)%YawRate + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%LSS_Spd - y(2)%LSS_Spd) + t(2)**2*(-y(1)%LSS_Spd + y(3)%LSS_Spd))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%LSS_Spd + t(3)*y(2)%LSS_Spd - t(2)*y(3)%LSS_Spd ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%LSS_Spd = y(1)%LSS_Spd + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%HSS_Spd - y(2)%HSS_Spd) + t(2)**2*(-y(1)%HSS_Spd + y(3)%HSS_Spd))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%HSS_Spd + t(3)*y(2)%HSS_Spd - t(2)*y(3)%HSS_Spd ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%HSS_Spd = y(1)%HSS_Spd + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%RotSpeed - y(2)%RotSpeed) + t(2)**2*(-y(1)%RotSpeed + y(3)%RotSpeed))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%RotSpeed + t(3)*y(2)%RotSpeed - t(2)*y(3)%RotSpeed ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%RotSpeed = y(1)%RotSpeed + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%TwrAccel - y(2)%TwrAccel) + t(2)**2*(-y(1)%TwrAccel + y(3)%TwrAccel))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%TwrAccel + t(3)*y(2)%TwrAccel - t(2)*y(3)%TwrAccel ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%TwrAccel = y(1)%TwrAccel + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%YawAngle - y(2)%YawAngle) + t(2)**2*(-y(1)%YawAngle + y(3)%YawAngle))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%YawAngle + t(3)*y(2)%YawAngle - t(2)*y(3)%YawAngle ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%YawAngle = y(1)%YawAngle + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%Yaw - y2%Yaw) + t(2)**2*(-y1%Yaw + y3%Yaw))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%Yaw + t(3)*y2%Yaw - t(2)*y3%Yaw ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%Yaw = y1%Yaw + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%YawRate - y2%YawRate) + t(2)**2*(-y1%YawRate + y3%YawRate))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%YawRate + t(3)*y2%YawRate - t(2)*y3%YawRate ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%YawRate = y1%YawRate + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%LSS_Spd - y2%LSS_Spd) + t(2)**2*(-y1%LSS_Spd + y3%LSS_Spd))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%LSS_Spd + t(3)*y2%LSS_Spd - t(2)*y3%LSS_Spd ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%LSS_Spd = y1%LSS_Spd + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%HSS_Spd - y2%HSS_Spd) + t(2)**2*(-y1%HSS_Spd + y3%HSS_Spd))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%HSS_Spd + t(3)*y2%HSS_Spd - t(2)*y3%HSS_Spd ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%HSS_Spd = y1%HSS_Spd + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%RotSpeed - y2%RotSpeed) + t(2)**2*(-y1%RotSpeed + y3%RotSpeed))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%RotSpeed + t(3)*y2%RotSpeed - t(2)*y3%RotSpeed ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%RotSpeed = y1%RotSpeed + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%TwrAccel - y2%TwrAccel) + t(2)**2*(-y1%TwrAccel + y3%TwrAccel))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%TwrAccel + t(3)*y2%TwrAccel - t(2)*y3%TwrAccel ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%TwrAccel = y1%TwrAccel + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%YawAngle - y2%YawAngle) + t(2)**2*(-y1%YawAngle + y3%YawAngle))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%YawAngle + t(3)*y2%YawAngle - t(2)*y3%YawAngle ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%YawAngle = y1%YawAngle + b0 * t_out + c0 * t_out**2
   ALLOCATE(b1(SIZE(y_out%RootMyc,1)))
   ALLOCATE(c1(SIZE(y_out%RootMyc,1)))
-  b1 = (t(3)**2*(y(1)%RootMyc - y(2)%RootMyc) + t(2)**2*(-y(1)%RootMyc + y(3)%RootMyc))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*y(1)%RootMyc + t(3)*y(2)%RootMyc - t(2)*y(3)%RootMyc ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%RootMyc = y(1)%RootMyc + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(y1%RootMyc - y2%RootMyc) + t(2)**2*(-y1%RootMyc + y3%RootMyc))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*y1%RootMyc + t(3)*y2%RootMyc - t(2)*y3%RootMyc ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%RootMyc = y1%RootMyc + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
-  b0 = (t(3)**2*(y(1)%YawBrTAxp - y(2)%YawBrTAxp) + t(2)**2*(-y(1)%YawBrTAxp + y(3)%YawBrTAxp))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%YawBrTAxp + t(3)*y(2)%YawBrTAxp - t(2)*y(3)%YawBrTAxp ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%YawBrTAxp = y(1)%YawBrTAxp + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%YawBrTAyp - y(2)%YawBrTAyp) + t(2)**2*(-y(1)%YawBrTAyp + y(3)%YawBrTAyp))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%YawBrTAyp + t(3)*y(2)%YawBrTAyp - t(2)*y(3)%YawBrTAyp ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%YawBrTAyp = y(1)%YawBrTAyp + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%LSSTipPxa - y(2)%LSSTipPxa) + t(2)**2*(-y(1)%LSSTipPxa + y(3)%LSSTipPxa))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%LSSTipPxa + t(3)*y(2)%LSSTipPxa - t(2)*y(3)%LSSTipPxa ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%LSSTipPxa = y(1)%LSSTipPxa + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%YawBrTAxp - y2%YawBrTAxp) + t(2)**2*(-y1%YawBrTAxp + y3%YawBrTAxp))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%YawBrTAxp + t(3)*y2%YawBrTAxp - t(2)*y3%YawBrTAxp ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%YawBrTAxp = y1%YawBrTAxp + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%YawBrTAyp - y2%YawBrTAyp) + t(2)**2*(-y1%YawBrTAyp + y3%YawBrTAyp))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%YawBrTAyp + t(3)*y2%YawBrTAyp - t(2)*y3%YawBrTAyp ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%YawBrTAyp = y1%YawBrTAyp + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%LSSTipPxa - y2%LSSTipPxa) + t(2)**2*(-y1%LSSTipPxa + y3%LSSTipPxa))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%LSSTipPxa + t(3)*y2%LSSTipPxa - t(2)*y3%LSSTipPxa ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%LSSTipPxa = y1%LSSTipPxa + b0 * t_out + c0 * t_out**2
   ALLOCATE(b1(SIZE(y_out%RootMxc,1)))
   ALLOCATE(c1(SIZE(y_out%RootMxc,1)))
-  b1 = (t(3)**2*(y(1)%RootMxc - y(2)%RootMxc) + t(2)**2*(-y(1)%RootMxc + y(3)%RootMxc))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*y(1)%RootMxc + t(3)*y(2)%RootMxc - t(2)*y(3)%RootMxc ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%RootMxc = y(1)%RootMxc + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(y1%RootMxc - y2%RootMxc) + t(2)**2*(-y1%RootMxc + y3%RootMxc))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*y1%RootMxc + t(3)*y2%RootMxc - t(2)*y3%RootMxc ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%RootMxc = y1%RootMxc + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
-  b0 = (t(3)**2*(y(1)%LSSTipMya - y(2)%LSSTipMya) + t(2)**2*(-y(1)%LSSTipMya + y(3)%LSSTipMya))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%LSSTipMya + t(3)*y(2)%LSSTipMya - t(2)*y(3)%LSSTipMya ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%LSSTipMya = y(1)%LSSTipMya + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%LSSTipMza - y(2)%LSSTipMza) + t(2)**2*(-y(1)%LSSTipMza + y(3)%LSSTipMza))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%LSSTipMza + t(3)*y(2)%LSSTipMza - t(2)*y(3)%LSSTipMza ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%LSSTipMza = y(1)%LSSTipMza + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%LSSTipMys - y(2)%LSSTipMys) + t(2)**2*(-y(1)%LSSTipMys + y(3)%LSSTipMys))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%LSSTipMys + t(3)*y(2)%LSSTipMys - t(2)*y(3)%LSSTipMys ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%LSSTipMys = y(1)%LSSTipMys + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%LSSTipMzs - y(2)%LSSTipMzs) + t(2)**2*(-y(1)%LSSTipMzs + y(3)%LSSTipMzs))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%LSSTipMzs + t(3)*y(2)%LSSTipMzs - t(2)*y(3)%LSSTipMzs ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%LSSTipMzs = y(1)%LSSTipMzs + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%YawBrMyn - y(2)%YawBrMyn) + t(2)**2*(-y(1)%YawBrMyn + y(3)%YawBrMyn))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%YawBrMyn + t(3)*y(2)%YawBrMyn - t(2)*y(3)%YawBrMyn ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%YawBrMyn = y(1)%YawBrMyn + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%YawBrMzn - y(2)%YawBrMzn) + t(2)**2*(-y(1)%YawBrMzn + y(3)%YawBrMzn))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%YawBrMzn + t(3)*y(2)%YawBrMzn - t(2)*y(3)%YawBrMzn ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%YawBrMzn = y(1)%YawBrMzn + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%NcIMURAxs - y(2)%NcIMURAxs) + t(2)**2*(-y(1)%NcIMURAxs + y(3)%NcIMURAxs))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%NcIMURAxs + t(3)*y(2)%NcIMURAxs - t(2)*y(3)%NcIMURAxs ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%NcIMURAxs = y(1)%NcIMURAxs + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%NcIMURAys - y(2)%NcIMURAys) + t(2)**2*(-y(1)%NcIMURAys + y(3)%NcIMURAys))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%NcIMURAys + t(3)*y(2)%NcIMURAys - t(2)*y(3)%NcIMURAys ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%NcIMURAys = y(1)%NcIMURAys + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%NcIMURAzs - y(2)%NcIMURAzs) + t(2)**2*(-y(1)%NcIMURAzs + y(3)%NcIMURAzs))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%NcIMURAzs + t(3)*y(2)%NcIMURAzs - t(2)*y(3)%NcIMURAzs ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%NcIMURAzs = y(1)%NcIMURAzs + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%RotPwr - y(2)%RotPwr) + t(2)**2*(-y(1)%RotPwr + y(3)%RotPwr))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%RotPwr + t(3)*y(2)%RotPwr - t(2)*y(3)%RotPwr ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%RotPwr = y(1)%RotPwr + b0 * t_out + c0 * t_out**2
- ELSE 
-   ErrStat = ErrID_Fatal
-   ErrMsg = ' order must be less than 3 in ED_Output_ExtrapInterp '
-   RETURN
- ENDIF 
- END SUBROUTINE ED_Output_ExtrapInterp
+  b0 = (t(3)**2*(y1%LSSTipMya - y2%LSSTipMya) + t(2)**2*(-y1%LSSTipMya + y3%LSSTipMya))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%LSSTipMya + t(3)*y2%LSSTipMya - t(2)*y3%LSSTipMya ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%LSSTipMya = y1%LSSTipMya + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%LSSTipMza - y2%LSSTipMza) + t(2)**2*(-y1%LSSTipMza + y3%LSSTipMza))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%LSSTipMza + t(3)*y2%LSSTipMza - t(2)*y3%LSSTipMza ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%LSSTipMza = y1%LSSTipMza + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%LSSTipMys - y2%LSSTipMys) + t(2)**2*(-y1%LSSTipMys + y3%LSSTipMys))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%LSSTipMys + t(3)*y2%LSSTipMys - t(2)*y3%LSSTipMys ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%LSSTipMys = y1%LSSTipMys + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%LSSTipMzs - y2%LSSTipMzs) + t(2)**2*(-y1%LSSTipMzs + y3%LSSTipMzs))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%LSSTipMzs + t(3)*y2%LSSTipMzs - t(2)*y3%LSSTipMzs ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%LSSTipMzs = y1%LSSTipMzs + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%YawBrMyn - y2%YawBrMyn) + t(2)**2*(-y1%YawBrMyn + y3%YawBrMyn))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%YawBrMyn + t(3)*y2%YawBrMyn - t(2)*y3%YawBrMyn ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%YawBrMyn = y1%YawBrMyn + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%YawBrMzn - y2%YawBrMzn) + t(2)**2*(-y1%YawBrMzn + y3%YawBrMzn))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%YawBrMzn + t(3)*y2%YawBrMzn - t(2)*y3%YawBrMzn ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%YawBrMzn = y1%YawBrMzn + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%NcIMURAxs - y2%NcIMURAxs) + t(2)**2*(-y1%NcIMURAxs + y3%NcIMURAxs))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%NcIMURAxs + t(3)*y2%NcIMURAxs - t(2)*y3%NcIMURAxs ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%NcIMURAxs = y1%NcIMURAxs + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%NcIMURAys - y2%NcIMURAys) + t(2)**2*(-y1%NcIMURAys + y3%NcIMURAys))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%NcIMURAys + t(3)*y2%NcIMURAys - t(2)*y3%NcIMURAys ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%NcIMURAys = y1%NcIMURAys + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%NcIMURAzs - y2%NcIMURAzs) + t(2)**2*(-y1%NcIMURAzs + y3%NcIMURAzs))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%NcIMURAzs + t(3)*y2%NcIMURAzs - t(2)*y3%NcIMURAzs ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%NcIMURAzs = y1%NcIMURAzs + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%RotPwr - y2%RotPwr) + t(2)**2*(-y1%RotPwr + y3%RotPwr))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%RotPwr + t(3)*y2%RotPwr - t(2)*y3%RotPwr ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%RotPwr = y1%RotPwr + b0 * t_out + c0 * t_out**2
+ END SUBROUTINE ED_Output_ExtrapInterp2
 
 END MODULE ElastoDyn_Types
 !ENDOFREGISTRYGENERATEDFILE

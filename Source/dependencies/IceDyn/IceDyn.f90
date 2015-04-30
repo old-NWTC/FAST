@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-14 14:27:56 -0600 (Tue, 14 Apr 2015) $
-! (File) Revision #: $Rev: 974 $
+! File last committed: $Date: 2015-04-30 13:03:07 -0600 (Thu, 30 Apr 2015) $
+! (File) Revision #: $Rev: 993 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceDyn/source/IceDyn.f90 $
 !..................................................................................................................................
 ! LICENSING
@@ -89,7 +89,7 @@ SUBROUTINE IceD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
 
    TYPE(IceD_InputFile)                           :: InputFileData           ! Data stored in the module's input file
    INTEGER(IntKi)                                 :: ErrStat2                ! temporary Error status of the operation
-   CHARACTER(LEN(ErrMsg))                         :: ErrMsg2                 ! temporary Error message if ErrStat /= ErrID_None
+   CHARACTER(ErrMsgLen)                           :: ErrMsg2                 ! temporary Error message if ErrStat /= ErrID_None
    REAL(ReKi)                                     :: TmpPos(3)
 
 

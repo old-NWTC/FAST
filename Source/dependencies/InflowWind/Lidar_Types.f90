@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.06.01, 21-Apr-2015)
+! FAST Registry (v2.07.00, 28-Apr-2015)
 !*********************************************************************************************************************************
 ! Lidar_Types
 !.................................................................................................................................
@@ -1549,7 +1549,7 @@ ENDIF
  END SUBROUTINE Lidar_UnPackOutput
 
 
- SUBROUTINE Lidar_Input_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )
+ SUBROUTINE Lidar_Input_ExtrapInterp(u, t, u_out, t_out, ErrStat, ErrMsg )
 !
 ! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
 ! values of u (which has values associated with times in t).  Order of the interpolation is given by the size of u
@@ -1565,17 +1565,64 @@ ENDIF
 !
 !..................................................................................................................................
 
- TYPE(Lidar_inputtype), INTENT(INOUT)  :: u(:)      ! Input at t1 > t2 > t3
- REAL(DbKi),         INTENT(IN   )  :: tin(:)      ! Times associated with the Inputs
- TYPE(Lidar_inputtype), INTENT(INOUT)  :: u_out     ! Input at tin_out
- REAL(DbKi),         INTENT(IN   )  :: tin_out     ! time to be extrap/interp'd to
- INTEGER(IntKi),     INTENT(  OUT)  :: ErrStat   ! Error status of the operation
- CHARACTER(*),       INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
+ TYPE(Lidar_InputType), INTENT(INOUT)  :: u(:) ! Input at t1 > t2 > t3
+ REAL(DbKi),                 INTENT(IN   )  :: t(:)           ! Times associated with the Inputs
+ TYPE(Lidar_InputType), INTENT(INOUT)  :: u_out ! Input at tin_out
+ REAL(DbKi),                 INTENT(IN   )  :: t_out           ! time to be extrap/interp'd to
+ INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat         ! Error status of the operation
+ CHARACTER(*),               INTENT(  OUT)  :: ErrMsg          ! Error message if ErrStat /= ErrID_None
    ! local variables
- REAL(DbKi) :: t(SIZE(tin))    ! Times associated with the Inputs
- REAL(DbKi) :: t_out           ! Time to which to be extrap/interpd
- INTEGER(IntKi)                 :: order    ! order of polynomial fit (max 2)
- CHARACTER(*),    PARAMETER :: RoutineName = 'Lidar_Input_ExtrapInterp'
+ INTEGER(IntKi)                             :: order           ! order of polynomial fit (max 2)
+ INTEGER(IntKi)                             :: ErrStat2        ! local errors
+ CHARACTER(1024)                            :: ErrMsg2         ! local errors
+ CHARACTER(*),    PARAMETER                 :: RoutineName = 'Lidar_Input_ExtrapInterp'
+    ! Initialize ErrStat
+ ErrStat = ErrID_None
+ ErrMsg  = ""
+ if ( size(t) .ne. size(u)) then
+    CALL SetErrStat(ErrID_Fatal,'size(t) must equal size(u)',ErrStat,ErrMsg,RoutineName)
+    RETURN
+ endif
+ order = SIZE(u) - 1
+ IF ( order .eq. 0 ) THEN
+   CALL Lidar_CopyInput(u(1), u_out, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE IF ( order .eq. 1 ) THEN
+   CALL Lidar_Input_ExtrapInterp1(u(1), u(2), t, u_out, t_out, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE IF ( order .eq. 2 ) THEN
+   CALL Lidar_Input_ExtrapInterp2(u(1), u(2), u(3), t, u_out, t_out, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE 
+   CALL SetErrStat(ErrID_Fatal,'size(u) must be less than 4 (order must be less than 3).',ErrStat,ErrMsg,RoutineName)
+   RETURN
+ ENDIF 
+ END SUBROUTINE Lidar_Input_ExtrapInterp
+
+
+ SUBROUTINE Lidar_Input_ExtrapInterp1(u1, u2, tin, u_out, tin_out, ErrStat, ErrMsg )
+!
+! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
+! values of u (which has values associated with times in t).  Order of the interpolation is 1.
+!
+!  f(t) = a + b * t, or
+!
+!  where a and b are determined as the solution to
+!  f(t1) = u1, f(t2) = u2
+!
+!..................................................................................................................................
+
+ TYPE(Lidar_InputType), INTENT(INOUT)  :: u1    ! Input at t1 > t2
+ TYPE(Lidar_InputType), INTENT(INOUT)  :: u2    ! Input at t2 
+ REAL(DbKi),         INTENT(IN   )          :: tin(2)   ! Times associated with the Inputs
+ TYPE(Lidar_InputType), INTENT(INOUT)  :: u_out ! Input at tin_out
+ REAL(DbKi),         INTENT(IN   )          :: tin_out  ! time to be extrap/interp'd to
+ INTEGER(IntKi),     INTENT(  OUT)          :: ErrStat  ! Error status of the operation
+ CHARACTER(*),       INTENT(  OUT)          :: ErrMsg   ! Error message if ErrStat /= ErrID_None
+   ! local variables
+ REAL(DbKi)                                 :: t(2)     ! Times associated with the Inputs
+ REAL(DbKi)                                 :: t_out    ! Time to which to be extrap/interpd
+ CHARACTER(*),                    PARAMETER :: RoutineName = 'Lidar_Input_ExtrapInterp1'
  REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
@@ -1590,89 +1637,104 @@ ENDIF
  t = tin - tin(1)
  t_out = tin_out - tin(1)
 
- if ( size(t) .ne. size(u)) then
-    ErrStat = ErrID_Fatal
-    ErrMsg = ' Error in Lidar_Input_ExtrapInterp: size(t) must equal size(u) '
-    RETURN
- endif
- if (size(u) .gt. 3) then
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in Lidar_Input_ExtrapInterp: size(u) must be less than 4 '
-    RETURN
- endif
- order = SIZE(u) - 1
- IF ( order .eq. 0 ) THEN
-  u_out%LidPosition = u(1)%LidPosition
-  u_out%MsrPosition = u(1)%MsrPosition
-  u_out%PulseLidEl = u(1)%PulseLidEl
-  u_out%PulseLidAz = u(1)%PulseLidAz
- ELSE IF ( order .eq. 1 ) THEN
-  IF ( EqualRealNos( t(1), t(2) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in Lidar_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
-    RETURN
-  END IF
+   IF ( EqualRealNos( t(1), t(2) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   END IF
   ALLOCATE(b1(SIZE(u_out%LidPosition,1)))
   ALLOCATE(c1(SIZE(u_out%LidPosition,1)))
-  b1 = -(u(1)%LidPosition - u(2)%LidPosition)/t(2)
-  u_out%LidPosition = u(1)%LidPosition + b1 * t_out
+  b1 = -(u1%LidPosition - u2%LidPosition)/t(2)
+  u_out%LidPosition = u1%LidPosition + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%MsrPosition,1)))
   ALLOCATE(c1(SIZE(u_out%MsrPosition,1)))
-  b1 = -(u(1)%MsrPosition - u(2)%MsrPosition)/t(2)
-  u_out%MsrPosition = u(1)%MsrPosition + b1 * t_out
+  b1 = -(u1%MsrPosition - u2%MsrPosition)/t(2)
+  u_out%MsrPosition = u1%MsrPosition + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
-  b0 = -(u(1)%PulseLidEl - u(2)%PulseLidEl)/t(2)
-  u_out%PulseLidEl = u(1)%PulseLidEl + b0 * t_out
-  b0 = -(u(1)%PulseLidAz - u(2)%PulseLidAz)/t(2)
-  u_out%PulseLidAz = u(1)%PulseLidAz + b0 * t_out
- ELSE IF ( order .eq. 2 ) THEN
-  IF ( EqualRealNos( t(1), t(2) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in Lidar_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-  IF ( EqualRealNos( t(2), t(3) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in Lidar_Input_ExtrapInterp: t(2) must not equal t(3) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-  IF ( EqualRealNos( t(1), t(3) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in Lidar_Input_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
-    RETURN
-  END IF
+  b0 = -(u1%PulseLidEl - u2%PulseLidEl)/t(2)
+  u_out%PulseLidEl = u1%PulseLidEl + b0 * t_out
+  b0 = -(u1%PulseLidAz - u2%PulseLidAz)/t(2)
+  u_out%PulseLidAz = u1%PulseLidAz + b0 * t_out
+ END SUBROUTINE Lidar_Input_ExtrapInterp1
+
+
+ SUBROUTINE Lidar_Input_ExtrapInterp2(u1, u2, u3, tin, u_out, tin_out, ErrStat, ErrMsg )
+!
+! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
+! values of u (which has values associated with times in t).  Order of the interpolation is 2.
+!
+!  expressions below based on either
+!
+!  f(t) = a + b * t + c * t**2
+!
+!  where a, b and c are determined as the solution to
+!  f(t1) = u1, f(t2) = u2, f(t3) = u3
+!
+!..................................................................................................................................
+
+ TYPE(Lidar_InputType), INTENT(INOUT)  :: u1      ! Input at t1 > t2 > t3
+ TYPE(Lidar_InputType), INTENT(INOUT)  :: u2      ! Input at t2 > t3
+ TYPE(Lidar_InputType), INTENT(INOUT)  :: u3      ! Input at t3
+ REAL(DbKi),                 INTENT(IN   )  :: tin(3)    ! Times associated with the Inputs
+ TYPE(Lidar_InputType), INTENT(INOUT)  :: u_out     ! Input at tin_out
+ REAL(DbKi),                 INTENT(IN   )  :: tin_out   ! time to be extrap/interp'd to
+ INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat   ! Error status of the operation
+ CHARACTER(*),               INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
+   ! local variables
+ REAL(DbKi)                                 :: t(3)      ! Times associated with the Inputs
+ REAL(DbKi)                                 :: t_out     ! Time to which to be extrap/interpd
+ INTEGER(IntKi)                             :: order     ! order of polynomial fit (max 2)
+ REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
+ REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: c1       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
+ CHARACTER(*),            PARAMETER         :: RoutineName = 'Lidar_Input_ExtrapInterp2'
+    ! Initialize ErrStat
+ ErrStat = ErrID_None
+ ErrMsg  = ""
+    ! we'll subtract a constant from the times to resolve some 
+    ! numerical issues when t gets large (and to simplify the equations)
+ t = tin - tin(1)
+ t_out = tin_out - tin(1)
+
+   IF ( EqualRealNos( t(1), t(2) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   ELSE IF ( EqualRealNos( t(2), t(3) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(2) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   ELSE IF ( EqualRealNos( t(1), t(3) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   END IF
   ALLOCATE(b1(SIZE(u_out%LidPosition,1)))
   ALLOCATE(c1(SIZE(u_out%LidPosition,1)))
-  b1 = (t(3)**2*(u(1)%LidPosition - u(2)%LidPosition) + t(2)**2*(-u(1)%LidPosition + u(3)%LidPosition))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%LidPosition + t(3)*u(2)%LidPosition - t(2)*u(3)%LidPosition ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%LidPosition = u(1)%LidPosition + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%LidPosition - u2%LidPosition) + t(2)**2*(-u1%LidPosition + u3%LidPosition))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%LidPosition + t(3)*u2%LidPosition - t(2)*u3%LidPosition ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%LidPosition = u1%LidPosition + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%MsrPosition,1)))
   ALLOCATE(c1(SIZE(u_out%MsrPosition,1)))
-  b1 = (t(3)**2*(u(1)%MsrPosition - u(2)%MsrPosition) + t(2)**2*(-u(1)%MsrPosition + u(3)%MsrPosition))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%MsrPosition + t(3)*u(2)%MsrPosition - t(2)*u(3)%MsrPosition ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%MsrPosition = u(1)%MsrPosition + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%MsrPosition - u2%MsrPosition) + t(2)**2*(-u1%MsrPosition + u3%MsrPosition))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%MsrPosition + t(3)*u2%MsrPosition - t(2)*u3%MsrPosition ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%MsrPosition = u1%MsrPosition + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
-  b0 = (t(3)**2*(u(1)%PulseLidEl - u(2)%PulseLidEl) + t(2)**2*(-u(1)%PulseLidEl + u(3)%PulseLidEl))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*u(1)%PulseLidEl + t(3)*u(2)%PulseLidEl - t(2)*u(3)%PulseLidEl ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%PulseLidEl = u(1)%PulseLidEl + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(u(1)%PulseLidAz - u(2)%PulseLidAz) + t(2)**2*(-u(1)%PulseLidAz + u(3)%PulseLidAz))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*u(1)%PulseLidAz + t(3)*u(2)%PulseLidAz - t(2)*u(3)%PulseLidAz ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%PulseLidAz = u(1)%PulseLidAz + b0 * t_out + c0 * t_out**2
- ELSE 
-   ErrStat = ErrID_Fatal
-   ErrMsg = ' order must be less than 3 in Lidar_Input_ExtrapInterp '
-   RETURN
- ENDIF 
- END SUBROUTINE Lidar_Input_ExtrapInterp
+  b0 = (t(3)**2*(u1%PulseLidEl - u2%PulseLidEl) + t(2)**2*(-u1%PulseLidEl + u3%PulseLidEl))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*u1%PulseLidEl + t(3)*u2%PulseLidEl - t(2)*u3%PulseLidEl ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%PulseLidEl = u1%PulseLidEl + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(u1%PulseLidAz - u2%PulseLidAz) + t(2)**2*(-u1%PulseLidAz + u3%PulseLidAz))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*u1%PulseLidAz + t(3)*u2%PulseLidAz - t(2)*u3%PulseLidAz ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%PulseLidAz = u1%PulseLidAz + b0 * t_out + c0 * t_out**2
+ END SUBROUTINE Lidar_Input_ExtrapInterp2
 
 
- SUBROUTINE Lidar_Output_ExtrapInterp(y, tin, y_out, tin_out, ErrStat, ErrMsg )
+ SUBROUTINE Lidar_Output_ExtrapInterp(y, t, y_out, t_out, ErrStat, ErrMsg )
 !
 ! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
 ! values of y (which has values associated with times in t).  Order of the interpolation is given by the size of y
@@ -1688,17 +1750,64 @@ ENDIF
 !
 !..................................................................................................................................
 
- TYPE(Lidar_outputtype), INTENT(INOUT)  :: y(:)      ! Output at t1 > t2 > t3
- REAL(DbKi),         INTENT(IN   )  :: tin(:)      ! Times associated with the Outputs
- TYPE(Lidar_outputtype), INTENT(INOUT)  :: y_out     ! Output at tin_out
- REAL(DbKi),         INTENT(IN   )  :: tin_out     ! time to be extrap/interp'd to
- INTEGER(IntKi),     INTENT(  OUT)  :: ErrStat   ! Error status of the operation
- CHARACTER(*),       INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
+ TYPE(Lidar_OutputType), INTENT(INOUT)  :: y(:) ! Output at t1 > t2 > t3
+ REAL(DbKi),                 INTENT(IN   )  :: t(:)           ! Times associated with the Outputs
+ TYPE(Lidar_OutputType), INTENT(INOUT)  :: y_out ! Output at tin_out
+ REAL(DbKi),                 INTENT(IN   )  :: t_out           ! time to be extrap/interp'd to
+ INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat         ! Error status of the operation
+ CHARACTER(*),               INTENT(  OUT)  :: ErrMsg          ! Error message if ErrStat /= ErrID_None
    ! local variables
- REAL(DbKi) :: t(SIZE(tin))    ! Times associated with the Outputs
- REAL(DbKi) :: t_out           ! Time to which to be extrap/interpd
- INTEGER(IntKi)                 :: order    ! order of polynomial fit (max 2)
- CHARACTER(*),    PARAMETER :: RoutineName = 'Lidar_Output_ExtrapInterp'
+ INTEGER(IntKi)                             :: order           ! order of polynomial fit (max 2)
+ INTEGER(IntKi)                             :: ErrStat2        ! local errors
+ CHARACTER(1024)                            :: ErrMsg2         ! local errors
+ CHARACTER(*),    PARAMETER                 :: RoutineName = 'Lidar_Output_ExtrapInterp'
+    ! Initialize ErrStat
+ ErrStat = ErrID_None
+ ErrMsg  = ""
+ if ( size(t) .ne. size(y)) then
+    CALL SetErrStat(ErrID_Fatal,'size(t) must equal size(y)',ErrStat,ErrMsg,RoutineName)
+    RETURN
+ endif
+ order = SIZE(y) - 1
+ IF ( order .eq. 0 ) THEN
+   CALL Lidar_CopyOutput(y(1), y_out, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE IF ( order .eq. 1 ) THEN
+   CALL Lidar_Output_ExtrapInterp1(y(1), y(2), t, y_out, t_out, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE IF ( order .eq. 2 ) THEN
+   CALL Lidar_Output_ExtrapInterp2(y(1), y(2), y(3), t, y_out, t_out, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE 
+   CALL SetErrStat(ErrID_Fatal,'size(y) must be less than 4 (order must be less than 3).',ErrStat,ErrMsg,RoutineName)
+   RETURN
+ ENDIF 
+ END SUBROUTINE Lidar_Output_ExtrapInterp
+
+
+ SUBROUTINE Lidar_Output_ExtrapInterp1(y1, y2, tin, y_out, tin_out, ErrStat, ErrMsg )
+!
+! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
+! values of y (which has values associated with times in t).  Order of the interpolation is 1.
+!
+!  f(t) = a + b * t, or
+!
+!  where a and b are determined as the solution to
+!  f(t1) = y1, f(t2) = y2
+!
+!..................................................................................................................................
+
+ TYPE(Lidar_OutputType), INTENT(INOUT)  :: y1    ! Output at t1 > t2
+ TYPE(Lidar_OutputType), INTENT(INOUT)  :: y2    ! Output at t2 
+ REAL(DbKi),         INTENT(IN   )          :: tin(2)   ! Times associated with the Outputs
+ TYPE(Lidar_OutputType), INTENT(INOUT)  :: y_out ! Output at tin_out
+ REAL(DbKi),         INTENT(IN   )          :: tin_out  ! time to be extrap/interp'd to
+ INTEGER(IntKi),     INTENT(  OUT)          :: ErrStat  ! Error status of the operation
+ CHARACTER(*),       INTENT(  OUT)          :: ErrMsg   ! Error message if ErrStat /= ErrID_None
+   ! local variables
+ REAL(DbKi)                                 :: t(2)     ! Times associated with the Outputs
+ REAL(DbKi)                                 :: t_out    ! Time to which to be extrap/interpd
+ CHARACTER(*),                    PARAMETER :: RoutineName = 'Lidar_Output_ExtrapInterp1'
  REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
@@ -1713,86 +1822,99 @@ ENDIF
  t = tin - tin(1)
  t_out = tin_out - tin(1)
 
- if ( size(t) .ne. size(y)) then
-    ErrStat = ErrID_Fatal
-    ErrMsg = ' Error in Lidar_Output_ExtrapInterp: size(t) must equal size(y) '
-    RETURN
- endif
- if (size(y) .gt. 3) then
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in Lidar_Output_ExtrapInterp: size(y) must be less than 4 '
-    RETURN
- endif
- order = SIZE(y) - 1
- IF ( order .eq. 0 ) THEN
-IF (ALLOCATED(y_out%LidSpeed) .AND. ALLOCATED(y(1)%LidSpeed)) THEN
-  y_out%LidSpeed = y(1)%LidSpeed
-END IF ! check if allocated
-IF (ALLOCATED(y_out%WtTrunc) .AND. ALLOCATED(y(1)%WtTrunc)) THEN
-  y_out%WtTrunc = y(1)%WtTrunc
-END IF ! check if allocated
- ELSE IF ( order .eq. 1 ) THEN
-  IF ( EqualRealNos( t(1), t(2) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in Lidar_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-IF (ALLOCATED(y_out%LidSpeed) .AND. ALLOCATED(y(1)%LidSpeed)) THEN
+   IF ( EqualRealNos( t(1), t(2) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   END IF
+IF (ALLOCATED(y_out%LidSpeed) .AND. ALLOCATED(y1%LidSpeed)) THEN
   ALLOCATE(b1(SIZE(y_out%LidSpeed,1)))
   ALLOCATE(c1(SIZE(y_out%LidSpeed,1)))
-  b1 = -(y(1)%LidSpeed - y(2)%LidSpeed)/t(2)
-  y_out%LidSpeed = y(1)%LidSpeed + b1 * t_out
+  b1 = -(y1%LidSpeed - y2%LidSpeed)/t(2)
+  y_out%LidSpeed = y1%LidSpeed + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(y_out%WtTrunc) .AND. ALLOCATED(y(1)%WtTrunc)) THEN
+IF (ALLOCATED(y_out%WtTrunc) .AND. ALLOCATED(y1%WtTrunc)) THEN
   ALLOCATE(b1(SIZE(y_out%WtTrunc,1)))
   ALLOCATE(c1(SIZE(y_out%WtTrunc,1)))
-  b1 = -(y(1)%WtTrunc - y(2)%WtTrunc)/t(2)
-  y_out%WtTrunc = y(1)%WtTrunc + b1 * t_out
+  b1 = -(y1%WtTrunc - y2%WtTrunc)/t(2)
+  y_out%WtTrunc = y1%WtTrunc + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
- ELSE IF ( order .eq. 2 ) THEN
-  IF ( EqualRealNos( t(1), t(2) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in Lidar_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-  IF ( EqualRealNos( t(2), t(3) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in Lidar_Output_ExtrapInterp: t(2) must not equal t(3) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-  IF ( EqualRealNos( t(1), t(3) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in Lidar_Output_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-IF (ALLOCATED(y_out%LidSpeed) .AND. ALLOCATED(y(1)%LidSpeed)) THEN
+ END SUBROUTINE Lidar_Output_ExtrapInterp1
+
+
+ SUBROUTINE Lidar_Output_ExtrapInterp2(y1, y2, y3, tin, y_out, tin_out, ErrStat, ErrMsg )
+!
+! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
+! values of y (which has values associated with times in t).  Order of the interpolation is 2.
+!
+!  expressions below based on either
+!
+!  f(t) = a + b * t + c * t**2
+!
+!  where a, b and c are determined as the solution to
+!  f(t1) = y1, f(t2) = y2, f(t3) = y3
+!
+!..................................................................................................................................
+
+ TYPE(Lidar_OutputType), INTENT(INOUT)  :: y1      ! Output at t1 > t2 > t3
+ TYPE(Lidar_OutputType), INTENT(INOUT)  :: y2      ! Output at t2 > t3
+ TYPE(Lidar_OutputType), INTENT(INOUT)  :: y3      ! Output at t3
+ REAL(DbKi),                 INTENT(IN   )  :: tin(3)    ! Times associated with the Outputs
+ TYPE(Lidar_OutputType), INTENT(INOUT)  :: y_out     ! Output at tin_out
+ REAL(DbKi),                 INTENT(IN   )  :: tin_out   ! time to be extrap/interp'd to
+ INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat   ! Error status of the operation
+ CHARACTER(*),               INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
+   ! local variables
+ REAL(DbKi)                                 :: t(3)      ! Times associated with the Outputs
+ REAL(DbKi)                                 :: t_out     ! Time to which to be extrap/interpd
+ INTEGER(IntKi)                             :: order     ! order of polynomial fit (max 2)
+ REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
+ REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: c1       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
+ CHARACTER(*),            PARAMETER         :: RoutineName = 'Lidar_Output_ExtrapInterp2'
+    ! Initialize ErrStat
+ ErrStat = ErrID_None
+ ErrMsg  = ""
+    ! we'll subtract a constant from the times to resolve some 
+    ! numerical issues when t gets large (and to simplify the equations)
+ t = tin - tin(1)
+ t_out = tin_out - tin(1)
+
+   IF ( EqualRealNos( t(1), t(2) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   ELSE IF ( EqualRealNos( t(2), t(3) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(2) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   ELSE IF ( EqualRealNos( t(1), t(3) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   END IF
+IF (ALLOCATED(y_out%LidSpeed) .AND. ALLOCATED(y1%LidSpeed)) THEN
   ALLOCATE(b1(SIZE(y_out%LidSpeed,1)))
   ALLOCATE(c1(SIZE(y_out%LidSpeed,1)))
-  b1 = (t(3)**2*(y(1)%LidSpeed - y(2)%LidSpeed) + t(2)**2*(-y(1)%LidSpeed + y(3)%LidSpeed))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*y(1)%LidSpeed + t(3)*y(2)%LidSpeed - t(2)*y(3)%LidSpeed ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%LidSpeed = y(1)%LidSpeed + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(y1%LidSpeed - y2%LidSpeed) + t(2)**2*(-y1%LidSpeed + y3%LidSpeed))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*y1%LidSpeed + t(3)*y2%LidSpeed - t(2)*y3%LidSpeed ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%LidSpeed = y1%LidSpeed + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(y_out%WtTrunc) .AND. ALLOCATED(y(1)%WtTrunc)) THEN
+IF (ALLOCATED(y_out%WtTrunc) .AND. ALLOCATED(y1%WtTrunc)) THEN
   ALLOCATE(b1(SIZE(y_out%WtTrunc,1)))
   ALLOCATE(c1(SIZE(y_out%WtTrunc,1)))
-  b1 = (t(3)**2*(y(1)%WtTrunc - y(2)%WtTrunc) + t(2)**2*(-y(1)%WtTrunc + y(3)%WtTrunc))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*y(1)%WtTrunc + t(3)*y(2)%WtTrunc - t(2)*y(3)%WtTrunc ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%WtTrunc = y(1)%WtTrunc + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(y1%WtTrunc - y2%WtTrunc) + t(2)**2*(-y1%WtTrunc + y3%WtTrunc))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*y1%WtTrunc + t(3)*y2%WtTrunc - t(2)*y3%WtTrunc ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%WtTrunc = y1%WtTrunc + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
- ELSE 
-   ErrStat = ErrID_Fatal
-   ErrMsg = ' order must be less than 3 in Lidar_Output_ExtrapInterp '
-   RETURN
- ENDIF 
- END SUBROUTINE Lidar_Output_ExtrapInterp
+ END SUBROUTINE Lidar_Output_ExtrapInterp2
 
 END MODULE Lidar_Types
 !ENDOFREGISTRYGENERATEDFILE

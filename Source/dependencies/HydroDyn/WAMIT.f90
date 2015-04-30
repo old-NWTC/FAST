@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-14 14:27:12 -0600 (Tue, 14 Apr 2015) $
-! (File) Revision #: $Rev: 614 $
+! File last committed: $Date: 2015-04-30 13:00:55 -0600 (Thu, 30 Apr 2015) $
+! (File) Revision #: $Rev: 615 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/WAMIT.f90 $
 !**********************************************************************************************************************************
 MODULE WAMIT
@@ -1343,7 +1343,7 @@ SUBROUTINE WAMIT_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState
       INTEGER                                           :: I               ! Generic loop counter
       INTEGER                                           :: nTime           ! Number of inputs
 !      INTEGER(IntKi)                                    :: ErrStat2        ! Error status of the operation (secondary error)
-!      CHARACTER(LEN(ErrMsg))                            :: ErrMsg2         ! Error message if ErrStat2 /= ErrID_None
+!      CHARACTER(ErrMsgLen)                              :: ErrMsg2         ! Error message if ErrStat2 /= ErrID_None
       
       
           ! Create dummy variables required by framework but which are not used by the module

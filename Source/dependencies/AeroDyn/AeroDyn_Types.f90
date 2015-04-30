@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.06.01, 21-Apr-2015)
+! FAST Registry (v2.07.00, 28-Apr-2015)
 !*********************************************************************************************************************************
 ! AeroDyn_Types
 !.................................................................................................................................
@@ -16036,7 +16036,7 @@ ENDIF
  END SUBROUTINE AD_UnPackOutput
 
 
- SUBROUTINE AD_Input_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )
+ SUBROUTINE AD_Input_ExtrapInterp(u, t, u_out, t_out, ErrStat, ErrMsg )
 !
 ! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
 ! values of u (which has values associated with times in t).  Order of the interpolation is given by the size of u
@@ -16052,17 +16052,64 @@ ENDIF
 !
 !..................................................................................................................................
 
- TYPE(AD_inputtype), INTENT(INOUT)  :: u(:)      ! Input at t1 > t2 > t3
- REAL(DbKi),         INTENT(IN   )  :: tin(:)      ! Times associated with the Inputs
- TYPE(AD_inputtype), INTENT(INOUT)  :: u_out     ! Input at tin_out
- REAL(DbKi),         INTENT(IN   )  :: tin_out     ! time to be extrap/interp'd to
- INTEGER(IntKi),     INTENT(  OUT)  :: ErrStat   ! Error status of the operation
- CHARACTER(*),       INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
+ TYPE(AD_InputType), INTENT(INOUT)  :: u(:) ! Input at t1 > t2 > t3
+ REAL(DbKi),                 INTENT(IN   )  :: t(:)           ! Times associated with the Inputs
+ TYPE(AD_InputType), INTENT(INOUT)  :: u_out ! Input at tin_out
+ REAL(DbKi),                 INTENT(IN   )  :: t_out           ! time to be extrap/interp'd to
+ INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat         ! Error status of the operation
+ CHARACTER(*),               INTENT(  OUT)  :: ErrMsg          ! Error message if ErrStat /= ErrID_None
    ! local variables
- REAL(DbKi) :: t(SIZE(tin))    ! Times associated with the Inputs
- REAL(DbKi) :: t_out           ! Time to which to be extrap/interpd
- INTEGER(IntKi)                 :: order    ! order of polynomial fit (max 2)
- CHARACTER(*),    PARAMETER :: RoutineName = 'AD_Input_ExtrapInterp'
+ INTEGER(IntKi)                             :: order           ! order of polynomial fit (max 2)
+ INTEGER(IntKi)                             :: ErrStat2        ! local errors
+ CHARACTER(1024)                            :: ErrMsg2         ! local errors
+ CHARACTER(*),    PARAMETER                 :: RoutineName = 'AD_Input_ExtrapInterp'
+    ! Initialize ErrStat
+ ErrStat = ErrID_None
+ ErrMsg  = ""
+ if ( size(t) .ne. size(u)) then
+    CALL SetErrStat(ErrID_Fatal,'size(t) must equal size(u)',ErrStat,ErrMsg,RoutineName)
+    RETURN
+ endif
+ order = SIZE(u) - 1
+ IF ( order .eq. 0 ) THEN
+   CALL AD_CopyInput(u(1), u_out, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE IF ( order .eq. 1 ) THEN
+   CALL AD_Input_ExtrapInterp1(u(1), u(2), t, u_out, t_out, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE IF ( order .eq. 2 ) THEN
+   CALL AD_Input_ExtrapInterp2(u(1), u(2), u(3), t, u_out, t_out, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE 
+   CALL SetErrStat(ErrID_Fatal,'size(u) must be less than 4 (order must be less than 3).',ErrStat,ErrMsg,RoutineName)
+   RETURN
+ ENDIF 
+ END SUBROUTINE AD_Input_ExtrapInterp
+
+
+ SUBROUTINE AD_Input_ExtrapInterp1(u1, u2, tin, u_out, tin_out, ErrStat, ErrMsg )
+!
+! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
+! values of u (which has values associated with times in t).  Order of the interpolation is 1.
+!
+!  f(t) = a + b * t, or
+!
+!  where a and b are determined as the solution to
+!  f(t1) = u1, f(t2) = u2
+!
+!..................................................................................................................................
+
+ TYPE(AD_InputType), INTENT(INOUT)  :: u1    ! Input at t1 > t2
+ TYPE(AD_InputType), INTENT(INOUT)  :: u2    ! Input at t2 
+ REAL(DbKi),         INTENT(IN   )          :: tin(2)   ! Times associated with the Inputs
+ TYPE(AD_InputType), INTENT(INOUT)  :: u_out ! Input at tin_out
+ REAL(DbKi),         INTENT(IN   )          :: tin_out  ! time to be extrap/interp'd to
+ INTEGER(IntKi),     INTENT(  OUT)          :: ErrStat  ! Error status of the operation
+ CHARACTER(*),       INTENT(  OUT)          :: ErrMsg   ! Error message if ErrStat /= ErrID_None
+   ! local variables
+ REAL(DbKi)                                 :: t(2)     ! Times associated with the Inputs
+ REAL(DbKi)                                 :: t_out    ! Time to which to be extrap/interpd
+ CHARACTER(*),                    PARAMETER :: RoutineName = 'AD_Input_ExtrapInterp1'
  REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
@@ -16081,617 +16128,576 @@ ENDIF
  t = tin - tin(1)
  t_out = tin_out - tin(1)
 
- if ( size(t) .ne. size(u)) then
-    ErrStat = ErrID_Fatal
-    ErrMsg = ' Error in AD_Input_ExtrapInterp: size(t) must equal size(u) '
-    RETURN
- endif
- if (size(u) .gt. 3) then
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in AD_Input_ExtrapInterp: size(u) must be less than 4 '
-    RETURN
- endif
- order = SIZE(u) - 1
- IF ( order .eq. 0 ) THEN
-IF (ALLOCATED(u_out%InputMarkers) .AND. ALLOCATED(u(1)%InputMarkers)) THEN
+   IF ( EqualRealNos( t(1), t(2) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   END IF
+IF (ALLOCATED(u_out%InputMarkers) .AND. ALLOCATED(u1%InputMarkers)) THEN
   DO i01 = LBOUND(u_out%InputMarkers,1),UBOUND(u_out%InputMarkers,1)
-  CALL MeshCopy(u(1)%InputMarkers(i01), u_out%InputMarkers(i01), MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  ENDDO
+      CALL MeshExtrapInterp1(u1%InputMarkers(i01), u2%InputMarkers(i01), tin, u_out%InputMarkers(i01), tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+   ENDDO
 END IF ! check if allocated
-  CALL MeshCopy(u(1)%Twr_InputMarkers, u_out%Twr_InputMarkers, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-IF (ALLOCATED(u_out%TurbineComponents%Blade) .AND. ALLOCATED(u(1)%TurbineComponents%Blade)) THEN
-  DO i11 = LBOUND(u_out%TurbineComponents%Blade,1),UBOUND(u_out%TurbineComponents%Blade,1)
-  u_out%TurbineComponents%Blade(i11)%Position = u(1)%TurbineComponents%Blade(i11)%Position
-  ENDDO
-  DO i11 = LBOUND(u_out%TurbineComponents%Blade,1),UBOUND(u_out%TurbineComponents%Blade,1)
-  u_out%TurbineComponents%Blade(i11)%Orientation = u(1)%TurbineComponents%Blade(i11)%Orientation
-  ENDDO
-  DO i11 = LBOUND(u_out%TurbineComponents%Blade,1),UBOUND(u_out%TurbineComponents%Blade,1)
-  u_out%TurbineComponents%Blade(i11)%TranslationVel = u(1)%TurbineComponents%Blade(i11)%TranslationVel
-  ENDDO
-  DO i11 = LBOUND(u_out%TurbineComponents%Blade,1),UBOUND(u_out%TurbineComponents%Blade,1)
-  u_out%TurbineComponents%Blade(i11)%RotationVel = u(1)%TurbineComponents%Blade(i11)%RotationVel
-  ENDDO
-END IF ! check if allocated
-  u_out%TurbineComponents%Hub%Position = u(1)%TurbineComponents%Hub%Position
-  u_out%TurbineComponents%Hub%Orientation = u(1)%TurbineComponents%Hub%Orientation
-  u_out%TurbineComponents%Hub%TranslationVel = u(1)%TurbineComponents%Hub%TranslationVel
-  u_out%TurbineComponents%Hub%RotationVel = u(1)%TurbineComponents%Hub%RotationVel
-  u_out%TurbineComponents%RotorFurl%Position = u(1)%TurbineComponents%RotorFurl%Position
-  u_out%TurbineComponents%RotorFurl%Orientation = u(1)%TurbineComponents%RotorFurl%Orientation
-  u_out%TurbineComponents%RotorFurl%TranslationVel = u(1)%TurbineComponents%RotorFurl%TranslationVel
-  u_out%TurbineComponents%RotorFurl%RotationVel = u(1)%TurbineComponents%RotorFurl%RotationVel
-  u_out%TurbineComponents%Nacelle%Position = u(1)%TurbineComponents%Nacelle%Position
-  u_out%TurbineComponents%Nacelle%Orientation = u(1)%TurbineComponents%Nacelle%Orientation
-  u_out%TurbineComponents%Nacelle%TranslationVel = u(1)%TurbineComponents%Nacelle%TranslationVel
-  u_out%TurbineComponents%Nacelle%RotationVel = u(1)%TurbineComponents%Nacelle%RotationVel
-  u_out%TurbineComponents%TailFin%Position = u(1)%TurbineComponents%TailFin%Position
-  u_out%TurbineComponents%TailFin%Orientation = u(1)%TurbineComponents%TailFin%Orientation
-  u_out%TurbineComponents%TailFin%TranslationVel = u(1)%TurbineComponents%TailFin%TranslationVel
-  u_out%TurbineComponents%TailFin%RotationVel = u(1)%TurbineComponents%TailFin%RotationVel
-  u_out%TurbineComponents%Tower%Position = u(1)%TurbineComponents%Tower%Position
-  u_out%TurbineComponents%Tower%Orientation = u(1)%TurbineComponents%Tower%Orientation
-  u_out%TurbineComponents%Tower%TranslationVel = u(1)%TurbineComponents%Tower%TranslationVel
-  u_out%TurbineComponents%Tower%RotationVel = u(1)%TurbineComponents%Tower%RotationVel
-  u_out%TurbineComponents%SubStructure%Position = u(1)%TurbineComponents%SubStructure%Position
-  u_out%TurbineComponents%SubStructure%Orientation = u(1)%TurbineComponents%SubStructure%Orientation
-  u_out%TurbineComponents%SubStructure%TranslationVel = u(1)%TurbineComponents%SubStructure%TranslationVel
-  u_out%TurbineComponents%SubStructure%RotationVel = u(1)%TurbineComponents%SubStructure%RotationVel
-  u_out%TurbineComponents%Foundation%Position = u(1)%TurbineComponents%Foundation%Position
-  u_out%TurbineComponents%Foundation%Orientation = u(1)%TurbineComponents%Foundation%Orientation
-  u_out%TurbineComponents%Foundation%TranslationVel = u(1)%TurbineComponents%Foundation%TranslationVel
-  u_out%TurbineComponents%Foundation%RotationVel = u(1)%TurbineComponents%Foundation%RotationVel
-  u_out%TurbineComponents%BladeLength = u(1)%TurbineComponents%BladeLength
-IF (ALLOCATED(u_out%MulTabLoc) .AND. ALLOCATED(u(1)%MulTabLoc)) THEN
-  u_out%MulTabLoc = u(1)%MulTabLoc
-END IF ! check if allocated
-IF (ALLOCATED(u_out%InflowVelocity) .AND. ALLOCATED(u(1)%InflowVelocity)) THEN
-  u_out%InflowVelocity = u(1)%InflowVelocity
-END IF ! check if allocated
-  u_out%AvgInfVel = u(1)%AvgInfVel
- ELSE IF ( order .eq. 1 ) THEN
-  IF ( EqualRealNos( t(1), t(2) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in AD_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-IF (ALLOCATED(u_out%InputMarkers) .AND. ALLOCATED(u(1)%InputMarkers)) THEN
-  DO i01 = LBOUND(u_out%InputMarkers,1),UBOUND(u_out%InputMarkers,1)
-  CALL MeshExtrapInterp1(u(1)%InputMarkers(i01), u(2)%InputMarkers(i01), tin, u_out%InputMarkers(i01), tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  ENDDO
-END IF ! check if allocated
-  CALL MeshExtrapInterp1(u(1)%Twr_InputMarkers, u(2)%Twr_InputMarkers, tin, u_out%Twr_InputMarkers, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-IF (ALLOCATED(u_out%TurbineComponents%Blade) .AND. ALLOCATED(u(1)%TurbineComponents%Blade)) THEN
+      CALL MeshExtrapInterp1(u1%Twr_InputMarkers, u2%Twr_InputMarkers, tin, u_out%Twr_InputMarkers, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+IF (ALLOCATED(u_out%TurbineComponents%Blade) .AND. ALLOCATED(u1%TurbineComponents%Blade)) THEN
   DO i11 = LBOUND(u_out%TurbineComponents%Blade,1),UBOUND(u_out%TurbineComponents%Blade,1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Blade(i11)%Position,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Blade(i11)%Position,1)))
-  b1 = -(u(1)%TurbineComponents%Blade(i11)%Position - u(2)%TurbineComponents%Blade(i11)%Position)/t(2)
-  u_out%TurbineComponents%Blade(i11)%Position = u(1)%TurbineComponents%Blade(i11)%Position + b1 * t_out
+  b1 = -(u1%TurbineComponents%Blade(i11)%Position - u2%TurbineComponents%Blade(i11)%Position)/t(2)
+  u_out%TurbineComponents%Blade(i11)%Position = u1%TurbineComponents%Blade(i11)%Position + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ENDDO
   DO i11 = LBOUND(u_out%TurbineComponents%Blade,1),UBOUND(u_out%TurbineComponents%Blade,1)
   ALLOCATE(b2(SIZE(u_out%TurbineComponents%Blade(i11)%Orientation,1),SIZE(u_out%TurbineComponents%Blade(i11)%Orientation,2) ))
   ALLOCATE(c2(SIZE(u_out%TurbineComponents%Blade(i11)%Orientation,1),SIZE(u_out%TurbineComponents%Blade(i11)%Orientation,2) ))
-  b2 = -(u(1)%TurbineComponents%Blade(i11)%Orientation - u(2)%TurbineComponents%Blade(i11)%Orientation)/t(2)
-  u_out%TurbineComponents%Blade(i11)%Orientation = u(1)%TurbineComponents%Blade(i11)%Orientation + b2 * t_out
+  b2 = -(u1%TurbineComponents%Blade(i11)%Orientation - u2%TurbineComponents%Blade(i11)%Orientation)/t(2)
+  u_out%TurbineComponents%Blade(i11)%Orientation = u1%TurbineComponents%Blade(i11)%Orientation + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
   ENDDO
   DO i11 = LBOUND(u_out%TurbineComponents%Blade,1),UBOUND(u_out%TurbineComponents%Blade,1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Blade(i11)%TranslationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Blade(i11)%TranslationVel,1)))
-  b1 = -(u(1)%TurbineComponents%Blade(i11)%TranslationVel - u(2)%TurbineComponents%Blade(i11)%TranslationVel)/t(2)
-  u_out%TurbineComponents%Blade(i11)%TranslationVel = u(1)%TurbineComponents%Blade(i11)%TranslationVel + b1 * t_out
+  b1 = -(u1%TurbineComponents%Blade(i11)%TranslationVel - u2%TurbineComponents%Blade(i11)%TranslationVel)/t(2)
+  u_out%TurbineComponents%Blade(i11)%TranslationVel = u1%TurbineComponents%Blade(i11)%TranslationVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ENDDO
   DO i11 = LBOUND(u_out%TurbineComponents%Blade,1),UBOUND(u_out%TurbineComponents%Blade,1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Blade(i11)%RotationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Blade(i11)%RotationVel,1)))
-  b1 = -(u(1)%TurbineComponents%Blade(i11)%RotationVel - u(2)%TurbineComponents%Blade(i11)%RotationVel)/t(2)
-  u_out%TurbineComponents%Blade(i11)%RotationVel = u(1)%TurbineComponents%Blade(i11)%RotationVel + b1 * t_out
+  b1 = -(u1%TurbineComponents%Blade(i11)%RotationVel - u2%TurbineComponents%Blade(i11)%RotationVel)/t(2)
+  u_out%TurbineComponents%Blade(i11)%RotationVel = u1%TurbineComponents%Blade(i11)%RotationVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ENDDO
 END IF ! check if allocated
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Hub%Position,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Hub%Position,1)))
-  b1 = -(u(1)%TurbineComponents%Hub%Position - u(2)%TurbineComponents%Hub%Position)/t(2)
-  u_out%TurbineComponents%Hub%Position = u(1)%TurbineComponents%Hub%Position + b1 * t_out
+  b1 = -(u1%TurbineComponents%Hub%Position - u2%TurbineComponents%Hub%Position)/t(2)
+  u_out%TurbineComponents%Hub%Position = u1%TurbineComponents%Hub%Position + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b2(SIZE(u_out%TurbineComponents%Hub%Orientation,1),SIZE(u_out%TurbineComponents%Hub%Orientation,2) ))
   ALLOCATE(c2(SIZE(u_out%TurbineComponents%Hub%Orientation,1),SIZE(u_out%TurbineComponents%Hub%Orientation,2) ))
-  b2 = -(u(1)%TurbineComponents%Hub%Orientation - u(2)%TurbineComponents%Hub%Orientation)/t(2)
-  u_out%TurbineComponents%Hub%Orientation = u(1)%TurbineComponents%Hub%Orientation + b2 * t_out
+  b2 = -(u1%TurbineComponents%Hub%Orientation - u2%TurbineComponents%Hub%Orientation)/t(2)
+  u_out%TurbineComponents%Hub%Orientation = u1%TurbineComponents%Hub%Orientation + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Hub%TranslationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Hub%TranslationVel,1)))
-  b1 = -(u(1)%TurbineComponents%Hub%TranslationVel - u(2)%TurbineComponents%Hub%TranslationVel)/t(2)
-  u_out%TurbineComponents%Hub%TranslationVel = u(1)%TurbineComponents%Hub%TranslationVel + b1 * t_out
+  b1 = -(u1%TurbineComponents%Hub%TranslationVel - u2%TurbineComponents%Hub%TranslationVel)/t(2)
+  u_out%TurbineComponents%Hub%TranslationVel = u1%TurbineComponents%Hub%TranslationVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Hub%RotationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Hub%RotationVel,1)))
-  b1 = -(u(1)%TurbineComponents%Hub%RotationVel - u(2)%TurbineComponents%Hub%RotationVel)/t(2)
-  u_out%TurbineComponents%Hub%RotationVel = u(1)%TurbineComponents%Hub%RotationVel + b1 * t_out
+  b1 = -(u1%TurbineComponents%Hub%RotationVel - u2%TurbineComponents%Hub%RotationVel)/t(2)
+  u_out%TurbineComponents%Hub%RotationVel = u1%TurbineComponents%Hub%RotationVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%RotorFurl%Position,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%RotorFurl%Position,1)))
-  b1 = -(u(1)%TurbineComponents%RotorFurl%Position - u(2)%TurbineComponents%RotorFurl%Position)/t(2)
-  u_out%TurbineComponents%RotorFurl%Position = u(1)%TurbineComponents%RotorFurl%Position + b1 * t_out
+  b1 = -(u1%TurbineComponents%RotorFurl%Position - u2%TurbineComponents%RotorFurl%Position)/t(2)
+  u_out%TurbineComponents%RotorFurl%Position = u1%TurbineComponents%RotorFurl%Position + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b2(SIZE(u_out%TurbineComponents%RotorFurl%Orientation,1),SIZE(u_out%TurbineComponents%RotorFurl%Orientation,2) ))
   ALLOCATE(c2(SIZE(u_out%TurbineComponents%RotorFurl%Orientation,1),SIZE(u_out%TurbineComponents%RotorFurl%Orientation,2) ))
-  b2 = -(u(1)%TurbineComponents%RotorFurl%Orientation - u(2)%TurbineComponents%RotorFurl%Orientation)/t(2)
-  u_out%TurbineComponents%RotorFurl%Orientation = u(1)%TurbineComponents%RotorFurl%Orientation + b2 * t_out
+  b2 = -(u1%TurbineComponents%RotorFurl%Orientation - u2%TurbineComponents%RotorFurl%Orientation)/t(2)
+  u_out%TurbineComponents%RotorFurl%Orientation = u1%TurbineComponents%RotorFurl%Orientation + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%RotorFurl%TranslationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%RotorFurl%TranslationVel,1)))
-  b1 = -(u(1)%TurbineComponents%RotorFurl%TranslationVel - u(2)%TurbineComponents%RotorFurl%TranslationVel)/t(2)
-  u_out%TurbineComponents%RotorFurl%TranslationVel = u(1)%TurbineComponents%RotorFurl%TranslationVel + b1 * t_out
+  b1 = -(u1%TurbineComponents%RotorFurl%TranslationVel - u2%TurbineComponents%RotorFurl%TranslationVel)/t(2)
+  u_out%TurbineComponents%RotorFurl%TranslationVel = u1%TurbineComponents%RotorFurl%TranslationVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%RotorFurl%RotationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%RotorFurl%RotationVel,1)))
-  b1 = -(u(1)%TurbineComponents%RotorFurl%RotationVel - u(2)%TurbineComponents%RotorFurl%RotationVel)/t(2)
-  u_out%TurbineComponents%RotorFurl%RotationVel = u(1)%TurbineComponents%RotorFurl%RotationVel + b1 * t_out
+  b1 = -(u1%TurbineComponents%RotorFurl%RotationVel - u2%TurbineComponents%RotorFurl%RotationVel)/t(2)
+  u_out%TurbineComponents%RotorFurl%RotationVel = u1%TurbineComponents%RotorFurl%RotationVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Nacelle%Position,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Nacelle%Position,1)))
-  b1 = -(u(1)%TurbineComponents%Nacelle%Position - u(2)%TurbineComponents%Nacelle%Position)/t(2)
-  u_out%TurbineComponents%Nacelle%Position = u(1)%TurbineComponents%Nacelle%Position + b1 * t_out
+  b1 = -(u1%TurbineComponents%Nacelle%Position - u2%TurbineComponents%Nacelle%Position)/t(2)
+  u_out%TurbineComponents%Nacelle%Position = u1%TurbineComponents%Nacelle%Position + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b2(SIZE(u_out%TurbineComponents%Nacelle%Orientation,1),SIZE(u_out%TurbineComponents%Nacelle%Orientation,2) ))
   ALLOCATE(c2(SIZE(u_out%TurbineComponents%Nacelle%Orientation,1),SIZE(u_out%TurbineComponents%Nacelle%Orientation,2) ))
-  b2 = -(u(1)%TurbineComponents%Nacelle%Orientation - u(2)%TurbineComponents%Nacelle%Orientation)/t(2)
-  u_out%TurbineComponents%Nacelle%Orientation = u(1)%TurbineComponents%Nacelle%Orientation + b2 * t_out
+  b2 = -(u1%TurbineComponents%Nacelle%Orientation - u2%TurbineComponents%Nacelle%Orientation)/t(2)
+  u_out%TurbineComponents%Nacelle%Orientation = u1%TurbineComponents%Nacelle%Orientation + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Nacelle%TranslationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Nacelle%TranslationVel,1)))
-  b1 = -(u(1)%TurbineComponents%Nacelle%TranslationVel - u(2)%TurbineComponents%Nacelle%TranslationVel)/t(2)
-  u_out%TurbineComponents%Nacelle%TranslationVel = u(1)%TurbineComponents%Nacelle%TranslationVel + b1 * t_out
+  b1 = -(u1%TurbineComponents%Nacelle%TranslationVel - u2%TurbineComponents%Nacelle%TranslationVel)/t(2)
+  u_out%TurbineComponents%Nacelle%TranslationVel = u1%TurbineComponents%Nacelle%TranslationVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Nacelle%RotationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Nacelle%RotationVel,1)))
-  b1 = -(u(1)%TurbineComponents%Nacelle%RotationVel - u(2)%TurbineComponents%Nacelle%RotationVel)/t(2)
-  u_out%TurbineComponents%Nacelle%RotationVel = u(1)%TurbineComponents%Nacelle%RotationVel + b1 * t_out
+  b1 = -(u1%TurbineComponents%Nacelle%RotationVel - u2%TurbineComponents%Nacelle%RotationVel)/t(2)
+  u_out%TurbineComponents%Nacelle%RotationVel = u1%TurbineComponents%Nacelle%RotationVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%TailFin%Position,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%TailFin%Position,1)))
-  b1 = -(u(1)%TurbineComponents%TailFin%Position - u(2)%TurbineComponents%TailFin%Position)/t(2)
-  u_out%TurbineComponents%TailFin%Position = u(1)%TurbineComponents%TailFin%Position + b1 * t_out
+  b1 = -(u1%TurbineComponents%TailFin%Position - u2%TurbineComponents%TailFin%Position)/t(2)
+  u_out%TurbineComponents%TailFin%Position = u1%TurbineComponents%TailFin%Position + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b2(SIZE(u_out%TurbineComponents%TailFin%Orientation,1),SIZE(u_out%TurbineComponents%TailFin%Orientation,2) ))
   ALLOCATE(c2(SIZE(u_out%TurbineComponents%TailFin%Orientation,1),SIZE(u_out%TurbineComponents%TailFin%Orientation,2) ))
-  b2 = -(u(1)%TurbineComponents%TailFin%Orientation - u(2)%TurbineComponents%TailFin%Orientation)/t(2)
-  u_out%TurbineComponents%TailFin%Orientation = u(1)%TurbineComponents%TailFin%Orientation + b2 * t_out
+  b2 = -(u1%TurbineComponents%TailFin%Orientation - u2%TurbineComponents%TailFin%Orientation)/t(2)
+  u_out%TurbineComponents%TailFin%Orientation = u1%TurbineComponents%TailFin%Orientation + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%TailFin%TranslationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%TailFin%TranslationVel,1)))
-  b1 = -(u(1)%TurbineComponents%TailFin%TranslationVel - u(2)%TurbineComponents%TailFin%TranslationVel)/t(2)
-  u_out%TurbineComponents%TailFin%TranslationVel = u(1)%TurbineComponents%TailFin%TranslationVel + b1 * t_out
+  b1 = -(u1%TurbineComponents%TailFin%TranslationVel - u2%TurbineComponents%TailFin%TranslationVel)/t(2)
+  u_out%TurbineComponents%TailFin%TranslationVel = u1%TurbineComponents%TailFin%TranslationVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%TailFin%RotationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%TailFin%RotationVel,1)))
-  b1 = -(u(1)%TurbineComponents%TailFin%RotationVel - u(2)%TurbineComponents%TailFin%RotationVel)/t(2)
-  u_out%TurbineComponents%TailFin%RotationVel = u(1)%TurbineComponents%TailFin%RotationVel + b1 * t_out
+  b1 = -(u1%TurbineComponents%TailFin%RotationVel - u2%TurbineComponents%TailFin%RotationVel)/t(2)
+  u_out%TurbineComponents%TailFin%RotationVel = u1%TurbineComponents%TailFin%RotationVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Tower%Position,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Tower%Position,1)))
-  b1 = -(u(1)%TurbineComponents%Tower%Position - u(2)%TurbineComponents%Tower%Position)/t(2)
-  u_out%TurbineComponents%Tower%Position = u(1)%TurbineComponents%Tower%Position + b1 * t_out
+  b1 = -(u1%TurbineComponents%Tower%Position - u2%TurbineComponents%Tower%Position)/t(2)
+  u_out%TurbineComponents%Tower%Position = u1%TurbineComponents%Tower%Position + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b2(SIZE(u_out%TurbineComponents%Tower%Orientation,1),SIZE(u_out%TurbineComponents%Tower%Orientation,2) ))
   ALLOCATE(c2(SIZE(u_out%TurbineComponents%Tower%Orientation,1),SIZE(u_out%TurbineComponents%Tower%Orientation,2) ))
-  b2 = -(u(1)%TurbineComponents%Tower%Orientation - u(2)%TurbineComponents%Tower%Orientation)/t(2)
-  u_out%TurbineComponents%Tower%Orientation = u(1)%TurbineComponents%Tower%Orientation + b2 * t_out
+  b2 = -(u1%TurbineComponents%Tower%Orientation - u2%TurbineComponents%Tower%Orientation)/t(2)
+  u_out%TurbineComponents%Tower%Orientation = u1%TurbineComponents%Tower%Orientation + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Tower%TranslationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Tower%TranslationVel,1)))
-  b1 = -(u(1)%TurbineComponents%Tower%TranslationVel - u(2)%TurbineComponents%Tower%TranslationVel)/t(2)
-  u_out%TurbineComponents%Tower%TranslationVel = u(1)%TurbineComponents%Tower%TranslationVel + b1 * t_out
+  b1 = -(u1%TurbineComponents%Tower%TranslationVel - u2%TurbineComponents%Tower%TranslationVel)/t(2)
+  u_out%TurbineComponents%Tower%TranslationVel = u1%TurbineComponents%Tower%TranslationVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Tower%RotationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Tower%RotationVel,1)))
-  b1 = -(u(1)%TurbineComponents%Tower%RotationVel - u(2)%TurbineComponents%Tower%RotationVel)/t(2)
-  u_out%TurbineComponents%Tower%RotationVel = u(1)%TurbineComponents%Tower%RotationVel + b1 * t_out
+  b1 = -(u1%TurbineComponents%Tower%RotationVel - u2%TurbineComponents%Tower%RotationVel)/t(2)
+  u_out%TurbineComponents%Tower%RotationVel = u1%TurbineComponents%Tower%RotationVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%SubStructure%Position,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%SubStructure%Position,1)))
-  b1 = -(u(1)%TurbineComponents%SubStructure%Position - u(2)%TurbineComponents%SubStructure%Position)/t(2)
-  u_out%TurbineComponents%SubStructure%Position = u(1)%TurbineComponents%SubStructure%Position + b1 * t_out
+  b1 = -(u1%TurbineComponents%SubStructure%Position - u2%TurbineComponents%SubStructure%Position)/t(2)
+  u_out%TurbineComponents%SubStructure%Position = u1%TurbineComponents%SubStructure%Position + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b2(SIZE(u_out%TurbineComponents%SubStructure%Orientation,1),SIZE(u_out%TurbineComponents%SubStructure%Orientation,2) ))
   ALLOCATE(c2(SIZE(u_out%TurbineComponents%SubStructure%Orientation,1),SIZE(u_out%TurbineComponents%SubStructure%Orientation,2) ))
-  b2 = -(u(1)%TurbineComponents%SubStructure%Orientation - u(2)%TurbineComponents%SubStructure%Orientation)/t(2)
-  u_out%TurbineComponents%SubStructure%Orientation = u(1)%TurbineComponents%SubStructure%Orientation + b2 * t_out
+  b2 = -(u1%TurbineComponents%SubStructure%Orientation - u2%TurbineComponents%SubStructure%Orientation)/t(2)
+  u_out%TurbineComponents%SubStructure%Orientation = u1%TurbineComponents%SubStructure%Orientation + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%SubStructure%TranslationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%SubStructure%TranslationVel,1)))
-  b1 = -(u(1)%TurbineComponents%SubStructure%TranslationVel - u(2)%TurbineComponents%SubStructure%TranslationVel)/t(2)
-  u_out%TurbineComponents%SubStructure%TranslationVel = u(1)%TurbineComponents%SubStructure%TranslationVel + b1 * t_out
+  b1 = -(u1%TurbineComponents%SubStructure%TranslationVel - u2%TurbineComponents%SubStructure%TranslationVel)/t(2)
+  u_out%TurbineComponents%SubStructure%TranslationVel = u1%TurbineComponents%SubStructure%TranslationVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%SubStructure%RotationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%SubStructure%RotationVel,1)))
-  b1 = -(u(1)%TurbineComponents%SubStructure%RotationVel - u(2)%TurbineComponents%SubStructure%RotationVel)/t(2)
-  u_out%TurbineComponents%SubStructure%RotationVel = u(1)%TurbineComponents%SubStructure%RotationVel + b1 * t_out
+  b1 = -(u1%TurbineComponents%SubStructure%RotationVel - u2%TurbineComponents%SubStructure%RotationVel)/t(2)
+  u_out%TurbineComponents%SubStructure%RotationVel = u1%TurbineComponents%SubStructure%RotationVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Foundation%Position,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Foundation%Position,1)))
-  b1 = -(u(1)%TurbineComponents%Foundation%Position - u(2)%TurbineComponents%Foundation%Position)/t(2)
-  u_out%TurbineComponents%Foundation%Position = u(1)%TurbineComponents%Foundation%Position + b1 * t_out
+  b1 = -(u1%TurbineComponents%Foundation%Position - u2%TurbineComponents%Foundation%Position)/t(2)
+  u_out%TurbineComponents%Foundation%Position = u1%TurbineComponents%Foundation%Position + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b2(SIZE(u_out%TurbineComponents%Foundation%Orientation,1),SIZE(u_out%TurbineComponents%Foundation%Orientation,2) ))
   ALLOCATE(c2(SIZE(u_out%TurbineComponents%Foundation%Orientation,1),SIZE(u_out%TurbineComponents%Foundation%Orientation,2) ))
-  b2 = -(u(1)%TurbineComponents%Foundation%Orientation - u(2)%TurbineComponents%Foundation%Orientation)/t(2)
-  u_out%TurbineComponents%Foundation%Orientation = u(1)%TurbineComponents%Foundation%Orientation + b2 * t_out
+  b2 = -(u1%TurbineComponents%Foundation%Orientation - u2%TurbineComponents%Foundation%Orientation)/t(2)
+  u_out%TurbineComponents%Foundation%Orientation = u1%TurbineComponents%Foundation%Orientation + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Foundation%TranslationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Foundation%TranslationVel,1)))
-  b1 = -(u(1)%TurbineComponents%Foundation%TranslationVel - u(2)%TurbineComponents%Foundation%TranslationVel)/t(2)
-  u_out%TurbineComponents%Foundation%TranslationVel = u(1)%TurbineComponents%Foundation%TranslationVel + b1 * t_out
+  b1 = -(u1%TurbineComponents%Foundation%TranslationVel - u2%TurbineComponents%Foundation%TranslationVel)/t(2)
+  u_out%TurbineComponents%Foundation%TranslationVel = u1%TurbineComponents%Foundation%TranslationVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Foundation%RotationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Foundation%RotationVel,1)))
-  b1 = -(u(1)%TurbineComponents%Foundation%RotationVel - u(2)%TurbineComponents%Foundation%RotationVel)/t(2)
-  u_out%TurbineComponents%Foundation%RotationVel = u(1)%TurbineComponents%Foundation%RotationVel + b1 * t_out
+  b1 = -(u1%TurbineComponents%Foundation%RotationVel - u2%TurbineComponents%Foundation%RotationVel)/t(2)
+  u_out%TurbineComponents%Foundation%RotationVel = u1%TurbineComponents%Foundation%RotationVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
-  b0 = -(u(1)%TurbineComponents%BladeLength - u(2)%TurbineComponents%BladeLength)/t(2)
-  u_out%TurbineComponents%BladeLength = u(1)%TurbineComponents%BladeLength + b0 * t_out
-IF (ALLOCATED(u_out%MulTabLoc) .AND. ALLOCATED(u(1)%MulTabLoc)) THEN
+  b0 = -(u1%TurbineComponents%BladeLength - u2%TurbineComponents%BladeLength)/t(2)
+  u_out%TurbineComponents%BladeLength = u1%TurbineComponents%BladeLength + b0 * t_out
+IF (ALLOCATED(u_out%MulTabLoc) .AND. ALLOCATED(u1%MulTabLoc)) THEN
   ALLOCATE(b2(SIZE(u_out%MulTabLoc,1),SIZE(u_out%MulTabLoc,2) ))
   ALLOCATE(c2(SIZE(u_out%MulTabLoc,1),SIZE(u_out%MulTabLoc,2) ))
-  b2 = -(u(1)%MulTabLoc - u(2)%MulTabLoc)/t(2)
-  u_out%MulTabLoc = u(1)%MulTabLoc + b2 * t_out
+  b2 = -(u1%MulTabLoc - u2%MulTabLoc)/t(2)
+  u_out%MulTabLoc = u1%MulTabLoc + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%InflowVelocity) .AND. ALLOCATED(u(1)%InflowVelocity)) THEN
+IF (ALLOCATED(u_out%InflowVelocity) .AND. ALLOCATED(u1%InflowVelocity)) THEN
   ALLOCATE(b2(SIZE(u_out%InflowVelocity,1),SIZE(u_out%InflowVelocity,2) ))
   ALLOCATE(c2(SIZE(u_out%InflowVelocity,1),SIZE(u_out%InflowVelocity,2) ))
-  b2 = -(u(1)%InflowVelocity - u(2)%InflowVelocity)/t(2)
-  u_out%InflowVelocity = u(1)%InflowVelocity + b2 * t_out
+  b2 = -(u1%InflowVelocity - u2%InflowVelocity)/t(2)
+  u_out%InflowVelocity = u1%InflowVelocity + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
 END IF ! check if allocated
   ALLOCATE(b1(SIZE(u_out%AvgInfVel,1)))
   ALLOCATE(c1(SIZE(u_out%AvgInfVel,1)))
-  b1 = -(u(1)%AvgInfVel - u(2)%AvgInfVel)/t(2)
-  u_out%AvgInfVel = u(1)%AvgInfVel + b1 * t_out
+  b1 = -(u1%AvgInfVel - u2%AvgInfVel)/t(2)
+  u_out%AvgInfVel = u1%AvgInfVel + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
- ELSE IF ( order .eq. 2 ) THEN
-  IF ( EqualRealNos( t(1), t(2) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in AD_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-  IF ( EqualRealNos( t(2), t(3) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in AD_Input_ExtrapInterp: t(2) must not equal t(3) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-  IF ( EqualRealNos( t(1), t(3) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in AD_Input_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-IF (ALLOCATED(u_out%InputMarkers) .AND. ALLOCATED(u(1)%InputMarkers)) THEN
+ END SUBROUTINE AD_Input_ExtrapInterp1
+
+
+ SUBROUTINE AD_Input_ExtrapInterp2(u1, u2, u3, tin, u_out, tin_out, ErrStat, ErrMsg )
+!
+! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
+! values of u (which has values associated with times in t).  Order of the interpolation is 2.
+!
+!  expressions below based on either
+!
+!  f(t) = a + b * t + c * t**2
+!
+!  where a, b and c are determined as the solution to
+!  f(t1) = u1, f(t2) = u2, f(t3) = u3
+!
+!..................................................................................................................................
+
+ TYPE(AD_InputType), INTENT(INOUT)  :: u1      ! Input at t1 > t2 > t3
+ TYPE(AD_InputType), INTENT(INOUT)  :: u2      ! Input at t2 > t3
+ TYPE(AD_InputType), INTENT(INOUT)  :: u3      ! Input at t3
+ REAL(DbKi),                 INTENT(IN   )  :: tin(3)    ! Times associated with the Inputs
+ TYPE(AD_InputType), INTENT(INOUT)  :: u_out     ! Input at tin_out
+ REAL(DbKi),                 INTENT(IN   )  :: tin_out   ! time to be extrap/interp'd to
+ INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat   ! Error status of the operation
+ CHARACTER(*),               INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
+   ! local variables
+ REAL(DbKi)                                 :: t(3)      ! Times associated with the Inputs
+ REAL(DbKi)                                 :: t_out     ! Time to which to be extrap/interpd
+ INTEGER(IntKi)                             :: order     ! order of polynomial fit (max 2)
+ REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
+ REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: c1       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: b2       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: c2       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
+ CHARACTER(*),            PARAMETER         :: RoutineName = 'AD_Input_ExtrapInterp2'
+ INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
+ INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
+    ! Initialize ErrStat
+ ErrStat = ErrID_None
+ ErrMsg  = ""
+    ! we'll subtract a constant from the times to resolve some 
+    ! numerical issues when t gets large (and to simplify the equations)
+ t = tin - tin(1)
+ t_out = tin_out - tin(1)
+
+   IF ( EqualRealNos( t(1), t(2) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   ELSE IF ( EqualRealNos( t(2), t(3) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(2) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   ELSE IF ( EqualRealNos( t(1), t(3) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   END IF
+IF (ALLOCATED(u_out%InputMarkers) .AND. ALLOCATED(u1%InputMarkers)) THEN
   DO i01 = LBOUND(u_out%InputMarkers,1),UBOUND(u_out%InputMarkers,1)
-  CALL MeshExtrapInterp2(u(1)%InputMarkers(i01), u(2)%InputMarkers(i01), u(3)%InputMarkers(i01), tin, u_out%InputMarkers(i01), tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  ENDDO
+      CALL MeshExtrapInterp2(u1%InputMarkers(i01), u2%InputMarkers(i01), u3%InputMarkers(i01), tin, u_out%InputMarkers(i01), tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+   ENDDO
 END IF ! check if allocated
-  CALL MeshExtrapInterp2(u(1)%Twr_InputMarkers, u(2)%Twr_InputMarkers, u(3)%Twr_InputMarkers, tin, u_out%Twr_InputMarkers, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-IF (ALLOCATED(u_out%TurbineComponents%Blade) .AND. ALLOCATED(u(1)%TurbineComponents%Blade)) THEN
+      CALL MeshExtrapInterp2(u1%Twr_InputMarkers, u2%Twr_InputMarkers, u3%Twr_InputMarkers, tin, u_out%Twr_InputMarkers, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+IF (ALLOCATED(u_out%TurbineComponents%Blade) .AND. ALLOCATED(u1%TurbineComponents%Blade)) THEN
   DO i11 = LBOUND(u_out%TurbineComponents%Blade,1),UBOUND(u_out%TurbineComponents%Blade,1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Blade(i11)%Position,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Blade(i11)%Position,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%Blade(i11)%Position - u(2)%TurbineComponents%Blade(i11)%Position) + t(2)**2*(-u(1)%TurbineComponents%Blade(i11)%Position + u(3)%TurbineComponents%Blade(i11)%Position))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%Blade(i11)%Position + t(3)*u(2)%TurbineComponents%Blade(i11)%Position - t(2)*u(3)%TurbineComponents%Blade(i11)%Position ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Blade(i11)%Position = u(1)%TurbineComponents%Blade(i11)%Position + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%Blade(i11)%Position - u2%TurbineComponents%Blade(i11)%Position) + t(2)**2*(-u1%TurbineComponents%Blade(i11)%Position + u3%TurbineComponents%Blade(i11)%Position))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%Blade(i11)%Position + t(3)*u2%TurbineComponents%Blade(i11)%Position - t(2)*u3%TurbineComponents%Blade(i11)%Position ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Blade(i11)%Position = u1%TurbineComponents%Blade(i11)%Position + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ENDDO
   DO i11 = LBOUND(u_out%TurbineComponents%Blade,1),UBOUND(u_out%TurbineComponents%Blade,1)
   ALLOCATE(b2(SIZE(u_out%TurbineComponents%Blade(i11)%Orientation,1),SIZE(u_out%TurbineComponents%Blade(i11)%Orientation,2) ))
   ALLOCATE(c2(SIZE(u_out%TurbineComponents%Blade(i11)%Orientation,1),SIZE(u_out%TurbineComponents%Blade(i11)%Orientation,2) ))
-  b2 = (t(3)**2*(u(1)%TurbineComponents%Blade(i11)%Orientation - u(2)%TurbineComponents%Blade(i11)%Orientation) + t(2)**2*(-u(1)%TurbineComponents%Blade(i11)%Orientation + u(3)%TurbineComponents%Blade(i11)%Orientation))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%TurbineComponents%Blade(i11)%Orientation + t(3)*u(2)%TurbineComponents%Blade(i11)%Orientation - t(2)*u(3)%TurbineComponents%Blade(i11)%Orientation ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Blade(i11)%Orientation = u(1)%TurbineComponents%Blade(i11)%Orientation + b2 * t_out + c2 * t_out**2
+  b2 = (t(3)**2*(u1%TurbineComponents%Blade(i11)%Orientation - u2%TurbineComponents%Blade(i11)%Orientation) + t(2)**2*(-u1%TurbineComponents%Blade(i11)%Orientation + u3%TurbineComponents%Blade(i11)%Orientation))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*u1%TurbineComponents%Blade(i11)%Orientation + t(3)*u2%TurbineComponents%Blade(i11)%Orientation - t(2)*u3%TurbineComponents%Blade(i11)%Orientation ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Blade(i11)%Orientation = u1%TurbineComponents%Blade(i11)%Orientation + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
   ENDDO
   DO i11 = LBOUND(u_out%TurbineComponents%Blade,1),UBOUND(u_out%TurbineComponents%Blade,1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Blade(i11)%TranslationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Blade(i11)%TranslationVel,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%Blade(i11)%TranslationVel - u(2)%TurbineComponents%Blade(i11)%TranslationVel) + t(2)**2*(-u(1)%TurbineComponents%Blade(i11)%TranslationVel + u(3)%TurbineComponents%Blade(i11)%TranslationVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%Blade(i11)%TranslationVel + t(3)*u(2)%TurbineComponents%Blade(i11)%TranslationVel - t(2)*u(3)%TurbineComponents%Blade(i11)%TranslationVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Blade(i11)%TranslationVel = u(1)%TurbineComponents%Blade(i11)%TranslationVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%Blade(i11)%TranslationVel - u2%TurbineComponents%Blade(i11)%TranslationVel) + t(2)**2*(-u1%TurbineComponents%Blade(i11)%TranslationVel + u3%TurbineComponents%Blade(i11)%TranslationVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%Blade(i11)%TranslationVel + t(3)*u2%TurbineComponents%Blade(i11)%TranslationVel - t(2)*u3%TurbineComponents%Blade(i11)%TranslationVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Blade(i11)%TranslationVel = u1%TurbineComponents%Blade(i11)%TranslationVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ENDDO
   DO i11 = LBOUND(u_out%TurbineComponents%Blade,1),UBOUND(u_out%TurbineComponents%Blade,1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Blade(i11)%RotationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Blade(i11)%RotationVel,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%Blade(i11)%RotationVel - u(2)%TurbineComponents%Blade(i11)%RotationVel) + t(2)**2*(-u(1)%TurbineComponents%Blade(i11)%RotationVel + u(3)%TurbineComponents%Blade(i11)%RotationVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%Blade(i11)%RotationVel + t(3)*u(2)%TurbineComponents%Blade(i11)%RotationVel - t(2)*u(3)%TurbineComponents%Blade(i11)%RotationVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Blade(i11)%RotationVel = u(1)%TurbineComponents%Blade(i11)%RotationVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%Blade(i11)%RotationVel - u2%TurbineComponents%Blade(i11)%RotationVel) + t(2)**2*(-u1%TurbineComponents%Blade(i11)%RotationVel + u3%TurbineComponents%Blade(i11)%RotationVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%Blade(i11)%RotationVel + t(3)*u2%TurbineComponents%Blade(i11)%RotationVel - t(2)*u3%TurbineComponents%Blade(i11)%RotationVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Blade(i11)%RotationVel = u1%TurbineComponents%Blade(i11)%RotationVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ENDDO
 END IF ! check if allocated
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Hub%Position,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Hub%Position,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%Hub%Position - u(2)%TurbineComponents%Hub%Position) + t(2)**2*(-u(1)%TurbineComponents%Hub%Position + u(3)%TurbineComponents%Hub%Position))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%Hub%Position + t(3)*u(2)%TurbineComponents%Hub%Position - t(2)*u(3)%TurbineComponents%Hub%Position ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Hub%Position = u(1)%TurbineComponents%Hub%Position + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%Hub%Position - u2%TurbineComponents%Hub%Position) + t(2)**2*(-u1%TurbineComponents%Hub%Position + u3%TurbineComponents%Hub%Position))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%Hub%Position + t(3)*u2%TurbineComponents%Hub%Position - t(2)*u3%TurbineComponents%Hub%Position ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Hub%Position = u1%TurbineComponents%Hub%Position + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b2(SIZE(u_out%TurbineComponents%Hub%Orientation,1),SIZE(u_out%TurbineComponents%Hub%Orientation,2) ))
   ALLOCATE(c2(SIZE(u_out%TurbineComponents%Hub%Orientation,1),SIZE(u_out%TurbineComponents%Hub%Orientation,2) ))
-  b2 = (t(3)**2*(u(1)%TurbineComponents%Hub%Orientation - u(2)%TurbineComponents%Hub%Orientation) + t(2)**2*(-u(1)%TurbineComponents%Hub%Orientation + u(3)%TurbineComponents%Hub%Orientation))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%TurbineComponents%Hub%Orientation + t(3)*u(2)%TurbineComponents%Hub%Orientation - t(2)*u(3)%TurbineComponents%Hub%Orientation ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Hub%Orientation = u(1)%TurbineComponents%Hub%Orientation + b2 * t_out + c2 * t_out**2
+  b2 = (t(3)**2*(u1%TurbineComponents%Hub%Orientation - u2%TurbineComponents%Hub%Orientation) + t(2)**2*(-u1%TurbineComponents%Hub%Orientation + u3%TurbineComponents%Hub%Orientation))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*u1%TurbineComponents%Hub%Orientation + t(3)*u2%TurbineComponents%Hub%Orientation - t(2)*u3%TurbineComponents%Hub%Orientation ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Hub%Orientation = u1%TurbineComponents%Hub%Orientation + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Hub%TranslationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Hub%TranslationVel,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%Hub%TranslationVel - u(2)%TurbineComponents%Hub%TranslationVel) + t(2)**2*(-u(1)%TurbineComponents%Hub%TranslationVel + u(3)%TurbineComponents%Hub%TranslationVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%Hub%TranslationVel + t(3)*u(2)%TurbineComponents%Hub%TranslationVel - t(2)*u(3)%TurbineComponents%Hub%TranslationVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Hub%TranslationVel = u(1)%TurbineComponents%Hub%TranslationVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%Hub%TranslationVel - u2%TurbineComponents%Hub%TranslationVel) + t(2)**2*(-u1%TurbineComponents%Hub%TranslationVel + u3%TurbineComponents%Hub%TranslationVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%Hub%TranslationVel + t(3)*u2%TurbineComponents%Hub%TranslationVel - t(2)*u3%TurbineComponents%Hub%TranslationVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Hub%TranslationVel = u1%TurbineComponents%Hub%TranslationVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Hub%RotationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Hub%RotationVel,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%Hub%RotationVel - u(2)%TurbineComponents%Hub%RotationVel) + t(2)**2*(-u(1)%TurbineComponents%Hub%RotationVel + u(3)%TurbineComponents%Hub%RotationVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%Hub%RotationVel + t(3)*u(2)%TurbineComponents%Hub%RotationVel - t(2)*u(3)%TurbineComponents%Hub%RotationVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Hub%RotationVel = u(1)%TurbineComponents%Hub%RotationVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%Hub%RotationVel - u2%TurbineComponents%Hub%RotationVel) + t(2)**2*(-u1%TurbineComponents%Hub%RotationVel + u3%TurbineComponents%Hub%RotationVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%Hub%RotationVel + t(3)*u2%TurbineComponents%Hub%RotationVel - t(2)*u3%TurbineComponents%Hub%RotationVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Hub%RotationVel = u1%TurbineComponents%Hub%RotationVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%RotorFurl%Position,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%RotorFurl%Position,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%RotorFurl%Position - u(2)%TurbineComponents%RotorFurl%Position) + t(2)**2*(-u(1)%TurbineComponents%RotorFurl%Position + u(3)%TurbineComponents%RotorFurl%Position))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%RotorFurl%Position + t(3)*u(2)%TurbineComponents%RotorFurl%Position - t(2)*u(3)%TurbineComponents%RotorFurl%Position ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%RotorFurl%Position = u(1)%TurbineComponents%RotorFurl%Position + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%RotorFurl%Position - u2%TurbineComponents%RotorFurl%Position) + t(2)**2*(-u1%TurbineComponents%RotorFurl%Position + u3%TurbineComponents%RotorFurl%Position))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%RotorFurl%Position + t(3)*u2%TurbineComponents%RotorFurl%Position - t(2)*u3%TurbineComponents%RotorFurl%Position ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%RotorFurl%Position = u1%TurbineComponents%RotorFurl%Position + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b2(SIZE(u_out%TurbineComponents%RotorFurl%Orientation,1),SIZE(u_out%TurbineComponents%RotorFurl%Orientation,2) ))
   ALLOCATE(c2(SIZE(u_out%TurbineComponents%RotorFurl%Orientation,1),SIZE(u_out%TurbineComponents%RotorFurl%Orientation,2) ))
-  b2 = (t(3)**2*(u(1)%TurbineComponents%RotorFurl%Orientation - u(2)%TurbineComponents%RotorFurl%Orientation) + t(2)**2*(-u(1)%TurbineComponents%RotorFurl%Orientation + u(3)%TurbineComponents%RotorFurl%Orientation))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%TurbineComponents%RotorFurl%Orientation + t(3)*u(2)%TurbineComponents%RotorFurl%Orientation - t(2)*u(3)%TurbineComponents%RotorFurl%Orientation ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%RotorFurl%Orientation = u(1)%TurbineComponents%RotorFurl%Orientation + b2 * t_out + c2 * t_out**2
+  b2 = (t(3)**2*(u1%TurbineComponents%RotorFurl%Orientation - u2%TurbineComponents%RotorFurl%Orientation) + t(2)**2*(-u1%TurbineComponents%RotorFurl%Orientation + u3%TurbineComponents%RotorFurl%Orientation))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*u1%TurbineComponents%RotorFurl%Orientation + t(3)*u2%TurbineComponents%RotorFurl%Orientation - t(2)*u3%TurbineComponents%RotorFurl%Orientation ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%RotorFurl%Orientation = u1%TurbineComponents%RotorFurl%Orientation + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%RotorFurl%TranslationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%RotorFurl%TranslationVel,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%RotorFurl%TranslationVel - u(2)%TurbineComponents%RotorFurl%TranslationVel) + t(2)**2*(-u(1)%TurbineComponents%RotorFurl%TranslationVel + u(3)%TurbineComponents%RotorFurl%TranslationVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%RotorFurl%TranslationVel + t(3)*u(2)%TurbineComponents%RotorFurl%TranslationVel - t(2)*u(3)%TurbineComponents%RotorFurl%TranslationVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%RotorFurl%TranslationVel = u(1)%TurbineComponents%RotorFurl%TranslationVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%RotorFurl%TranslationVel - u2%TurbineComponents%RotorFurl%TranslationVel) + t(2)**2*(-u1%TurbineComponents%RotorFurl%TranslationVel + u3%TurbineComponents%RotorFurl%TranslationVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%RotorFurl%TranslationVel + t(3)*u2%TurbineComponents%RotorFurl%TranslationVel - t(2)*u3%TurbineComponents%RotorFurl%TranslationVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%RotorFurl%TranslationVel = u1%TurbineComponents%RotorFurl%TranslationVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%RotorFurl%RotationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%RotorFurl%RotationVel,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%RotorFurl%RotationVel - u(2)%TurbineComponents%RotorFurl%RotationVel) + t(2)**2*(-u(1)%TurbineComponents%RotorFurl%RotationVel + u(3)%TurbineComponents%RotorFurl%RotationVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%RotorFurl%RotationVel + t(3)*u(2)%TurbineComponents%RotorFurl%RotationVel - t(2)*u(3)%TurbineComponents%RotorFurl%RotationVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%RotorFurl%RotationVel = u(1)%TurbineComponents%RotorFurl%RotationVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%RotorFurl%RotationVel - u2%TurbineComponents%RotorFurl%RotationVel) + t(2)**2*(-u1%TurbineComponents%RotorFurl%RotationVel + u3%TurbineComponents%RotorFurl%RotationVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%RotorFurl%RotationVel + t(3)*u2%TurbineComponents%RotorFurl%RotationVel - t(2)*u3%TurbineComponents%RotorFurl%RotationVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%RotorFurl%RotationVel = u1%TurbineComponents%RotorFurl%RotationVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Nacelle%Position,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Nacelle%Position,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%Nacelle%Position - u(2)%TurbineComponents%Nacelle%Position) + t(2)**2*(-u(1)%TurbineComponents%Nacelle%Position + u(3)%TurbineComponents%Nacelle%Position))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%Nacelle%Position + t(3)*u(2)%TurbineComponents%Nacelle%Position - t(2)*u(3)%TurbineComponents%Nacelle%Position ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Nacelle%Position = u(1)%TurbineComponents%Nacelle%Position + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%Nacelle%Position - u2%TurbineComponents%Nacelle%Position) + t(2)**2*(-u1%TurbineComponents%Nacelle%Position + u3%TurbineComponents%Nacelle%Position))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%Nacelle%Position + t(3)*u2%TurbineComponents%Nacelle%Position - t(2)*u3%TurbineComponents%Nacelle%Position ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Nacelle%Position = u1%TurbineComponents%Nacelle%Position + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b2(SIZE(u_out%TurbineComponents%Nacelle%Orientation,1),SIZE(u_out%TurbineComponents%Nacelle%Orientation,2) ))
   ALLOCATE(c2(SIZE(u_out%TurbineComponents%Nacelle%Orientation,1),SIZE(u_out%TurbineComponents%Nacelle%Orientation,2) ))
-  b2 = (t(3)**2*(u(1)%TurbineComponents%Nacelle%Orientation - u(2)%TurbineComponents%Nacelle%Orientation) + t(2)**2*(-u(1)%TurbineComponents%Nacelle%Orientation + u(3)%TurbineComponents%Nacelle%Orientation))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%TurbineComponents%Nacelle%Orientation + t(3)*u(2)%TurbineComponents%Nacelle%Orientation - t(2)*u(3)%TurbineComponents%Nacelle%Orientation ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Nacelle%Orientation = u(1)%TurbineComponents%Nacelle%Orientation + b2 * t_out + c2 * t_out**2
+  b2 = (t(3)**2*(u1%TurbineComponents%Nacelle%Orientation - u2%TurbineComponents%Nacelle%Orientation) + t(2)**2*(-u1%TurbineComponents%Nacelle%Orientation + u3%TurbineComponents%Nacelle%Orientation))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*u1%TurbineComponents%Nacelle%Orientation + t(3)*u2%TurbineComponents%Nacelle%Orientation - t(2)*u3%TurbineComponents%Nacelle%Orientation ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Nacelle%Orientation = u1%TurbineComponents%Nacelle%Orientation + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Nacelle%TranslationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Nacelle%TranslationVel,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%Nacelle%TranslationVel - u(2)%TurbineComponents%Nacelle%TranslationVel) + t(2)**2*(-u(1)%TurbineComponents%Nacelle%TranslationVel + u(3)%TurbineComponents%Nacelle%TranslationVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%Nacelle%TranslationVel + t(3)*u(2)%TurbineComponents%Nacelle%TranslationVel - t(2)*u(3)%TurbineComponents%Nacelle%TranslationVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Nacelle%TranslationVel = u(1)%TurbineComponents%Nacelle%TranslationVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%Nacelle%TranslationVel - u2%TurbineComponents%Nacelle%TranslationVel) + t(2)**2*(-u1%TurbineComponents%Nacelle%TranslationVel + u3%TurbineComponents%Nacelle%TranslationVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%Nacelle%TranslationVel + t(3)*u2%TurbineComponents%Nacelle%TranslationVel - t(2)*u3%TurbineComponents%Nacelle%TranslationVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Nacelle%TranslationVel = u1%TurbineComponents%Nacelle%TranslationVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Nacelle%RotationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Nacelle%RotationVel,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%Nacelle%RotationVel - u(2)%TurbineComponents%Nacelle%RotationVel) + t(2)**2*(-u(1)%TurbineComponents%Nacelle%RotationVel + u(3)%TurbineComponents%Nacelle%RotationVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%Nacelle%RotationVel + t(3)*u(2)%TurbineComponents%Nacelle%RotationVel - t(2)*u(3)%TurbineComponents%Nacelle%RotationVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Nacelle%RotationVel = u(1)%TurbineComponents%Nacelle%RotationVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%Nacelle%RotationVel - u2%TurbineComponents%Nacelle%RotationVel) + t(2)**2*(-u1%TurbineComponents%Nacelle%RotationVel + u3%TurbineComponents%Nacelle%RotationVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%Nacelle%RotationVel + t(3)*u2%TurbineComponents%Nacelle%RotationVel - t(2)*u3%TurbineComponents%Nacelle%RotationVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Nacelle%RotationVel = u1%TurbineComponents%Nacelle%RotationVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%TailFin%Position,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%TailFin%Position,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%TailFin%Position - u(2)%TurbineComponents%TailFin%Position) + t(2)**2*(-u(1)%TurbineComponents%TailFin%Position + u(3)%TurbineComponents%TailFin%Position))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%TailFin%Position + t(3)*u(2)%TurbineComponents%TailFin%Position - t(2)*u(3)%TurbineComponents%TailFin%Position ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%TailFin%Position = u(1)%TurbineComponents%TailFin%Position + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%TailFin%Position - u2%TurbineComponents%TailFin%Position) + t(2)**2*(-u1%TurbineComponents%TailFin%Position + u3%TurbineComponents%TailFin%Position))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%TailFin%Position + t(3)*u2%TurbineComponents%TailFin%Position - t(2)*u3%TurbineComponents%TailFin%Position ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%TailFin%Position = u1%TurbineComponents%TailFin%Position + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b2(SIZE(u_out%TurbineComponents%TailFin%Orientation,1),SIZE(u_out%TurbineComponents%TailFin%Orientation,2) ))
   ALLOCATE(c2(SIZE(u_out%TurbineComponents%TailFin%Orientation,1),SIZE(u_out%TurbineComponents%TailFin%Orientation,2) ))
-  b2 = (t(3)**2*(u(1)%TurbineComponents%TailFin%Orientation - u(2)%TurbineComponents%TailFin%Orientation) + t(2)**2*(-u(1)%TurbineComponents%TailFin%Orientation + u(3)%TurbineComponents%TailFin%Orientation))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%TurbineComponents%TailFin%Orientation + t(3)*u(2)%TurbineComponents%TailFin%Orientation - t(2)*u(3)%TurbineComponents%TailFin%Orientation ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%TailFin%Orientation = u(1)%TurbineComponents%TailFin%Orientation + b2 * t_out + c2 * t_out**2
+  b2 = (t(3)**2*(u1%TurbineComponents%TailFin%Orientation - u2%TurbineComponents%TailFin%Orientation) + t(2)**2*(-u1%TurbineComponents%TailFin%Orientation + u3%TurbineComponents%TailFin%Orientation))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*u1%TurbineComponents%TailFin%Orientation + t(3)*u2%TurbineComponents%TailFin%Orientation - t(2)*u3%TurbineComponents%TailFin%Orientation ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%TailFin%Orientation = u1%TurbineComponents%TailFin%Orientation + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%TailFin%TranslationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%TailFin%TranslationVel,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%TailFin%TranslationVel - u(2)%TurbineComponents%TailFin%TranslationVel) + t(2)**2*(-u(1)%TurbineComponents%TailFin%TranslationVel + u(3)%TurbineComponents%TailFin%TranslationVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%TailFin%TranslationVel + t(3)*u(2)%TurbineComponents%TailFin%TranslationVel - t(2)*u(3)%TurbineComponents%TailFin%TranslationVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%TailFin%TranslationVel = u(1)%TurbineComponents%TailFin%TranslationVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%TailFin%TranslationVel - u2%TurbineComponents%TailFin%TranslationVel) + t(2)**2*(-u1%TurbineComponents%TailFin%TranslationVel + u3%TurbineComponents%TailFin%TranslationVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%TailFin%TranslationVel + t(3)*u2%TurbineComponents%TailFin%TranslationVel - t(2)*u3%TurbineComponents%TailFin%TranslationVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%TailFin%TranslationVel = u1%TurbineComponents%TailFin%TranslationVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%TailFin%RotationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%TailFin%RotationVel,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%TailFin%RotationVel - u(2)%TurbineComponents%TailFin%RotationVel) + t(2)**2*(-u(1)%TurbineComponents%TailFin%RotationVel + u(3)%TurbineComponents%TailFin%RotationVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%TailFin%RotationVel + t(3)*u(2)%TurbineComponents%TailFin%RotationVel - t(2)*u(3)%TurbineComponents%TailFin%RotationVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%TailFin%RotationVel = u(1)%TurbineComponents%TailFin%RotationVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%TailFin%RotationVel - u2%TurbineComponents%TailFin%RotationVel) + t(2)**2*(-u1%TurbineComponents%TailFin%RotationVel + u3%TurbineComponents%TailFin%RotationVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%TailFin%RotationVel + t(3)*u2%TurbineComponents%TailFin%RotationVel - t(2)*u3%TurbineComponents%TailFin%RotationVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%TailFin%RotationVel = u1%TurbineComponents%TailFin%RotationVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Tower%Position,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Tower%Position,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%Tower%Position - u(2)%TurbineComponents%Tower%Position) + t(2)**2*(-u(1)%TurbineComponents%Tower%Position + u(3)%TurbineComponents%Tower%Position))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%Tower%Position + t(3)*u(2)%TurbineComponents%Tower%Position - t(2)*u(3)%TurbineComponents%Tower%Position ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Tower%Position = u(1)%TurbineComponents%Tower%Position + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%Tower%Position - u2%TurbineComponents%Tower%Position) + t(2)**2*(-u1%TurbineComponents%Tower%Position + u3%TurbineComponents%Tower%Position))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%Tower%Position + t(3)*u2%TurbineComponents%Tower%Position - t(2)*u3%TurbineComponents%Tower%Position ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Tower%Position = u1%TurbineComponents%Tower%Position + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b2(SIZE(u_out%TurbineComponents%Tower%Orientation,1),SIZE(u_out%TurbineComponents%Tower%Orientation,2) ))
   ALLOCATE(c2(SIZE(u_out%TurbineComponents%Tower%Orientation,1),SIZE(u_out%TurbineComponents%Tower%Orientation,2) ))
-  b2 = (t(3)**2*(u(1)%TurbineComponents%Tower%Orientation - u(2)%TurbineComponents%Tower%Orientation) + t(2)**2*(-u(1)%TurbineComponents%Tower%Orientation + u(3)%TurbineComponents%Tower%Orientation))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%TurbineComponents%Tower%Orientation + t(3)*u(2)%TurbineComponents%Tower%Orientation - t(2)*u(3)%TurbineComponents%Tower%Orientation ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Tower%Orientation = u(1)%TurbineComponents%Tower%Orientation + b2 * t_out + c2 * t_out**2
+  b2 = (t(3)**2*(u1%TurbineComponents%Tower%Orientation - u2%TurbineComponents%Tower%Orientation) + t(2)**2*(-u1%TurbineComponents%Tower%Orientation + u3%TurbineComponents%Tower%Orientation))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*u1%TurbineComponents%Tower%Orientation + t(3)*u2%TurbineComponents%Tower%Orientation - t(2)*u3%TurbineComponents%Tower%Orientation ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Tower%Orientation = u1%TurbineComponents%Tower%Orientation + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Tower%TranslationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Tower%TranslationVel,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%Tower%TranslationVel - u(2)%TurbineComponents%Tower%TranslationVel) + t(2)**2*(-u(1)%TurbineComponents%Tower%TranslationVel + u(3)%TurbineComponents%Tower%TranslationVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%Tower%TranslationVel + t(3)*u(2)%TurbineComponents%Tower%TranslationVel - t(2)*u(3)%TurbineComponents%Tower%TranslationVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Tower%TranslationVel = u(1)%TurbineComponents%Tower%TranslationVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%Tower%TranslationVel - u2%TurbineComponents%Tower%TranslationVel) + t(2)**2*(-u1%TurbineComponents%Tower%TranslationVel + u3%TurbineComponents%Tower%TranslationVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%Tower%TranslationVel + t(3)*u2%TurbineComponents%Tower%TranslationVel - t(2)*u3%TurbineComponents%Tower%TranslationVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Tower%TranslationVel = u1%TurbineComponents%Tower%TranslationVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Tower%RotationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Tower%RotationVel,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%Tower%RotationVel - u(2)%TurbineComponents%Tower%RotationVel) + t(2)**2*(-u(1)%TurbineComponents%Tower%RotationVel + u(3)%TurbineComponents%Tower%RotationVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%Tower%RotationVel + t(3)*u(2)%TurbineComponents%Tower%RotationVel - t(2)*u(3)%TurbineComponents%Tower%RotationVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Tower%RotationVel = u(1)%TurbineComponents%Tower%RotationVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%Tower%RotationVel - u2%TurbineComponents%Tower%RotationVel) + t(2)**2*(-u1%TurbineComponents%Tower%RotationVel + u3%TurbineComponents%Tower%RotationVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%Tower%RotationVel + t(3)*u2%TurbineComponents%Tower%RotationVel - t(2)*u3%TurbineComponents%Tower%RotationVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Tower%RotationVel = u1%TurbineComponents%Tower%RotationVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%SubStructure%Position,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%SubStructure%Position,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%SubStructure%Position - u(2)%TurbineComponents%SubStructure%Position) + t(2)**2*(-u(1)%TurbineComponents%SubStructure%Position + u(3)%TurbineComponents%SubStructure%Position))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%SubStructure%Position + t(3)*u(2)%TurbineComponents%SubStructure%Position - t(2)*u(3)%TurbineComponents%SubStructure%Position ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%SubStructure%Position = u(1)%TurbineComponents%SubStructure%Position + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%SubStructure%Position - u2%TurbineComponents%SubStructure%Position) + t(2)**2*(-u1%TurbineComponents%SubStructure%Position + u3%TurbineComponents%SubStructure%Position))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%SubStructure%Position + t(3)*u2%TurbineComponents%SubStructure%Position - t(2)*u3%TurbineComponents%SubStructure%Position ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%SubStructure%Position = u1%TurbineComponents%SubStructure%Position + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b2(SIZE(u_out%TurbineComponents%SubStructure%Orientation,1),SIZE(u_out%TurbineComponents%SubStructure%Orientation,2) ))
   ALLOCATE(c2(SIZE(u_out%TurbineComponents%SubStructure%Orientation,1),SIZE(u_out%TurbineComponents%SubStructure%Orientation,2) ))
-  b2 = (t(3)**2*(u(1)%TurbineComponents%SubStructure%Orientation - u(2)%TurbineComponents%SubStructure%Orientation) + t(2)**2*(-u(1)%TurbineComponents%SubStructure%Orientation + u(3)%TurbineComponents%SubStructure%Orientation))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%TurbineComponents%SubStructure%Orientation + t(3)*u(2)%TurbineComponents%SubStructure%Orientation - t(2)*u(3)%TurbineComponents%SubStructure%Orientation ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%SubStructure%Orientation = u(1)%TurbineComponents%SubStructure%Orientation + b2 * t_out + c2 * t_out**2
+  b2 = (t(3)**2*(u1%TurbineComponents%SubStructure%Orientation - u2%TurbineComponents%SubStructure%Orientation) + t(2)**2*(-u1%TurbineComponents%SubStructure%Orientation + u3%TurbineComponents%SubStructure%Orientation))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*u1%TurbineComponents%SubStructure%Orientation + t(3)*u2%TurbineComponents%SubStructure%Orientation - t(2)*u3%TurbineComponents%SubStructure%Orientation ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%SubStructure%Orientation = u1%TurbineComponents%SubStructure%Orientation + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%SubStructure%TranslationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%SubStructure%TranslationVel,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%SubStructure%TranslationVel - u(2)%TurbineComponents%SubStructure%TranslationVel) + t(2)**2*(-u(1)%TurbineComponents%SubStructure%TranslationVel + u(3)%TurbineComponents%SubStructure%TranslationVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%SubStructure%TranslationVel + t(3)*u(2)%TurbineComponents%SubStructure%TranslationVel - t(2)*u(3)%TurbineComponents%SubStructure%TranslationVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%SubStructure%TranslationVel = u(1)%TurbineComponents%SubStructure%TranslationVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%SubStructure%TranslationVel - u2%TurbineComponents%SubStructure%TranslationVel) + t(2)**2*(-u1%TurbineComponents%SubStructure%TranslationVel + u3%TurbineComponents%SubStructure%TranslationVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%SubStructure%TranslationVel + t(3)*u2%TurbineComponents%SubStructure%TranslationVel - t(2)*u3%TurbineComponents%SubStructure%TranslationVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%SubStructure%TranslationVel = u1%TurbineComponents%SubStructure%TranslationVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%SubStructure%RotationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%SubStructure%RotationVel,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%SubStructure%RotationVel - u(2)%TurbineComponents%SubStructure%RotationVel) + t(2)**2*(-u(1)%TurbineComponents%SubStructure%RotationVel + u(3)%TurbineComponents%SubStructure%RotationVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%SubStructure%RotationVel + t(3)*u(2)%TurbineComponents%SubStructure%RotationVel - t(2)*u(3)%TurbineComponents%SubStructure%RotationVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%SubStructure%RotationVel = u(1)%TurbineComponents%SubStructure%RotationVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%SubStructure%RotationVel - u2%TurbineComponents%SubStructure%RotationVel) + t(2)**2*(-u1%TurbineComponents%SubStructure%RotationVel + u3%TurbineComponents%SubStructure%RotationVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%SubStructure%RotationVel + t(3)*u2%TurbineComponents%SubStructure%RotationVel - t(2)*u3%TurbineComponents%SubStructure%RotationVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%SubStructure%RotationVel = u1%TurbineComponents%SubStructure%RotationVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Foundation%Position,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Foundation%Position,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%Foundation%Position - u(2)%TurbineComponents%Foundation%Position) + t(2)**2*(-u(1)%TurbineComponents%Foundation%Position + u(3)%TurbineComponents%Foundation%Position))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%Foundation%Position + t(3)*u(2)%TurbineComponents%Foundation%Position - t(2)*u(3)%TurbineComponents%Foundation%Position ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Foundation%Position = u(1)%TurbineComponents%Foundation%Position + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%Foundation%Position - u2%TurbineComponents%Foundation%Position) + t(2)**2*(-u1%TurbineComponents%Foundation%Position + u3%TurbineComponents%Foundation%Position))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%Foundation%Position + t(3)*u2%TurbineComponents%Foundation%Position - t(2)*u3%TurbineComponents%Foundation%Position ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Foundation%Position = u1%TurbineComponents%Foundation%Position + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b2(SIZE(u_out%TurbineComponents%Foundation%Orientation,1),SIZE(u_out%TurbineComponents%Foundation%Orientation,2) ))
   ALLOCATE(c2(SIZE(u_out%TurbineComponents%Foundation%Orientation,1),SIZE(u_out%TurbineComponents%Foundation%Orientation,2) ))
-  b2 = (t(3)**2*(u(1)%TurbineComponents%Foundation%Orientation - u(2)%TurbineComponents%Foundation%Orientation) + t(2)**2*(-u(1)%TurbineComponents%Foundation%Orientation + u(3)%TurbineComponents%Foundation%Orientation))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%TurbineComponents%Foundation%Orientation + t(3)*u(2)%TurbineComponents%Foundation%Orientation - t(2)*u(3)%TurbineComponents%Foundation%Orientation ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Foundation%Orientation = u(1)%TurbineComponents%Foundation%Orientation + b2 * t_out + c2 * t_out**2
+  b2 = (t(3)**2*(u1%TurbineComponents%Foundation%Orientation - u2%TurbineComponents%Foundation%Orientation) + t(2)**2*(-u1%TurbineComponents%Foundation%Orientation + u3%TurbineComponents%Foundation%Orientation))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*u1%TurbineComponents%Foundation%Orientation + t(3)*u2%TurbineComponents%Foundation%Orientation - t(2)*u3%TurbineComponents%Foundation%Orientation ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Foundation%Orientation = u1%TurbineComponents%Foundation%Orientation + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Foundation%TranslationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Foundation%TranslationVel,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%Foundation%TranslationVel - u(2)%TurbineComponents%Foundation%TranslationVel) + t(2)**2*(-u(1)%TurbineComponents%Foundation%TranslationVel + u(3)%TurbineComponents%Foundation%TranslationVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%Foundation%TranslationVel + t(3)*u(2)%TurbineComponents%Foundation%TranslationVel - t(2)*u(3)%TurbineComponents%Foundation%TranslationVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Foundation%TranslationVel = u(1)%TurbineComponents%Foundation%TranslationVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%Foundation%TranslationVel - u2%TurbineComponents%Foundation%TranslationVel) + t(2)**2*(-u1%TurbineComponents%Foundation%TranslationVel + u3%TurbineComponents%Foundation%TranslationVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%Foundation%TranslationVel + t(3)*u2%TurbineComponents%Foundation%TranslationVel - t(2)*u3%TurbineComponents%Foundation%TranslationVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Foundation%TranslationVel = u1%TurbineComponents%Foundation%TranslationVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
   ALLOCATE(b1(SIZE(u_out%TurbineComponents%Foundation%RotationVel,1)))
   ALLOCATE(c1(SIZE(u_out%TurbineComponents%Foundation%RotationVel,1)))
-  b1 = (t(3)**2*(u(1)%TurbineComponents%Foundation%RotationVel - u(2)%TurbineComponents%Foundation%RotationVel) + t(2)**2*(-u(1)%TurbineComponents%Foundation%RotationVel + u(3)%TurbineComponents%Foundation%RotationVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%TurbineComponents%Foundation%RotationVel + t(3)*u(2)%TurbineComponents%Foundation%RotationVel - t(2)*u(3)%TurbineComponents%Foundation%RotationVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%Foundation%RotationVel = u(1)%TurbineComponents%Foundation%RotationVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%TurbineComponents%Foundation%RotationVel - u2%TurbineComponents%Foundation%RotationVel) + t(2)**2*(-u1%TurbineComponents%Foundation%RotationVel + u3%TurbineComponents%Foundation%RotationVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%TurbineComponents%Foundation%RotationVel + t(3)*u2%TurbineComponents%Foundation%RotationVel - t(2)*u3%TurbineComponents%Foundation%RotationVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%Foundation%RotationVel = u1%TurbineComponents%Foundation%RotationVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
-  b0 = (t(3)**2*(u(1)%TurbineComponents%BladeLength - u(2)%TurbineComponents%BladeLength) + t(2)**2*(-u(1)%TurbineComponents%BladeLength + u(3)%TurbineComponents%BladeLength))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*u(1)%TurbineComponents%BladeLength + t(3)*u(2)%TurbineComponents%BladeLength - t(2)*u(3)%TurbineComponents%BladeLength ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%TurbineComponents%BladeLength = u(1)%TurbineComponents%BladeLength + b0 * t_out + c0 * t_out**2
-IF (ALLOCATED(u_out%MulTabLoc) .AND. ALLOCATED(u(1)%MulTabLoc)) THEN
+  b0 = (t(3)**2*(u1%TurbineComponents%BladeLength - u2%TurbineComponents%BladeLength) + t(2)**2*(-u1%TurbineComponents%BladeLength + u3%TurbineComponents%BladeLength))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*u1%TurbineComponents%BladeLength + t(3)*u2%TurbineComponents%BladeLength - t(2)*u3%TurbineComponents%BladeLength ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%TurbineComponents%BladeLength = u1%TurbineComponents%BladeLength + b0 * t_out + c0 * t_out**2
+IF (ALLOCATED(u_out%MulTabLoc) .AND. ALLOCATED(u1%MulTabLoc)) THEN
   ALLOCATE(b2(SIZE(u_out%MulTabLoc,1),SIZE(u_out%MulTabLoc,2) ))
   ALLOCATE(c2(SIZE(u_out%MulTabLoc,1),SIZE(u_out%MulTabLoc,2) ))
-  b2 = (t(3)**2*(u(1)%MulTabLoc - u(2)%MulTabLoc) + t(2)**2*(-u(1)%MulTabLoc + u(3)%MulTabLoc))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%MulTabLoc + t(3)*u(2)%MulTabLoc - t(2)*u(3)%MulTabLoc ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%MulTabLoc = u(1)%MulTabLoc + b2 * t_out + c2 * t_out**2
+  b2 = (t(3)**2*(u1%MulTabLoc - u2%MulTabLoc) + t(2)**2*(-u1%MulTabLoc + u3%MulTabLoc))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*u1%MulTabLoc + t(3)*u2%MulTabLoc - t(2)*u3%MulTabLoc ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%MulTabLoc = u1%MulTabLoc + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%InflowVelocity) .AND. ALLOCATED(u(1)%InflowVelocity)) THEN
+IF (ALLOCATED(u_out%InflowVelocity) .AND. ALLOCATED(u1%InflowVelocity)) THEN
   ALLOCATE(b2(SIZE(u_out%InflowVelocity,1),SIZE(u_out%InflowVelocity,2) ))
   ALLOCATE(c2(SIZE(u_out%InflowVelocity,1),SIZE(u_out%InflowVelocity,2) ))
-  b2 = (t(3)**2*(u(1)%InflowVelocity - u(2)%InflowVelocity) + t(2)**2*(-u(1)%InflowVelocity + u(3)%InflowVelocity))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%InflowVelocity + t(3)*u(2)%InflowVelocity - t(2)*u(3)%InflowVelocity ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%InflowVelocity = u(1)%InflowVelocity + b2 * t_out + c2 * t_out**2
+  b2 = (t(3)**2*(u1%InflowVelocity - u2%InflowVelocity) + t(2)**2*(-u1%InflowVelocity + u3%InflowVelocity))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*u1%InflowVelocity + t(3)*u2%InflowVelocity - t(2)*u3%InflowVelocity ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%InflowVelocity = u1%InflowVelocity + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
 END IF ! check if allocated
   ALLOCATE(b1(SIZE(u_out%AvgInfVel,1)))
   ALLOCATE(c1(SIZE(u_out%AvgInfVel,1)))
-  b1 = (t(3)**2*(u(1)%AvgInfVel - u(2)%AvgInfVel) + t(2)**2*(-u(1)%AvgInfVel + u(3)%AvgInfVel))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%AvgInfVel + t(3)*u(2)%AvgInfVel - t(2)*u(3)%AvgInfVel ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%AvgInfVel = u(1)%AvgInfVel + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%AvgInfVel - u2%AvgInfVel) + t(2)**2*(-u1%AvgInfVel + u3%AvgInfVel))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%AvgInfVel + t(3)*u2%AvgInfVel - t(2)*u3%AvgInfVel ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%AvgInfVel = u1%AvgInfVel + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
- ELSE 
-   ErrStat = ErrID_Fatal
-   ErrMsg = ' order must be less than 3 in AD_Input_ExtrapInterp '
-   RETURN
- ENDIF 
- END SUBROUTINE AD_Input_ExtrapInterp
+ END SUBROUTINE AD_Input_ExtrapInterp2
 
 
- SUBROUTINE AD_Output_ExtrapInterp(y, tin, y_out, tin_out, ErrStat, ErrMsg )
+ SUBROUTINE AD_Output_ExtrapInterp(y, t, y_out, t_out, ErrStat, ErrMsg )
 !
 ! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
 ! values of y (which has values associated with times in t).  Order of the interpolation is given by the size of y
@@ -16707,17 +16713,64 @@ END IF ! check if allocated
 !
 !..................................................................................................................................
 
- TYPE(AD_outputtype), INTENT(INOUT)  :: y(:)      ! Output at t1 > t2 > t3
- REAL(DbKi),         INTENT(IN   )  :: tin(:)      ! Times associated with the Outputs
- TYPE(AD_outputtype), INTENT(INOUT)  :: y_out     ! Output at tin_out
- REAL(DbKi),         INTENT(IN   )  :: tin_out     ! time to be extrap/interp'd to
- INTEGER(IntKi),     INTENT(  OUT)  :: ErrStat   ! Error status of the operation
- CHARACTER(*),       INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
+ TYPE(AD_OutputType), INTENT(INOUT)  :: y(:) ! Output at t1 > t2 > t3
+ REAL(DbKi),                 INTENT(IN   )  :: t(:)           ! Times associated with the Outputs
+ TYPE(AD_OutputType), INTENT(INOUT)  :: y_out ! Output at tin_out
+ REAL(DbKi),                 INTENT(IN   )  :: t_out           ! time to be extrap/interp'd to
+ INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat         ! Error status of the operation
+ CHARACTER(*),               INTENT(  OUT)  :: ErrMsg          ! Error message if ErrStat /= ErrID_None
    ! local variables
- REAL(DbKi) :: t(SIZE(tin))    ! Times associated with the Outputs
- REAL(DbKi) :: t_out           ! Time to which to be extrap/interpd
- INTEGER(IntKi)                 :: order    ! order of polynomial fit (max 2)
- CHARACTER(*),    PARAMETER :: RoutineName = 'AD_Output_ExtrapInterp'
+ INTEGER(IntKi)                             :: order           ! order of polynomial fit (max 2)
+ INTEGER(IntKi)                             :: ErrStat2        ! local errors
+ CHARACTER(1024)                            :: ErrMsg2         ! local errors
+ CHARACTER(*),    PARAMETER                 :: RoutineName = 'AD_Output_ExtrapInterp'
+    ! Initialize ErrStat
+ ErrStat = ErrID_None
+ ErrMsg  = ""
+ if ( size(t) .ne. size(y)) then
+    CALL SetErrStat(ErrID_Fatal,'size(t) must equal size(y)',ErrStat,ErrMsg,RoutineName)
+    RETURN
+ endif
+ order = SIZE(y) - 1
+ IF ( order .eq. 0 ) THEN
+   CALL AD_CopyOutput(y(1), y_out, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE IF ( order .eq. 1 ) THEN
+   CALL AD_Output_ExtrapInterp1(y(1), y(2), t, y_out, t_out, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE IF ( order .eq. 2 ) THEN
+   CALL AD_Output_ExtrapInterp2(y(1), y(2), y(3), t, y_out, t_out, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE 
+   CALL SetErrStat(ErrID_Fatal,'size(y) must be less than 4 (order must be less than 3).',ErrStat,ErrMsg,RoutineName)
+   RETURN
+ ENDIF 
+ END SUBROUTINE AD_Output_ExtrapInterp
+
+
+ SUBROUTINE AD_Output_ExtrapInterp1(y1, y2, tin, y_out, tin_out, ErrStat, ErrMsg )
+!
+! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
+! values of y (which has values associated with times in t).  Order of the interpolation is 1.
+!
+!  f(t) = a + b * t, or
+!
+!  where a and b are determined as the solution to
+!  f(t1) = y1, f(t2) = y2
+!
+!..................................................................................................................................
+
+ TYPE(AD_OutputType), INTENT(INOUT)  :: y1    ! Output at t1 > t2
+ TYPE(AD_OutputType), INTENT(INOUT)  :: y2    ! Output at t2 
+ REAL(DbKi),         INTENT(IN   )          :: tin(2)   ! Times associated with the Outputs
+ TYPE(AD_OutputType), INTENT(INOUT)  :: y_out ! Output at tin_out
+ REAL(DbKi),         INTENT(IN   )          :: tin_out  ! time to be extrap/interp'd to
+ INTEGER(IntKi),     INTENT(  OUT)          :: ErrStat  ! Error status of the operation
+ CHARACTER(*),       INTENT(  OUT)          :: ErrMsg   ! Error message if ErrStat /= ErrID_None
+   ! local variables
+ REAL(DbKi)                                 :: t(2)     ! Times associated with the Outputs
+ REAL(DbKi)                                 :: t_out    ! Time to which to be extrap/interpd
+ CHARACTER(*),                    PARAMETER :: RoutineName = 'AD_Output_ExtrapInterp1'
  REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
  INTEGER(IntKi)                             :: ErrStat2 ! local errors
@@ -16731,85 +16784,84 @@ END IF ! check if allocated
  t = tin - tin(1)
  t_out = tin_out - tin(1)
 
- if ( size(t) .ne. size(y)) then
-    ErrStat = ErrID_Fatal
-    ErrMsg = ' Error in AD_Output_ExtrapInterp: size(t) must equal size(y) '
-    RETURN
- endif
- if (size(y) .gt. 3) then
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in AD_Output_ExtrapInterp: size(y) must be less than 4 '
-    RETURN
- endif
- order = SIZE(y) - 1
- IF ( order .eq. 0 ) THEN
-IF (ALLOCATED(y_out%OutputLoads) .AND. ALLOCATED(y(1)%OutputLoads)) THEN
+   IF ( EqualRealNos( t(1), t(2) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   END IF
+IF (ALLOCATED(y_out%OutputLoads) .AND. ALLOCATED(y1%OutputLoads)) THEN
   DO i01 = LBOUND(y_out%OutputLoads,1),UBOUND(y_out%OutputLoads,1)
-  CALL MeshCopy(y(1)%OutputLoads(i01), y_out%OutputLoads(i01), MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  ENDDO
+      CALL MeshExtrapInterp1(y1%OutputLoads(i01), y2%OutputLoads(i01), tin, y_out%OutputLoads(i01), tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+   ENDDO
 END IF ! check if allocated
-  CALL MeshCopy(y(1)%Twr_OutputLoads, y_out%Twr_OutputLoads, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-      CALL DWM_Output_ExtrapInterp( y%DWM_Outputs, tin, y_out%DWM_Outputs, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
- ELSE IF ( order .eq. 1 ) THEN
-  IF ( EqualRealNos( t(1), t(2) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in AD_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-IF (ALLOCATED(y_out%OutputLoads) .AND. ALLOCATED(y(1)%OutputLoads)) THEN
+      CALL MeshExtrapInterp1(y1%Twr_OutputLoads, y2%Twr_OutputLoads, tin, y_out%Twr_OutputLoads, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL DWM_Output_ExtrapInterp1( y1%DWM_Outputs, y2%DWM_Outputs, tin, y_out%DWM_Outputs, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ END SUBROUTINE AD_Output_ExtrapInterp1
+
+
+ SUBROUTINE AD_Output_ExtrapInterp2(y1, y2, y3, tin, y_out, tin_out, ErrStat, ErrMsg )
+!
+! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
+! values of y (which has values associated with times in t).  Order of the interpolation is 2.
+!
+!  expressions below based on either
+!
+!  f(t) = a + b * t + c * t**2
+!
+!  where a, b and c are determined as the solution to
+!  f(t1) = y1, f(t2) = y2, f(t3) = y3
+!
+!..................................................................................................................................
+
+ TYPE(AD_OutputType), INTENT(INOUT)  :: y1      ! Output at t1 > t2 > t3
+ TYPE(AD_OutputType), INTENT(INOUT)  :: y2      ! Output at t2 > t3
+ TYPE(AD_OutputType), INTENT(INOUT)  :: y3      ! Output at t3
+ REAL(DbKi),                 INTENT(IN   )  :: tin(3)    ! Times associated with the Outputs
+ TYPE(AD_OutputType), INTENT(INOUT)  :: y_out     ! Output at tin_out
+ REAL(DbKi),                 INTENT(IN   )  :: tin_out   ! time to be extrap/interp'd to
+ INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat   ! Error status of the operation
+ CHARACTER(*),               INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
+   ! local variables
+ REAL(DbKi)                                 :: t(3)      ! Times associated with the Outputs
+ REAL(DbKi)                                 :: t_out     ! Time to which to be extrap/interpd
+ INTEGER(IntKi)                             :: order     ! order of polynomial fit (max 2)
+ REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
+ REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
+ CHARACTER(*),            PARAMETER         :: RoutineName = 'AD_Output_ExtrapInterp2'
+ INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
+    ! Initialize ErrStat
+ ErrStat = ErrID_None
+ ErrMsg  = ""
+    ! we'll subtract a constant from the times to resolve some 
+    ! numerical issues when t gets large (and to simplify the equations)
+ t = tin - tin(1)
+ t_out = tin_out - tin(1)
+
+   IF ( EqualRealNos( t(1), t(2) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   ELSE IF ( EqualRealNos( t(2), t(3) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(2) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   ELSE IF ( EqualRealNos( t(1), t(3) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   END IF
+IF (ALLOCATED(y_out%OutputLoads) .AND. ALLOCATED(y1%OutputLoads)) THEN
   DO i01 = LBOUND(y_out%OutputLoads,1),UBOUND(y_out%OutputLoads,1)
-  CALL MeshExtrapInterp1(y(1)%OutputLoads(i01), y(2)%OutputLoads(i01), tin, y_out%OutputLoads(i01), tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  ENDDO
+      CALL MeshExtrapInterp2(y1%OutputLoads(i01), y2%OutputLoads(i01), y3%OutputLoads(i01), tin, y_out%OutputLoads(i01), tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+   ENDDO
 END IF ! check if allocated
-  CALL MeshExtrapInterp1(y(1)%Twr_OutputLoads, y(2)%Twr_OutputLoads, tin, y_out%Twr_OutputLoads, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-      CALL DWM_Output_ExtrapInterp( y%DWM_Outputs, tin, y_out%DWM_Outputs, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
- ELSE IF ( order .eq. 2 ) THEN
-  IF ( EqualRealNos( t(1), t(2) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in AD_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-  IF ( EqualRealNos( t(2), t(3) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in AD_Output_ExtrapInterp: t(2) must not equal t(3) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-  IF ( EqualRealNos( t(1), t(3) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in AD_Output_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-IF (ALLOCATED(y_out%OutputLoads) .AND. ALLOCATED(y(1)%OutputLoads)) THEN
-  DO i01 = LBOUND(y_out%OutputLoads,1),UBOUND(y_out%OutputLoads,1)
-  CALL MeshExtrapInterp2(y(1)%OutputLoads(i01), y(2)%OutputLoads(i01), y(3)%OutputLoads(i01), tin, y_out%OutputLoads(i01), tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-  ENDDO
-END IF ! check if allocated
-  CALL MeshExtrapInterp2(y(1)%Twr_OutputLoads, y(2)%Twr_OutputLoads, y(3)%Twr_OutputLoads, tin, y_out%Twr_OutputLoads, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-      CALL DWM_Output_ExtrapInterp( y%DWM_Outputs, tin, y_out%DWM_Outputs, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
- ELSE 
-   ErrStat = ErrID_Fatal
-   ErrMsg = ' order must be less than 3 in AD_Output_ExtrapInterp '
-   RETURN
- ENDIF 
- END SUBROUTINE AD_Output_ExtrapInterp
+      CALL MeshExtrapInterp2(y1%Twr_OutputLoads, y2%Twr_OutputLoads, y3%Twr_OutputLoads, tin, y_out%Twr_OutputLoads, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+      CALL DWM_Output_ExtrapInterp2( y1%DWM_Outputs, y2%DWM_Outputs, y3%DWM_Outputs, tin, y_out%DWM_Outputs, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ END SUBROUTINE AD_Output_ExtrapInterp2
 
 END MODULE AeroDyn_Types
 !ENDOFREGISTRYGENERATEDFILE

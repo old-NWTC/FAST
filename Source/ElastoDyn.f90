@@ -1348,7 +1348,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    INTEGER(IntKi)                               :: ErrStat2                ! temporary Error status of the operation
    INTEGER(IntKi)                               :: K                       ! loop counter
    LOGICAL, PARAMETER                           :: GetAdamsVals = .FALSE.  ! Determines if we should read Adams values and create (update) an Adams model
-   CHARACTER(LEN(ErrMsg))                       :: ErrMsg2                 ! temporary Error message if ErrStat /= ErrID_None
+   CHARACTER(ErrMsgLen)                         :: ErrMsg2                 ! temporary Error message if ErrStat /= ErrID_None
 
 
       ! Initialize variables for this routine
@@ -1734,7 +1734,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    INTEGER(IntKi)               :: NodeNum                                         ! Mesh node number for given blade/node
    
    INTEGER(IntKi)               :: ErrStat2                                        ! Temporary Error code
-   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                         ! Temporary error message
+   CHARACTER(ErrMsgLen)         :: ErrMsg2                                         ! Temporary error message
    
 
    LOGICAL, PARAMETER           :: UpdateValues  = .TRUE.                          ! determines if the OtherState values need to be updated
@@ -2866,7 +2866,7 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, 
       
    INTEGER(IntKi)                         :: I                 ! Loops through some or all of the DOFs.
    INTEGER(IntKi)                         :: ErrStat2          ! The error status code
-   CHARACTER(LEN(ErrMsg))                 :: ErrMsg2           ! The error message, if an error occurred
+   CHARACTER(ErrMsgLen)                   :: ErrMsg2           ! The error message, if an error occurred
    CHARACTER(*), PARAMETER                :: RoutineName = 'ED_CalcContStateDeriv'
    
       ! Initialize ErrStat
@@ -3052,7 +3052,7 @@ SUBROUTINE ED_ReadInput( InputFileName, MeshFile, InputFileData, ReadAdmVals, De
 !   INTEGER(IntKi)                         :: UnIn           ! Unit number for the input file
    INTEGER(IntKi)                         :: UnEcho         ! Unit number for the echo file
    INTEGER(IntKi)                         :: ErrStat2       ! The error status code
-   CHARACTER(LEN(ErrMsg))                 :: ErrMsg2        ! The error message, if an error occurred
+   CHARACTER(ErrMsgLen)                   :: ErrMsg2        ! The error message, if an error occurred
 
    CHARACTER(1024)                        :: BldFile(MaxBl) ! File that contains the blade information (specified in the primary input file)
    CHARACTER(1024)                        :: FurlFile       ! File that contains the furl information (specified in the primary input file)
@@ -3211,7 +3211,7 @@ SUBROUTINE ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
    INTEGER(IntKi)                             :: ErrStat2            ! Temporary error ID
 !   LOGICAL                                    :: ReadAdmVals         ! determines if an Adams model will be created (do we read/check all the inputs?)
 !   LOGICAL                                    :: ReadFile            ! determines if an input file for a blade is the same as the file for the previous blade
-   CHARACTER(LEN(ErrMsg))                     :: ErrMsg2             ! Temporary message describing error
+   CHARACTER(ErrMsgLen)                       :: ErrMsg2             ! Temporary message describing error
 
 
       ! Initialize variables
@@ -3288,7 +3288,7 @@ SUBROUTINE ED_SetParameters( InputFileData, p, ErrStat, ErrMsg )
       ! Local variables
 !   INTEGER(IntKi)                             :: K              ! Loop counter (for blades)
    INTEGER(IntKi)                             :: ErrStat2       ! Temporary error ID
-   CHARACTER(LEN(ErrMsg))                     :: ErrMsg2        ! Temporary message describing error
+   CHARACTER(ErrMsgLen)                       :: ErrMsg2        ! Temporary message describing error
 
       ! Initialize variables
 
@@ -3827,7 +3827,7 @@ SUBROUTINE ValidateBladeData ( BladeKInputFileData, ErrStat, ErrMsg )
       ! local variables
    INTEGER                                  :: I                                   ! Loop counter
    INTEGER(IntKi)                           :: ErrStat2                            ! Error status
-   CHARACTER(LEN(ErrMsg))                   :: ErrMsg2                             ! Temporary error message
+   CHARACTER(ErrMsgLen)                     :: ErrMsg2                             ! Temporary error message
 
 
    ErrStat = ErrID_None
@@ -4296,7 +4296,7 @@ SUBROUTINE ValidateTowerData ( InputFileData, ErrStat, ErrMsg )
       ! local variables
    INTEGER                                  :: I                                   ! Loop counter
    INTEGER(IntKi)                           :: ErrStat2                            ! Error status
-   CHARACTER(LEN(ErrMsg))                   :: ErrMsg2                             ! Temporary error message
+   CHARACTER(ErrMsgLen)                     :: ErrMsg2                             ! Temporary error message
 
 
    ErrStat = ErrID_None
@@ -5522,7 +5522,7 @@ SUBROUTINE ReadBladeInputs ( BldFile, MeshFile, ReadAdmVals, InputFileData, UnEc
    INTEGER(IntKi)                         :: K                                   ! Blade number
    INTEGER(IntKi)                         :: ErrStat2                            ! Temporary error ID
    LOGICAL                                :: ReadFile                            ! determines if an input file for a blade is the same as the file for the previous blade
-   CHARACTER(LEN(ErrMsg))                 :: ErrMsg2                             ! Temporary message describing error
+   CHARACTER(ErrMsgLen)                   :: ErrMsg2                             ! Temporary message describing error
 
 
       ! Initialize variables
@@ -5645,7 +5645,7 @@ SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrS
    INTEGER( IntKi )             :: UnIn                                            ! Unit number for reading file
    INTEGER( IntKi )             :: NInputCols                                      ! Number of columns to be read from the file
    INTEGER(IntKi)               :: ErrStat2                                        ! Temporary Error status
-   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                         ! Temporary Err msg
+   CHARACTER(ErrMsgLen)         :: ErrMsg2                                         ! Temporary Err msg
 
 
 
@@ -5934,7 +5934,7 @@ SUBROUTINE ReadBladeMeshFile( BladeKInputFileMesh, MeshFile, UnEc, ErrStat, ErrM
    INTEGER(IntKi)               :: UnIn                                                 ! Unit number for reading file
 
    INTEGER(IntKi)               :: ErrStat2                                             ! Temporary Error status
-   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                              ! Temporary Err msg
+   CHARACTER(ErrMsgLen)         :: ErrMsg2                                              ! Temporary Err msg
    CHARACTER(1024)              :: Line                                                 ! Temporary string.
 !   CHARACTER(1024)              :: TmpStr(1)                                            ! Temporary string.
 
@@ -6098,7 +6098,7 @@ SUBROUTINE ReadFurlFile( FurlFile, InputFileData, UnEc, ErrStat, ErrMsg  )
 
    INTEGER(IntKi)               :: UnIn                                            ! Unit number for reading file
    INTEGER(IntKi)               :: ErrStat2                                        ! Temporary Error status
-   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                         ! Temporary Err msg
+   CHARACTER(ErrMsgLen)         :: ErrMsg2                                         ! Temporary Err msg
 
 
       ! Get an available unit number for the file.
@@ -6735,7 +6735,7 @@ SUBROUTINE ReadTowerFile( TwrFile, InputFileData, ReadAdmVals, UnEc, ErrStat, Er
    INTEGER(IntKi)               :: UnIn                                            ! Unit number for reading file
    INTEGER(IntKi)               :: NInputCols                                      ! Number of columns to be read from the file
    INTEGER(IntKi)               :: ErrStat2                                        ! Temporary Error status
-   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                         ! Temporary Err msg
+   CHARACTER(ErrMsgLen)         :: ErrMsg2                                         ! Temporary Err msg
 
 
 
@@ -7031,7 +7031,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
 
    INTEGER(IntKi)               :: ErrStat2                                  ! Temporary Error status
    LOGICAL                      :: Echo                                      ! Determines if an echo file should be written
-   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                   ! Temporary Error message
+   CHARACTER(ErrMsgLen)         :: ErrMsg2                                   ! Temporary Error message
    CHARACTER(1024)              :: PriPath                                   ! Path name of the primary file
    CHARACTER(1024)              :: FTitle                                    ! "File Title": the 2nd line of the input file, which contains a description of its contents
    CHARACTER(200)               :: Line                                      ! Temporary storage of a line from the input file (to compare with "default")
@@ -7781,7 +7781,7 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
    INTEGER(IntKi)                           :: K                                   ! blade number
    INTEGER(IntKi)                           :: FmtWidth                            ! width of the field returned by the specified OutFmt
    INTEGER(IntKi)                           :: ErrStat2                            ! Temporary error status
-   CHARACTER(LEN(ErrMsg))                   :: ErrMsg2                             ! Temporary rror message
+   CHARACTER(ErrMsgLen)                     :: ErrMsg2                             ! Temporary rror message
 
 
       ! Initialize error status and angle limit defined locally (in correct units)
@@ -10411,7 +10411,7 @@ SUBROUTINE SetCoordSy( t, CoordSys, RtHSdat, BlPitch, p, x, ErrStat, ErrMsg )
 
 
    INTEGER(IntKi)               :: ErrStat2                      ! Temporary error status
-   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                       ! Temporary error message
+   CHARACTER(ErrMsgLen)         :: ErrMsg2                       ! Temporary error message
 
 
    ErrStat = ErrID_None
@@ -13648,7 +13648,7 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       TYPE(ED_InputType)                           :: u_interp    ! interpolated value of inputs 
 
       INTEGER(IntKi)                               :: ErrStat2    ! local error status
-      CHARACTER(LEN(ErrMsg))                       :: ErrMsg2     ! local error message (ErrMsg)
+      CHARACTER(ErrMsgLen)                         :: ErrMsg2     ! local error message (ErrMsg)
       
       
       ! Initialize ErrStat
@@ -13779,7 +13779,7 @@ CONTAINS
 
          ! local variables
       INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
-      CHARACTER(LEN(Msg))        :: ErrMsg3     ! The error message (ErrMsg)
+      CHARACTER(ErrMsgLen)       :: ErrMsg3     ! The error message (ErrMsg)
 
       !............................................................................................................................
       ! Set error status/message;
@@ -13840,7 +13840,7 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       TYPE(ED_ContinuousStateType)                   :: xdot
          
       INTEGER(IntKi)                                 :: ErrStat2    ! local error status
-      CHARACTER(LEN(ErrMsg))                         :: ErrMsg2     ! local error message (ErrMsg)
+      CHARACTER(ErrMsgLen)                           :: ErrMsg2     ! local error message (ErrMsg)
 
 
       ! Initialize ErrStat
@@ -13953,7 +13953,7 @@ CONTAINS
 
          ! local variables
       INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
-      CHARACTER(LEN(Msg))        :: ErrMsg3     ! The error message (ErrMsg)
+      CHARACTER(ErrMsgLen)       :: ErrMsg3     ! The error message (ErrMsg)
 
       !............................................................................................................................
       ! Set error status/message;
@@ -14018,7 +14018,7 @@ SUBROUTINE ED_ABM4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       TYPE(ED_ContinuousStateType)                   :: xdot_pred   ! Derivative of continuous states at t
 
       INTEGER(IntKi)                                 :: ErrStat2    ! local error status
-      CHARACTER(LEN(ErrMsg))                         :: ErrMsg2     ! local error message (ErrMsg)
+      CHARACTER(ErrMsgLen)                           :: ErrMsg2     ! local error message (ErrMsg)
       
       
       ! Initialize ErrStat
@@ -14118,7 +14118,7 @@ CONTAINS
 
          ! local variables
       INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
-      CHARACTER(LEN(Msg))        :: ErrMsg3     ! The error message (ErrMsg)
+      CHARACTER(ErrMsgLen)       :: ErrMsg3     ! The error message (ErrMsg)
 
       !............................................................................................................................
       ! Set error status/message;
@@ -14383,7 +14383,7 @@ SUBROUTINE FixHSSBrTq ( Integrator, p, x, OtherState, ErrStat, ErrMsg )
 
    INTEGER                                :: I                                    ! Loops through all DOFs.
    INTEGER(IntKi)                         :: ErrStat2
-   CHARACTER(LEN(ErrMsg))                 :: ErrMsg2
+   CHARACTER(ErrMsgLen)                   :: ErrMsg2
    CHARACTER(*), PARAMETER                :: RoutineName = 'FixHSSBrTq'
 
    

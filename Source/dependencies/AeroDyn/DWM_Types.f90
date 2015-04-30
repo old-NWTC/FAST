@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.06.01, 21-Apr-2015)
+! FAST Registry (v2.07.00, 28-Apr-2015)
 !*********************************************************************************************************************************
 ! DWM_Types
 !.................................................................................................................................
@@ -9220,7 +9220,7 @@ ENDIF
  END SUBROUTINE DWM_UnPackInitOutput
 
 
- SUBROUTINE DWM_Input_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )
+ SUBROUTINE DWM_Input_ExtrapInterp(u, t, u_out, t_out, ErrStat, ErrMsg )
 !
 ! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
 ! values of u (which has values associated with times in t).  Order of the interpolation is given by the size of u
@@ -9236,17 +9236,64 @@ ENDIF
 !
 !..................................................................................................................................
 
- TYPE(DWM_inputtype), INTENT(INOUT)  :: u(:)      ! Input at t1 > t2 > t3
- REAL(DbKi),         INTENT(IN   )  :: tin(:)      ! Times associated with the Inputs
- TYPE(DWM_inputtype), INTENT(INOUT)  :: u_out     ! Input at tin_out
- REAL(DbKi),         INTENT(IN   )  :: tin_out     ! time to be extrap/interp'd to
- INTEGER(IntKi),     INTENT(  OUT)  :: ErrStat   ! Error status of the operation
- CHARACTER(*),       INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
+ TYPE(DWM_InputType), INTENT(INOUT)  :: u(:) ! Input at t1 > t2 > t3
+ REAL(DbKi),                 INTENT(IN   )  :: t(:)           ! Times associated with the Inputs
+ TYPE(DWM_InputType), INTENT(INOUT)  :: u_out ! Input at tin_out
+ REAL(DbKi),                 INTENT(IN   )  :: t_out           ! time to be extrap/interp'd to
+ INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat         ! Error status of the operation
+ CHARACTER(*),               INTENT(  OUT)  :: ErrMsg          ! Error message if ErrStat /= ErrID_None
    ! local variables
- REAL(DbKi) :: t(SIZE(tin))    ! Times associated with the Inputs
- REAL(DbKi) :: t_out           ! Time to which to be extrap/interpd
- INTEGER(IntKi)                 :: order    ! order of polynomial fit (max 2)
- CHARACTER(*),    PARAMETER :: RoutineName = 'DWM_Input_ExtrapInterp'
+ INTEGER(IntKi)                             :: order           ! order of polynomial fit (max 2)
+ INTEGER(IntKi)                             :: ErrStat2        ! local errors
+ CHARACTER(1024)                            :: ErrMsg2         ! local errors
+ CHARACTER(*),    PARAMETER                 :: RoutineName = 'DWM_Input_ExtrapInterp'
+    ! Initialize ErrStat
+ ErrStat = ErrID_None
+ ErrMsg  = ""
+ if ( size(t) .ne. size(u)) then
+    CALL SetErrStat(ErrID_Fatal,'size(t) must equal size(u)',ErrStat,ErrMsg,RoutineName)
+    RETURN
+ endif
+ order = SIZE(u) - 1
+ IF ( order .eq. 0 ) THEN
+   CALL DWM_CopyInput(u(1), u_out, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE IF ( order .eq. 1 ) THEN
+   CALL DWM_Input_ExtrapInterp1(u(1), u(2), t, u_out, t_out, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE IF ( order .eq. 2 ) THEN
+   CALL DWM_Input_ExtrapInterp2(u(1), u(2), u(3), t, u_out, t_out, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE 
+   CALL SetErrStat(ErrID_Fatal,'size(u) must be less than 4 (order must be less than 3).',ErrStat,ErrMsg,RoutineName)
+   RETURN
+ ENDIF 
+ END SUBROUTINE DWM_Input_ExtrapInterp
+
+
+ SUBROUTINE DWM_Input_ExtrapInterp1(u1, u2, tin, u_out, tin_out, ErrStat, ErrMsg )
+!
+! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
+! values of u (which has values associated with times in t).  Order of the interpolation is 1.
+!
+!  f(t) = a + b * t, or
+!
+!  where a and b are determined as the solution to
+!  f(t1) = u1, f(t2) = u2
+!
+!..................................................................................................................................
+
+ TYPE(DWM_InputType), INTENT(INOUT)  :: u1    ! Input at t1 > t2
+ TYPE(DWM_InputType), INTENT(INOUT)  :: u2    ! Input at t2 
+ REAL(DbKi),         INTENT(IN   )          :: tin(2)   ! Times associated with the Inputs
+ TYPE(DWM_InputType), INTENT(INOUT)  :: u_out ! Input at tin_out
+ REAL(DbKi),         INTENT(IN   )          :: tin_out  ! time to be extrap/interp'd to
+ INTEGER(IntKi),     INTENT(  OUT)          :: ErrStat  ! Error status of the operation
+ CHARACTER(*),       INTENT(  OUT)          :: ErrMsg   ! Error message if ErrStat /= ErrID_None
+   ! local variables
+ REAL(DbKi)                                 :: t(2)     ! Times associated with the Inputs
+ REAL(DbKi)                                 :: t_out    ! Time to which to be extrap/interpd
+ CHARACTER(*),                    PARAMETER :: RoutineName = 'DWM_Input_ExtrapInterp1'
  REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
@@ -9267,286 +9314,273 @@ ENDIF
  t = tin - tin(1)
  t_out = tin_out - tin(1)
 
- if ( size(t) .ne. size(u)) then
-    ErrStat = ErrID_Fatal
-    ErrMsg = ' Error in DWM_Input_ExtrapInterp: size(t) must equal size(u) '
-    RETURN
- endif
- if (size(u) .gt. 3) then
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in DWM_Input_ExtrapInterp: size(u) must be less than 4 '
-    RETURN
- endif
- order = SIZE(u) - 1
- IF ( order .eq. 0 ) THEN
-IF (ALLOCATED(u_out%Upwind_result%upwind_U) .AND. ALLOCATED(u(1)%Upwind_result%upwind_U)) THEN
-  u_out%Upwind_result%upwind_U = u(1)%Upwind_result%upwind_U
-END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%upwind_wakecenter) .AND. ALLOCATED(u(1)%Upwind_result%upwind_wakecenter)) THEN
-  u_out%Upwind_result%upwind_wakecenter = u(1)%Upwind_result%upwind_wakecenter
-END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%upwind_meanU) .AND. ALLOCATED(u(1)%Upwind_result%upwind_meanU)) THEN
-  u_out%Upwind_result%upwind_meanU = u(1)%Upwind_result%upwind_meanU
-END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%upwind_TI) .AND. ALLOCATED(u(1)%Upwind_result%upwind_TI)) THEN
-  u_out%Upwind_result%upwind_TI = u(1)%Upwind_result%upwind_TI
-END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%upwind_small_TI) .AND. ALLOCATED(u(1)%Upwind_result%upwind_small_TI)) THEN
-  u_out%Upwind_result%upwind_small_TI = u(1)%Upwind_result%upwind_small_TI
-END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%upwind_smoothWake) .AND. ALLOCATED(u(1)%Upwind_result%upwind_smoothWake)) THEN
-  u_out%Upwind_result%upwind_smoothWake = u(1)%Upwind_result%upwind_smoothWake
-END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%velocity_aerodyn) .AND. ALLOCATED(u(1)%Upwind_result%velocity_aerodyn)) THEN
-  u_out%Upwind_result%velocity_aerodyn = u(1)%Upwind_result%velocity_aerodyn
-END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%TI_downstream) .AND. ALLOCATED(u(1)%Upwind_result%TI_downstream)) THEN
-  u_out%Upwind_result%TI_downstream = u(1)%Upwind_result%TI_downstream
-END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%small_scale_TI_downstream) .AND. ALLOCATED(u(1)%Upwind_result%small_scale_TI_downstream)) THEN
-  u_out%Upwind_result%small_scale_TI_downstream = u(1)%Upwind_result%small_scale_TI_downstream
-END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%smoothed_velocity_array) .AND. ALLOCATED(u(1)%Upwind_result%smoothed_velocity_array)) THEN
-  u_out%Upwind_result%smoothed_velocity_array = u(1)%Upwind_result%smoothed_velocity_array
-END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%vel_matrix) .AND. ALLOCATED(u(1)%Upwind_result%vel_matrix)) THEN
-  u_out%Upwind_result%vel_matrix = u(1)%Upwind_result%vel_matrix
-END IF ! check if allocated
-      CALL InflowWind_Input_ExtrapInterp( u%IfW_Inputs, tin, u_out%IfW_Inputs, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
- ELSE IF ( order .eq. 1 ) THEN
-  IF ( EqualRealNos( t(1), t(2) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in DWM_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-IF (ALLOCATED(u_out%Upwind_result%upwind_U) .AND. ALLOCATED(u(1)%Upwind_result%upwind_U)) THEN
+   IF ( EqualRealNos( t(1), t(2) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   END IF
+IF (ALLOCATED(u_out%Upwind_result%upwind_U) .AND. ALLOCATED(u1%Upwind_result%upwind_U)) THEN
   ALLOCATE(b2(SIZE(u_out%Upwind_result%upwind_U,1),SIZE(u_out%Upwind_result%upwind_U,2) ))
   ALLOCATE(c2(SIZE(u_out%Upwind_result%upwind_U,1),SIZE(u_out%Upwind_result%upwind_U,2) ))
-  b2 = -(u(1)%Upwind_result%upwind_U - u(2)%Upwind_result%upwind_U)/t(2)
-  u_out%Upwind_result%upwind_U = u(1)%Upwind_result%upwind_U + b2 * t_out
+  b2 = -(u1%Upwind_result%upwind_U - u2%Upwind_result%upwind_U)/t(2)
+  u_out%Upwind_result%upwind_U = u1%Upwind_result%upwind_U + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%upwind_wakecenter) .AND. ALLOCATED(u(1)%Upwind_result%upwind_wakecenter)) THEN
+IF (ALLOCATED(u_out%Upwind_result%upwind_wakecenter) .AND. ALLOCATED(u1%Upwind_result%upwind_wakecenter)) THEN
   ALLOCATE(b4(SIZE(u_out%Upwind_result%upwind_wakecenter,1),SIZE(u_out%Upwind_result%upwind_wakecenter,2), &
               SIZE(u_out%Upwind_result%upwind_wakecenter,3),SIZE(u_out%Upwind_result%upwind_wakecenter,4) ))
   ALLOCATE(c4(SIZE(u_out%Upwind_result%upwind_wakecenter,1),SIZE(u_out%Upwind_result%upwind_wakecenter,2), &
               SIZE(u_out%Upwind_result%upwind_wakecenter,3),SIZE(u_out%Upwind_result%upwind_wakecenter,4) ))
-  b4 = -(u(1)%Upwind_result%upwind_wakecenter - u(2)%Upwind_result%upwind_wakecenter)/t(2)
-  u_out%Upwind_result%upwind_wakecenter = u(1)%Upwind_result%upwind_wakecenter + b4 * t_out
+  b4 = -(u1%Upwind_result%upwind_wakecenter - u2%Upwind_result%upwind_wakecenter)/t(2)
+  u_out%Upwind_result%upwind_wakecenter = u1%Upwind_result%upwind_wakecenter + b4 * t_out
   DEALLOCATE(b4)
   DEALLOCATE(c4)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%upwind_meanU) .AND. ALLOCATED(u(1)%Upwind_result%upwind_meanU)) THEN
+IF (ALLOCATED(u_out%Upwind_result%upwind_meanU) .AND. ALLOCATED(u1%Upwind_result%upwind_meanU)) THEN
   ALLOCATE(b1(SIZE(u_out%Upwind_result%upwind_meanU,1)))
   ALLOCATE(c1(SIZE(u_out%Upwind_result%upwind_meanU,1)))
-  b1 = -(u(1)%Upwind_result%upwind_meanU - u(2)%Upwind_result%upwind_meanU)/t(2)
-  u_out%Upwind_result%upwind_meanU = u(1)%Upwind_result%upwind_meanU + b1 * t_out
+  b1 = -(u1%Upwind_result%upwind_meanU - u2%Upwind_result%upwind_meanU)/t(2)
+  u_out%Upwind_result%upwind_meanU = u1%Upwind_result%upwind_meanU + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%upwind_TI) .AND. ALLOCATED(u(1)%Upwind_result%upwind_TI)) THEN
+IF (ALLOCATED(u_out%Upwind_result%upwind_TI) .AND. ALLOCATED(u1%Upwind_result%upwind_TI)) THEN
   ALLOCATE(b1(SIZE(u_out%Upwind_result%upwind_TI,1)))
   ALLOCATE(c1(SIZE(u_out%Upwind_result%upwind_TI,1)))
-  b1 = -(u(1)%Upwind_result%upwind_TI - u(2)%Upwind_result%upwind_TI)/t(2)
-  u_out%Upwind_result%upwind_TI = u(1)%Upwind_result%upwind_TI + b1 * t_out
+  b1 = -(u1%Upwind_result%upwind_TI - u2%Upwind_result%upwind_TI)/t(2)
+  u_out%Upwind_result%upwind_TI = u1%Upwind_result%upwind_TI + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%upwind_small_TI) .AND. ALLOCATED(u(1)%Upwind_result%upwind_small_TI)) THEN
+IF (ALLOCATED(u_out%Upwind_result%upwind_small_TI) .AND. ALLOCATED(u1%Upwind_result%upwind_small_TI)) THEN
   ALLOCATE(b1(SIZE(u_out%Upwind_result%upwind_small_TI,1)))
   ALLOCATE(c1(SIZE(u_out%Upwind_result%upwind_small_TI,1)))
-  b1 = -(u(1)%Upwind_result%upwind_small_TI - u(2)%Upwind_result%upwind_small_TI)/t(2)
-  u_out%Upwind_result%upwind_small_TI = u(1)%Upwind_result%upwind_small_TI + b1 * t_out
+  b1 = -(u1%Upwind_result%upwind_small_TI - u2%Upwind_result%upwind_small_TI)/t(2)
+  u_out%Upwind_result%upwind_small_TI = u1%Upwind_result%upwind_small_TI + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%upwind_smoothWake) .AND. ALLOCATED(u(1)%Upwind_result%upwind_smoothWake)) THEN
+IF (ALLOCATED(u_out%Upwind_result%upwind_smoothWake) .AND. ALLOCATED(u1%Upwind_result%upwind_smoothWake)) THEN
   ALLOCATE(b2(SIZE(u_out%Upwind_result%upwind_smoothWake,1),SIZE(u_out%Upwind_result%upwind_smoothWake,2) ))
   ALLOCATE(c2(SIZE(u_out%Upwind_result%upwind_smoothWake,1),SIZE(u_out%Upwind_result%upwind_smoothWake,2) ))
-  b2 = -(u(1)%Upwind_result%upwind_smoothWake - u(2)%Upwind_result%upwind_smoothWake)/t(2)
-  u_out%Upwind_result%upwind_smoothWake = u(1)%Upwind_result%upwind_smoothWake + b2 * t_out
+  b2 = -(u1%Upwind_result%upwind_smoothWake - u2%Upwind_result%upwind_smoothWake)/t(2)
+  u_out%Upwind_result%upwind_smoothWake = u1%Upwind_result%upwind_smoothWake + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%velocity_aerodyn) .AND. ALLOCATED(u(1)%Upwind_result%velocity_aerodyn)) THEN
+IF (ALLOCATED(u_out%Upwind_result%velocity_aerodyn) .AND. ALLOCATED(u1%Upwind_result%velocity_aerodyn)) THEN
   ALLOCATE(b1(SIZE(u_out%Upwind_result%velocity_aerodyn,1)))
   ALLOCATE(c1(SIZE(u_out%Upwind_result%velocity_aerodyn,1)))
-  b1 = -(u(1)%Upwind_result%velocity_aerodyn - u(2)%Upwind_result%velocity_aerodyn)/t(2)
-  u_out%Upwind_result%velocity_aerodyn = u(1)%Upwind_result%velocity_aerodyn + b1 * t_out
+  b1 = -(u1%Upwind_result%velocity_aerodyn - u2%Upwind_result%velocity_aerodyn)/t(2)
+  u_out%Upwind_result%velocity_aerodyn = u1%Upwind_result%velocity_aerodyn + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%TI_downstream) .AND. ALLOCATED(u(1)%Upwind_result%TI_downstream)) THEN
+IF (ALLOCATED(u_out%Upwind_result%TI_downstream) .AND. ALLOCATED(u1%Upwind_result%TI_downstream)) THEN
   ALLOCATE(b1(SIZE(u_out%Upwind_result%TI_downstream,1)))
   ALLOCATE(c1(SIZE(u_out%Upwind_result%TI_downstream,1)))
-  b1 = -(u(1)%Upwind_result%TI_downstream - u(2)%Upwind_result%TI_downstream)/t(2)
-  u_out%Upwind_result%TI_downstream = u(1)%Upwind_result%TI_downstream + b1 * t_out
+  b1 = -(u1%Upwind_result%TI_downstream - u2%Upwind_result%TI_downstream)/t(2)
+  u_out%Upwind_result%TI_downstream = u1%Upwind_result%TI_downstream + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%small_scale_TI_downstream) .AND. ALLOCATED(u(1)%Upwind_result%small_scale_TI_downstream)) THEN
+IF (ALLOCATED(u_out%Upwind_result%small_scale_TI_downstream) .AND. ALLOCATED(u1%Upwind_result%small_scale_TI_downstream)) THEN
   ALLOCATE(b1(SIZE(u_out%Upwind_result%small_scale_TI_downstream,1)))
   ALLOCATE(c1(SIZE(u_out%Upwind_result%small_scale_TI_downstream,1)))
-  b1 = -(u(1)%Upwind_result%small_scale_TI_downstream - u(2)%Upwind_result%small_scale_TI_downstream)/t(2)
-  u_out%Upwind_result%small_scale_TI_downstream = u(1)%Upwind_result%small_scale_TI_downstream + b1 * t_out
+  b1 = -(u1%Upwind_result%small_scale_TI_downstream - u2%Upwind_result%small_scale_TI_downstream)/t(2)
+  u_out%Upwind_result%small_scale_TI_downstream = u1%Upwind_result%small_scale_TI_downstream + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%smoothed_velocity_array) .AND. ALLOCATED(u(1)%Upwind_result%smoothed_velocity_array)) THEN
+IF (ALLOCATED(u_out%Upwind_result%smoothed_velocity_array) .AND. ALLOCATED(u1%Upwind_result%smoothed_velocity_array)) THEN
   ALLOCATE(b2(SIZE(u_out%Upwind_result%smoothed_velocity_array,1),SIZE(u_out%Upwind_result%smoothed_velocity_array,2) ))
   ALLOCATE(c2(SIZE(u_out%Upwind_result%smoothed_velocity_array,1),SIZE(u_out%Upwind_result%smoothed_velocity_array,2) ))
-  b2 = -(u(1)%Upwind_result%smoothed_velocity_array - u(2)%Upwind_result%smoothed_velocity_array)/t(2)
-  u_out%Upwind_result%smoothed_velocity_array = u(1)%Upwind_result%smoothed_velocity_array + b2 * t_out
+  b2 = -(u1%Upwind_result%smoothed_velocity_array - u2%Upwind_result%smoothed_velocity_array)/t(2)
+  u_out%Upwind_result%smoothed_velocity_array = u1%Upwind_result%smoothed_velocity_array + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%vel_matrix) .AND. ALLOCATED(u(1)%Upwind_result%vel_matrix)) THEN
+IF (ALLOCATED(u_out%Upwind_result%vel_matrix) .AND. ALLOCATED(u1%Upwind_result%vel_matrix)) THEN
   ALLOCATE(b3(SIZE(u_out%Upwind_result%vel_matrix,1),SIZE(u_out%Upwind_result%vel_matrix,2), &
               SIZE(u_out%Upwind_result%vel_matrix,3)                     ))
   ALLOCATE(c3(SIZE(u_out%Upwind_result%vel_matrix,1),SIZE(u_out%Upwind_result%vel_matrix,2), &
               SIZE(u_out%Upwind_result%vel_matrix,3)                     ))
-  b3 = -(u(1)%Upwind_result%vel_matrix - u(2)%Upwind_result%vel_matrix)/t(2)
-  u_out%Upwind_result%vel_matrix = u(1)%Upwind_result%vel_matrix + b3 * t_out
+  b3 = -(u1%Upwind_result%vel_matrix - u2%Upwind_result%vel_matrix)/t(2)
+  u_out%Upwind_result%vel_matrix = u1%Upwind_result%vel_matrix + b3 * t_out
   DEALLOCATE(b3)
   DEALLOCATE(c3)
 END IF ! check if allocated
-      CALL InflowWind_Input_ExtrapInterp( u%IfW_Inputs, tin, u_out%IfW_Inputs, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
- ELSE IF ( order .eq. 2 ) THEN
-  IF ( EqualRealNos( t(1), t(2) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in DWM_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-  IF ( EqualRealNos( t(2), t(3) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in DWM_Input_ExtrapInterp: t(2) must not equal t(3) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-  IF ( EqualRealNos( t(1), t(3) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in DWM_Input_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-IF (ALLOCATED(u_out%Upwind_result%upwind_U) .AND. ALLOCATED(u(1)%Upwind_result%upwind_U)) THEN
+      CALL InflowWind_Input_ExtrapInterp1( u1%IfW_Inputs, u2%IfW_Inputs, tin, u_out%IfW_Inputs, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ END SUBROUTINE DWM_Input_ExtrapInterp1
+
+
+ SUBROUTINE DWM_Input_ExtrapInterp2(u1, u2, u3, tin, u_out, tin_out, ErrStat, ErrMsg )
+!
+! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
+! values of u (which has values associated with times in t).  Order of the interpolation is 2.
+!
+!  expressions below based on either
+!
+!  f(t) = a + b * t + c * t**2
+!
+!  where a, b and c are determined as the solution to
+!  f(t1) = u1, f(t2) = u2, f(t3) = u3
+!
+!..................................................................................................................................
+
+ TYPE(DWM_InputType), INTENT(INOUT)  :: u1      ! Input at t1 > t2 > t3
+ TYPE(DWM_InputType), INTENT(INOUT)  :: u2      ! Input at t2 > t3
+ TYPE(DWM_InputType), INTENT(INOUT)  :: u3      ! Input at t3
+ REAL(DbKi),                 INTENT(IN   )  :: tin(3)    ! Times associated with the Inputs
+ TYPE(DWM_InputType), INTENT(INOUT)  :: u_out     ! Input at tin_out
+ REAL(DbKi),                 INTENT(IN   )  :: tin_out   ! time to be extrap/interp'd to
+ INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat   ! Error status of the operation
+ CHARACTER(*),               INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
+   ! local variables
+ REAL(DbKi)                                 :: t(3)      ! Times associated with the Inputs
+ REAL(DbKi)                                 :: t_out     ! Time to which to be extrap/interpd
+ INTEGER(IntKi)                             :: order     ! order of polynomial fit (max 2)
+ REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
+ REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: c1       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: b2       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: c2       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: b3       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: c3       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: b4       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
+ CHARACTER(*),            PARAMETER         :: RoutineName = 'DWM_Input_ExtrapInterp2'
+    ! Initialize ErrStat
+ ErrStat = ErrID_None
+ ErrMsg  = ""
+    ! we'll subtract a constant from the times to resolve some 
+    ! numerical issues when t gets large (and to simplify the equations)
+ t = tin - tin(1)
+ t_out = tin_out - tin(1)
+
+   IF ( EqualRealNos( t(1), t(2) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   ELSE IF ( EqualRealNos( t(2), t(3) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(2) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   ELSE IF ( EqualRealNos( t(1), t(3) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   END IF
+IF (ALLOCATED(u_out%Upwind_result%upwind_U) .AND. ALLOCATED(u1%Upwind_result%upwind_U)) THEN
   ALLOCATE(b2(SIZE(u_out%Upwind_result%upwind_U,1),SIZE(u_out%Upwind_result%upwind_U,2) ))
   ALLOCATE(c2(SIZE(u_out%Upwind_result%upwind_U,1),SIZE(u_out%Upwind_result%upwind_U,2) ))
-  b2 = (t(3)**2*(u(1)%Upwind_result%upwind_U - u(2)%Upwind_result%upwind_U) + t(2)**2*(-u(1)%Upwind_result%upwind_U + u(3)%Upwind_result%upwind_U))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%Upwind_result%upwind_U + t(3)*u(2)%Upwind_result%upwind_U - t(2)*u(3)%Upwind_result%upwind_U ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%Upwind_result%upwind_U = u(1)%Upwind_result%upwind_U + b2 * t_out + c2 * t_out**2
+  b2 = (t(3)**2*(u1%Upwind_result%upwind_U - u2%Upwind_result%upwind_U) + t(2)**2*(-u1%Upwind_result%upwind_U + u3%Upwind_result%upwind_U))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*u1%Upwind_result%upwind_U + t(3)*u2%Upwind_result%upwind_U - t(2)*u3%Upwind_result%upwind_U ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%Upwind_result%upwind_U = u1%Upwind_result%upwind_U + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%upwind_wakecenter) .AND. ALLOCATED(u(1)%Upwind_result%upwind_wakecenter)) THEN
+IF (ALLOCATED(u_out%Upwind_result%upwind_wakecenter) .AND. ALLOCATED(u1%Upwind_result%upwind_wakecenter)) THEN
   ALLOCATE(b4(SIZE(u_out%Upwind_result%upwind_wakecenter,1),SIZE(u_out%Upwind_result%upwind_wakecenter,2), &
               SIZE(u_out%Upwind_result%upwind_wakecenter,3),SIZE(u_out%Upwind_result%upwind_wakecenter,4) ))
   ALLOCATE(c4(SIZE(u_out%Upwind_result%upwind_wakecenter,1),SIZE(u_out%Upwind_result%upwind_wakecenter,2), &
               SIZE(u_out%Upwind_result%upwind_wakecenter,3),SIZE(u_out%Upwind_result%upwind_wakecenter,4) ))
-  b4 = (t(3)**2*(u(1)%Upwind_result%upwind_wakecenter - u(2)%Upwind_result%upwind_wakecenter) + t(2)**2*(-u(1)%Upwind_result%upwind_wakecenter + u(3)%Upwind_result%upwind_wakecenter))/(t(2)*t(3)*(t(2) - t(3)))
-  c4 = ( (t(2)-t(3))*u(1)%Upwind_result%upwind_wakecenter + t(3)*u(2)%Upwind_result%upwind_wakecenter - t(2)*u(3)%Upwind_result%upwind_wakecenter ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%Upwind_result%upwind_wakecenter = u(1)%Upwind_result%upwind_wakecenter + b4 * t_out + c4 * t_out**2
+  b4 = (t(3)**2*(u1%Upwind_result%upwind_wakecenter - u2%Upwind_result%upwind_wakecenter) + t(2)**2*(-u1%Upwind_result%upwind_wakecenter + u3%Upwind_result%upwind_wakecenter))/(t(2)*t(3)*(t(2) - t(3)))
+  c4 = ( (t(2)-t(3))*u1%Upwind_result%upwind_wakecenter + t(3)*u2%Upwind_result%upwind_wakecenter - t(2)*u3%Upwind_result%upwind_wakecenter ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%Upwind_result%upwind_wakecenter = u1%Upwind_result%upwind_wakecenter + b4 * t_out + c4 * t_out**2
   DEALLOCATE(b4)
   DEALLOCATE(c4)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%upwind_meanU) .AND. ALLOCATED(u(1)%Upwind_result%upwind_meanU)) THEN
+IF (ALLOCATED(u_out%Upwind_result%upwind_meanU) .AND. ALLOCATED(u1%Upwind_result%upwind_meanU)) THEN
   ALLOCATE(b1(SIZE(u_out%Upwind_result%upwind_meanU,1)))
   ALLOCATE(c1(SIZE(u_out%Upwind_result%upwind_meanU,1)))
-  b1 = (t(3)**2*(u(1)%Upwind_result%upwind_meanU - u(2)%Upwind_result%upwind_meanU) + t(2)**2*(-u(1)%Upwind_result%upwind_meanU + u(3)%Upwind_result%upwind_meanU))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%Upwind_result%upwind_meanU + t(3)*u(2)%Upwind_result%upwind_meanU - t(2)*u(3)%Upwind_result%upwind_meanU ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%Upwind_result%upwind_meanU = u(1)%Upwind_result%upwind_meanU + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%Upwind_result%upwind_meanU - u2%Upwind_result%upwind_meanU) + t(2)**2*(-u1%Upwind_result%upwind_meanU + u3%Upwind_result%upwind_meanU))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%Upwind_result%upwind_meanU + t(3)*u2%Upwind_result%upwind_meanU - t(2)*u3%Upwind_result%upwind_meanU ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%Upwind_result%upwind_meanU = u1%Upwind_result%upwind_meanU + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%upwind_TI) .AND. ALLOCATED(u(1)%Upwind_result%upwind_TI)) THEN
+IF (ALLOCATED(u_out%Upwind_result%upwind_TI) .AND. ALLOCATED(u1%Upwind_result%upwind_TI)) THEN
   ALLOCATE(b1(SIZE(u_out%Upwind_result%upwind_TI,1)))
   ALLOCATE(c1(SIZE(u_out%Upwind_result%upwind_TI,1)))
-  b1 = (t(3)**2*(u(1)%Upwind_result%upwind_TI - u(2)%Upwind_result%upwind_TI) + t(2)**2*(-u(1)%Upwind_result%upwind_TI + u(3)%Upwind_result%upwind_TI))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%Upwind_result%upwind_TI + t(3)*u(2)%Upwind_result%upwind_TI - t(2)*u(3)%Upwind_result%upwind_TI ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%Upwind_result%upwind_TI = u(1)%Upwind_result%upwind_TI + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%Upwind_result%upwind_TI - u2%Upwind_result%upwind_TI) + t(2)**2*(-u1%Upwind_result%upwind_TI + u3%Upwind_result%upwind_TI))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%Upwind_result%upwind_TI + t(3)*u2%Upwind_result%upwind_TI - t(2)*u3%Upwind_result%upwind_TI ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%Upwind_result%upwind_TI = u1%Upwind_result%upwind_TI + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%upwind_small_TI) .AND. ALLOCATED(u(1)%Upwind_result%upwind_small_TI)) THEN
+IF (ALLOCATED(u_out%Upwind_result%upwind_small_TI) .AND. ALLOCATED(u1%Upwind_result%upwind_small_TI)) THEN
   ALLOCATE(b1(SIZE(u_out%Upwind_result%upwind_small_TI,1)))
   ALLOCATE(c1(SIZE(u_out%Upwind_result%upwind_small_TI,1)))
-  b1 = (t(3)**2*(u(1)%Upwind_result%upwind_small_TI - u(2)%Upwind_result%upwind_small_TI) + t(2)**2*(-u(1)%Upwind_result%upwind_small_TI + u(3)%Upwind_result%upwind_small_TI))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%Upwind_result%upwind_small_TI + t(3)*u(2)%Upwind_result%upwind_small_TI - t(2)*u(3)%Upwind_result%upwind_small_TI ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%Upwind_result%upwind_small_TI = u(1)%Upwind_result%upwind_small_TI + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%Upwind_result%upwind_small_TI - u2%Upwind_result%upwind_small_TI) + t(2)**2*(-u1%Upwind_result%upwind_small_TI + u3%Upwind_result%upwind_small_TI))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%Upwind_result%upwind_small_TI + t(3)*u2%Upwind_result%upwind_small_TI - t(2)*u3%Upwind_result%upwind_small_TI ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%Upwind_result%upwind_small_TI = u1%Upwind_result%upwind_small_TI + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%upwind_smoothWake) .AND. ALLOCATED(u(1)%Upwind_result%upwind_smoothWake)) THEN
+IF (ALLOCATED(u_out%Upwind_result%upwind_smoothWake) .AND. ALLOCATED(u1%Upwind_result%upwind_smoothWake)) THEN
   ALLOCATE(b2(SIZE(u_out%Upwind_result%upwind_smoothWake,1),SIZE(u_out%Upwind_result%upwind_smoothWake,2) ))
   ALLOCATE(c2(SIZE(u_out%Upwind_result%upwind_smoothWake,1),SIZE(u_out%Upwind_result%upwind_smoothWake,2) ))
-  b2 = (t(3)**2*(u(1)%Upwind_result%upwind_smoothWake - u(2)%Upwind_result%upwind_smoothWake) + t(2)**2*(-u(1)%Upwind_result%upwind_smoothWake + u(3)%Upwind_result%upwind_smoothWake))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%Upwind_result%upwind_smoothWake + t(3)*u(2)%Upwind_result%upwind_smoothWake - t(2)*u(3)%Upwind_result%upwind_smoothWake ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%Upwind_result%upwind_smoothWake = u(1)%Upwind_result%upwind_smoothWake + b2 * t_out + c2 * t_out**2
+  b2 = (t(3)**2*(u1%Upwind_result%upwind_smoothWake - u2%Upwind_result%upwind_smoothWake) + t(2)**2*(-u1%Upwind_result%upwind_smoothWake + u3%Upwind_result%upwind_smoothWake))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*u1%Upwind_result%upwind_smoothWake + t(3)*u2%Upwind_result%upwind_smoothWake - t(2)*u3%Upwind_result%upwind_smoothWake ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%Upwind_result%upwind_smoothWake = u1%Upwind_result%upwind_smoothWake + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%velocity_aerodyn) .AND. ALLOCATED(u(1)%Upwind_result%velocity_aerodyn)) THEN
+IF (ALLOCATED(u_out%Upwind_result%velocity_aerodyn) .AND. ALLOCATED(u1%Upwind_result%velocity_aerodyn)) THEN
   ALLOCATE(b1(SIZE(u_out%Upwind_result%velocity_aerodyn,1)))
   ALLOCATE(c1(SIZE(u_out%Upwind_result%velocity_aerodyn,1)))
-  b1 = (t(3)**2*(u(1)%Upwind_result%velocity_aerodyn - u(2)%Upwind_result%velocity_aerodyn) + t(2)**2*(-u(1)%Upwind_result%velocity_aerodyn + u(3)%Upwind_result%velocity_aerodyn))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%Upwind_result%velocity_aerodyn + t(3)*u(2)%Upwind_result%velocity_aerodyn - t(2)*u(3)%Upwind_result%velocity_aerodyn ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%Upwind_result%velocity_aerodyn = u(1)%Upwind_result%velocity_aerodyn + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%Upwind_result%velocity_aerodyn - u2%Upwind_result%velocity_aerodyn) + t(2)**2*(-u1%Upwind_result%velocity_aerodyn + u3%Upwind_result%velocity_aerodyn))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%Upwind_result%velocity_aerodyn + t(3)*u2%Upwind_result%velocity_aerodyn - t(2)*u3%Upwind_result%velocity_aerodyn ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%Upwind_result%velocity_aerodyn = u1%Upwind_result%velocity_aerodyn + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%TI_downstream) .AND. ALLOCATED(u(1)%Upwind_result%TI_downstream)) THEN
+IF (ALLOCATED(u_out%Upwind_result%TI_downstream) .AND. ALLOCATED(u1%Upwind_result%TI_downstream)) THEN
   ALLOCATE(b1(SIZE(u_out%Upwind_result%TI_downstream,1)))
   ALLOCATE(c1(SIZE(u_out%Upwind_result%TI_downstream,1)))
-  b1 = (t(3)**2*(u(1)%Upwind_result%TI_downstream - u(2)%Upwind_result%TI_downstream) + t(2)**2*(-u(1)%Upwind_result%TI_downstream + u(3)%Upwind_result%TI_downstream))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%Upwind_result%TI_downstream + t(3)*u(2)%Upwind_result%TI_downstream - t(2)*u(3)%Upwind_result%TI_downstream ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%Upwind_result%TI_downstream = u(1)%Upwind_result%TI_downstream + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%Upwind_result%TI_downstream - u2%Upwind_result%TI_downstream) + t(2)**2*(-u1%Upwind_result%TI_downstream + u3%Upwind_result%TI_downstream))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%Upwind_result%TI_downstream + t(3)*u2%Upwind_result%TI_downstream - t(2)*u3%Upwind_result%TI_downstream ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%Upwind_result%TI_downstream = u1%Upwind_result%TI_downstream + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%small_scale_TI_downstream) .AND. ALLOCATED(u(1)%Upwind_result%small_scale_TI_downstream)) THEN
+IF (ALLOCATED(u_out%Upwind_result%small_scale_TI_downstream) .AND. ALLOCATED(u1%Upwind_result%small_scale_TI_downstream)) THEN
   ALLOCATE(b1(SIZE(u_out%Upwind_result%small_scale_TI_downstream,1)))
   ALLOCATE(c1(SIZE(u_out%Upwind_result%small_scale_TI_downstream,1)))
-  b1 = (t(3)**2*(u(1)%Upwind_result%small_scale_TI_downstream - u(2)%Upwind_result%small_scale_TI_downstream) + t(2)**2*(-u(1)%Upwind_result%small_scale_TI_downstream + u(3)%Upwind_result%small_scale_TI_downstream))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%Upwind_result%small_scale_TI_downstream + t(3)*u(2)%Upwind_result%small_scale_TI_downstream - t(2)*u(3)%Upwind_result%small_scale_TI_downstream ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%Upwind_result%small_scale_TI_downstream = u(1)%Upwind_result%small_scale_TI_downstream + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(u1%Upwind_result%small_scale_TI_downstream - u2%Upwind_result%small_scale_TI_downstream) + t(2)**2*(-u1%Upwind_result%small_scale_TI_downstream + u3%Upwind_result%small_scale_TI_downstream))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%Upwind_result%small_scale_TI_downstream + t(3)*u2%Upwind_result%small_scale_TI_downstream - t(2)*u3%Upwind_result%small_scale_TI_downstream ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%Upwind_result%small_scale_TI_downstream = u1%Upwind_result%small_scale_TI_downstream + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%smoothed_velocity_array) .AND. ALLOCATED(u(1)%Upwind_result%smoothed_velocity_array)) THEN
+IF (ALLOCATED(u_out%Upwind_result%smoothed_velocity_array) .AND. ALLOCATED(u1%Upwind_result%smoothed_velocity_array)) THEN
   ALLOCATE(b2(SIZE(u_out%Upwind_result%smoothed_velocity_array,1),SIZE(u_out%Upwind_result%smoothed_velocity_array,2) ))
   ALLOCATE(c2(SIZE(u_out%Upwind_result%smoothed_velocity_array,1),SIZE(u_out%Upwind_result%smoothed_velocity_array,2) ))
-  b2 = (t(3)**2*(u(1)%Upwind_result%smoothed_velocity_array - u(2)%Upwind_result%smoothed_velocity_array) + t(2)**2*(-u(1)%Upwind_result%smoothed_velocity_array + u(3)%Upwind_result%smoothed_velocity_array))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%Upwind_result%smoothed_velocity_array + t(3)*u(2)%Upwind_result%smoothed_velocity_array - t(2)*u(3)%Upwind_result%smoothed_velocity_array ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%Upwind_result%smoothed_velocity_array = u(1)%Upwind_result%smoothed_velocity_array + b2 * t_out + c2 * t_out**2
+  b2 = (t(3)**2*(u1%Upwind_result%smoothed_velocity_array - u2%Upwind_result%smoothed_velocity_array) + t(2)**2*(-u1%Upwind_result%smoothed_velocity_array + u3%Upwind_result%smoothed_velocity_array))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*u1%Upwind_result%smoothed_velocity_array + t(3)*u2%Upwind_result%smoothed_velocity_array - t(2)*u3%Upwind_result%smoothed_velocity_array ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%Upwind_result%smoothed_velocity_array = u1%Upwind_result%smoothed_velocity_array + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Upwind_result%vel_matrix) .AND. ALLOCATED(u(1)%Upwind_result%vel_matrix)) THEN
+IF (ALLOCATED(u_out%Upwind_result%vel_matrix) .AND. ALLOCATED(u1%Upwind_result%vel_matrix)) THEN
   ALLOCATE(b3(SIZE(u_out%Upwind_result%vel_matrix,1),SIZE(u_out%Upwind_result%vel_matrix,2), &
               SIZE(u_out%Upwind_result%vel_matrix,3)                     ))
   ALLOCATE(c3(SIZE(u_out%Upwind_result%vel_matrix,1),SIZE(u_out%Upwind_result%vel_matrix,2), &
               SIZE(u_out%Upwind_result%vel_matrix,3)                     ))
-  b3 = (t(3)**2*(u(1)%Upwind_result%vel_matrix - u(2)%Upwind_result%vel_matrix) + t(2)**2*(-u(1)%Upwind_result%vel_matrix + u(3)%Upwind_result%vel_matrix))/(t(2)*t(3)*(t(2) - t(3)))
-  c3 = ( (t(2)-t(3))*u(1)%Upwind_result%vel_matrix + t(3)*u(2)%Upwind_result%vel_matrix - t(2)*u(3)%Upwind_result%vel_matrix ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%Upwind_result%vel_matrix = u(1)%Upwind_result%vel_matrix + b3 * t_out + c3 * t_out**2
+  b3 = (t(3)**2*(u1%Upwind_result%vel_matrix - u2%Upwind_result%vel_matrix) + t(2)**2*(-u1%Upwind_result%vel_matrix + u3%Upwind_result%vel_matrix))/(t(2)*t(3)*(t(2) - t(3)))
+  c3 = ( (t(2)-t(3))*u1%Upwind_result%vel_matrix + t(3)*u2%Upwind_result%vel_matrix - t(2)*u3%Upwind_result%vel_matrix ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%Upwind_result%vel_matrix = u1%Upwind_result%vel_matrix + b3 * t_out + c3 * t_out**2
   DEALLOCATE(b3)
   DEALLOCATE(c3)
 END IF ! check if allocated
-      CALL InflowWind_Input_ExtrapInterp( u%IfW_Inputs, tin, u_out%IfW_Inputs, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
- ELSE 
-   ErrStat = ErrID_Fatal
-   ErrMsg = ' order must be less than 3 in DWM_Input_ExtrapInterp '
-   RETURN
- ENDIF 
- END SUBROUTINE DWM_Input_ExtrapInterp
+      CALL InflowWind_Input_ExtrapInterp2( u1%IfW_Inputs, u2%IfW_Inputs, u3%IfW_Inputs, tin, u_out%IfW_Inputs, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ END SUBROUTINE DWM_Input_ExtrapInterp2
 
 
- SUBROUTINE DWM_Output_ExtrapInterp(y, tin, y_out, tin_out, ErrStat, ErrMsg )
+ SUBROUTINE DWM_Output_ExtrapInterp(y, t, y_out, t_out, ErrStat, ErrMsg )
 !
 ! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
 ! values of y (which has values associated with times in t).  Order of the interpolation is given by the size of y
@@ -9562,17 +9596,64 @@ END IF ! check if allocated
 !
 !..................................................................................................................................
 
- TYPE(DWM_outputtype), INTENT(INOUT)  :: y(:)      ! Output at t1 > t2 > t3
- REAL(DbKi),         INTENT(IN   )  :: tin(:)      ! Times associated with the Outputs
- TYPE(DWM_outputtype), INTENT(INOUT)  :: y_out     ! Output at tin_out
- REAL(DbKi),         INTENT(IN   )  :: tin_out     ! time to be extrap/interp'd to
- INTEGER(IntKi),     INTENT(  OUT)  :: ErrStat   ! Error status of the operation
- CHARACTER(*),       INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
+ TYPE(DWM_OutputType), INTENT(INOUT)  :: y(:) ! Output at t1 > t2 > t3
+ REAL(DbKi),                 INTENT(IN   )  :: t(:)           ! Times associated with the Outputs
+ TYPE(DWM_OutputType), INTENT(INOUT)  :: y_out ! Output at tin_out
+ REAL(DbKi),                 INTENT(IN   )  :: t_out           ! time to be extrap/interp'd to
+ INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat         ! Error status of the operation
+ CHARACTER(*),               INTENT(  OUT)  :: ErrMsg          ! Error message if ErrStat /= ErrID_None
    ! local variables
- REAL(DbKi) :: t(SIZE(tin))    ! Times associated with the Outputs
- REAL(DbKi) :: t_out           ! Time to which to be extrap/interpd
- INTEGER(IntKi)                 :: order    ! order of polynomial fit (max 2)
- CHARACTER(*),    PARAMETER :: RoutineName = 'DWM_Output_ExtrapInterp'
+ INTEGER(IntKi)                             :: order           ! order of polynomial fit (max 2)
+ INTEGER(IntKi)                             :: ErrStat2        ! local errors
+ CHARACTER(1024)                            :: ErrMsg2         ! local errors
+ CHARACTER(*),    PARAMETER                 :: RoutineName = 'DWM_Output_ExtrapInterp'
+    ! Initialize ErrStat
+ ErrStat = ErrID_None
+ ErrMsg  = ""
+ if ( size(t) .ne. size(y)) then
+    CALL SetErrStat(ErrID_Fatal,'size(t) must equal size(y)',ErrStat,ErrMsg,RoutineName)
+    RETURN
+ endif
+ order = SIZE(y) - 1
+ IF ( order .eq. 0 ) THEN
+   CALL DWM_CopyOutput(y(1), y_out, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE IF ( order .eq. 1 ) THEN
+   CALL DWM_Output_ExtrapInterp1(y(1), y(2), t, y_out, t_out, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE IF ( order .eq. 2 ) THEN
+   CALL DWM_Output_ExtrapInterp2(y(1), y(2), y(3), t, y_out, t_out, ErrStat2, ErrMsg2 )
+     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ ELSE 
+   CALL SetErrStat(ErrID_Fatal,'size(y) must be less than 4 (order must be less than 3).',ErrStat,ErrMsg,RoutineName)
+   RETURN
+ ENDIF 
+ END SUBROUTINE DWM_Output_ExtrapInterp
+
+
+ SUBROUTINE DWM_Output_ExtrapInterp1(y1, y2, tin, y_out, tin_out, ErrStat, ErrMsg )
+!
+! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
+! values of y (which has values associated with times in t).  Order of the interpolation is 1.
+!
+!  f(t) = a + b * t, or
+!
+!  where a and b are determined as the solution to
+!  f(t1) = y1, f(t2) = y2
+!
+!..................................................................................................................................
+
+ TYPE(DWM_OutputType), INTENT(INOUT)  :: y1    ! Output at t1 > t2
+ TYPE(DWM_OutputType), INTENT(INOUT)  :: y2    ! Output at t2 
+ REAL(DbKi),         INTENT(IN   )          :: tin(2)   ! Times associated with the Outputs
+ TYPE(DWM_OutputType), INTENT(INOUT)  :: y_out ! Output at tin_out
+ REAL(DbKi),         INTENT(IN   )          :: tin_out  ! time to be extrap/interp'd to
+ INTEGER(IntKi),     INTENT(  OUT)          :: ErrStat  ! Error status of the operation
+ CHARACTER(*),       INTENT(  OUT)          :: ErrMsg   ! Error message if ErrStat /= ErrID_None
+   ! local variables
+ REAL(DbKi)                                 :: t(2)     ! Times associated with the Outputs
+ REAL(DbKi)                                 :: t_out    ! Time to which to be extrap/interpd
+ CHARACTER(*),                    PARAMETER :: RoutineName = 'DWM_Output_ExtrapInterp1'
  REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
  REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
@@ -9591,267 +9672,253 @@ END IF ! check if allocated
  t = tin - tin(1)
  t_out = tin_out - tin(1)
 
- if ( size(t) .ne. size(y)) then
-    ErrStat = ErrID_Fatal
-    ErrMsg = ' Error in DWM_Output_ExtrapInterp: size(t) must equal size(y) '
-    RETURN
- endif
- if (size(y) .gt. 3) then
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in DWM_Output_ExtrapInterp: size(y) must be less than 4 '
-    RETURN
- endif
- order = SIZE(y) - 1
- IF ( order .eq. 0 ) THEN
-IF (ALLOCATED(y_out%turbine_thrust_force) .AND. ALLOCATED(y(1)%turbine_thrust_force)) THEN
-  y_out%turbine_thrust_force = y(1)%turbine_thrust_force
-END IF ! check if allocated
-IF (ALLOCATED(y_out%induction_factor) .AND. ALLOCATED(y(1)%induction_factor)) THEN
-  y_out%induction_factor = y(1)%induction_factor
-END IF ! check if allocated
-IF (ALLOCATED(y_out%r_initial) .AND. ALLOCATED(y(1)%r_initial)) THEN
-  y_out%r_initial = y(1)%r_initial
-END IF ! check if allocated
-IF (ALLOCATED(y_out%U_initial) .AND. ALLOCATED(y(1)%U_initial)) THEN
-  y_out%U_initial = y(1)%U_initial
-END IF ! check if allocated
-IF (ALLOCATED(y_out%Mean_FFWS_array) .AND. ALLOCATED(y(1)%Mean_FFWS_array)) THEN
-  y_out%Mean_FFWS_array = y(1)%Mean_FFWS_array
-END IF ! check if allocated
-  y_out%Mean_FFWS = y(1)%Mean_FFWS
-  y_out%TI = y(1)%TI
-  y_out%TI_downstream = y(1)%TI_downstream
-IF (ALLOCATED(y_out%wake_u) .AND. ALLOCATED(y(1)%wake_u)) THEN
-  y_out%wake_u = y(1)%wake_u
-END IF ! check if allocated
-IF (ALLOCATED(y_out%wake_position) .AND. ALLOCATED(y(1)%wake_position)) THEN
-  y_out%wake_position = y(1)%wake_position
-END IF ! check if allocated
-IF (ALLOCATED(y_out%smoothed_velocity_array) .AND. ALLOCATED(y(1)%smoothed_velocity_array)) THEN
-  y_out%smoothed_velocity_array = y(1)%smoothed_velocity_array
-END IF ! check if allocated
-  y_out%AtmUscale = y(1)%AtmUscale
-  y_out%du_dz_ABL = y(1)%du_dz_ABL
-  y_out%total_SDgenpwr = y(1)%total_SDgenpwr
-  y_out%mean_SDgenpwr = y(1)%mean_SDgenpwr
-  y_out%avg_ct = y(1)%avg_ct
-      CALL InflowWind_Output_ExtrapInterp( y%IfW_Outputs, tin, y_out%IfW_Outputs, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
- ELSE IF ( order .eq. 1 ) THEN
-  IF ( EqualRealNos( t(1), t(2) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in DWM_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-IF (ALLOCATED(y_out%turbine_thrust_force) .AND. ALLOCATED(y(1)%turbine_thrust_force)) THEN
+   IF ( EqualRealNos( t(1), t(2) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   END IF
+IF (ALLOCATED(y_out%turbine_thrust_force) .AND. ALLOCATED(y1%turbine_thrust_force)) THEN
   ALLOCATE(b1(SIZE(y_out%turbine_thrust_force,1)))
   ALLOCATE(c1(SIZE(y_out%turbine_thrust_force,1)))
-  b1 = -(y(1)%turbine_thrust_force - y(2)%turbine_thrust_force)/t(2)
-  y_out%turbine_thrust_force = y(1)%turbine_thrust_force + b1 * t_out
+  b1 = -(y1%turbine_thrust_force - y2%turbine_thrust_force)/t(2)
+  y_out%turbine_thrust_force = y1%turbine_thrust_force + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(y_out%induction_factor) .AND. ALLOCATED(y(1)%induction_factor)) THEN
+IF (ALLOCATED(y_out%induction_factor) .AND. ALLOCATED(y1%induction_factor)) THEN
   ALLOCATE(b1(SIZE(y_out%induction_factor,1)))
   ALLOCATE(c1(SIZE(y_out%induction_factor,1)))
-  b1 = -(y(1)%induction_factor - y(2)%induction_factor)/t(2)
-  y_out%induction_factor = y(1)%induction_factor + b1 * t_out
+  b1 = -(y1%induction_factor - y2%induction_factor)/t(2)
+  y_out%induction_factor = y1%induction_factor + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(y_out%r_initial) .AND. ALLOCATED(y(1)%r_initial)) THEN
+IF (ALLOCATED(y_out%r_initial) .AND. ALLOCATED(y1%r_initial)) THEN
   ALLOCATE(b1(SIZE(y_out%r_initial,1)))
   ALLOCATE(c1(SIZE(y_out%r_initial,1)))
-  b1 = -(y(1)%r_initial - y(2)%r_initial)/t(2)
-  y_out%r_initial = y(1)%r_initial + b1 * t_out
+  b1 = -(y1%r_initial - y2%r_initial)/t(2)
+  y_out%r_initial = y1%r_initial + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(y_out%U_initial) .AND. ALLOCATED(y(1)%U_initial)) THEN
+IF (ALLOCATED(y_out%U_initial) .AND. ALLOCATED(y1%U_initial)) THEN
   ALLOCATE(b1(SIZE(y_out%U_initial,1)))
   ALLOCATE(c1(SIZE(y_out%U_initial,1)))
-  b1 = -(y(1)%U_initial - y(2)%U_initial)/t(2)
-  y_out%U_initial = y(1)%U_initial + b1 * t_out
+  b1 = -(y1%U_initial - y2%U_initial)/t(2)
+  y_out%U_initial = y1%U_initial + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(y_out%Mean_FFWS_array) .AND. ALLOCATED(y(1)%Mean_FFWS_array)) THEN
+IF (ALLOCATED(y_out%Mean_FFWS_array) .AND. ALLOCATED(y1%Mean_FFWS_array)) THEN
   ALLOCATE(b1(SIZE(y_out%Mean_FFWS_array,1)))
   ALLOCATE(c1(SIZE(y_out%Mean_FFWS_array,1)))
-  b1 = -(y(1)%Mean_FFWS_array - y(2)%Mean_FFWS_array)/t(2)
-  y_out%Mean_FFWS_array = y(1)%Mean_FFWS_array + b1 * t_out
+  b1 = -(y1%Mean_FFWS_array - y2%Mean_FFWS_array)/t(2)
+  y_out%Mean_FFWS_array = y1%Mean_FFWS_array + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-  b0 = -(y(1)%Mean_FFWS - y(2)%Mean_FFWS)/t(2)
-  y_out%Mean_FFWS = y(1)%Mean_FFWS + b0 * t_out
-  b0 = -(y(1)%TI - y(2)%TI)/t(2)
-  y_out%TI = y(1)%TI + b0 * t_out
-  b0 = -(y(1)%TI_downstream - y(2)%TI_downstream)/t(2)
-  y_out%TI_downstream = y(1)%TI_downstream + b0 * t_out
-IF (ALLOCATED(y_out%wake_u) .AND. ALLOCATED(y(1)%wake_u)) THEN
+  b0 = -(y1%Mean_FFWS - y2%Mean_FFWS)/t(2)
+  y_out%Mean_FFWS = y1%Mean_FFWS + b0 * t_out
+  b0 = -(y1%TI - y2%TI)/t(2)
+  y_out%TI = y1%TI + b0 * t_out
+  b0 = -(y1%TI_downstream - y2%TI_downstream)/t(2)
+  y_out%TI_downstream = y1%TI_downstream + b0 * t_out
+IF (ALLOCATED(y_out%wake_u) .AND. ALLOCATED(y1%wake_u)) THEN
   ALLOCATE(b2(SIZE(y_out%wake_u,1),SIZE(y_out%wake_u,2) ))
   ALLOCATE(c2(SIZE(y_out%wake_u,1),SIZE(y_out%wake_u,2) ))
-  b2 = -(y(1)%wake_u - y(2)%wake_u)/t(2)
-  y_out%wake_u = y(1)%wake_u + b2 * t_out
+  b2 = -(y1%wake_u - y2%wake_u)/t(2)
+  y_out%wake_u = y1%wake_u + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
 END IF ! check if allocated
-IF (ALLOCATED(y_out%wake_position) .AND. ALLOCATED(y(1)%wake_position)) THEN
+IF (ALLOCATED(y_out%wake_position) .AND. ALLOCATED(y1%wake_position)) THEN
   ALLOCATE(b3(SIZE(y_out%wake_position,1),SIZE(y_out%wake_position,2), &
               SIZE(y_out%wake_position,3)                     ))
   ALLOCATE(c3(SIZE(y_out%wake_position,1),SIZE(y_out%wake_position,2), &
               SIZE(y_out%wake_position,3)                     ))
-  b3 = -(y(1)%wake_position - y(2)%wake_position)/t(2)
-  y_out%wake_position = y(1)%wake_position + b3 * t_out
+  b3 = -(y1%wake_position - y2%wake_position)/t(2)
+  y_out%wake_position = y1%wake_position + b3 * t_out
   DEALLOCATE(b3)
   DEALLOCATE(c3)
 END IF ! check if allocated
-IF (ALLOCATED(y_out%smoothed_velocity_array) .AND. ALLOCATED(y(1)%smoothed_velocity_array)) THEN
+IF (ALLOCATED(y_out%smoothed_velocity_array) .AND. ALLOCATED(y1%smoothed_velocity_array)) THEN
   ALLOCATE(b2(SIZE(y_out%smoothed_velocity_array,1),SIZE(y_out%smoothed_velocity_array,2) ))
   ALLOCATE(c2(SIZE(y_out%smoothed_velocity_array,1),SIZE(y_out%smoothed_velocity_array,2) ))
-  b2 = -(y(1)%smoothed_velocity_array - y(2)%smoothed_velocity_array)/t(2)
-  y_out%smoothed_velocity_array = y(1)%smoothed_velocity_array + b2 * t_out
+  b2 = -(y1%smoothed_velocity_array - y2%smoothed_velocity_array)/t(2)
+  y_out%smoothed_velocity_array = y1%smoothed_velocity_array + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
 END IF ! check if allocated
-  b0 = -(y(1)%AtmUscale - y(2)%AtmUscale)/t(2)
-  y_out%AtmUscale = y(1)%AtmUscale + b0 * t_out
-  b0 = -(y(1)%du_dz_ABL - y(2)%du_dz_ABL)/t(2)
-  y_out%du_dz_ABL = y(1)%du_dz_ABL + b0 * t_out
-  b0 = -(y(1)%total_SDgenpwr - y(2)%total_SDgenpwr)/t(2)
-  y_out%total_SDgenpwr = y(1)%total_SDgenpwr + b0 * t_out
-  b0 = -(y(1)%mean_SDgenpwr - y(2)%mean_SDgenpwr)/t(2)
-  y_out%mean_SDgenpwr = y(1)%mean_SDgenpwr + b0 * t_out
-  b0 = -(y(1)%avg_ct - y(2)%avg_ct)/t(2)
-  y_out%avg_ct = y(1)%avg_ct + b0 * t_out
-      CALL InflowWind_Output_ExtrapInterp( y%IfW_Outputs, tin, y_out%IfW_Outputs, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
- ELSE IF ( order .eq. 2 ) THEN
-  IF ( EqualRealNos( t(1), t(2) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in DWM_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-  IF ( EqualRealNos( t(2), t(3) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in DWM_Output_ExtrapInterp: t(2) must not equal t(3) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-  IF ( EqualRealNos( t(1), t(3) ) ) THEN
-    ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in DWM_Output_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
-    RETURN
-  END IF
-IF (ALLOCATED(y_out%turbine_thrust_force) .AND. ALLOCATED(y(1)%turbine_thrust_force)) THEN
+  b0 = -(y1%AtmUscale - y2%AtmUscale)/t(2)
+  y_out%AtmUscale = y1%AtmUscale + b0 * t_out
+  b0 = -(y1%du_dz_ABL - y2%du_dz_ABL)/t(2)
+  y_out%du_dz_ABL = y1%du_dz_ABL + b0 * t_out
+  b0 = -(y1%total_SDgenpwr - y2%total_SDgenpwr)/t(2)
+  y_out%total_SDgenpwr = y1%total_SDgenpwr + b0 * t_out
+  b0 = -(y1%mean_SDgenpwr - y2%mean_SDgenpwr)/t(2)
+  y_out%mean_SDgenpwr = y1%mean_SDgenpwr + b0 * t_out
+  b0 = -(y1%avg_ct - y2%avg_ct)/t(2)
+  y_out%avg_ct = y1%avg_ct + b0 * t_out
+      CALL InflowWind_Output_ExtrapInterp1( y1%IfW_Outputs, y2%IfW_Outputs, tin, y_out%IfW_Outputs, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ END SUBROUTINE DWM_Output_ExtrapInterp1
+
+
+ SUBROUTINE DWM_Output_ExtrapInterp2(y1, y2, y3, tin, y_out, tin_out, ErrStat, ErrMsg )
+!
+! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
+! values of y (which has values associated with times in t).  Order of the interpolation is 2.
+!
+!  expressions below based on either
+!
+!  f(t) = a + b * t + c * t**2
+!
+!  where a, b and c are determined as the solution to
+!  f(t1) = y1, f(t2) = y2, f(t3) = y3
+!
+!..................................................................................................................................
+
+ TYPE(DWM_OutputType), INTENT(INOUT)  :: y1      ! Output at t1 > t2 > t3
+ TYPE(DWM_OutputType), INTENT(INOUT)  :: y2      ! Output at t2 > t3
+ TYPE(DWM_OutputType), INTENT(INOUT)  :: y3      ! Output at t3
+ REAL(DbKi),                 INTENT(IN   )  :: tin(3)    ! Times associated with the Outputs
+ TYPE(DWM_OutputType), INTENT(INOUT)  :: y_out     ! Output at tin_out
+ REAL(DbKi),                 INTENT(IN   )  :: tin_out   ! time to be extrap/interp'd to
+ INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat   ! Error status of the operation
+ CHARACTER(*),               INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
+   ! local variables
+ REAL(DbKi)                                 :: t(3)      ! Times associated with the Outputs
+ REAL(DbKi)                                 :: t_out     ! Time to which to be extrap/interpd
+ INTEGER(IntKi)                             :: order     ! order of polynomial fit (max 2)
+ REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
+ REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: b1       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:)        :: c1       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: b2       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:,:)      :: c2       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: b3       ! temporary for extrapolation/interpolation
+ REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:)    :: c3       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
+ CHARACTER(*),            PARAMETER         :: RoutineName = 'DWM_Output_ExtrapInterp2'
+    ! Initialize ErrStat
+ ErrStat = ErrID_None
+ ErrMsg  = ""
+    ! we'll subtract a constant from the times to resolve some 
+    ! numerical issues when t gets large (and to simplify the equations)
+ t = tin - tin(1)
+ t_out = tin_out - tin(1)
+
+   IF ( EqualRealNos( t(1), t(2) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   ELSE IF ( EqualRealNos( t(2), t(3) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(2) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   ELSE IF ( EqualRealNos( t(1), t(3) ) ) THEN
+     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
+     RETURN
+   END IF
+IF (ALLOCATED(y_out%turbine_thrust_force) .AND. ALLOCATED(y1%turbine_thrust_force)) THEN
   ALLOCATE(b1(SIZE(y_out%turbine_thrust_force,1)))
   ALLOCATE(c1(SIZE(y_out%turbine_thrust_force,1)))
-  b1 = (t(3)**2*(y(1)%turbine_thrust_force - y(2)%turbine_thrust_force) + t(2)**2*(-y(1)%turbine_thrust_force + y(3)%turbine_thrust_force))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*y(1)%turbine_thrust_force + t(3)*y(2)%turbine_thrust_force - t(2)*y(3)%turbine_thrust_force ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%turbine_thrust_force = y(1)%turbine_thrust_force + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(y1%turbine_thrust_force - y2%turbine_thrust_force) + t(2)**2*(-y1%turbine_thrust_force + y3%turbine_thrust_force))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*y1%turbine_thrust_force + t(3)*y2%turbine_thrust_force - t(2)*y3%turbine_thrust_force ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%turbine_thrust_force = y1%turbine_thrust_force + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(y_out%induction_factor) .AND. ALLOCATED(y(1)%induction_factor)) THEN
+IF (ALLOCATED(y_out%induction_factor) .AND. ALLOCATED(y1%induction_factor)) THEN
   ALLOCATE(b1(SIZE(y_out%induction_factor,1)))
   ALLOCATE(c1(SIZE(y_out%induction_factor,1)))
-  b1 = (t(3)**2*(y(1)%induction_factor - y(2)%induction_factor) + t(2)**2*(-y(1)%induction_factor + y(3)%induction_factor))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*y(1)%induction_factor + t(3)*y(2)%induction_factor - t(2)*y(3)%induction_factor ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%induction_factor = y(1)%induction_factor + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(y1%induction_factor - y2%induction_factor) + t(2)**2*(-y1%induction_factor + y3%induction_factor))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*y1%induction_factor + t(3)*y2%induction_factor - t(2)*y3%induction_factor ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%induction_factor = y1%induction_factor + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(y_out%r_initial) .AND. ALLOCATED(y(1)%r_initial)) THEN
+IF (ALLOCATED(y_out%r_initial) .AND. ALLOCATED(y1%r_initial)) THEN
   ALLOCATE(b1(SIZE(y_out%r_initial,1)))
   ALLOCATE(c1(SIZE(y_out%r_initial,1)))
-  b1 = (t(3)**2*(y(1)%r_initial - y(2)%r_initial) + t(2)**2*(-y(1)%r_initial + y(3)%r_initial))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*y(1)%r_initial + t(3)*y(2)%r_initial - t(2)*y(3)%r_initial ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%r_initial = y(1)%r_initial + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(y1%r_initial - y2%r_initial) + t(2)**2*(-y1%r_initial + y3%r_initial))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*y1%r_initial + t(3)*y2%r_initial - t(2)*y3%r_initial ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%r_initial = y1%r_initial + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(y_out%U_initial) .AND. ALLOCATED(y(1)%U_initial)) THEN
+IF (ALLOCATED(y_out%U_initial) .AND. ALLOCATED(y1%U_initial)) THEN
   ALLOCATE(b1(SIZE(y_out%U_initial,1)))
   ALLOCATE(c1(SIZE(y_out%U_initial,1)))
-  b1 = (t(3)**2*(y(1)%U_initial - y(2)%U_initial) + t(2)**2*(-y(1)%U_initial + y(3)%U_initial))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*y(1)%U_initial + t(3)*y(2)%U_initial - t(2)*y(3)%U_initial ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%U_initial = y(1)%U_initial + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(y1%U_initial - y2%U_initial) + t(2)**2*(-y1%U_initial + y3%U_initial))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*y1%U_initial + t(3)*y2%U_initial - t(2)*y3%U_initial ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%U_initial = y1%U_initial + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(y_out%Mean_FFWS_array) .AND. ALLOCATED(y(1)%Mean_FFWS_array)) THEN
+IF (ALLOCATED(y_out%Mean_FFWS_array) .AND. ALLOCATED(y1%Mean_FFWS_array)) THEN
   ALLOCATE(b1(SIZE(y_out%Mean_FFWS_array,1)))
   ALLOCATE(c1(SIZE(y_out%Mean_FFWS_array,1)))
-  b1 = (t(3)**2*(y(1)%Mean_FFWS_array - y(2)%Mean_FFWS_array) + t(2)**2*(-y(1)%Mean_FFWS_array + y(3)%Mean_FFWS_array))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*y(1)%Mean_FFWS_array + t(3)*y(2)%Mean_FFWS_array - t(2)*y(3)%Mean_FFWS_array ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%Mean_FFWS_array = y(1)%Mean_FFWS_array + b1 * t_out + c1 * t_out**2
+  b1 = (t(3)**2*(y1%Mean_FFWS_array - y2%Mean_FFWS_array) + t(2)**2*(-y1%Mean_FFWS_array + y3%Mean_FFWS_array))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*y1%Mean_FFWS_array + t(3)*y2%Mean_FFWS_array - t(2)*y3%Mean_FFWS_array ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%Mean_FFWS_array = y1%Mean_FFWS_array + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-  b0 = (t(3)**2*(y(1)%Mean_FFWS - y(2)%Mean_FFWS) + t(2)**2*(-y(1)%Mean_FFWS + y(3)%Mean_FFWS))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%Mean_FFWS + t(3)*y(2)%Mean_FFWS - t(2)*y(3)%Mean_FFWS ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%Mean_FFWS = y(1)%Mean_FFWS + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%TI - y(2)%TI) + t(2)**2*(-y(1)%TI + y(3)%TI))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%TI + t(3)*y(2)%TI - t(2)*y(3)%TI ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%TI = y(1)%TI + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%TI_downstream - y(2)%TI_downstream) + t(2)**2*(-y(1)%TI_downstream + y(3)%TI_downstream))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%TI_downstream + t(3)*y(2)%TI_downstream - t(2)*y(3)%TI_downstream ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%TI_downstream = y(1)%TI_downstream + b0 * t_out + c0 * t_out**2
-IF (ALLOCATED(y_out%wake_u) .AND. ALLOCATED(y(1)%wake_u)) THEN
+  b0 = (t(3)**2*(y1%Mean_FFWS - y2%Mean_FFWS) + t(2)**2*(-y1%Mean_FFWS + y3%Mean_FFWS))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%Mean_FFWS + t(3)*y2%Mean_FFWS - t(2)*y3%Mean_FFWS ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%Mean_FFWS = y1%Mean_FFWS + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%TI - y2%TI) + t(2)**2*(-y1%TI + y3%TI))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%TI + t(3)*y2%TI - t(2)*y3%TI ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%TI = y1%TI + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%TI_downstream - y2%TI_downstream) + t(2)**2*(-y1%TI_downstream + y3%TI_downstream))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%TI_downstream + t(3)*y2%TI_downstream - t(2)*y3%TI_downstream ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%TI_downstream = y1%TI_downstream + b0 * t_out + c0 * t_out**2
+IF (ALLOCATED(y_out%wake_u) .AND. ALLOCATED(y1%wake_u)) THEN
   ALLOCATE(b2(SIZE(y_out%wake_u,1),SIZE(y_out%wake_u,2) ))
   ALLOCATE(c2(SIZE(y_out%wake_u,1),SIZE(y_out%wake_u,2) ))
-  b2 = (t(3)**2*(y(1)%wake_u - y(2)%wake_u) + t(2)**2*(-y(1)%wake_u + y(3)%wake_u))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*y(1)%wake_u + t(3)*y(2)%wake_u - t(2)*y(3)%wake_u ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%wake_u = y(1)%wake_u + b2 * t_out + c2 * t_out**2
+  b2 = (t(3)**2*(y1%wake_u - y2%wake_u) + t(2)**2*(-y1%wake_u + y3%wake_u))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*y1%wake_u + t(3)*y2%wake_u - t(2)*y3%wake_u ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%wake_u = y1%wake_u + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
 END IF ! check if allocated
-IF (ALLOCATED(y_out%wake_position) .AND. ALLOCATED(y(1)%wake_position)) THEN
+IF (ALLOCATED(y_out%wake_position) .AND. ALLOCATED(y1%wake_position)) THEN
   ALLOCATE(b3(SIZE(y_out%wake_position,1),SIZE(y_out%wake_position,2), &
               SIZE(y_out%wake_position,3)                     ))
   ALLOCATE(c3(SIZE(y_out%wake_position,1),SIZE(y_out%wake_position,2), &
               SIZE(y_out%wake_position,3)                     ))
-  b3 = (t(3)**2*(y(1)%wake_position - y(2)%wake_position) + t(2)**2*(-y(1)%wake_position + y(3)%wake_position))/(t(2)*t(3)*(t(2) - t(3)))
-  c3 = ( (t(2)-t(3))*y(1)%wake_position + t(3)*y(2)%wake_position - t(2)*y(3)%wake_position ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%wake_position = y(1)%wake_position + b3 * t_out + c3 * t_out**2
+  b3 = (t(3)**2*(y1%wake_position - y2%wake_position) + t(2)**2*(-y1%wake_position + y3%wake_position))/(t(2)*t(3)*(t(2) - t(3)))
+  c3 = ( (t(2)-t(3))*y1%wake_position + t(3)*y2%wake_position - t(2)*y3%wake_position ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%wake_position = y1%wake_position + b3 * t_out + c3 * t_out**2
   DEALLOCATE(b3)
   DEALLOCATE(c3)
 END IF ! check if allocated
-IF (ALLOCATED(y_out%smoothed_velocity_array) .AND. ALLOCATED(y(1)%smoothed_velocity_array)) THEN
+IF (ALLOCATED(y_out%smoothed_velocity_array) .AND. ALLOCATED(y1%smoothed_velocity_array)) THEN
   ALLOCATE(b2(SIZE(y_out%smoothed_velocity_array,1),SIZE(y_out%smoothed_velocity_array,2) ))
   ALLOCATE(c2(SIZE(y_out%smoothed_velocity_array,1),SIZE(y_out%smoothed_velocity_array,2) ))
-  b2 = (t(3)**2*(y(1)%smoothed_velocity_array - y(2)%smoothed_velocity_array) + t(2)**2*(-y(1)%smoothed_velocity_array + y(3)%smoothed_velocity_array))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*y(1)%smoothed_velocity_array + t(3)*y(2)%smoothed_velocity_array - t(2)*y(3)%smoothed_velocity_array ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%smoothed_velocity_array = y(1)%smoothed_velocity_array + b2 * t_out + c2 * t_out**2
+  b2 = (t(3)**2*(y1%smoothed_velocity_array - y2%smoothed_velocity_array) + t(2)**2*(-y1%smoothed_velocity_array + y3%smoothed_velocity_array))/(t(2)*t(3)*(t(2) - t(3)))
+  c2 = ( (t(2)-t(3))*y1%smoothed_velocity_array + t(3)*y2%smoothed_velocity_array - t(2)*y3%smoothed_velocity_array ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%smoothed_velocity_array = y1%smoothed_velocity_array + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
 END IF ! check if allocated
-  b0 = (t(3)**2*(y(1)%AtmUscale - y(2)%AtmUscale) + t(2)**2*(-y(1)%AtmUscale + y(3)%AtmUscale))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%AtmUscale + t(3)*y(2)%AtmUscale - t(2)*y(3)%AtmUscale ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%AtmUscale = y(1)%AtmUscale + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%du_dz_ABL - y(2)%du_dz_ABL) + t(2)**2*(-y(1)%du_dz_ABL + y(3)%du_dz_ABL))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%du_dz_ABL + t(3)*y(2)%du_dz_ABL - t(2)*y(3)%du_dz_ABL ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%du_dz_ABL = y(1)%du_dz_ABL + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%total_SDgenpwr - y(2)%total_SDgenpwr) + t(2)**2*(-y(1)%total_SDgenpwr + y(3)%total_SDgenpwr))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%total_SDgenpwr + t(3)*y(2)%total_SDgenpwr - t(2)*y(3)%total_SDgenpwr ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%total_SDgenpwr = y(1)%total_SDgenpwr + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%mean_SDgenpwr - y(2)%mean_SDgenpwr) + t(2)**2*(-y(1)%mean_SDgenpwr + y(3)%mean_SDgenpwr))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%mean_SDgenpwr + t(3)*y(2)%mean_SDgenpwr - t(2)*y(3)%mean_SDgenpwr ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%mean_SDgenpwr = y(1)%mean_SDgenpwr + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y(1)%avg_ct - y(2)%avg_ct) + t(2)**2*(-y(1)%avg_ct + y(3)%avg_ct))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y(1)%avg_ct + t(3)*y(2)%avg_ct - t(2)*y(3)%avg_ct ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%avg_ct = y(1)%avg_ct + b0 * t_out + c0 * t_out**2
-      CALL InflowWind_Output_ExtrapInterp( y%IfW_Outputs, tin, y_out%IfW_Outputs, tin_out, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
- ELSE 
-   ErrStat = ErrID_Fatal
-   ErrMsg = ' order must be less than 3 in DWM_Output_ExtrapInterp '
-   RETURN
- ENDIF 
- END SUBROUTINE DWM_Output_ExtrapInterp
+  b0 = (t(3)**2*(y1%AtmUscale - y2%AtmUscale) + t(2)**2*(-y1%AtmUscale + y3%AtmUscale))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%AtmUscale + t(3)*y2%AtmUscale - t(2)*y3%AtmUscale ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%AtmUscale = y1%AtmUscale + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%du_dz_ABL - y2%du_dz_ABL) + t(2)**2*(-y1%du_dz_ABL + y3%du_dz_ABL))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%du_dz_ABL + t(3)*y2%du_dz_ABL - t(2)*y3%du_dz_ABL ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%du_dz_ABL = y1%du_dz_ABL + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%total_SDgenpwr - y2%total_SDgenpwr) + t(2)**2*(-y1%total_SDgenpwr + y3%total_SDgenpwr))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%total_SDgenpwr + t(3)*y2%total_SDgenpwr - t(2)*y3%total_SDgenpwr ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%total_SDgenpwr = y1%total_SDgenpwr + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%mean_SDgenpwr - y2%mean_SDgenpwr) + t(2)**2*(-y1%mean_SDgenpwr + y3%mean_SDgenpwr))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%mean_SDgenpwr + t(3)*y2%mean_SDgenpwr - t(2)*y3%mean_SDgenpwr ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%mean_SDgenpwr = y1%mean_SDgenpwr + b0 * t_out + c0 * t_out**2
+  b0 = (t(3)**2*(y1%avg_ct - y2%avg_ct) + t(2)**2*(-y1%avg_ct + y3%avg_ct))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%avg_ct + t(3)*y2%avg_ct - t(2)*y3%avg_ct ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%avg_ct = y1%avg_ct + b0 * t_out + c0 * t_out**2
+      CALL InflowWind_Output_ExtrapInterp2( y1%IfW_Outputs, y2%IfW_Outputs, y3%IfW_Outputs, tin, y_out%IfW_Outputs, tin_out, ErrStat2, ErrMsg2 )
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+ END SUBROUTINE DWM_Output_ExtrapInterp2
 
 END MODULE DWM_Types
 !ENDOFREGISTRYGENERATEDFILE

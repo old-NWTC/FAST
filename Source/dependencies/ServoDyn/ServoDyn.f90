@@ -32,7 +32,7 @@ MODULE ServoDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.02.00a-bjj', '31-Mar-2015' )
+   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.02.01a-bjj', '30-Apr-2015' )
    CHARACTER(*),   PARAMETER            :: SrvD_Nickname = 'SrvD'
    
 #ifdef COMPILE_SIMULINK
@@ -577,13 +577,13 @@ SUBROUTINE SrvD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState,
       CHARACTER(*),                    INTENT(  OUT) :: ErrMsg          ! Error message if ErrStat /= ErrID_None
 
          ! Local variables
-
-      TYPE(SrvD_ContinuousStateType)                 :: dxdt            ! Continuous state derivatives at t
-      TYPE(SrvD_InputType)                           :: u               ! Inputs at t
-
-!      INTEGER(IntKi)                                 :: ErrStat2        ! Error status of the operation (occurs after initial error)
-!      CHARACTER(LEN(ErrMsg))                         :: ErrMsg2         ! Error message if ErrStat2 /= ErrID_None
-
+      TYPE(TMD_InputType),ALLOCATABLE                :: u(:)            ! Inputs at t
+      INTEGER(IntKi)                                 :: i               ! loop counter 
+      INTEGER(IntKi)                                 :: order
+      
+      INTEGER(IntKi)                                 :: ErrStat2        ! Error status of the operation (occurs after initial error)
+      CHARACTER(LEN(ErrMsg))                         :: ErrMsg2         ! Error message if ErrStat2 /= ErrID_None
+      CHARACTER(*), PARAMETER                        :: RoutineName = 'SrvD_UpdateStates'
       
       
          ! Initialize ErrStat
@@ -591,52 +591,47 @@ SUBROUTINE SrvD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState,
       ErrStat = ErrID_None
       ErrMsg  = ""
 
-      IF (p%CompNTMD) THEN  !bjj: is this valid syntax? Inputs(:)%NTMD; if not, update here and in registry code; if yes, updated HydroDyn_UpdateStates 
-         CALL TMD_UpdateStates( t, n, Inputs(:)%NTMD, InputTimes, p%NTMD, x%NTMD, xd%NTMD, z%NTMD, OtherState%NTMD, ErrStat, ErrMsg )
+         ! Convert Inputs(i)%NTMD to u(:)
+      order = SIZE(Inputs)
+      ALLOCATE(u(order), STAT=ErrStat2)
+      IF(ErrStat2 /= 0) THEN
+         CALL SetErrStat( ErrID_Fatal, 'Could not allocate TMD input array, u', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup()
+         RETURN
+      END IF
+            
+      DO i=1,order
+         CALL TMD_CopyInput( Inputs(i)%NTMD, u(i), MESH_NEWCOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      END DO
+      
+      IF (ErrStat >= AbortErrLev) THEN
+         CALL Cleanup()
+         RETURN
       END IF
       
-
-#if 0      
-         ! Get the inputs at time t, based on the array of values sent by the glue code:
-         
-      CALL SrvD_Input_ExtrapInterp( Inputs, InputTimes, u, t, ErrStat, ErrMsg )  
-      IF ( ErrStat >= AbortErrLev ) RETURN
-            
-
-
-         ! Get first time derivatives of continuous states (dxdt):
-
-      CALL SrvD_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
-      IF ( ErrStat >= AbortErrLev ) THEN
-         CALL SrvD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
-         RETURN
+      
+      IF (p%CompNTMD) THEN  !bjj: is this valid syntax? Inputs(:)%NTMD; if not, update here and in registry code; if yes, updated HydroDyn_UpdateStates 
+         CALL TMD_UpdateStates( t, n, u, InputTimes, p%NTMD, x%NTMD, xd%NTMD, z%NTMD, OtherState%NTMD, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       END IF
-
-
-         ! Update discrete states:
-         !   Note that xd [discrete state] is changed in SrvD_UpdateDiscState(), so SrvD_CalcOutput(),
-         !   SrvD_CalcContStateDeriv(), and SrvD_CalcConstrStates() must be called first (see above).
-
-      CALL SrvD_UpdateDiscState(t, u, p, x, xd, z, OtherState, ErrStat, ErrMsg )
-      IF ( ErrStat >= AbortErrLev ) THEN
-         CALL SrvD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
-         RETURN
-      END IF
-
-
-         ! Integrate (update) continuous states (x) here:
-
-      !x = function of dxdt and x
-
-
-         ! Destroy dxdt because it is not necessary for the rest of the subroutine
-
-      CALL SrvD_DestroyContState( dxdt, ErrStat, ErrMsg)
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-#endif
+      
+      CALL Cleanup()
+      
+      RETURN
+      
+CONTAINS
+   SUBROUTINE Cleanup()
+   
+      IF (ALLOCATED(u)) THEN
+         DO i=1,SIZE(u)
+            CALL TMD_DestroyInput(u(i), ErrStat2, ErrMsg2)
+               CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+         END DO
+         DEALLOCATE(u)
+      END IF      
+   
+   END SUBROUTINE Cleanup
       
 END SUBROUTINE SrvD_UpdateStates
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -907,7 +902,7 @@ SUBROUTINE SrvD_ReadInput( InputFileName, InputFileData, Default_DT, OutFileRoot
 
    INTEGER(IntKi)                         :: UnEcho         ! Unit number for the echo file
    INTEGER(IntKi)                         :: ErrStat2       ! The error status code
-   CHARACTER(LEN(ErrMsg))                 :: ErrMsg2        ! The error message, if an error occurred
+   CHARACTER(ErrMsgLen)                   :: ErrMsg2        ! The error message, if an error occurred
    
       ! initialize values: 
    
@@ -990,7 +985,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
      
    INTEGER(IntKi)                :: ErrStat2                                  ! Temporary Error status
    LOGICAL                       :: Echo                                      ! Determines if an echo file should be written
-   CHARACTER(LEN(ErrMsg))        :: ErrMsg2                                   ! Temporary Error message
+   CHARACTER(ErrMsgLen)          :: ErrMsg2                                   ! Temporary Error message
    CHARACTER(1024)               :: PriPath                                   ! Path name of the primary file
    CHARACTER(1024)               :: FTitle                                    ! "File Title": the 2nd line of the input file, which contains a description of its contents
    CHARACTER(200)                :: Line                                      ! Temporary storage of a line from the input file (to compare with "default")
@@ -1853,7 +1848,7 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
    REAL(ReKi)                                 :: TEC_K2         ! K2 term for Thevenin-equivalent circuit
    
    INTEGER(IntKi)                             :: ErrStat2       ! Temporary error ID   
-   CHARACTER(LEN(ErrMsg))                     :: ErrMsg2        ! Temporary message describing error
+   CHARACTER(ErrMsgLen)                         :: ErrMsg2        ! Temporary message describing error
 
 
    

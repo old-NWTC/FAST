@@ -2,8 +2,8 @@
 ! WLaCava (WGL) and Matt Lackner (MAL)
 ! Tuned Mass Damper Module
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-14 14:40:30 -0600 (Tue, 14 Apr 2015) $
-! (File) Revision #: $Rev: 976 $
+! File last committed: $Date: 2015-04-30 14:01:43 -0600 (Thu, 30 Apr 2015) $
+! (File) Revision #: $Rev: 995 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/TMD/Source/TMD.f90 $
 !**********************************************************************************************************************************
 MODULE TMD  
@@ -400,7 +400,7 @@ SUBROUTINE TMD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState, 
       !TYPE(TMD_ConstraintStateType)                      :: z_Residual      ! Residual of the constraint state functions (Z)
       !TYPE(TMD_InputType)                                :: u               ! Instantaneous inputs
       !INTEGER(IntKi)                                     :: ErrStat2        ! Error status of the operation (secondary error)
-      !CHARACTER(LEN(ErrMsg))                             :: ErrMsg2         ! Error message if ErrStat2 /= ErrID_None
+      !CHARACTER(ErrMsgLen)                               :: ErrMsg2         ! Error message if ErrStat2 /= ErrID_None
       !INTEGER                                            :: nTime           ! number of inputs 
 
      
@@ -451,7 +451,7 @@ SUBROUTINE TMD_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       TYPE(TMD_InputType)                           :: u_interp    ! interpolated value of inputs 
 
       INTEGER(IntKi)                                :: ErrStat2    ! local error status
-      CHARACTER(LEN(ErrMsg))                        :: ErrMsg2     ! local error message (ErrMsg)
+      CHARACTER(ErrMsgLen)                          :: ErrMsg2     ! local error message (ErrMsg)
       
       ! Initialize ErrStat
 
@@ -562,7 +562,7 @@ CONTAINS
 
          ! local variables
       INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
-      CHARACTER(LEN(Msg))        :: ErrMsg3     ! The error message (ErrMsg)
+      CHARACTER(ErrMsgLen)       :: ErrMsg3     ! The error message (ErrMsg)
 
       !............................................................................................................................
       ! Set error status/message;
@@ -727,8 +727,8 @@ CONTAINS
    ! local variables
       Real(ReKi), dimension(2)                      :: F_SK      !stop spring forces
       Real(ReKi), dimension(2)                      :: F_SD      !stop damping forces
-      INTEGER(IntKi)                              :: i ! counter
-      INTEGER(IntKi)                              :: j = 1! counter
+      INTEGER(IntKi)                                :: i ! counter
+      INTEGER(IntKi)                                :: j = 1! counter
       j=1
       DO i=1,2
          IF (j < 5) THEN
@@ -736,11 +736,15 @@ CONTAINS
                F_SK(i) = p%K_S(i) *( p%P_SP(i) - x%tmd_x(j)  )
             ELSEIF ( x%tmd_x(j) < p%N_SP(i) ) THEN
                F_SK(i) = p%K_S(i) * ( p%N_SP(i) - x%tmd_x(j) )
+            ELSE
+               F_SK(i)  = 0.0_ReKi
             ENDIF
             IF ( (x%tmd_x(j) > p%P_SP(i)) .AND. (x%tmd_x(j+1) > 0) ) THEN
                F_SD(i) = -p%C_S(i) *( x%tmd_x(j+1)  )
             ELSEIF ( (x%tmd_x(j) < p%N_SP(i)) .AND. (x%tmd_x(j+1) < 0) ) THEN
                F_SD(i) = -p%C_S(i) *( x%tmd_x(j+1)  )
+            ELSE
+               F_SD(i)  = 0.0_ReKi
             ENDIF
             F_stop(i) = F_SK(i) + F_SD(i)
             j = j+2
@@ -769,7 +773,7 @@ SUBROUTINE TMD_ReadInput( InputFileName, InputFileData, Default_DT, OutFileRoot,
 
    INTEGER(IntKi)                         :: UnEcho         ! Unit number for the echo file
    INTEGER(IntKi)                         :: ErrStat2       ! The error status code
-   CHARACTER(LEN(ErrMsg))                 :: ErrMsg2        ! The error message, if an error occurred
+   CHARACTER(ErrMsgLen)                   :: ErrMsg2        ! The error message, if an error occurred
    
       ! initialize values: 
    
@@ -853,7 +857,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
      
    INTEGER(IntKi)                :: ErrStat2                                  ! Temporary Error status
    LOGICAL                       :: Echo                                      ! Determines if an echo file should be written
-   CHARACTER(LEN(ErrMsg))        :: ErrMsg2                                   ! Temporary Error message
+   CHARACTER(ErrMsgLen)          :: ErrMsg2                                   ! Temporary Error message
    CHARACTER(1024)               :: PriPath                                   ! Path name of the primary file
    CHARACTER(1024)               :: FTitle                                    ! "File Title": the 2nd line of the input file, which contains a description of its contents
 !   CHARACTER(200)                :: Line                                      ! Temporary storage of a line from the input file (to compare with "default")
@@ -1106,7 +1110,7 @@ SUBROUTINE TMD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
    
 !   INTEGER(IntKi)                             :: K              ! Loop counter (for blades)
 !   INTEGER(IntKi)                             :: ErrStat2       ! Temporary error ID   
-!   CHARACTER(LEN(ErrMsg))                     :: ErrMsg2        ! Temporary message describing error
+!   CHARACTER(ErrMsgLen)                       :: ErrMsg2        ! Temporary message describing error
 
 
    

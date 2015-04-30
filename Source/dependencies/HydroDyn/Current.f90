@@ -23,9 +23,9 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-18 12:55:01 -0600 (Wed, 18 Jun 2014) $
-! (File) Revision #: $Rev: 426 $
-! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Current.f90 $
+! File last committed: $Date: 2015-04-30 13:00:55 -0600 (Thu, 30 Apr 2015) $
+! (File) Revision #: $Rev: 615 $
+! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Current.f90 $
 !**********************************************************************************************************************************
 MODULE Current
 
@@ -369,7 +369,7 @@ SUBROUTINE Current_UpdateStates( Time, u, p, x, xd, z, OtherState, ErrStat, ErrM
       TYPE(Current_ConstraintStateType)                 :: z_Residual  ! Residual of the constraint state equations (Z)
          
       INTEGER(IntKi)                                    :: ErrStat2    ! Error status of the operation (occurs after initial error)
-      CHARACTER(LEN(ErrMsg))                            :: ErrMsg2     ! Error message if ErrStat2 /= ErrID_None
+      CHARACTER(ErrMsgLen)                              :: ErrMsg2     ! Error message if ErrStat2 /= ErrID_None
                         
          ! Initialize ErrStat
          

@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-14 14:27:12 -0600 (Tue, 14 Apr 2015) $
-! (File) Revision #: $Rev: 614 $
+! File last committed: $Date: 2015-04-30 13:00:55 -0600 (Thu, 30 Apr 2015) $
+! (File) Revision #: $Rev: 615 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Conv_Radiation.f90 $
 !**********************************************************************************************************************************
 MODULE Conv_Radiation
@@ -506,7 +506,7 @@ END SUBROUTINE Conv_Rdtn_End
 !      TYPE(Conv_Rdtn_ConstraintStateType)                 :: z_Residual  ! Residual of the constraint state equations (Z)
 !         
 !      INTEGER(IntKi)                                    :: ErrStat2    ! Error status of the operation (occurs after initial error)
-!      CHARACTER(LEN(ErrMsg))                            :: ErrMsg2     ! Error message if ErrStat2 /= ErrID_None
+!      CHARACTER(ErrMsgLen)                              :: ErrMsg2     ! Error message if ErrStat2 /= ErrID_None
 !                        
 !         ! Initialize ErrStat
 !         
@@ -609,7 +609,7 @@ SUBROUTINE Conv_Rdtn_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherS
     
       TYPE(Conv_Rdtn_InputType)                           :: u               ! Instantaneous inputs
       INTEGER(IntKi)                                    :: ErrStat2        ! Error status of the operation (secondary error)
-      CHARACTER(LEN(ErrMsg))                            :: ErrMsg2         ! Error message if ErrStat2 /= ErrID_None
+      CHARACTER(ErrMsgLen)                              :: ErrMsg2         ! Error message if ErrStat2 /= ErrID_None
 
       
          ! Initialize variables

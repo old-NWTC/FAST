@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-14 14:27:12 -0600 (Tue, 14 Apr 2015) $
-! (File) Revision #: $Rev: 614 $
+! File last committed: $Date: 2015-04-30 13:00:55 -0600 (Thu, 30 Apr 2015) $
+! (File) Revision #: $Rev: 615 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/SS_Radiation.f90 $
 !**********************************************************************************************************************************
 MODULE SS_Radiation
@@ -864,7 +864,7 @@ SUBROUTINE SS_Rad_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg
       TYPE(SS_Rad_InputType)                           :: u_interp    ! interpolated value of inputs 
 
       INTEGER(IntKi)                                   :: ErrStat2    ! local error status
-      CHARACTER(LEN(ErrMsg))                           :: ErrMsg2     ! local error message (ErrMsg)
+      CHARACTER(ErrMsgLen)                             :: ErrMsg2     ! local error message (ErrMsg)
       
       ! Initialize ErrStat
 
@@ -970,7 +970,7 @@ CONTAINS
 
          ! local variables
       INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
-      CHARACTER(LEN(Msg))        :: ErrMsg3     ! The error message (ErrMsg)
+      CHARACTER(ErrMsgLen)       :: ErrMsg3     ! The error message (ErrMsg)
 
       !............................................................................................................................
       ! Set error status/message;
@@ -1030,7 +1030,7 @@ SUBROUTINE SS_Rad_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg
       TYPE(SS_Rad_InputType)                             :: u_interp
          
       INTEGER(IntKi)                                     :: ErrStat2    ! local error status
-      CHARACTER(LEN(ErrMsg))                             :: ErrMsg2     ! local error message (ErrMsg)
+      CHARACTER(ErrMsgLen)                               :: ErrMsg2     ! local error message (ErrMsg)
 
       
       ! Initialize ErrStat
@@ -1122,7 +1122,7 @@ CONTAINS
 
          ! local variables
       INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
-      CHARACTER(LEN(Msg))        :: ErrMsg3     ! The error message (ErrMsg)
+      CHARACTER(ErrMsgLen)       :: ErrMsg3     ! The error message (ErrMsg)
 
       !............................................................................................................................
       ! Set error status/message;
@@ -1187,7 +1187,7 @@ SUBROUTINE SS_Rad_ABM4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMs
       TYPE(SS_Rad_ContinuousStateType)                   :: xdot_pred   ! Derivative of continuous states at t
 
       INTEGER(IntKi)                                     :: ErrStat2    ! local error status
-      CHARACTER(LEN(ErrMsg))                             :: ErrMsg2     ! local error message (ErrMsg)
+      CHARACTER(ErrMsgLen)                               :: ErrMsg2     ! local error message (ErrMsg)
       
       
       ! Initialize ErrStat
@@ -1258,7 +1258,7 @@ CONTAINS
 
          ! local variables
       INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
-      CHARACTER(LEN(Msg))        :: ErrMsg3     ! The error message (ErrMsg)
+      CHARACTER(ErrMsgLen)       :: ErrMsg3     ! The error message (ErrMsg)
 
       !............................................................................................................................
       ! Set error status/message;

@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-14 14:27:12 -0600 (Tue, 14 Apr 2015) $
-! (File) Revision #: $Rev: 614 $
+! File last committed: $Date: 2015-04-30 13:00:55 -0600 (Thu, 30 Apr 2015) $
+! (File) Revision #: $Rev: 615 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Morison.f90 $
 !**********************************************************************************************************************************
 MODULE Morison
@@ -4444,7 +4444,7 @@ SUBROUTINE Morison_UpdateStates( Time, u, p, x, xd, z, OtherState, ErrStat, ErrM
       TYPE(Morison_ConstraintStateType)                 :: z_Residual  ! Residual of the constraint state equations (Z)
          
       INTEGER(IntKi)                                    :: ErrStat2    ! Error status of the operation (occurs after initial error)
-      CHARACTER(LEN(ErrMsg))                            :: ErrMsg2     ! Error message if ErrStat2 /= ErrID_None
+      CHARACTER(ErrMsgLen)                              :: ErrMsg2     ! Error message if ErrStat2 /= ErrID_None
                         
          ! Initialize ErrStat
          

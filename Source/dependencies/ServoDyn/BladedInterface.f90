@@ -139,7 +139,7 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
       ! local variables
    
    INTEGER(IntKi)                                  :: ErrStat2       ! The error status code
-   CHARACTER(LEN(ErrMsg))                          :: ErrMsg2        ! The error message, if an error occurred
+   CHARACTER(ErrMsgLen)                            :: ErrMsg2        ! The error message, if an error occurred
       
 
    ! Define all the parameters for the Bladed Interface
@@ -268,7 +268,7 @@ SUBROUTINE BladedInterface_End(u, p, OtherState, ErrStat, ErrMsg)
 
       ! local variables:
    INTEGER(IntKi)                                 :: ErrStat2    ! The error status code
-   CHARACTER(LEN(ErrMsg))                         :: ErrMsg2     ! The error message, if an error occurred
+   CHARACTER(ErrMsgLen)                           :: ErrMsg2     ! The error message, if an error occurred
    
       ! call DLL final time, but skip if we've never called it
    IF ( .NOT. EqualRealNos( OtherState%dll_data%avrSWAP( 1), 0.0_SiKi ) ) THEN
@@ -297,7 +297,7 @@ SUBROUTINE BladedInterface_CalcOutput(t, u, p, OtherState, ErrStat, ErrMsg)
       
       ! local variables:
    INTEGER(IntKi)                                 :: ErrStat2    ! The error status code
-   CHARACTER(LEN(ErrMsg))                         :: ErrMsg2     ! The error message, if an error occurred
+   CHARACTER(ErrMsgLen)                           :: ErrMsg2     ! The error message, if an error occurred
    
    
       ! Initialize error values:   
