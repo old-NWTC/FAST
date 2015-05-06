@@ -181,7 +181,7 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
    TYPE(TMD_InitInputType)                        :: TMD_InitInp    ! data to initialize TMD module
    TYPE(TMD_InitOutputType)                       :: TMD_InitOut    ! data from TMD module initialization (not used)
    INTEGER(IntKi)                                 :: ErrStat2       ! temporary Error status of the operation
-   CHARACTER(LEN(ErrMsg))                         :: ErrMsg2        ! temporary Error message if ErrStat /= ErrID_None
+   CHARACTER(ErrMsgLen)                           :: ErrMsg2        ! temporary Error message if ErrStat /= ErrID_None
    
 
 
@@ -582,7 +582,7 @@ SUBROUTINE SrvD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState,
       INTEGER(IntKi)                                 :: order
       
       INTEGER(IntKi)                                 :: ErrStat2        ! Error status of the operation (occurs after initial error)
-      CHARACTER(LEN(ErrMsg))                         :: ErrMsg2         ! Error message if ErrStat2 /= ErrID_None
+      CHARACTER(ErrMsgLen)                           :: ErrMsg2         ! Error message if ErrStat2 /= ErrID_None
       CHARACTER(*), PARAMETER                        :: RoutineName = 'SrvD_UpdateStates'
       
       
@@ -656,7 +656,7 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    INTEGER(IntKi)                                 :: I                      ! Generic loop index
    INTEGER(IntKi)                                 :: K                      ! Blade index
    INTEGER(IntKi)                                 :: ErrStat2
-   CHARACTER(LEN(ErrMsg))                         :: ErrMsg2
+   CHARACTER(ErrMsgLen)                           :: ErrMsg2
    CHARACTER(*), PARAMETER                        :: RoutineName = 'SrvD_CalcOutput'
          
       ! Initialize ErrStat

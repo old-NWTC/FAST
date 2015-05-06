@@ -20,9 +20,11 @@ end
 if nargin < 3
     PlotFAST     = true;
 end
+if nargin < 2
+    oldPath = [ '.' filesep 'TstFiles' ];
+end
 if nargin == 0
     newPath = '.';
-    oldPath = [ '.' filesep 'TstFiles' ];
 end
 
 
