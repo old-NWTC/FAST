@@ -316,11 +316,16 @@ SET ModuleName=DWM
 ECHO %Lines%
 SET CURR_LOC=%FEAM_Reg_Loc%
 SET ModuleName=FEAMooring
-%REGISTRY% "%CURR_LOC%\FEAM_Registry.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%" -O "%CURR_LOC%"
+%REGISTRY% "%CURR_LOC%\FEAM_Registry.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
 
 ECHO %Lines%
 SET CURR_LOC=%MD_Loc%
 CALL ::RunRegistry_fmt1 MoorDyn
+
+ECHO %Lines%
+SET CURR_LOC=%MAP_Loc_R%
+SET ModuleName=FEAMooring
+%REGISTRY% "%CURR_LOC%\MAP_Registry.txt" -ccode -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
 
 
 ECHO %Lines%
