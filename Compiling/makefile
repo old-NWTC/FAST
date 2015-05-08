@@ -262,8 +262,8 @@ vpath %.f90       $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $
 vpath %.f         $(NETLIB_DIR)
 vpath %.mod       $(INTER_DIR)
 vpath %$(OBJ_EXT) $(INTER_DIR)
-vpath %.txt       $(FAST_DIR) $(AD_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(FEAM_DIR) $(IceD_DIR) \
-                  $(DWM_DIR) $(MD_DIR)
+vpath %.txt       $(FAST_DIR) $(AD_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(IceD_DIR) \
+                  $(DWM_DIR) $(FEAM_DIR) $(MD_DIR) $(MAP_DIR)
 vpath %.inp       $(IceF_DIR)
 #apparently vpath doesn't work as expected if I use %.F90 (is it not case sensitive???)
 #vpath %.F90      $(IceF_DIR)
@@ -556,6 +556,7 @@ superclean:
 	$(DEL_CMD) "$(SD_DIR)$(PATH_SEP)SubDyn_Types.f90"
 	$(DEL_CMD) "$(FEAM_DIR)$(PATH_SEP)FEAMooring_Types.f90"
 	$(DEL_CMD) "$(MD_DIR)$(PATH_SEP)MoorDyn_Types.f90"
+	$(DEL_CMD) "$(MAP_DIR)$(PATH_SEP)MAP_Types.f90"
 	$(DEL_CMD) "$(IceF_DIR)$(PATH_SEP)IceFloe_Types.f90"
 	$(DEL_CMD) "$(IceD_DIR)$(PATH_SEP)IceDyn_Types.f90"
 	$(DEL_CMD) "$(IfW_DIR)$(PATH_SEP)InflowWind_Types.f90"
