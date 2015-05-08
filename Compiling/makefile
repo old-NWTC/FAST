@@ -98,6 +98,9 @@ ifeq ($(OS),Windows_NT)
    EXE_EXT   = _gwin$(BITS).exe
    INTER_DIR = Obj_win$(BITS)
    MD_CMD    = @mkdir
+  CP_CMD    = copy
+#   CP_CMD    = move
+#bjj: if using "move", make can't find the file to compile (seems to be a timing issue). I'll copy for now, then add an -O swtich to the registry to indicate where to write the output file.
    OBJ_EXT   = .obj
    PATH_SEP  = \\
    SYS_FILE  = SysGnuWin
@@ -107,6 +110,7 @@ else
    EXE_EXT   = _glin$(BITS)
    INTER_DIR = Obj_lin$(BITS)
    MD_CMD    = @mkdir -p
+   CP_CMD    = cp
    OBJ_EXT   = .o
    PATH_SEP  = /
    SYS_FILE  = SysGnuLinux
@@ -115,16 +119,16 @@ endif
 
    # Source files (by module)
 
-LIB_SOURCES =           \
-	SingPrec.f90          \
-	NWTC_Base.f90        \
-	$(SYS_FILE).f90      \
+LIB_SOURCES =              \
+	SingPrec.f90           \
+	NWTC_Base.f90          \
+	$(SYS_FILE).f90        \
 	NWTC_Library_Types.f90 \
-	NWTC_IO.f90          \
-	NWTC_Num.f90         \
-	ModMesh_Types.f90    \
-	ModMesh.f90          \
-	ModMesh_Mapping.f90  \
+	NWTC_IO.f90            \
+	NWTC_Num.f90           \
+	ModMesh_Types.f90      \
+	ModMesh.f90            \
+	ModMesh_Mapping.f90    \
 	NWTC_Library.f90
 
 NETLIB_SOURCES=            \
@@ -255,24 +259,25 @@ FAST_SOURCES =           \
 	FAST_Subs.f90         \
 	FAST_Prog.f90
 
-vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(SD_DIR) $(MAP_DIR) \
-            $(FAST_DIR) $(NETLIB_DIR) $(FEAM_DIR) $(MD_DIR) $(IceF_DIR) $(IceD_DIR) $(DWM_DIR)
-vpath %.f   $(NETLIB_DIR)
-vpath %.mod $(INTER_DIR)
-vpath %.obj $(INTER_DIR)
-vpath %.txt $(FAST_DIR) $(AD_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(FEAM_DIR) $(IceD_DIR) $(DWM_DIR) $(MD_DIR)
-vpath %.inp $(IceF_DIR)
+vpath %.f90       $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(SD_DIR) $(MAP_DIR) \
+                  $(FAST_DIR) $(NETLIB_DIR) $(FEAM_DIR) $(MD_DIR) $(IceF_DIR) $(IceD_DIR) $(DWM_DIR)
+vpath %.f         $(NETLIB_DIR)
+vpath %.mod       $(INTER_DIR)
+vpath %$(OBJ_EXT) $(INTER_DIR)
+vpath %.txt       $(FAST_DIR) $(AD_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(FEAM_DIR) $(IceD_DIR) \
+                  $(DWM_DIR) $(MD_DIR)
+vpath %.inp       $(IceF_DIR)
 #apparently vpath doesn't work as expected if I use %.F90 (is it not case sensitive???)
-#vpath %.F90     $(IceF_DIR)
-vpath %     $(IceF_DIR)
+#vpath %.F90      $(IceF_DIR)
+vpath %           $(IceF_DIR)
 
 
-ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD_SOURCES) $(SrvD_SOURCES) $(ED_SOURCES) \
-              $(HD_SOURCES) $(SD_SOURCES) $(MAP_SOURCES) $(FEAM_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES) $(DWM_SOURCES) \
-              $(TMD_SOURCES) $(MD_SOURCES)
-ALL_OBJS    = $(ALL_SOURCES:.f90=.obj)
-ALL_OBJS   := $(ALL_OBJS:.F90=.obj)       #note the upper case here (from IceFloe)
-ALL_OBJS   := $(ALL_OBJS:.f=.obj)
+ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD_SOURCES) $(DWM_SOURCES) \
+              $(SrvD_SOURCES) $(ED_SOURCES) $(HD_SOURCES)  $(SD_SOURCES) \
+              $(MAP_SOURCES) $(FEAM_SOURCES) $(MD_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES)
+ALL_OBJS    = $(ALL_SOURCES:.f90=$(OBJ_EXT))
+ALL_OBJS   := $(ALL_OBJS:.F90=$(OBJ_EXT))       #note the upper case here (from IceFloe)
+ALL_OBJS   := $(ALL_OBJS:.f=$(OBJ_EXT))
 
 
    # Rule to do everything.
@@ -286,261 +291,254 @@ default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
 
    # General rules for compliling the files.
 
-%.obj: %.f90
+%$(OBJ_EXT): %.f90
 	$(FC) -I $(INTER_DIR) $(FFLAGS) -c $< -o $(INTER_DIR)/$@ -J $(INTER_DIR) -B $(INTER_DIR)
 
-%.obj: %.F90
+%$(OBJ_EXT): %.F90
 	$(FC) -I $(INTER_DIR) $(FFLAGS) -c $< -o $(INTER_DIR)/$@ -J $(INTER_DIR) -B $(INTER_DIR)
 
-#bjj: what is $(F77)????
-%.obj: %.f
-	$(F77) -I $(INTER_DIR) $(FFLAGS) -c $< -o $(INTER_DIR)/$@ -J $(INTER_DIR) -B $(INTER_DIR)
+%$(OBJ_EXT): %.f
+	$(FC) -I $(INTER_DIR) $(FFLAGS) -c $< -o $(INTER_DIR)/$@ -J $(INTER_DIR) -B $(INTER_DIR)
 
 
 
    # General rules for creating _Types.f90 files from Registry files.
 
-FAST_Types.f90:
-	$(Registry) FAST_Registry.txt -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(TMD_DIR) -I $(AD_DIR) \
+FAST_Types.f90: FAST_Registry.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(TMD_DIR) -I $(AD_DIR) \
 	-I $(HD_DIR_Reg) -I $(IceF_DIR) -I $(IceD_DIR) -I $(MAP_DIR) -I $(FEAM_DIR) -I $(MD_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR) -noextrap
+	$(CP_CMD) $@ "$(FAST_DIR)$(PATH_SEP)"
 
-TMD_Types.f90:
-	$(Registry) TMD_Registry.txt -I $(NWTC_Lib_DIR)
+TMD_Types.f90: TMD_Registry.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR)
+	$(CP_CMD) $@ "$(TMD_DIR)$(PATH_SEP)"
 
-ServoDyn_Types.f90:
-	$(Registry) ServoDyn_Registry.txt -I $(NWTC_Lib_DIR) -I $(TMD_DIR)
+ServoDyn_Types.f90: ServoDyn_Registry.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(TMD_DIR)
+	$(CP_CMD) $@ "$(SrvD_DIR)$(PATH_SEP)"
 
+ElastoDyn_Types.f90: ElastoDyn_Registry.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR)
+	$(CP_CMD) $@ "$(ED_DIR)$(PATH_SEP)"
 
-ElastoDyn_Types.f90:
-	$(Registry) ElastoDyn_Registry.txt -I $(NWTC_Lib_DIR)
+AeroDyn_Types.f90: Registry-AD.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR)
+	$(CP_CMD) $@ "$(AD_DIR)$(PATH_SEP)"
 
+DWM_Types.f90: Registry-DWM.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)
+	$(CP_CMD) $@ "$(DWM_DIR)$(PATH_SEP)"
 
-Current_Types.f90:
-	$(Registry) Current.txt -I $(NWTC_Lib_DIR)
+SubDyn_Types.f90: SubDyn_Registry.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR)
+	$(CP_CMD) $@ "$(SD_DIR)$(PATH_SEP)"
 
-Waves_Types.f90:
-	$(Registry) Waves.txt -I $(NWTC_Lib_DIR)
+FEAMooring_Types.f90: FEAM_Registry.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR)
+	$(CP_CMD) $@ "$(FEAM_DIR)$(PATH_SEP)"
 
-Waves2_Types.f90:
-	$(Registry) Waves2.txt -I $(NWTC_Lib_DIR)
+MoorDyn_Types.f90: MoorDyn_Registry.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR)
+	$(CP_CMD) $@ "$(MD_DIR)$(PATH_SEP)"
 
-SS_Radiation_Types.f90:
-	$(Registry) SS_Radiation.txt -I $(NWTC_Lib_DIR)
+IceFloe_Types.f90: IceFloe_FASTRegistry.inp
+	$(Registry) $< -I $(NWTC_Lib_DIR)
+	$(CP_CMD) $@ "$(IceF_DIR)$(PATH_SEP)"
 
-Conv_Radiation_Types.f90:
-	$(Registry) Conv_Radiation.txt -I $(NWTC_Lib_DIR)
+IceDyn_Types.f90: Registry_IceDyn.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR)
+	$(CP_CMD) $@ "$(IceD_DIR)$(PATH_SEP)"
 
-WAMIT_Types.f90:
-	$(Registry) WAMIT.txt -I $(NWTC_Lib_DIR)
+InflowWind_Types.f90: InflowWind.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR)
+	$(CP_CMD) $@ "$(IfW_DIR)$(PATH_SEP)"
 
-WAMIT2_Types.f90:
-	$(Registry) WAMIT2.txt -I $(NWTC_Lib_DIR)
+Lidar_Types.f90: Lidar.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR)
+	$(CP_CMD) $@ "$(IfW_DIR)$(PATH_SEP)"
 
-Morison_Types.f90:
-	$(Registry) Morison.txt -I $(NWTC_Lib_DIR)
+   # InflowWind Registry files:
+IfW_%_Types.f90: $(IfW_Reg_DIR)/IfW_%.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR) -noextrap
+	$(CP_CMD) $@ "$(IfW_DIR)$(PATH_SEP)"
 
-HydroDyn_Types.f90:
-	$(Registry) HydroDyn.txt -I $(NWTC_Lib_DIR) -I $(HD_DIR_Reg)
-
-
-AeroDyn_Types.f90:
-	$(Registry) Registry-AD.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR)
-
-DWM_Types.f90:
-	$(Registry) Registry-DWM.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)
-
-
-IfW_HHWind_Types.f90:
-	$(Registry) IfW_HHWind.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)
-
-IfW_FFWind_Types.f90:
-	$(Registry) IfW_FFWind.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)
-
-Lidar_Types.f90:
-	$(Registry) Lidar.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)
-
-InflowWind_Types.f90:
-	$(Registry) InflowWind.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)
-
-
-SubDyn_Types.f90:
-	$(Registry) SubDyn_Registry.txt -I $(NWTC_Lib_DIR)
-
-
-FEAMooring_Types.f90:
-	$(Registry) FEAM_Registry.txt -I $(NWTC_Lib_DIR)
-
-MoorDyn_Types.f90:
-	$(Registry) MoorDyn_Registry.txt -I $(NWTC_Lib_DIR)
-
-
-IceFloe_Types.f90:
-	$(Registry) IceFloe_FASTRegistry.inp -I $(NWTC_Lib_DIR)
-
-
-IceDyn_Types.f90:
-	$(Registry) Registry_IceDyn.txt -I $(NWTC_Lib_DIR)
+   # HydroDyn Registry files:
+%_Types.f90: $(HD_DIR_Reg)/%.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(HD_DIR_Reg)
+	$(CP_CMD) $@ "$(HD_DIR)$(PATH_SEP)"
 
 
    #  Dependency rules.
 #NWTC Library dependency rules:
-NWTC_Base.obj:              SingPrec.obj
-$(SYS_FILE).obj:            NWTC_Base.obj
-NWTC_Library_Types.obj:     $(SYS_FILE).obj
-NWTC_IO.obj:                NWTC_Library_Types.obj
-NWTC_Num.obj:               NWTC_IO.obj
-ModMesh_Types.obj:          NWTC_Num.obj
-ModMesh.obj:                ModMesh_Types.obj
-ModMesh_Mapping.obj:        ModMesh.obj NWTC_LAPACK.obj
-NWTC_Library.obj:           ModMesh.obj  ModMesh_Mapping.obj
+NWTC_Base$(OBJ_EXT):              SingPrec$(OBJ_EXT)
+$(SYS_FILE)$(OBJ_EXT):            NWTC_Base$(OBJ_EXT)
+NWTC_Library_Types$(OBJ_EXT):     $(SYS_FILE)$(OBJ_EXT)
+NWTC_IO$(OBJ_EXT):                NWTC_Library_Types$(OBJ_EXT)
+NWTC_Num$(OBJ_EXT):               NWTC_IO$(OBJ_EXT)
+ModMesh_Types$(OBJ_EXT):          NWTC_Num$(OBJ_EXT)
+ModMesh$(OBJ_EXT):                ModMesh_Types$(OBJ_EXT)
+ModMesh_Mapping$(OBJ_EXT):        ModMesh$(OBJ_EXT) NWTC_LAPACK$(OBJ_EXT)
+NWTC_Library$(OBJ_EXT):           ModMesh$(OBJ_EXT)  ModMesh_Mapping$(OBJ_EXT)
 
-NWTC_LAPACK.obj:            NWTC_Base.obj
-NWTC_ScaLAPACK.obj:         NWTC_Base.obj dlasrt2.obj slasrt2.obj
-NWTC_FFTPACK.obj:           NWTC_Library.obj fftpack4.1.obj
-fftpack4.1.obj:             SingPrec.obj
+NWTC_LAPACK$(OBJ_EXT):            NWTC_Base$(OBJ_EXT)
+NWTC_ScaLAPACK$(OBJ_EXT):         NWTC_Base$(OBJ_EXT) dlasrt2$(OBJ_EXT) slasrt2$(OBJ_EXT)
+NWTC_FFTPACK$(OBJ_EXT):           NWTC_Library$(OBJ_EXT) fftpack4.1$(OBJ_EXT)
+fftpack4.1$(OBJ_EXT):             SingPrec$(OBJ_EXT)
 
 
 #InflowWind dependency rules:
-IfW_UniformWind_Types.obj:    NWTC_Library.obj IfW_UniformWind.txt
-IfW_IniformWind.obj:          NWTC_Library.obj IfW_UniformWind_Types.obj
-IfW_TSFFWind_Types.obj:       NWTC_Library.obj IfW_TSFFWind.txt
-IfW_TSFFWind.obj:             NWTC_Library.obj IfW_TSFFWind_Types.obj
-IfW_BladedFFWind_Types.obj:   NWTC_Library.obj IfW_BladedFFWind.txt
-IfW_BladedFFWind.obj:         NWTC_Library.obj IfW_BladedFFWind_Types.obj
-IfW_UserWind_Types.obj:       NWTC_Library.obj IfW_UserWind.txt
-IfW_UserWind.obj:             NWTC_Library.obj IfW_UserWind_Types.obj
-Lidar_Types.obj:              NWTC_Library.obj Lidar.txt
-Lidar.obj:                    NWTC_Library.obj Lidar_Types.obj InflowWind_Subs.obj
-InflowWind_Types.obj:         NWTC_Library.obj  IfW_UniformWind_Types.obj  \
-                                    IfW_TSFFWind_Types.obj IfW_BladedFFWind_Types.obj IfW_UserWind_Types.obj Lidar_Types.obj
-InflowWind_Subs.obj:          NWTC_Library.obj  InflowWind_Types.obj IfW_UniformWind.obj IfW_TSFFWind.obj IfW_BladedFFWind.obj IfW_UserWind.obj
-InflowWind.obj:               NWTC_Library.obj  InflowWind_Subs.obj Lidar.obj
+IfW_UniformWind_Types$(OBJ_EXT):    NWTC_Library$(OBJ_EXT)
+IfW_IniformWind$(OBJ_EXT):          NWTC_Library$(OBJ_EXT) IfW_UniformWind_Types$(OBJ_EXT)
+IfW_TSFFWind_Types$(OBJ_EXT):       NWTC_Library$(OBJ_EXT)
+IfW_TSFFWind$(OBJ_EXT):             NWTC_Library$(OBJ_EXT) IfW_TSFFWind_Types$(OBJ_EXT)
+IfW_BladedFFWind_Types$(OBJ_EXT):   NWTC_Library$(OBJ_EXT)
+IfW_BladedFFWind$(OBJ_EXT):         NWTC_Library$(OBJ_EXT) IfW_BladedFFWind_Types$(OBJ_EXT)
+IfW_UserWind_Types$(OBJ_EXT):       NWTC_Library$(OBJ_EXT)
+IfW_UserWind$(OBJ_EXT):             NWTC_Library$(OBJ_EXT) IfW_UserWind_Types$(OBJ_EXT)
+Lidar_Types$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)
+Lidar$(OBJ_EXT):                    NWTC_Library$(OBJ_EXT) Lidar_Types$(OBJ_EXT) InflowWind_Subs$(OBJ_EXT)
+InflowWind_Types$(OBJ_EXT):         NWTC_Library$(OBJ_EXT)  IfW_UniformWind_Types$(OBJ_EXT) Lidar_Types$(OBJ_EXT) \
+                                      IfW_TSFFWind_Types$(OBJ_EXT) IfW_BladedFFWind_Types$(OBJ_EXT) IfW_UserWind_Types$(OBJ_EXT)
+InflowWind_Subs$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  InflowWind_Types$(OBJ_EXT) IfW_UniformWind$(OBJ_EXT) \
+                                      IfW_TSFFWind$(OBJ_EXT) IfW_BladedFFWind$(OBJ_EXT) IfW_UserWind$(OBJ_EXT)
+InflowWind$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  InflowWind_Subs$(OBJ_EXT) Lidar$(OBJ_EXT)
 
 
 
 #AeroDyn dependency rules:
-AeroDyn_Types.obj:          NWTC_Library.obj  InflowWind_Types.obj  DWM_Types.obj  Registry-AD.txt
-GenSubs.obj:                NWTC_Library.obj  AeroDyn_Types.obj
-AeroSubs.obj:               NWTC_Library.obj  AeroDyn_Types.obj InflowWind.obj GenSubs.obj
-AeroDyn.obj:                AeroDyn_Types.obj AeroSubs.obj  GenSubs.obj  InflowWind.obj DWM.obj DWM_Types.obj
+AeroDyn_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  InflowWind_Types$(OBJ_EXT)  DWM_Types$(OBJ_EXT)
+GenSubs$(OBJ_EXT):                NWTC_Library$(OBJ_EXT)  AeroDyn_Types$(OBJ_EXT)
+AeroSubs$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  AeroDyn_Types$(OBJ_EXT) InflowWind$(OBJ_EXT) GenSubs$(OBJ_EXT)
+AeroDyn$(OBJ_EXT):                AeroDyn_Types$(OBJ_EXT) AeroSubs$(OBJ_EXT)  GenSubs$(OBJ_EXT)  InflowWind$(OBJ_EXT) \
+                                     DWM$(OBJ_EXT) DWM_Types$(OBJ_EXT)
 
 #DWM dependency rules:
-DWM_Types.obj:              NWTC_Library.obj  Registry-DWM.txt
-DWM_Wake_Sub_ver2.obj:      NWTC_Library.obj DWM_Types.obj
-DWM.obj:                    NWTC_Library.obj DWM_Types.obj DWM_Wake_Sub_ver2.obj
+DWM_Types$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)
+DWM_Wake_Sub_ver2$(OBJ_EXT):      NWTC_Library$(OBJ_EXT) DWM_Types$(OBJ_EXT)
+DWM$(OBJ_EXT):                    NWTC_Library$(OBJ_EXT) DWM_Types$(OBJ_EXT) DWM_Wake_Sub_ver2$(OBJ_EXT)
 
 
 #HydroDyn dependency rules:
-SS_Radiation_Types.obj:     NWTC_Library.obj  SS_Radiation.txt
-SS_Radiation.obj:           SS_Radiation_Types.obj
+SS_Radiation_Types$(OBJ_EXT):     NWTC_Library$(OBJ_EXT)
+SS_Radiation$(OBJ_EXT):           SS_Radiation_Types$(OBJ_EXT)
 
-Waves2_Types.obj:           NWTC_Library.obj  Waves2.txt
-Waves2_Output.obj:          Waves2_Types.obj
-Waves2.obj:                 NWTC_Library.obj  Waves2_Types.obj  NWTC_FFTPACK.obj  Waves2_Output.obj  Waves.obj
+Waves2_Types$(OBJ_EXT):           NWTC_Library$(OBJ_EXT)
+Waves2_Output$(OBJ_EXT):          Waves2_Types$(OBJ_EXT)
+Waves2$(OBJ_EXT):                 NWTC_Library$(OBJ_EXT)  Waves2_Types$(OBJ_EXT)  NWTC_FFTPACK$(OBJ_EXT)  \
+                                     Waves2_Output$(OBJ_EXT)  Waves$(OBJ_EXT)
 
-Waves_Types.obj:            NWTC_Library.obj  Waves.txt
-Waves.obj:                  Waves_Types.obj   NWTC_FFTPACK.obj
+Waves_Types$(OBJ_EXT):            NWTC_Library$(OBJ_EXT)
+Waves$(OBJ_EXT):                  Waves_Types$(OBJ_EXT)   NWTC_FFTPACK$(OBJ_EXT)
 
-Current_Types.obj:          NWTC_Library.obj  Current.txt
-Current.obj:                Current_Types.obj
+Current_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)
+Current$(OBJ_EXT):                Current_Types$(OBJ_EXT)
 
-Morison_Types.obj:          NWTC_Library.obj  Morison.txt
-Morison_Output.obj:         Morison_Types.obj Waves.obj
-Morison.obj:                Morison_Types.obj Morison_Output.obj
+Morison_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)
+Morison_Output$(OBJ_EXT):         Morison_Types$(OBJ_EXT) Waves$(OBJ_EXT)
+Morison$(OBJ_EXT):                Morison_Types$(OBJ_EXT) Morison_Output$(OBJ_EXT)
 
-Conv_Radiation_Types.obj:   NWTC_Library.obj  Conv_Radiation.txt
-Conv_Radiation.obj:         Conv_Radiation_Types.obj
+Conv_Radiation_Types$(OBJ_EXT):   NWTC_Library$(OBJ_EXT)
+Conv_Radiation$(OBJ_EXT):         Conv_Radiation_Types$(OBJ_EXT)
 
-WAMIT2_Types.obj:           NWTC_Library.obj WAMIT2.txt
-WAMIT2_Output.obj:          NWTC_Library.obj  WAMIT2_Types.obj
-WAMIT2.obj:                 NWTC_Library.obj  WAMIT_Interp.obj  WAMIT2_Output.obj  NWTC_FFTPACK.obj  Waves.obj
+WAMIT2_Types$(OBJ_EXT):           NWTC_Library$(OBJ_EXT)
+WAMIT2_Output$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  WAMIT2_Types$(OBJ_EXT)
+WAMIT2$(OBJ_EXT):                 NWTC_Library$(OBJ_EXT)  WAMIT_Interp$(OBJ_EXT)  WAMIT2_Output$(OBJ_EXT)  \
+                                    NWTC_FFTPACK$(OBJ_EXT)  Waves$(OBJ_EXT)
 
-WAMIT_Types.obj:            NWTC_Library.obj Conv_Radiation_Types.obj SS_Radiation_Types.obj Waves_Types.obj  WAMIT.txt
-WAMIT.obj:                  WAMIT_Types.obj WAMIT_Output.obj Waves_Types.obj Conv_Radiation.obj SS_Radiation.obj NWTC_FFTPACK.obj WAMIT_Interp.obj
+WAMIT_Types$(OBJ_EXT):            NWTC_Library$(OBJ_EXT) Conv_Radiation_Types$(OBJ_EXT) SS_Radiation_Types$(OBJ_EXT) Waves_Types$(OBJ_EXT)
+WAMIT$(OBJ_EXT):                  WAMIT_Types$(OBJ_EXT) WAMIT_Output$(OBJ_EXT) Waves_Types$(OBJ_EXT) Conv_Radiation$(OBJ_EXT) \
+                                    SS_Radiation$(OBJ_EXT) NWTC_FFTPACK$(OBJ_EXT) WAMIT_Interp$(OBJ_EXT)
 
-WAMIT_Interp.obj:           NWTC_Library.obj
-WAMIT_Output.obj:           WAMIT_Types.obj Waves.obj
-HydroDyn_Output.obj:        HydroDyn_Types.obj Waves.obj
+WAMIT_Interp$(OBJ_EXT):           NWTC_Library$(OBJ_EXT)
+WAMIT_Output$(OBJ_EXT):           WAMIT_Types$(OBJ_EXT) Waves$(OBJ_EXT)
+HydroDyn_Output$(OBJ_EXT):        HydroDyn_Types$(OBJ_EXT) Waves$(OBJ_EXT)
 
-HydroDyn_Types.obj:         NWTC_Library.obj  Current_Types.obj  Waves_Types.obj  Waves2_Types.obj  Conv_Radiation_Types.obj \
-                            SS_Radiation_Types.obj WAMIT_Types.obj  WAMIT2_Types.obj  Morison_Types.obj  HydroDyn.txt
-HydroDyn_Input.obj:         HydroDyn_Types.obj  Waves.obj Morison.obj  HydroDyn_Output.obj  WAMIT_Output.obj  Waves2_Output.obj  WAMIT2_Output.obj
-HydroDyn.obj:               HydroDyn_Types.obj  HydroDyn_Input.obj  HydroDyn_Output.obj  WAMIT.obj  Current.obj  Morison.obj  Waves2.obj  WAMIT2.obj
+HydroDyn_Types$(OBJ_EXT):         NWTC_Library$(OBJ_EXT)  Current_Types$(OBJ_EXT)  Waves_Types$(OBJ_EXT)  Waves2_Types$(OBJ_EXT) \
+                                     Conv_Radiation_Types$(OBJ_EXT) SS_Radiation_Types$(OBJ_EXT) \
+                                     WAMIT_Types$(OBJ_EXT)  WAMIT2_Types$(OBJ_EXT)  Morison_Types$(OBJ_EXT)
+HydroDyn_Input$(OBJ_EXT):         HydroDyn_Types$(OBJ_EXT)  Waves$(OBJ_EXT) Morison$(OBJ_EXT)  HydroDyn_Output$(OBJ_EXT)  \
+                                     WAMIT_Output$(OBJ_EXT)  Waves2_Output$(OBJ_EXT)  WAMIT2_Output$(OBJ_EXT)
+HydroDyn$(OBJ_EXT):               HydroDyn_Types$(OBJ_EXT)  HydroDyn_Input$(OBJ_EXT)  HydroDyn_Output$(OBJ_EXT)  WAMIT$(OBJ_EXT) \
+                                     Current$(OBJ_EXT)  Morison$(OBJ_EXT)  Waves2$(OBJ_EXT)  WAMIT2$(OBJ_EXT)
 
 
 # SubDyn dependency rules:
-SubDyn_Types.obj:           NWTC_Library.obj    SubDyn_Registry.txt
-SD_FEM.obj:                 NWTC_Library.obj SubDyn_Types.obj qsort_c_module.obj
-SubDyn_Output.obj:          SD_FEM.obj
-SubDyn.obj:                 SubDyn_Output.obj  SD_FEM.obj  qsort_c_module.obj NWTC_ScaLAPACK.obj NWTC_LAPACK.obj
+SubDyn_Types$(OBJ_EXT):           NWTC_Library$(OBJ_EXT)
+SD_FEM$(OBJ_EXT):                 NWTC_Library$(OBJ_EXT) SubDyn_Types$(OBJ_EXT) qsort_c_module$(OBJ_EXT)
+SubDyn_Output$(OBJ_EXT):          SD_FEM$(OBJ_EXT)
+SubDyn$(OBJ_EXT):                 SubDyn_Output$(OBJ_EXT)  SD_FEM$(OBJ_EXT)  qsort_c_module$(OBJ_EXT) NWTC_ScaLAPACK$(OBJ_EXT) NWTC_LAPACK$(OBJ_EXT)
 
 
 # MAP dependency rules:
-MAP_Types.obj:              NWTC_Library.obj
-MAP.obj:                    NWTC_Library.obj  MAP_Types.obj
+MAP_Types$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)
+MAP$(OBJ_EXT):                    NWTC_Library$(OBJ_EXT)  MAP_Types$(OBJ_EXT)
 
 
 # FEAMooring dependency rules:
-FEAMooring_Types.obj:       NWTC_Library.obj  FEAM_Registry.txt
-FEAM.obj:                   NWTC_Library.obj  FEAMooring_Types.obj
+FEAMooring_Types$(OBJ_EXT):       NWTC_Library$(OBJ_EXT)
+FEAM$(OBJ_EXT):                   NWTC_Library$(OBJ_EXT)  FEAMooring_Types$(OBJ_EXT)
 
 # MoorDyn dependency rules:
-MoorDyn_Types.obj:          NWTC_Library.obj  MoorDyn_Registry.txt
-MoorDyn_IO.obj:             NWTC_Library.obj  MoorDyn_Types.obj
-MoorDyn.obj:                NWTC_Library.obj  MoorDyn_IO.obj
+MoorDyn_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)
+MoorDyn_IO$(OBJ_EXT):             NWTC_Library$(OBJ_EXT)  MoorDyn_Types$(OBJ_EXT)
+MoorDyn$(OBJ_EXT):                NWTC_Library$(OBJ_EXT)  MoorDyn_IO$(OBJ_EXT)
 
 
 # ElastoDyn dependency rules:
-ElastoDyn_Types.obj:        NWTC_Library.obj  ElastoDyn_Registry.txt
-ElastoDyn.obj:              NWTC_Library.obj  ElastoDyn_Types.obj  NWTC_LAPACK.obj
+ElastoDyn_Types$(OBJ_EXT):        NWTC_Library$(OBJ_EXT)
+ElastoDyn$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  ElastoDyn_Types$(OBJ_EXT)  NWTC_LAPACK$(OBJ_EXT)
 
 
 # ServoDyn dependency rules:
-TMD_Types.obj:              NWTC_Library.obj  TMD_Registry.txt
-TMD.obj:                    NWTC_Library.obj  TMD_Types.obj
-ServoDyn_Types.obj:         NWTC_Library.obj  TMD_Types.obj  ServoDyn_Registry.txt
-BladedInterface.obj:        NWTC_Library.obj  ServoDyn_Types.obj
-ServoDyn.obj:               NWTC_Library.obj  ServoDyn_Types.obj  PitchCntrl_ACH.obj  UserSubs.obj   UserVSCont_KP.obj  BladedInterface.obj TMD.obj
-PitchCntrl_ACH.obj:         NWTC_Library.obj
-UserSubs.obj:               NWTC_Library.obj
-UserVSCont_KP.obj:          NWTC_Library.obj
+TMD_Types$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)
+TMD$(OBJ_EXT):                    NWTC_Library$(OBJ_EXT)  TMD_Types$(OBJ_EXT)
+ServoDyn_Types$(OBJ_EXT):         NWTC_Library$(OBJ_EXT)  TMD_Types$(OBJ_EXT)
+BladedInterface$(OBJ_EXT):        NWTC_Library$(OBJ_EXT)  ServoDyn_Types$(OBJ_EXT)
+ServoDyn$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  ServoDyn_Types$(OBJ_EXT)  PitchCntrl_ACH$(OBJ_EXT)  UserSubs$(OBJ_EXT) \
+                                     UserVSCont_KP$(OBJ_EXT)  BladedInterface$(OBJ_EXT) TMD$(OBJ_EXT)
+PitchCntrl_ACH$(OBJ_EXT):         NWTC_Library$(OBJ_EXT)
+UserSubs$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)
+UserVSCont_KP$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)
 
 
 # IceFloe dependency rules:
-#RANLUX.obj:
-iceLog.obj:                 NWTC_Library.obj
-iceInput.obj:               iceLog.F90 NWTC_Library.obj
-IceFloeBase.obj:            NWTC_Library.obj  iceInput.obj  RANLUX.obj IceFloe_Types.obj
-coupledCrushing.obj:        IceFloeBase.obj
-crushingIEC.obj:            IceFloeBase.obj
-crushingISO.obj:            IceFloeBase.obj
-intermittentCrushing.obj:   crushingISO.obj
-lockInISO.obj:              crushingISO.obj
-randomCrushing.obj:         crushingISO.obj
-IceFlexBase.obj:            IceFloeBase.obj
-IceFlexIEC.obj:             IceFlexBase.obj
-IceFlexISO.obj:             IceFlexBase.obj
-IceFloe_Types.obj:          NWTC_Library.obj IceFloe_FASTRegistry.inp
-IceFloe.obj:                IceFloe_Types.obj iceLog.obj coupledCrushing.obj crushingIEC.obj crushingISO.obj IceFlexBase.obj \
-                            IceFlexIEC.obj IceFlexISO.obj intermittentCrushing.obj lockInISO.obj randomCrushing.obj
+#RANLUX$(OBJ_EXT):
+iceLog$(OBJ_EXT):                 NWTC_Library$(OBJ_EXT)
+iceInput$(OBJ_EXT):               iceLog$(OBJ_EXT) NWTC_Library$(OBJ_EXT)
+IceFloeBase$(OBJ_EXT):            NWTC_Library$(OBJ_EXT) iceInput$(OBJ_EXT)  RANLUX$(OBJ_EXT) IceFloe_Types$(OBJ_EXT)
+coupledCrushing$(OBJ_EXT):        IceFloeBase$(OBJ_EXT)
+crushingIEC$(OBJ_EXT):            IceFloeBase$(OBJ_EXT)
+crushingISO$(OBJ_EXT):            IceFloeBase$(OBJ_EXT)
+intermittentCrushing$(OBJ_EXT):   crushingISO$(OBJ_EXT)
+lockInISO$(OBJ_EXT):              crushingISO$(OBJ_EXT)
+randomCrushing$(OBJ_EXT):         crushingISO$(OBJ_EXT)
+IceFlexBase$(OBJ_EXT):            IceFloeBase$(OBJ_EXT)
+IceFlexIEC$(OBJ_EXT):             IceFlexBase$(OBJ_EXT)
+IceFlexISO$(OBJ_EXT):             IceFlexBase$(OBJ_EXT)
+IceFloe_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)
+IceFloe$(OBJ_EXT):                IceFloe_Types$(OBJ_EXT) iceLog$(OBJ_EXT) coupledCrushing$(OBJ_EXT) crushingIEC$(OBJ_EXT) \
+                                    crushingISO$(OBJ_EXT) IceFlexBase$(OBJ_EXT) IceFlexIEC$(OBJ_EXT) IceFlexISO$(OBJ_EXT)  \
+                                    intermittentCrushing$(OBJ_EXT) lockInISO$(OBJ_EXT) randomCrushing$(OBJ_EXT)
 
 
 # IceDyn dependency rules:
-IceDyn_Types.obj:           NWTC_Library.obj Registry_IceDyn.txt
-IceDyn.obj:                 NWTC_Library.obj IceDyn_Types.obj
+IceDyn_Types$(OBJ_EXT):           NWTC_Library$(OBJ_EXT)
+IceDyn$(OBJ_EXT):                 NWTC_Library$(OBJ_EXT) IceDyn_Types$(OBJ_EXT)
 
 
 # FAST dependency rules:
-FAST_Types.obj:             NWTC_Library.obj  ElastoDyn_Types.obj  ServoDyn_Types.obj  AeroDyn_Types.obj  SubDyn_Types.obj  HydroDyn_Types.obj  \
-                            MAP_Types.obj  FEAMooring_Types.obj  MoorDyn_Types.obj IceFloe_Types.obj  IceDyn_Types.obj FAST_Registry.txt
-FAST_Mods.obj:              NWTC_Library.obj  FAST_Types.obj
-FAST_Subs.obj:              NWTC_Library.obj  FAST_Mods.obj  NWTC_LAPACK.obj  AeroDyn.obj  InflowWind.obj  ServoDyn.obj  ElastoDyn.obj \
-                            SubDyn.obj  HydroDyn.obj  MAP.obj  FEAM.obj  MoorDyn.obj IceFloe.obj  IceDyn.obj
-FAST_Prog.obj:              NWTC_Library.obj  FAST_Subs.obj
+FAST_Types$(OBJ_EXT):             NWTC_Library$(OBJ_EXT)  ElastoDyn_Types$(OBJ_EXT)  ServoDyn_Types$(OBJ_EXT)   \
+                                     AeroDyn_Types$(OBJ_EXT)  SubDyn_Types$(OBJ_EXT)  HydroDyn_Types$(OBJ_EXT)  \
+                                     MAP_Types$(OBJ_EXT)  FEAMooring_Types$(OBJ_EXT)  MoorDyn_Types$(OBJ_EXT)   \
+                                     IceFloe_Types$(OBJ_EXT)  IceDyn_Types$(OBJ_EXT)
+FAST_Mods$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Types$(OBJ_EXT)
+FAST_Subs$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Mods$(OBJ_EXT)  NWTC_LAPACK$(OBJ_EXT)  AeroDyn$(OBJ_EXT) \
+                                     InflowWind$(OBJ_EXT)  ServoDyn$(OBJ_EXT)  ElastoDyn$(OBJ_EXT) SubDyn$(OBJ_EXT)     \
+                                     HydroDyn$(OBJ_EXT)  MAP$(OBJ_EXT)  FEAM$(OBJ_EXT)  MoorDyn$(OBJ_EXT)               \
+                                     IceFloe$(OBJ_EXT) IceDyn$(OBJ_EXT)
+FAST_Prog$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Subs$(OBJ_EXT)
 
 
-
-#$(OUTPUT_NAME)$(EXE_EXT): Fast_Prog.obj
 
    # Make sure the destination directory for the intermediate files exist.
 
@@ -557,8 +555,24 @@ $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT): $(ALL_OBJS) | $(INTER_DIR)
    # Cleanup afterwards.
 
 clean:
-	$(DEL_CMD) $(INTER_DIR)$(PATH_SEP)*.mod $(INTER_DIR)$(PATH_SEP)*.obj
+	$(DEL_CMD) $(INTER_DIR)$(PATH_SEP)*.mod $(INTER_DIR)$(PATH_SEP)*$(OBJ_EXT)
 
-#superclean:
-#	$(DEL_CMD) $(INTER_DIR)$(PATH_SEP)*.mod $(INTER_DIR)$(PATH_SEP)*.obj
-# also delete all the registry-generated ModuleName_Types.f90 files
+superclean:
+	$(DEL_CMD) $(INTER_DIR)$(PATH_SEP)*.mod $(INTER_DIR)$(PATH_SEP)*$(OBJ_EXT)
+	$(DEL_CMD) "$(DEST_DIR)$(PATH_SEP)$(OUTPUT_NAME)$(EXE_EXT)"
+	$(DEL_CMD) "$(FAST_DIR)$(PATH_SEP)FAST_Types.f90"
+	$(DEL_CMD) "$(TMD_DIR)$(PATH_SEP)TMD_Types.f90"
+	$(DEL_CMD) "$(SrvD_DIR)$(PATH_SEP)ServoDyn_Types.f90"
+	$(DEL_CMD) "$(ED_DIR)$(PATH_SEP)ElastoDyn_Types.f90"
+	$(DEL_CMD) "$(AD_DIR)$(PATH_SEP)AeroDyn_Types.f90"
+	$(DEL_CMD) "$(DWM_DIR)$(PATH_SEP)DWM_Types.f90"
+	$(DEL_CMD) "$(SD_DIR)$(PATH_SEP)SubDyn_Types.f90"
+	$(DEL_CMD) "$(FEAM_DIR)$(PATH_SEP)FEAMooring_Types.f90"
+	$(DEL_CMD) "$(MD_DIR)$(PATH_SEP)MoorDyn_Types.f90"
+	$(DEL_CMD) "$(IceF_DIR)$(PATH_SEP)IceFloe_Types.f90"
+	$(DEL_CMD) "$(IceD_DIR)$(PATH_SEP)IceDyn_Types.f90"
+	$(DEL_CMD) "$(IfW_DIR)$(PATH_SEP)InflowWind_Types.f90"
+	$(DEL_CMD) "$(IfW_DIR)$(PATH_SEP)Lidar_Types.f90"
+	$(DEL_CMD) "$(IfW_DIR)$(PATH_SEP)IfW_*_Types.f90"
+	$(DEL_CMD) "$(HD_DIR)$(PATH_SEP)*_Types.f90"
+	$(DEL_CMD) *_Types.f90
