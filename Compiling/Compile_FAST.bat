@@ -275,9 +275,7 @@ SET CURR_LOC=%FAST_Loc%
 SET ModuleName=FAST
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD_Loc%" -I^
  "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Reg_Loc%"  -I^
- "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -noextrap
-
-MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+ "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -noextrap -O "%CURR_LOC%"
 
 
 ECHO %Lines%
@@ -307,21 +305,18 @@ CALL :RunRegistry_IfW InflowWind
 ECHO %Lines%
 SET CURR_LOC=%AD_Loc%
 SET ModuleName=AeroDyn
-%REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -I "%DWM_Loc%"
-MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+%REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -I "%DWM_Loc%" -O "%CURR_LOC%"
 
 ECHO %Lines%
 SET CURR_LOC=%DWM_Loc%
 SET ModuleName=DWM
-%REGISTRY% "%CURR_LOC%\Registry-DWM.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%"
-MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+%REGISTRY% "%CURR_LOC%\Registry-DWM.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -O "%CURR_LOC%"
 
 
 ECHO %Lines%
 SET CURR_LOC=%FEAM_Reg_Loc%
 SET ModuleName=FEAMooring
-%REGISTRY% "%CURR_LOC%\FEAM_Registry.txt" -I "%NWTC_Lib_Loc%"
-MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+%REGISTRY% "%CURR_LOC%\FEAM_Registry.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%" -O "%CURR_LOC%"
 
 ECHO %Lines%
 SET CURR_LOC=%MD_Loc%
@@ -331,15 +326,13 @@ CALL ::RunRegistry_fmt1 MoorDyn
 ECHO %Lines%
 SET CURR_LOC=%IceF_Loc%
 SET ModuleName=IceFloe
-%REGISTRY% "%CURR_LOC%\IceFloe_FASTRegistry.inp" -I "%NWTC_Lib_Loc%"
-MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+%REGISTRY% "%CURR_LOC%\IceFloe_FASTRegistry.inp" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
 
 
 ECHO %Lines%
 SET CURR_LOC=%IceD_Loc%
 SET ModuleName=IceDyn
-%REGISTRY% "%CURR_LOC%\Registry_IceDyn.txt" -I "%NWTC_Lib_Loc%"
-MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+%REGISTRY% "%CURR_LOC%\Registry_IceDyn.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
 
 
 ECHO %Lines%
@@ -494,20 +487,17 @@ REM ----------------------------------------------------------------------------
 
 :RunRegistry_HD
 SET ModuleName=%1
-%REGISTRY% %HD_Reg_Loc%\%ModuleName%.txt -I "%NWTC_Lib_Loc%" -I "%HD_Reg_Loc%"
-MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+%REGISTRY% %HD_Reg_Loc%\%ModuleName%.txt -I "%NWTC_Lib_Loc%" -I "%HD_Reg_Loc%" -O "%CURR_LOC%"
 EXIT /B
 
 :RunRegistry_fmt1
 SET ModuleName=%1
-%REGISTRY% %CURR_LOC%\%ModuleName%_Registry.txt -I "%NWTC_Lib_Loc%" -I "%TMD_Loc%"
-MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+%REGISTRY% %CURR_LOC%\%ModuleName%_Registry.txt -I "%NWTC_Lib_Loc%" -I "%TMD_Loc%" -O "%CURR_LOC%"
 EXIT /B
 
 :RunRegistry_IfW
 SET ModuleName=%1
-%REGISTRY% "%IfW_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%"
-MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+%REGISTRY% "%IfW_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -O "%CURR_LOC%"
 EXIT /B
 
 :end
