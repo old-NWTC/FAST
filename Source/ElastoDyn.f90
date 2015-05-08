@@ -2485,7 +2485,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
             
                y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum) = y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum) - y%BladeLn2Mesh(K)%Position(:,NodeNum)
                         
-                  ! Orientation
+                  ! Orientation  (use "n" system for AeroDyn 15)
                y%BladeLn2Mesh(K)%Orientation(1,1,NodeNum) =     OtherState%CoordSys%te1(K,J,1)
                y%BladeLn2Mesh(K)%Orientation(2,1,NodeNum) =     OtherState%CoordSys%te2(K,J,1)
                y%BladeLn2Mesh(K)%Orientation(3,1,NodeNum) =     OtherState%CoordSys%te3(K,J,1)

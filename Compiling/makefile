@@ -98,9 +98,7 @@ ifeq ($(OS),Windows_NT)
    EXE_EXT   = _gwin$(BITS).exe
    INTER_DIR = Obj_win$(BITS)
    MD_CMD    = @mkdir
-  CP_CMD    = copy
-#   CP_CMD    = move
-#bjj: if using "move", make can't find the file to compile (seems to be a timing issue). I'll copy for now, then add an -O swtich to the registry to indicate where to write the output file.
+   CP_CMD    = copy
    OBJ_EXT   = .obj
    PATH_SEP  = \\
    SYS_FILE  = SysGnuWin
@@ -306,66 +304,55 @@ default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
 
 FAST_Types.f90: FAST_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(TMD_DIR) -I $(AD_DIR) \
-	-I $(HD_DIR_Reg) -I $(IceF_DIR) -I $(IceD_DIR) -I $(MAP_DIR) -I $(FEAM_DIR) -I $(MD_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR) -noextrap
-	$(CP_CMD) $@ "$(FAST_DIR)$(PATH_SEP)"
+	-I $(HD_DIR_Reg) -I $(IceF_DIR) -I $(IceD_DIR) -I $(MAP_DIR) -I $(FEAM_DIR) -I $(MD_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR) \
+	-noextrap -O $(FAST_DIR)
 
 TMD_Types.f90: TMD_Registry.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR)
-	$(CP_CMD) $@ "$(TMD_DIR)$(PATH_SEP)"
+	$(Registry) $< -I $(NWTC_Lib_DIR) -O $(TMD_DIR)
 
 ServoDyn_Types.f90: ServoDyn_Registry.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(TMD_DIR)
-	$(CP_CMD) $@ "$(SrvD_DIR)$(PATH_SEP)"
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(TMD_DIR) -O $(SrvD_DIR)
 
 ElastoDyn_Types.f90: ElastoDyn_Registry.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR)
-	$(CP_CMD) $@ "$(ED_DIR)$(PATH_SEP)"
+	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(ED_DIR)
 
 AeroDyn_Types.f90: Registry-AD.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR)
-	$(CP_CMD) $@ "$(AD_DIR)$(PATH_SEP)"
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR)  -O $(AD_DIR)
 
 DWM_Types.f90: Registry-DWM.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)
-	$(CP_CMD) $@ "$(DWM_DIR)$(PATH_SEP)"
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)  -O $(DWM_DIR)
 
 SubDyn_Types.f90: SubDyn_Registry.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR)
-	$(CP_CMD) $@ "$(SD_DIR)$(PATH_SEP)"
+	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(SD_DIR)
+
+MAP_Types.f90: MAP_Registry.txt
+	$(Registry) $< -ccode -I $(NWTC_Lib_DIR) -O $(MAP_DIR)
 
 FEAMooring_Types.f90: FEAM_Registry.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR)
-	$(CP_CMD) $@ "$(FEAM_DIR)$(PATH_SEP)"
+	$(Registry) $< -I $(NWTC_Lib_DIR) -O $(FEAM_DIR)
 
 MoorDyn_Types.f90: MoorDyn_Registry.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR)
-	$(CP_CMD) $@ "$(MD_DIR)$(PATH_SEP)"
+	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(MD_DIR)
 
 IceFloe_Types.f90: IceFloe_FASTRegistry.inp
-	$(Registry) $< -I $(NWTC_Lib_DIR)
-	$(CP_CMD) $@ "$(IceF_DIR)$(PATH_SEP)"
+	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(IceF_DIR)
 
 IceDyn_Types.f90: Registry_IceDyn.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR)
-	$(CP_CMD) $@ "$(IceD_DIR)$(PATH_SEP)"
+	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(IceD_DIR)
 
 InflowWind_Types.f90: InflowWind.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR)
-	$(CP_CMD) $@ "$(IfW_DIR)$(PATH_SEP)"
+	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(IfW_DIR)
 
 Lidar_Types.f90: Lidar.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR)
-	$(CP_CMD) $@ "$(IfW_DIR)$(PATH_SEP)"
+	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(IfW_DIR)
 
    # InflowWind Registry files:
 IfW_%_Types.f90: $(IfW_Reg_DIR)/IfW_%.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR) -noextrap
-	$(CP_CMD) $@ "$(IfW_DIR)$(PATH_SEP)"
+	$(Registry) $< -I $(NWTC_Lib_DIR) -noextrap  -O $(IfW_DIR)
 
    # HydroDyn Registry files:
 %_Types.f90: $(HD_DIR_Reg)/%.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(HD_DIR_Reg)
-	$(CP_CMD) $@ "$(HD_DIR)$(PATH_SEP)"
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(HD_DIR_Reg)  -O $(HD_DIR)
 
 
    #  Dependency rules.

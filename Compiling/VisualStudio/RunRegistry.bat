@@ -58,7 +58,7 @@ ECHO on
 SET CURR_LOC=%FAST_Loc%
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD_Loc%" -I^
  "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Reg_Loc%"  -I^
- "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -noextrap
+ "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -noextrap -O "%CURR_LOC%"
 
 echo off
 GOTO checkError
@@ -66,25 +66,25 @@ GOTO checkError
 
 :ElastoDyn
 SET CURR_LOC=%ED_Loc%
-%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%"
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
 GOTO checkError
 
 
 :ServoDyn
 SET CURR_LOC=%SrvD_Loc%
-%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%TMD_Loc%"
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%TMD_Loc%" -O "%CURR_LOC%"
 GOTO checkError
 
 :TMD
 SET CURR_LOC=%TMD_Loc%
-%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%"
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
 GOTO checkError
 
 
 :InflowWind
 :Lidar
 SET CURR_LOC=%IfW_Loc%
-%REGISTRY% "%IfW_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%"
+%REGISTRY% "%IfW_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -O "%CURR_LOC%"
 GOTO checkError
 
 
@@ -93,18 +93,18 @@ GOTO checkError
 :IfW_UniformWind
 :IfW_UserWind
 SET CURR_LOC=%IfW_Loc%
-%REGISTRY% "%IfW_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -noextrap
+%REGISTRY% "%IfW_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -noextrap  -O "%CURR_LOC%"
 GOTO checkError
 
 
 :AeroDyn
 SET CURR_LOC=%AD_Loc%
-%REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -I "%AD_Loc%" -I "%DWM_Loc%"
+%REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -I "%AD_Loc%" -I "%DWM_Loc%"  -O "%CURR_LOC%"
 GOTO checkError
 
 :DWM
 SET CURR_LOC=%DWM_Loc%
-%REGISTRY% "%CURR_LOC%\Registry-DWM.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%"
+%REGISTRY% "%CURR_LOC%\Registry-DWM.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%"  -O "%CURR_LOC%"
 GOTO checkError
 
 :HydroDyn
@@ -117,42 +117,42 @@ GOTO checkError
 :WAMIT2
 :Morison
 SET CURR_LOC=%HD_Loc%
-%REGISTRY% "%HD_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%HD_Reg_Loc%"
+%REGISTRY% "%HD_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%HD_Reg_Loc%"  -O "%CURR_LOC%"
 GOTO checkError
 
 
 :SubDyn
 SET CURR_LOC=%SD_Loc%
-%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%"
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%"  -O "%CURR_LOC%"
 GOTO checkError
 
 :MAP
 SET CURR_LOC=%MAP_Loc_R%
 IF /I "%2"=="dev" (
-%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -ccode -I "%NWTC_Lib_Loc%"
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -ccode -I "%NWTC_Lib_Loc%"  -O "%CURR_LOC%"
 )
 GOTO checkError
 
 :FEAMooring
 SET CURR_LOC=%FEAM_Loc%
-%REGISTRY% "%FEAM_Reg_LOC%\FEAM_Registry.txt" -I "%NWTC_Lib_Loc%"
+%REGISTRY% "%FEAM_Reg_LOC%\FEAM_Registry.txt" -I "%NWTC_Lib_Loc%"  -O "%CURR_LOC%"
 GOTO checkError
 
 :MoorDyn
 SET CURR_LOC=%MD_Loc%
-%REGISTRY% "%CURR_LOC%\MoorDyn_Registry.txt" -I "%NWTC_Lib_Loc%"
+%REGISTRY% "%CURR_LOC%\MoorDyn_Registry.txt" -I "%NWTC_Lib_Loc%"  -O "%CURR_LOC%"
 GOTO checkError
 
 
 :IceFloe
 SET CURR_LOC=%IceF_Loc%
-%REGISTRY% "%CURR_LOC%\IceFloe_FASTRegistry.inp" -I "%NWTC_Lib_Loc%"
+%REGISTRY% "%CURR_LOC%\IceFloe_FASTRegistry.inp" -I "%NWTC_Lib_Loc%"  -O "%CURR_LOC%"
 GOTO checkError
 
 
 :IceDyn
 SET CURR_LOC=%IceD_Loc%
-%REGISTRY% "%CURR_LOC%\Registry_%ModuleName%.txt" -I "%NWTC_Lib_Loc%"
+%REGISTRY% "%CURR_LOC%\Registry_%ModuleName%.txt" -I "%NWTC_Lib_Loc%"  -O "%CURR_LOC%"
 GOTO checkError
 
 
@@ -162,8 +162,8 @@ IF %ERRORLEVEL% NEQ 0 (
 ECHO Error running FAST Registry for %ModuleName%.
 ) ELSE (
 ECHO Registry for %ModuleName% completed.
-COPY /Y "%ModuleName%_Types.f90"   "%CURR_LOC%"
-IF /I "%ModuleName%"=="MAP" COPY /Y "%ModuleName%_Types.h" "%CURR_LOC%"
+REM COPY /Y "%ModuleName%_Types.f90"   "%CURR_LOC%"
+rem IF /I "%ModuleName%"=="MAP" COPY /Y "%ModuleName%_Types.h" "%CURR_LOC%"
 )
 
 
