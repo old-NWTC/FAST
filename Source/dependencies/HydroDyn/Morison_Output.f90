@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-14 14:27:12 -0600 (Tue, 14 Apr 2015) $
-! (File) Revision #: $Rev: 614 $
+! File last committed: $Date: 2015-05-11 14:56:57 -0600 (Mon, 11 May 2015) $
+! (File) Revision #: $Rev: 616 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Morison_Output.f90 $
 !**********************************************************************************************************************************
 MODULE Morison_Output
@@ -7052,11 +7052,8 @@ SUBROUTINE MrsnOut_OpenOutput( ProgName, OutRootName,  p, InitOut, ErrStat, ErrM
       OutFileName = TRIM(OutRootName)//'.MRSN.out'
       CALL GetNewUnit( p%UnOutFile )
    
-      CALL OpenFOutFile ( p%UnOutFile, OutFileName, ErrStat ) 
-      IF ( ErrStat /= 0 ) THEN
-         ErrMsg = ' Error opening Morison-level output file.'
-         RETURN
-      END IF
+      CALL OpenFOutFile ( p%UnOutFile, OutFileName, ErrStat, ErrMsg ) 
+      IF (ErrStat >=AbortErrLev) RETURN
       
       
       

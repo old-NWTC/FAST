@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-14 14:27:12 -0600 (Tue, 14 Apr 2015) $
-! (File) Revision #: $Rev: 614 $
+! File last committed: $Date: 2015-05-11 14:56:57 -0600 (Mon, 11 May 2015) $
+! (File) Revision #: $Rev: 616 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/HydroDyn_Output.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Output
@@ -260,12 +260,8 @@ SUBROUTINE HDOut_OpenSum( UnSum, SummaryName, HD_Prog, ErrStat, ErrMsg )
 
    CALL GetNewUnit( UnSum )
 
-   CALL OpenFOutFile ( UnSum, SummaryName, ErrStat ) 
-   IF ( ErrStat /= 0 ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = 'Failed to open summary file.'
-      RETURN
-   END IF
+   CALL OpenFOutFile ( UnSum, SummaryName, ErrStat, ErrMsg ) 
+   IF (ErrStat >=AbortErrLev) RETURN
       
       
          ! Write the summary file header
@@ -654,8 +650,8 @@ SUBROUTINE HDOut_OpenOutput( HydroDyn_ProgDesc, OutRootName,  p, InitOut, ErrSta
       OutFileName = TRIM(OutRootName)//'.HD.out'
       CALL GetNewUnit( p%UnOutFile )
    
-      CALL OpenFOutFile ( p%UnOutFile, OutFileName, ErrStat ) 
-      IF ( ErrStat /= 0 ) RETURN
+      CALL OpenFOutFile ( p%UnOutFile, OutFileName, ErrStat, ErrMsg ) 
+      IF (ErrStat >=AbortErrLev) RETURN
       
       
          ! Write the output file header

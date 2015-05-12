@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-02-12 09:16:39 -0700 (Thu, 12 Feb 2015) $
-! (File) Revision #: $Rev: 289 $
+! File last committed: $Date: 2015-05-09 16:21:07 -0600 (Sat, 09 May 2015) $
+! (File) Revision #: $Rev: 306 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/SysIVF_Labview.f90 $
 !**********************************************************************************************************************************
 MODULE SysSubs
@@ -97,7 +97,7 @@ CONTAINS
       ! in bytes corresponding to a file unit number or returns -1 on error.
 
 
-   USE IFPORT
+   !USE IFPORT
 
 
       ! Function declaration.

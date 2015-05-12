@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-02-12 09:16:39 -0700 (Thu, 12 Feb 2015) $
-! (File) Revision #: $Rev: 289 $
+! File last committed: $Date: 2015-05-09 16:21:07 -0600 (Sat, 09 May 2015) $
+! (File) Revision #: $Rev: 306 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/SysGnuLinux.f90 $
 !**********************************************************************************************************************************
 MODULE SysSubs
@@ -567,7 +567,7 @@ SUBROUTINE LoadDynamicLib ( DLL, ErrStat, ErrMsg )
       ErrStat = ErrID_Fatal
       WRITE(ErrMsg,'(I2)') BITS_IN_ADDR
       ErrMsg  = 'The dynamic library '//TRIM(DLL%FileName)//' could not be loaded. Check that the file '// &
-                'exists in the specified location and that it is compiled for '//TRIM(ErrMsg)//'-bit systems.'
+                'exists in the specified location and that it is compiled for '//TRIM(ErrMsg)//'-bit applications.'
       RETURN
    END IF
 

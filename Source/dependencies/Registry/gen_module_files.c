@@ -1527,7 +1527,7 @@ fprintf(fp,"  END IF\n") ;
 #endif
 
 void
-gen_ExtrapInterp1(FILE *fp, const node_t * ModName, const char * typnm, const char * typnmlong, const char * uy, const int max_ndims, const int max_nrecurs, const int max_alloc_ndims)
+gen_ExtrapInterp1(FILE *fp, const node_t * ModName, char * typnm, char * typnmlong, char * uy, const int max_ndims, const int max_nrecurs, const int max_alloc_ndims)
 {
    char nonick[NAMELEN];
    char *ddtname;

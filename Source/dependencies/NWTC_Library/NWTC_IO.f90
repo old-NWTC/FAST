@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-30 12:53:04 -0600 (Thu, 30 Apr 2015) $
-! (File) Revision #: $Rev: 300 $
+! File last committed: $Date: 2015-05-11 21:38:05 -0600 (Mon, 11 May 2015) $
+! (File) Revision #: $Rev: 309 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_IO.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_IO
@@ -35,23 +35,12 @@ MODULE NWTC_IO
 !=======================================================================
 
    TYPE(ProgDesc), PARAMETER    :: NWTC_Ver = &                               ! The name, version, and date of the NWTC Subroutine Library.
-                                    ProgDesc( 'NWTC Subroutine Library', 'v2.05.04a-bjj', '30-Apr-2015')
+                                    ProgDesc( 'NWTC Subroutine Library', 'v2.06.00b-bjj', '11-May-2015')
 
    TYPE, PUBLIC                 :: FNlist_Type                                ! This type stores a linked list of file names.
       CHARACTER(1024)                        :: FileName                      ! A file name.
       TYPE(FNlist_Type), POINTER             :: Next => NULL()                ! The pointer to the next file name in the list.
    END TYPE FNlist_Type
-
-
-   TYPE, PUBLIC                 :: InpErrsType                                ! This derived type is used to hold error messages for invalid input data.
-      INTEGER                                :: MaxErrs                       ! The maximum number of errors allowed.  Used to allocate the arrays.
-      INTEGER                                :: NumErrs                       ! The total number of errors found.
-      INTEGER, ALLOCATABLE                   :: FileLine  (:)                 ! The original line number of each line in the file with usable information.
-      CHARACTER(128), ALLOCATABLE            :: ErrMsgs   (:)                 ! The error messages.
-      CHARACTER(512), ALLOCATABLE            :: FileList  (:)                 ! The file that a given error message occurred in.
-   END TYPE InpErrsType
-
-
 
 
       ! Global coupling scheme variables.
@@ -222,29 +211,29 @@ CONTAINS
    !     SUBROUTINE AdjRealStr    ( NumStr )                                                                         ! Removes leading spaces and trailing zeros from strings created by real numbers.
    !     SUBROUTINE AllocAry           ( )                                                                                ! Generic interface for the All*Ary* routines (allocatable arrays).
    !     SUBROUTINE AllocPAry          ( )                                                                                ! Generic interface for the All*PAry* routines (pointer arrays).
-   !     SUBROUTINE AllCAry1      ( Ary, AryDim, Descr [, ErrStat] [, ErrMsg] )                                      ! Allocate a 1-D CHARACTER array.
-   !     SUBROUTINE AllCAry2      ( Ary, AryDim1, AryDim2, Descr [, ErrStat] [, ErrMsg] )                            ! Allocate a 2-D CHARACTER array.
-   !     SUBROUTINE AllCAry3      ( Ary, AryDim1, AryDim2, AryDim3, Descr [, ErrStat] [, ErrMsg] )                   ! Allocate a 3-D CHARACTER array.
+   !     SUBROUTINE AllCAry1      ( Ary, AryDim, Descr, ErrStat, ErrMsg )                                            ! Allocate a 1-D CHARACTER array.
+   !     SUBROUTINE AllCAry2      ( Ary, AryDim1, AryDim2, Descr, ErrStat, ErrMsg )                                  ! Allocate a 2-D CHARACTER array.
+   !     SUBROUTINE AllCAry3      ( Ary, AryDim1, AryDim2, AryDim3, Descr, ErrStat, ErrMsg )                         ! Allocate a 3-D CHARACTER array.
    !     SUBROUTINE AllI1BAry1    ( Ary, AryDim, Descr, ErrStat, ErrMsg )                                            ! Allocate a 1-D 1-Byte INTEGER array.
    !     SUBROUTINE AllI2BAry1    ( Ary, AryDim, Descr, ErrStat, ErrMsg )                                            ! Allocate a 1-D 2-Byte INTEGER array.
    !     SUBROUTINE AllI4BAry1    ( Ary, AryDim, Descr, ErrStat, ErrMsg )                                            ! Allocate a 1-D 4-Byte INTEGER array.
-   !     SUBROUTINE AllIAry2      ( Ary, AryDim1, AryDim2, Descr [, ErrStat] [, ErrMsg] )                            ! Allocate a 2-D INTEGER array.
-   !     SUBROUTINE AllIAry3      ( Ary, AryDim1, AryDim2, AryDim3, Descr [, ErrStat] [, ErrMsg] )                   ! Allocate a 3-D INTEGER array.
-   !     SUBROUTINE AllLAry1      ( Ary, AryDim, Descr [, ErrStat] [, ErrMsg] )                                      ! Allocate a 1-D LOGICAL array.
-   !     SUBROUTINE AllLAry2      ( Ary, AryDim1, AryDim2, Descr [, ErrStat] [, ErrMsg] )                            ! Allocate a 2-D LOGICAL array.
-   !     SUBROUTINE AllLAry3      ( Ary, AryDim1, AryDim2, AryDim3, Descr [, ErrStat] [, ErrMsg] )                   ! Allocate a 3-D LOGICAL array.
+   !     SUBROUTINE AllIAry2      ( Ary, AryDim1, AryDim2, Descr, ErrStat, ErrMsg )                                  ! Allocate a 2-D INTEGER array.
+   !     SUBROUTINE AllIAry3      ( Ary, AryDim1, AryDim2, AryDim3, Descr, ErrStat, ErrMsg )                         ! Allocate a 3-D INTEGER array.
+   !     SUBROUTINE AllLAry1      ( Ary, AryDim, Descr, ErrStat, ErrMsg )                                            ! Allocate a 1-D LOGICAL array.
+   !     SUBROUTINE AllLAry2      ( Ary, AryDim1, AryDim2, Descr, ErrStat, ErrMsg )                                  ! Allocate a 2-D LOGICAL array.
+   !     SUBROUTINE AllLAry3      ( Ary, AryDim1, AryDim2, AryDim3, Descr, ErrStat, ErrMsg )                         ! Allocate a 3-D LOGICAL array.
    !     SUBROUTINE AllR4Ary1     ( Ary, AryDim, Descr, ErrStat, ErrMsg )                                            ! Allocate a 1-D 4-Byte REAL array.
    !     SUBROUTINE AllR8Ary1     ( Ary, AryDim, Descr, ErrStat, ErrMsg )                                            ! Allocate a 1-D 8-Byte REAL array.
    !     SUBROUTINE AllR16Ary1    ( Ary, AryDim, Descr, ErrStat, ErrMsg )                                            ! Allocate a 1-D 16-Byte REAL array.
    !     SUBROUTINE AllR4Ary2     ( Ary, AryDim, Descr, ErrStat, ErrMsg )                                            ! Allocate a 2-D 4-Byte REAL array.
    !     SUBROUTINE AllR8Ary2     ( Ary, AryDim, Descr, ErrStat, ErrMsg )                                            ! Allocate a 2-D 8-Byte REAL array.
    !     SUBROUTINE AllR16Ary2    ( Ary, AryDim, Descr, ErrStat, ErrMsg )                                            ! Allocate a 2-D 16-Byte REAL array.
-   !     SUBROUTINE AllRAry3      ( Ary, AryDim1, AryDim2, AryDim3, Descr [, ErrStat] [, ErrMsg] )                   ! Allocate a 3-D REAL array.
-   !     SUBROUTINE AllRAry4      ( Ary, AryDim1, AryDim2, AryDim3, AryDim4, Descr [, ErrStat] [, ErrMsg] )          ! Allocate a 4-D REAL array.
-   !     SUBROUTINE AllRAry5      ( Ary, AryDim1, AryDim2, AryDim3, AryDim4, AryDim5, Descr [, ErrStat] [, ErrMsg] ) ! Allocate a 5-D REAL array.
+   !     SUBROUTINE AllRAry3      ( Ary, AryDim1, AryDim2, AryDim3, Descr, ErrStat, ErrMsg )                         ! Allocate a 3-D REAL array.
+   !     SUBROUTINE AllRAry4      ( Ary, AryDim1, AryDim2, AryDim3, AryDim4, Descr, ErrStat, ErrMsg )                ! Allocate a 4-D REAL array.
+   !     SUBROUTINE AllRAry5      ( Ary, AryDim1, AryDim2, AryDim3, AryDim4, AryDim5, Descr, ErrStat, ErrMsg )       ! Allocate a 5-D REAL array.
    !     SUBROUTINE CheckArgs     ( InputFile [, ErrStat] )
-   !     SUBROUTINE CheckIOS      ( IOS, Fil, Variable, VarType [, TrapErrors, ErrMsg] )
-   !     SUBROUTINE ChkParseData  ( Words, ExpVarName, FileName, FileLineNum, NameIndx, ErrStat, ErrMsg )                  ! Checks data to be parsed to ensure it has the right variable name and a value to go with it.
+   !     SUBROUTINE CheckIOS      ( IOS, Fil, Variable, VarType [,ErrStat, ErrMsg] [,TrapErrors] )
+   !     SUBROUTINE ChkParseData  ( Words, ExpVarName, FileName, FileLineNum, NameIndx, ErrStat, ErrMsg )             ! Checks data to be parsed to ensure it has the right variable name and a value to go with it.
    !     SUBROUTINE ChkRealFmtStr ( RealFmt, RealFmtVar, ErrStat, ErrMsg )                            ! Test to see if a specified string is a valid format for real numbers.
    !     SUBROUTINE Conv2UC       ( Str )
    !     FUNCTION   CountWords    ( Line )
@@ -273,15 +262,15 @@ CONTAINS
    !     SUBROUTINE NormStop      ( )
    !     FUNCTION   Num2LStr      ( Num )                                                                    ! Generic interface for Int2LStr, R2LStr4, R2LStr8, R2LStr16
    !     SUBROUTINE NWTC_DisplaySyntax ( DefaultInputFile, ThisProgName )
-   !     SUBROUTINE OpenBInpFile  ( Un, InFile [, ErrStat] )
+   !     SUBROUTINE OpenBInpFile  ( Un, InFile, ErrStat, ErrMsg )
    !     SUBROUTINE OpenBOutFile  ( Un, OutFile, ErrStat, ErrMsg )
-   !     SUBROUTINE OpenEcho      ( Un, InFile [, ErrStat] [, ErrMsg] [, ProgVer] )
-   !     SUBROUTINE OpenFInpFile  ( Un, InFile [, ErrStat] [, ErrMsg] )
-   !     SUBROUTINE OpenFOutFile  ( Un, OutFile [, ErrStat] [, ErrMsg] )
-   !     SUBROUTINE OpenFUnkFile  ( Un, OutFile, FailAbt, Failed, Exists [, ErrStat] )
-   !     SUBROUTINE OpenUInBEFile ( Un, InFile, RecLen [, ErrStat] )
-   !     SUBROUTINE OpenUInfile   ( Un, InFile [, ErrStat] )
-   !     SUBROUTINE OpenUOutfile  ( Un, OutFile [, ErrStat] )
+   !     SUBROUTINE OpenEcho      ( Un, InFile, ErrStat, ErrMsg [, ProgVer] )
+   !     SUBROUTINE OpenFInpFile  ( Un, InFile, ErrStat, ErrMsg )
+   !     SUBROUTINE OpenFOutFile  ( Un, OutFile, ErrStat, ErrMsg )
+   !     SUBROUTINE OpenFUnkFile  ( Un, OutFile, FailAbt, Failed, Exists, ErrStat, ErrMsg )
+   !     SUBROUTINE OpenUInBEFile ( Un, InFile, RecLen, ErrStat, ErrMsg )
+   !     SUBROUTINE OpenUInfile   ( Un, InFile, ErrStat, ErrMsg )
+   !     SUBROUTINE OpenUOutfile  ( Un, OutFile, ErrStat, ErrMsg )
    !     SUBROUTINE ParseAry                                                                                                    ! generic interface for parsing arrays
    !     SUBROUTINE ParseChVar    ( FileInfo, LineNum, ExpVarName, ChVar, ErrStat, ErrMsg, UnEc )                          ! Parses a CHARACTER from a string. USE ParseVar instead.
    !     SUBROUTINE ParseDbAry    ( FileInfo, LineNum, AryName   , DbAry, AryLen , ErrStat, ErrMsg, UnEc )                       ! Parses a double-precision REAL array from a string. USE ParseAry instead.
@@ -303,30 +292,30 @@ CONTAINS
    !     FUNCTION   R2LStr4       ( FltNum )                                                                 ! Convert  4-byte REALs to left-justified strings. USE Num2LStr() instead.
    !     FUNCTION   R2LStr8       ( FltNum )                                                                 ! Convert  8-byte REALs to left-justified strings. USE Num2LStr() instead.
    !     FUNCTION   R2LStr16      ( FltNum )                                                                 ! Convert 16-byte REALs to left-justified strings. USE Num2LStr() instead.
-   !     SUBROUTINE ReadAry       ( UnIn, Fil, Ary, AryLen, AryName, AryDescr [, ErrStat] [, UnEc] )         ! Generic interface for ReadCAry, ReadIAry, ReadLAry, ReadR4Ary, ReadR8Ary and ReadR16Ary.
-   !     SUBROUTINE ReadAryLines  ( UnIn, Fil, Ary, AryLen, AryName, AryDescr [, ErrStat] [, UnEc] )         ! Generic interface for ReadCAryLines, ReadRAryLines4, ReadRAryLines8, and ReadRAryLines16.
-   !     SUBROUTINE ReadCAry      ( UnIn, Fil, CharAry, AryLen, AryName, AryDescr [, ErrStat] [, UnEc] )
-   !     SUBROUTINE ReadCAryLines ( UnIn, Fil, CharAry, AryLen, AryName, AryDescr [, ErrStat] [, UnEc] )
-   !     SUBROUTINE ReadCom       ( UnIn, Fil, ComName [, ErrStat] [, ErrMsg] [, UnEc] )                     ! Reads a comment line from an input file. (variable not returned)
+   !     SUBROUTINE ReadAry       ( UnIn, Fil, Ary, AryLen, AryName, AryDescr, ErrStat [, UnEc] )         ! Generic interface for ReadCAry, ReadIAry, ReadLAry, ReadR4Ary, ReadR8Ary and ReadR16Ary.
+   !     SUBROUTINE ReadAryLines  ( UnIn, Fil, Ary, AryLen, AryName, AryDescr, ErrStat [, UnEc] )         ! Generic interface for ReadCAryLines, ReadRAryLines4, ReadRAryLines8, and ReadRAryLines16.
+   !     SUBROUTINE ReadCAry      ( UnIn, Fil, CharAry, AryLen, AryName, AryDescr, ErrStat [, UnEc] )
+   !     SUBROUTINE ReadCAryLines ( UnIn, Fil, CharAry, AryLen, AryName, AryDescr, ErrStat [, UnEc] )
+   !     SUBROUTINE ReadCom       ( UnIn, Fil, ComName, ErrStat, ErrMsg [, UnEc] )                     ! Reads a comment line from an input file. (variable not returned)
    !     SUBROUTINE ReadComFile   ( FileInfo, FileIndx, StartLine, LastLine, ErrStat, ErrMsg )                             ! Recursive routine to read a formatted file (and files it includes) and strips out the comments, copying the remainder in a structure.
-   !     SUBROUTINE ReadCVar      ( UnIn, Fil, CharVar, VarName, VarDescr [, ErrStat] [,ErrMsg] [, UnEc] )
-   !     SUBROUTINE ReadFASTbin   ( UnIn, FASTdata [, ErrLev, ErrMsg] )                                      ! Read a FAST binary output file.
-   !     SUBROUTINE ReadIAry      ( UnIn, Fil, IntAry, AryLen, AryName, AryDescr [, ErrStat] [, UnEc] )
-   !     SUBROUTINE ReadIVar      ( UnIn, Fil, IntVar, VarName, VarDescr [, ErrStat] [,ErrMsg] [, UnEc] )
-   !     SUBROUTINE ReadLAry      ( UnIn, Fil, LogAry, AryLen, AryName, AryDescr [, ErrStat] [, UnEc] )
-   !     SUBROUTINE ReadLine      ( UnIn, CommChars, Line, LineLen, ErrStat )                                 ! Reads a line from the specified input unit and returns the non-comment portion of the line.
-   !     SUBROUTINE ReadLVar      ( UnIn, Fil, LogVar, VarName, VarDescr [, ErrStat] [,ErrMsg] [, UnEc] )
-   !     SUBROUTINE ReadNum       ( UnIn, Fil, Word, VarName, [, ErrStat] [, ErrMsg] [, UnEc] )
+   !     SUBROUTINE ReadCVar      ( UnIn, Fil, CharVar, VarName, VarDescr, ErrStat, ErrMsg [, UnEc] )
+   !     SUBROUTINE ReadFASTbin   ( UnIn, FASTdata , ErrStat, ErrMsg )                                      ! Read a FAST binary output file.
+   !     SUBROUTINE ReadIAry      ( UnIn, Fil, IntAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg [, UnEc] )
+   !     SUBROUTINE ReadIVar      ( UnIn, Fil, IntVar, VarName, VarDescr, ErrStat, ErrMsg [, UnEc] )
+   !     SUBROUTINE ReadLAry      ( UnIn, Fil, LogAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg [, UnEc] )
+   !     SUBROUTINE ReadLine      ( UnIn, CommChars, Line, LineLen, IOStat )                                 ! Reads a line from the specified input unit and returns the non-comment portion of the line.
+   !     SUBROUTINE ReadLVar      ( UnIn, Fil, LogVar, VarName, VarDescr, ErrStat, ErrMsg [, UnEc] )
+   !     SUBROUTINE ReadNum       ( UnIn, Fil, Word, VarName, ErrStat, ErrMsg [, UnEc] )
    !     SUBROUTINE ReadOutputList( UnIn, Fil, CharAry, AryLenRead, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
    !     SUBROUTINE ReadR4Ary     ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
    !     SUBROUTINE ReadR8Ary     ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
    !     SUBROUTINE ReadR16Ary    ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
-   !     SUBROUTINE ReadAryLines  ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr [, ErrStat] [, UnEc] )     ! Generic interface for ReadCAryLines, ReadR4AryLines, ReadR8AryLines, and ReadR16AryLines
-   !     SUBROUTINE ReadR4Var     ( UnIn, Fil, RealVar, VarName, VarDescr [, ErrStat] [, ErrMsg] [, UnEc] )  ! Reads a 4-byte real number from an input file. USE ReadVar instead.
-   !     SUBROUTINE ReadR8Var     ( UnIn, Fil, RealVar, VarName, VarDescr [, ErrStat] [, ErrMsg] [, UnEc] )  ! Reads a 8-byte real number from an input file. USE ReadVar instead.
-   !     SUBROUTINE ReadR16Var    ( UnIn, Fil, RealVar, VarName, VarDescr [, ErrStat] [, ErrMsg] [, UnEc] )  ! Reads a 16-byte real number from an input file. USE ReadVar instead.
-   !     SUBROUTINE ReadStr       ( UnIn, Fil, CharVar, VarName, VarDescr [, ErrStat] [, ErrMsg] [, UnEc] )  ! Reads a string (up to 200 characters--until end-of-line) from an input file.
-   !     SUBROUTINE ReadVar       ( UnIn, Fil, Var, VarName, VarDescr [, ErrStat] [, UnEc] )                 ! Generic interface for ReadCVar, ReadIVar, ReadLVar, and ReadR*Var.
+   !     SUBROUTINE ReadAryLines  ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg [, UnEc] )     ! Generic interface for ReadCAryLines, ReadR4AryLines, ReadR8AryLines, and ReadR16AryLines
+   !     SUBROUTINE ReadR4Var     ( UnIn, Fil, RealVar, VarName, VarDescr, ErrStat, ErrMsg [, UnEc] )             ! Reads a 4-byte real number from an input file. USE ReadVar instead.
+   !     SUBROUTINE ReadR8Var     ( UnIn, Fil, RealVar, VarName, VarDescr, ErrStat, ErrMsg [, UnEc] )             ! Reads a 8-byte real number from an input file. USE ReadVar instead.
+   !     SUBROUTINE ReadR16Var    ( UnIn, Fil, RealVar, VarName, VarDescr, ErrStat, ErrMsg [, UnEc] )             ! Reads a 16-byte real number from an input file. USE ReadVar instead.
+   !     SUBROUTINE ReadStr       ( UnIn, Fil, CharVar, VarName, VarDescr, ErrStat, ErrMsg [, UnEc] )             ! Reads a string (up to 200 characters--until end-of-line) from an input file.
+   !     SUBROUTINE ReadVar       ( UnIn, Fil, Var, VarName, VarDescr, ErrStat, ErrMsg [, UnEc] )                 ! Generic interface for ReadCVar, ReadIVar, ReadLVar, and ReadR*Var.
    !     SUBROUTINE RemoveNullChar     ( Str )
    !     SUBROUTINE ScanComFile   ( FirstFile, ThisFile, LastFile, StartLine, LastLine, NumLines, ErrStat, ErrMsg )        ! Recursive routine to scan commented input files.
    !     SUBROUTINE SetErrStat         ( ErrStatLcl, ErrMessLcl, ErrStat, ErrMess, RoutineName ) !note: moved to NWTC_Library_Types.f90
@@ -339,9 +328,7 @@ CONTAINS
    !     SUBROUTINE WrPr          ( Str )
    !     SUBROUTINE WrReAryFileNR      ( Unit, Ary, Fmt, ErrStat, ErrMsg )
    !     SUBROUTINE WrScr         ( Str )
-
-   ! DEPRECATED ROUTINES: Do not use them in new code
-   !     SUBROUTINE WrScr1        ( Str )                                                 DEPRECATED ROUTINE  use ----> WrScr( NewLine//Str )
+   !     SUBROUTINE WrScr1        ( Str )                                                 use ----> WrScr( NewLine//Str )
 
 !=======================================================================
    SUBROUTINE AdjRealStr( NumStr )
@@ -397,44 +384,27 @@ CONTAINS
    CHARACTER(*), ALLOCATABLE         :: Ary    (:)                                 ! Array to be allocated
    INTEGER,      INTENT(IN)          :: AryDim                                     ! The size of the array.
    CHARACTER(*), INTENT(IN)          :: Descr                                      ! Brief array description.
-   INTEGER,      INTENT(OUT),OPTIONAL:: ErrStat                                    ! Error status; if present, program does not abort on error
-   CHARACTER(*), INTENT(OUT),OPTIONAL:: ErrMsg                                     ! Error message corresponding to ErrStat
+   INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status
+   CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
+
+   
+   ALLOCATE ( Ary(AryDim) , STAT=ErrStat )
 
 
-      ! Local declarations.
-
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-   CHARACTER(200)                    :: Msg                                        ! An error message
-
-
-   ALLOCATE ( Ary(AryDim) , STAT=Sttus )
-
-
-   IF ( Sttus /= 0 ) THEN
-      Msg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = ErrID_Fatal
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = Msg
-         END IF
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         CALL ProgAbort ( Msg )
+         ErrMsg = 'Error allocating memory for '//TRIM(Num2LStr(AryDim))//' characters in the '//TRIM( Descr )//' array.'
       END IF
-
    ELSE
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = Sttus
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = ''
-         END IF
-      END IF
-
+      ErrStat = ErrID_None
+      ErrMsg  = ''
    END IF
 
    RETURN
-   END SUBROUTINE AllCAry1 ! ( Ary, AryDim, Descr [, ErrStat] [, ErrMsg] )
+   END SUBROUTINE AllCAry1 
 !=======================================================================
    SUBROUTINE AllCAry2 ( Ary, AryDim1, AryDim2, Descr, ErrStat, ErrMsg )
 
@@ -446,46 +416,29 @@ CONTAINS
    CHARACTER(*), ALLOCATABLE         :: Ary    (:,:)                               ! Array to be allocated
    INTEGER,      INTENT(IN)          :: AryDim1                                    ! The size of the first dimension of the array.
    INTEGER,      INTENT(IN)          :: AryDim2                                    ! The size of the second dimension of the array.
-   INTEGER,      INTENT(OUT),OPTIONAL:: ErrStat                                    ! Error status; if present, program does not abort on error
-   CHARACTER(*), INTENT(OUT),OPTIONAL:: ErrMsg                                     ! Error message corresponding to ErrStat
-
+   INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status
+   CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
    CHARACTER(*), INTENT(IN)          :: Descr                                      ! Brief array description.
 
 
-      ! Local declarations.
 
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-   CHARACTER(200)                    :: Msg                                        ! Temporary string to hold error message
+   ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=ErrStat )
 
-
-   ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=Sttus )
-
-   IF ( Sttus /= 0 ) THEN
-      Msg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = ErrID_Fatal
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = Msg
-         END IF
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         CALL ProgAbort ( Msg )
+         ErrMsg = 'Error allocating memory for '//TRIM(Num2LStr(AryDim1*AryDim2))//' characters in the '//TRIM( Descr )//' array.'
       END IF
-
    ELSE
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = Sttus
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = ''
-         END IF
-      END IF
-
+      ErrStat = ErrID_None
+      ErrMsg  = ''
    END IF
 
 
    RETURN
-   END SUBROUTINE AllCAry2 ! (  Ary, AryDim1, AryDim2, Descr [, ErrStat] [, ErrMsg] )
+   END SUBROUTINE AllCAry2
 !=======================================================================
    SUBROUTINE AllCAry3 (  Ary, AryDim1, AryDim2, AryDim3, Descr, ErrStat, ErrMsg )
 
@@ -500,45 +453,28 @@ CONTAINS
    INTEGER,      INTENT(IN)          :: AryDim2                                    ! The size of the second dimension of the array.
    INTEGER,      INTENT(IN)          :: AryDim3                                    ! The size of the third dimension of the array.
    CHARACTER(*), INTENT(IN)          :: Descr                                      ! Brief array description.
-   INTEGER,      INTENT(OUT),OPTIONAL:: ErrStat                                    ! Error status; if present, program does not abort on error
-   CHARACTER(*), INTENT(OUT),OPTIONAL:: ErrMsg                                     ! Error message corresponding to ErrStat
+   INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status
+   CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
-      ! Local declarations.
+   ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3) , STAT=ErrStat )
 
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-   CHARACTER(200)                    :: Msg                                        ! Temporary string to hold error message
-
-
-
-   ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3) , STAT=Sttus )
-
-   IF ( Sttus /= 0 ) THEN
-      Msg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = ErrID_Fatal
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = Msg
-         END IF
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         CALL ProgAbort ( Msg )
+         ErrMsg = 'Error allocating memory for '//TRIM(Num2LStr(AryDim1*AryDim2*AryDim3))//' characters in the '//TRIM( Descr )//' array.'
       END IF
-
    ELSE
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = Sttus
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = ''
-         END IF
-      END IF
-
+      ErrStat = ErrID_None
+      ErrMsg  = ''
    END IF
 
 
+
    RETURN
-   END SUBROUTINE AllCAry3 ! (  Ary, AryDim1, AryDim2, AryDim3, Descr [, ErrStat] [, ErrMsg] )
+   END SUBROUTINE AllCAry3
 !=======================================================================
    SUBROUTINE AllI1BAry1 ( Ary, AryDim, Descr, ErrStat, ErrMsg )
 
@@ -559,15 +495,19 @@ CONTAINS
 
    IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
-      ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
+      ELSE
+         ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim*1))//' bytes of memory for the '//TRIM( Descr )//' array.'
+      END IF
    ELSE
       ErrStat = ErrID_None
       ErrMsg = ' '
    END IF
 
    RETURN
-   END SUBROUTINE AllI1BAry1 ! ( Ary, AryDim, Descr, ErrStat, ErrMsg )
-   !=======================================================================
+   END SUBROUTINE AllI1BAry1
+!=======================================================================
    SUBROUTINE AllI2BAry1 ( Ary, AryDim, Descr, ErrStat, ErrMsg )
 
 
@@ -587,15 +527,19 @@ CONTAINS
 
    IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
-      ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
+      ELSE
+         ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim*2))//' bytes of memory for the '//TRIM( Descr )//' array.'
+      END IF
    ELSE
       ErrStat = ErrID_None
       ErrMsg = ' '
    END IF
 
    RETURN
-   END SUBROUTINE AllI2BAry1 ! ( Ary, AryDim, Descr, ErrStat, ErrMsg )
-   !=======================================================================
+   END SUBROUTINE AllI2BAry1
+!=======================================================================
    SUBROUTINE AllI4BAry1 ( Ary, AryDim, Descr, ErrStat, ErrMsg )
 
 
@@ -615,14 +559,18 @@ CONTAINS
 
    IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
-      ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
+      ELSE
+         ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim*4))//' bytes of memory for the '//TRIM( Descr )//' array.'
+      END IF
    ELSE
       ErrStat = ErrID_None
       ErrMsg = ' '
    END IF
 
    RETURN
-   END SUBROUTINE AllI4BAry1 ! ( Ary, AryDim, Descr, ErrStat, ErrMsg )
+   END SUBROUTINE AllI4BAry1
 !=======================================================================
    SUBROUTINE AllIAry2 (  Ary, AryDim1, AryDim2, Descr, ErrStat, ErrMsg )
 
@@ -632,196 +580,30 @@ CONTAINS
 
       ! Argument declarations.
 
-   INTEGER,      ALLOCATABLE         :: Ary    (:,:)                               ! Array to be allocated
+   INTEGER(IntKi), ALLOCATABLE       :: Ary    (:,:)                               ! Array to be allocated
    INTEGER,      INTENT(IN)          :: AryDim1                                    ! The size of the first dimension of the array.
    INTEGER,      INTENT(IN)          :: AryDim2                                    ! The size of the second dimension of the array.
    CHARACTER(*), INTENT(IN)          :: Descr                                      ! Brief array description.
-   INTEGER,      INTENT(OUT),OPTIONAL:: ErrStat                                    ! Error status; if present, program does not abort on error
-   CHARACTER(*), INTENT(OUT),OPTIONAL:: ErrMsg                                     ! Error message corresponding to ErrStat
+   INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status
+   CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
-      ! Local declarations.
+   ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=ErrStat )
 
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-   CHARACTER(200)                    :: Msg                                        ! Temporary string to hold error message
-
-
-
-   ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=Sttus )
-
-   IF ( Sttus /= 0 ) THEN
-      Msg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = ErrID_Fatal
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = Msg
-         END IF
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         CALL ProgAbort ( Msg )
+         ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*BYTES_IN_INT))//' bytes of memory for the '//TRIM( Descr )//' array.'
       END IF
-
    ELSE
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = Sttus
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = ''
-         END IF
-      END IF
-
+      ErrStat = ErrID_None
+      ErrMsg  = ''
    END IF
-
 
    RETURN
-   END SUBROUTINE AllIAry2 ! (  Ary, AryDim1, AryDim2, Descr [, ErrStat] [, ErrMsg] )
-
-!=======================================================================
-   SUBROUTINE AllIPAry1 ( Ary, AryDim, Descr, ErrStat )
-
-      ! This routine allocates a 1-D INTEGER array.
-
-      ! Argument declarations.
-
-   INTEGER, POINTER         :: Ary    (:)                                  ! Array to be allocated
-   INTEGER, INTENT(IN)          :: AryDim                                      ! The size of the array.
-   INTEGER, INTENT(OUT),OPTIONAL:: ErrStat                                     ! Error status; if present, program does not abort on error
-
-   CHARACTER(*), INTENT(IN)     :: Descr                                       ! Brief array description.
-
-      ! Local declarations.
-   INTEGER                      :: Sttus                                       ! Status of allocation attempt.
-
-   IF ( ASSOCIATED(Ary) ) THEN
-      DEALLOCATE(Ary)
-      !ErrStat = ErrID_Warn
-      !ErrMsg = " AllIPAry1: Ary already allocated."
-   END IF
-
-   ALLOCATE ( Ary(AryDim) , STAT=Sttus )
-   Ary = 0
-
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort ( ' Error allocating memory for the '//TRIM( Descr )//' array.', PRESENT(ErrStat) )
-   END IF
-
-   IF ( PRESENT(ErrStat) ) ErrStat = Sttus
-
-   RETURN
-   END SUBROUTINE AllIPAry1 ! ( Ary, AryDim, Descr )
-!=======================================================================
-   SUBROUTINE AllIPAry2 (  Ary, AryDim1, AryDim2, Descr, ErrStat )
-
-
-      ! This routine allocates a 2-D INTEGER array.
-
-      ! Argument declarations.
-
-   INTEGER, POINTER         :: Ary    (:,:)                                ! Array to be allocated
-   INTEGER, INTENT(IN)          :: AryDim1                                     ! The size of the first dimension of the array.
-   INTEGER, INTENT(IN)          :: AryDim2                                     ! The size of the second dimension of the array.
-   INTEGER, INTENT(OUT),OPTIONAL:: ErrStat                                     ! Error status; if present, program does not abort on error
-
-   CHARACTER(*), INTENT(IN)     :: Descr                                       ! Brief array description.
-
-
-      ! Local declarations.
-
-   INTEGER                      :: Sttus                                       ! Status of allocation attempt.
-
-
-   IF ( ASSOCIATED(Ary) ) THEN
-      DEALLOCATE(Ary)
-      !ErrStat = ErrID_Warn
-      !ErrMsg = " AllIPAry2: Ary already allocated."
-   END IF
-
-   ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=Sttus )
-   Ary = 0
-
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort ( ' Error allocating memory for the '//TRIM( Descr )//' array.', PRESENT(ErrStat) )
-   END IF
-
-   IF ( PRESENT(ErrStat) ) ErrStat = Sttus
-
-   RETURN
-   END SUBROUTINE AllIPAry2 ! (  Ary, AryDim1, AryDim2, Descr )
-!=======================================================================
-   SUBROUTINE AllRPAry2 (  Ary, AryDim1, AryDim2, Descr, ErrStat )
-
-      ! This routine allocates a 2-D REAL array.
-      ! Argument declarations.
-
-   REAL(ReKi), POINTER      :: Ary    (:,:)                                ! Array to be allocated
-   INTEGER, INTENT(IN)          :: AryDim1                                     ! The size of the first dimension of the array.
-   INTEGER, INTENT(IN)          :: AryDim2                                     ! The size of the second dimension of the array.
-   INTEGER, INTENT(OUT),OPTIONAL:: ErrStat                                     ! Error status; if present, program does not abort on error
-
-   CHARACTER(*), INTENT(IN)     :: Descr                                       ! Brief array description.
-
-      ! Local declarations.
-
-   INTEGER                      :: Sttus                                       ! Status of allocation attempt.
-
-   IF ( ASSOCIATED(Ary) ) THEN
-      DEALLOCATE(Ary)
-      !ErrStat = ErrID_Warn
-      !ErrMsg = " AllRPAry2: Ary already allocated."
-   END IF
-
-   ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=Sttus )
-   Ary = 0
-
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort ( ' Error allocating memory for the '//TRIM( Descr )//' array.', PRESENT(ErrStat) )
-   END IF
-
-   IF ( PRESENT(ErrStat) ) ErrStat = Sttus
-
-   RETURN
-   END SUBROUTINE AllRPAry2 ! ( Pointer_to_Ary, AryDim1, AryDim2, Descr )
-!=======================================================================
-   SUBROUTINE AllRPAry3 (  Ary, AryDim1, AryDim2, AryDim3, Descr, ErrStat )  ! pointer to Ary, AryDim1, AryDim2, AryDim3
-
-
-      ! This routine allocates a 3-D REAL array.
-
-      ! Argument declarations.
-
-   REAL(ReKi), POINTER      :: Ary    (:,:,:)                              ! Array to be allocated
-
-   INTEGER, INTENT(IN)          :: AryDim1                                     ! The size of the first dimension of the array.
-   INTEGER, INTENT(IN)          :: AryDim2                                     ! The size of the second dimension of the array.
-   INTEGER, INTENT(IN)          :: AryDim3                                     ! The size of the third dimension of the array.
-   INTEGER, INTENT(OUT),OPTIONAL:: ErrStat                                     ! Error status; if present, program does not abort on error
-
-   CHARACTER(*), INTENT(IN)     :: Descr                                       ! Brief array description.
-
-
-      ! Local declarations.
-
-   INTEGER                      :: Sttus                                       ! Status of allocation attempt.
-
-
-   IF ( ASSOCIATED(Ary) ) THEN
-      DEALLOCATE(Ary)
-      !ErrStat = ErrID_Warn
-      !ErrMsg = " AllRPAry3: Ary already allocated."
-   END IF
-
-   ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3) , STAT=Sttus )
-   Ary = 0
-
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort ( ' Error allocating memory for the '//TRIM( Descr )//' array.', PRESENT(ErrStat) )
-   END IF
-
-   IF ( PRESENT(ErrStat) ) ErrStat = Sttus
-
-
-   RETURN
-  END SUBROUTINE AllRPAry3 ! (  Ary, AryDim1, AryDim2, AryDim3, Descr )
+   END SUBROUTINE AllIAry2
 !=======================================================================
    SUBROUTINE AllIAry3 (  Ary, AryDim1, AryDim2, AryDim3, Descr, ErrStat, ErrMsg )
 
@@ -831,50 +613,171 @@ CONTAINS
 
       ! Argument declarations.
 
-   INTEGER,      ALLOCATABLE         :: Ary    (:,:,:)                             ! Array to be allocated
+   INTEGER(IntKi),  ALLOCATABLE      :: Ary    (:,:,:)                             ! Array to be allocated
    INTEGER,      INTENT(IN)          :: AryDim1                                    ! The size of the first dimension of the array.
    INTEGER,      INTENT(IN)          :: AryDim2                                    ! The size of the second dimension of the array.
    INTEGER,      INTENT(IN)          :: AryDim3                                    ! The size of the third dimension of the array.
    CHARACTER(*), INTENT(IN)          :: Descr                                      ! Brief array description.
-   INTEGER,      INTENT(OUT),OPTIONAL:: ErrStat                                    ! Error status; if present, program does not abort on error
-   CHARACTER(*), INTENT(OUT),OPTIONAL:: ErrMsg                                     ! Error message corresponding to ErrStat
-
-
-      ! Local declarations.
-
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-   CHARACTER(200)                    :: Msg                                        ! Temporary string to hold error message
+   INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status; if present, program does not abort on error
+   CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
 
-   ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3) , STAT=Sttus )
+   ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3) , STAT=ErrStat )
 
-   IF ( Sttus /= 0 ) THEN
-      Msg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = ErrID_Fatal
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = Msg
-         END IF
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         CALL ProgAbort ( Msg )
+         ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*AryDim3*BYTES_IN_INT))//' bytes of memory for the '//TRIM( Descr )//' array.'
       END IF
-
    ELSE
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = Sttus
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = ''
-         END IF
-      END IF
-
+      ErrStat = ErrID_None
+      ErrMsg  = ''
    END IF
-
+   
 
    RETURN
-   END SUBROUTINE AllIAry3 ! (  Ary, AryDim1, AryDim2, AryDim3, Descr [, ErrStat] [, ErrMsg] )
+   END SUBROUTINE AllIAry3
+!=======================================================================
+   SUBROUTINE AllIPAry1 ( Ary, AryDim, Descr, ErrStat, ErrMsg )
+
+      ! This routine allocates a 1-D INTEGER array.
+
+      ! Argument declarations.
+
+   INTEGER,      POINTER             :: Ary    (:)                                 ! Array to be allocated
+   INTEGER,      INTENT(IN)          :: AryDim                                     ! The size of the array.
+   INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status
+   CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
+   CHARACTER(*), INTENT(IN)          :: Descr                                      ! Brief array description.
+
+
+   IF ( ASSOCIATED(Ary) ) THEN
+      DEALLOCATE(Ary)
+      !ErrStat = ErrID_Warn
+      !ErrMsg = " AllIPAry1: Ary already allocated."
+   END IF
+
+   ALLOCATE ( Ary(AryDim) , STAT=ErrStat )
+   
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array.'
+   ELSE
+      ErrStat = ErrID_None
+      ErrMsg  = ''
+   END IF
+   
+   Ary = 0
+
+   RETURN
+   END SUBROUTINE AllIPAry1 
+!=======================================================================
+   SUBROUTINE AllIPAry2 (  Ary, AryDim1, AryDim2, Descr, ErrStat, ErrMsg )
+
+
+      ! This routine allocates a 2-D INTEGER array.
+
+      ! Argument declarations.
+
+   INTEGER,      POINTER             :: Ary    (:,:)                               ! Array to be allocated
+   INTEGER,      INTENT(IN)          :: AryDim1                                    ! The size of the first dimension of the array.
+   INTEGER,      INTENT(IN)          :: AryDim2                                    ! The size of the second dimension of the array.
+   INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status
+   CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
+   CHARACTER(*), INTENT(IN)          :: Descr                                       ! Brief array description.
+
+
+
+   IF ( ASSOCIATED(Ary) ) THEN
+      DEALLOCATE(Ary)
+      !ErrStat = ErrID_Warn
+      !ErrMsg = " AllIPAry2: Ary already allocated."
+   END IF
+
+   ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=ErrStat )
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array.'
+   ELSE
+      ErrStat = ErrID_None
+      ErrMsg  = ''
+   END IF
+   
+   Ary = 0
+   RETURN
+   END SUBROUTINE AllIPAry2 
+!=======================================================================
+   SUBROUTINE AllRPAry2 (  Ary, AryDim1, AryDim2, Descr, ErrStat, ErrMsg )
+
+      ! This routine allocates a 2-D REAL array.
+      ! Argument declarations.
+
+   REAL(ReKi),   POINTER             :: Ary    (:,:)                               ! Array to be allocated
+   INTEGER,      INTENT(IN)          :: AryDim1                                    ! The size of the first dimension of the array.
+   INTEGER,      INTENT(IN)          :: AryDim2                                    ! The size of the second dimension of the array.
+   INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status
+   CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
+   CHARACTER(*), INTENT(IN)          :: Descr                                      ! Brief array description.
+
+
+   IF ( ASSOCIATED(Ary) ) THEN
+      DEALLOCATE(Ary)
+      !ErrStat = ErrID_Warn
+      !ErrMsg = " AllRPAry2: Ary already allocated."
+   END IF
+
+   ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=ErrStat )
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*BYTES_IN_REAL))//&
+                  ' bytes of memory for the '//TRIM( Descr )//' array.'
+   ELSE
+      ErrStat = ErrID_None
+      ErrMsg  = ''
+   END IF
+   
+   Ary = 0
+   RETURN
+   END SUBROUTINE AllRPAry2 
+!=======================================================================
+   SUBROUTINE AllRPAry3 (  Ary, AryDim1, AryDim2, AryDim3, Descr, ErrStat, ErrMsg ) 
+
+
+      ! This routine allocates a 3-D REAL array.
+
+      ! Argument declarations.
+
+   REAL(ReKi),   POINTER             :: Ary    (:,:,:)                             ! Array to be allocated
+   INTEGER,      INTENT(IN)          :: AryDim1                                    ! The size of the first dimension of the array.
+   INTEGER,      INTENT(IN)          :: AryDim2                                    ! The size of the second dimension of the array.
+   INTEGER,      INTENT(IN)          :: AryDim3                                    ! The size of the third dimension of the array.
+   INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status
+   CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
+   CHARACTER(*), INTENT(IN)          :: Descr                                      ! Brief array description.
+
+
+   IF ( ASSOCIATED(Ary) ) THEN
+      DEALLOCATE(Ary)
+      !ErrStat = ErrID_Warn
+      !ErrMsg = " AllRPAry3: Ary already allocated."
+   END IF
+
+   ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3) , STAT=ErrStat )
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*AryDim3*BYTES_IN_REAL))//&
+                  ' bytes of memory for the '//TRIM( Descr )//' array.'
+   ELSE
+      ErrStat = ErrID_None
+      ErrMsg  = ''
+   END IF
+   
+   Ary = 0
+   RETURN
+  END SUBROUTINE AllRPAry3
 !=======================================================================
    SUBROUTINE AllLAry1 ( Ary, AryDim, Descr, ErrStat, ErrMsg )
 
@@ -887,46 +790,29 @@ CONTAINS
    LOGICAL,      ALLOCATABLE         :: Ary    (:)                                 ! Array to be allocated
    INTEGER,      INTENT(IN)          :: AryDim                                     ! The size of the array.
    CHARACTER(*), INTENT(IN)          :: Descr                                      ! Brief array description.
-   INTEGER,      INTENT(OUT),OPTIONAL:: ErrStat                                    ! Error status; if present, program does not abort on error
-   CHARACTER(*), INTENT(OUT),OPTIONAL:: ErrMsg                                     ! Error message corresponding to ErrStat
-
-
-      ! Local declarations.
-
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-   CHARACTER(200)                    :: Msg                                        ! Temporary string to hold error message
+   INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status; if present, program does not abort on error
+   CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
 
-   ALLOCATE ( Ary(AryDim) , STAT=Sttus )
+   ALLOCATE ( Ary(AryDim) , STAT=ErrStat )
 
-   IF ( Sttus /= 0 ) THEN
-      Msg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = ErrID_Fatal
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = Msg
-         END IF
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         CALL ProgAbort ( Msg )
-      END IF
-
+         ErrMsg = 'Error allocating memory for '//TRIM(Num2LStr(AryDim))//&
+                  ' logical values in the '//TRIM( Descr )//' array.'
+      END IF      
    ELSE
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = Sttus
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = ''
-         END IF
-      END IF
-
+      ErrStat = ErrID_None
+      ErrMsg  = ''
    END IF
 
 
-
    RETURN
-   END SUBROUTINE AllLAry1 ! ( Ary, AryDim, Descr [, ErrStat] [, ErrMsg] )
+   END SUBROUTINE AllLAry1
 !=======================================================================
    SUBROUTINE AllLAry2 (  Ary, AryDim1, AryDim2, Descr, ErrStat, ErrMsg )
 
@@ -940,46 +826,29 @@ CONTAINS
    INTEGER,      INTENT(IN)          :: AryDim1                                    ! The size of the first dimension of the array.
    INTEGER,      INTENT(IN)          :: AryDim2                                    ! The size of the second dimension of the array.
    CHARACTER(*), INTENT(IN)          :: Descr                                      ! Brief array description.
-   INTEGER,      INTENT(OUT),OPTIONAL:: ErrStat                                    ! Error status; if present, program does not abort on error
-   CHARACTER(*), INTENT(OUT),OPTIONAL:: ErrMsg                                     ! Error message corresponding to ErrStat
-
-
-      ! Local declarations.
-
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-   CHARACTER(200)                    :: Msg                                        ! Temporary string to hold error message
+   INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status; if present, program does not abort on error
+   CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
 
-   ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=Sttus )
+   ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=ErrStat )
 
-    IF ( Sttus /= 0 ) THEN
-      Msg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = ErrID_Fatal
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = Msg
-         END IF
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         CALL ProgAbort ( Msg )
-      END IF
-
+         ErrMsg = 'Error allocating memory for '//TRIM(Num2LStr(AryDim1*AryDim2))//&
+                  ' logical values in the '//TRIM( Descr )//' array.'
+      END IF      
    ELSE
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = Sttus
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = ''
-         END IF
-      END IF
-
+      ErrStat = ErrID_None
+      ErrMsg  = ''
    END IF
 
 
-
    RETURN
-   END SUBROUTINE AllLAry2 ! (  Ary, AryDim1, AryDim2, Descr [, ErrStat] [, ErrMsg] )
+   END SUBROUTINE AllLAry2
 !=======================================================================
    SUBROUTINE AllLAry3 (  Ary, AryDim1, AryDim2, AryDim3, Descr, ErrStat, ErrMsg )
 
@@ -994,45 +863,29 @@ CONTAINS
    INTEGER,      INTENT(IN)          :: AryDim3                                    ! The size of the third dimension of the array.
 
    CHARACTER(*), INTENT(IN)          :: Descr                                      ! Brief array description.
-   INTEGER,      INTENT(OUT),OPTIONAL:: ErrStat                                    ! Error status; if present, program does not abort on error
-   CHARACTER(*), INTENT(OUT),OPTIONAL:: ErrMsg                                     ! Error message corresponding to ErrStat
-
-
-      ! Local declarations.
-
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-   CHARACTER(200)                    :: Msg                                        ! Temporary string to hold error message
+   INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status; if present, program does not abort on error
+   CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
 
-   ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3) , STAT=Sttus )
+   ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3) , STAT=ErrStat )
 
-    IF ( Sttus /= 0 ) THEN
-      Msg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = ErrID_Fatal
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = Msg
-         END IF
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         CALL ProgAbort ( Msg )
-      END IF
-
+         ErrMsg = 'Error allocating memory for '//TRIM(Num2LStr(AryDim1*AryDim2*AryDim3))//&
+                  ' logical values in the '//TRIM( Descr )//' array.'
+      END IF      
    ELSE
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = Sttus
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = ''
-         END IF
-      END IF
-
+      ErrStat = ErrID_None
+      ErrMsg  = ''
    END IF
 
 
    RETURN
-   END SUBROUTINE AllLAry3 ! (  Ary, AryDim1, AryDim2, AryDim3, Descr [, ErrStat] [, ErrMsg] )
+   END SUBROUTINE AllLAry3
 !=======================================================================
    SUBROUTINE AllR4Ary1 ( Ary, AryDim, Descr, ErrStat, ErrMsg )
 
@@ -1050,20 +903,14 @@ CONTAINS
    CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
-      ! Local declarations.
+   ALLOCATE ( Ary(AryDim) , STAT=ErrStat )
 
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-
-
-
-   ALLOCATE ( Ary(AryDim) , STAT=Sttus )
-
-   IF ( Sttus /= 0 ) THEN
+   IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
       IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
-         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim*BYTES_IN_SiKi))//' bytes of memory for the '//TRIM( Descr )//' array.'
+         ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim*BYTES_IN_SiKi))//' bytes of memory for the '//TRIM( Descr )//' array.'
       END IF
    ELSE
       ErrStat = ErrID_None
@@ -1071,7 +918,7 @@ CONTAINS
    END IF
 
    RETURN
-   END SUBROUTINE AllR4Ary1 ! ( Ary, AryDim, Descr, ErrStat, ErrMsg )
+   END SUBROUTINE AllR4Ary1
 !=======================================================================
    SUBROUTINE AllR8Ary1 ( Ary, AryDim, Descr, ErrStat, ErrMsg )
 
@@ -1088,33 +935,25 @@ CONTAINS
    INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status
    CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
+   
+   ALLOCATE ( Ary(AryDim) , STAT=ErrStat )
 
-      ! Local declarations.
-
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-
-
-
-   ALLOCATE ( Ary(AryDim) , STAT=Sttus )
-
-   IF ( Sttus /= 0 ) THEN
+   IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
       IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
-         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim*BYTES_IN_R8Ki))//' bytes of memory for the '//TRIM( Descr )//' array.'
+         ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim*BYTES_IN_R8Ki))//' bytes of memory for the '//TRIM( Descr )//' array.'
       END IF
-
    ELSE
       ErrStat = ErrID_None
       ErrMsg  = ''
    END IF
 
    RETURN
-   END SUBROUTINE AllR8Ary1 ! ( Ary, AryDim, Descr, ErrStat, ErrMsg )
-
+   END SUBROUTINE AllR8Ary1
 !=======================================================================
-      SUBROUTINE AllR16Ary1 ( Ary, AryDim, Descr, ErrStat, ErrMsg )
+   SUBROUTINE AllR16Ary1 ( Ary, AryDim, Descr, ErrStat, ErrMsg )
 
 
       ! This routine allocates a 1-D 16-byte REAL array.
@@ -1130,29 +969,23 @@ CONTAINS
    CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
-      ! Local declarations.
+   ALLOCATE ( Ary(AryDim) , STAT=ErrStat )
 
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-
-
-
-   ALLOCATE ( Ary(AryDim) , STAT=Sttus )
-
-   IF ( Sttus /= 0 ) THEN
+   IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
       IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
-         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim*BYTES_IN_QuKi))//' bytes of memory for the '//TRIM( Descr )//' array.'
+         ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim*BYTES_IN_QuKi))//' bytes of memory for the '//TRIM( Descr )//' array.'
       END IF
-
    ELSE
       ErrStat = ErrID_None
       ErrMsg  = ''
    END IF
 
+
    RETURN
-   END SUBROUTINE AllR16Ary1 ! ( Ary, AryDim, Descr, ErrStat, ErrMsg )
+   END SUBROUTINE AllR16Ary1
 !=======================================================================
    SUBROUTINE AllR4Ary2 (  Ary, AryDim1, AryDim2, Descr, ErrStat, ErrMsg )
 
@@ -1171,20 +1004,15 @@ CONTAINS
    CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
-      ! Local declarations.
+   ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=ErrStat )
 
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-
-
-
-   ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=Sttus )
-
-   IF ( Sttus /= 0 ) THEN
+   
+   IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
       IF ( ALLOCATED(Ary) ) THEN
-         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*BYTES_IN_SiKi))//&
+         ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*BYTES_IN_SiKi))//&
                   ' bytes of memory for the '//TRIM( Descr )//' array.'
       END IF
    ELSE
@@ -1194,7 +1022,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE AllR4Ary2 ! (  Ary, AryDim1, AryDim2, Descr, ErrStat, ErrMsg )
+   END SUBROUTINE AllR4Ary2
 !=======================================================================
    SUBROUTINE AllR8Ary2 (  Ary, AryDim1, AryDim2, Descr, ErrStat, ErrMsg )
 
@@ -1213,20 +1041,15 @@ CONTAINS
    CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
-      ! Local declarations.
 
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
+   ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=ErrStat )
 
-
-
-   ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=Sttus )
-
-   IF ( Sttus /= 0 ) THEN
+   IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
       IF ( ALLOCATED(Ary) ) THEN
-         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*BYTES_IN_R8Ki))//&
+         ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*BYTES_IN_R8Ki))//&
                   ' bytes of memory for the '//TRIM( Descr )//' array.'
       END IF
    ELSE
@@ -1236,7 +1059,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE AllR8Ary2 ! (  Ary, AryDim1, AryDim2, Descr, ErrStat, ErrMsg )
+   END SUBROUTINE AllR8Ary2
 !=======================================================================
    SUBROUTINE AllR16Ary2 (  Ary, AryDim1, AryDim2, Descr, ErrStat, ErrMsg )
 
@@ -1255,20 +1078,15 @@ CONTAINS
    CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
-      ! Local declarations.
 
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
+   ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=ErrStat )
 
-
-
-   ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=Sttus )
-
-   IF ( Sttus /= 0 ) THEN
+   IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
       IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
-         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*BYTES_IN_QuKi))//&
+         ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*BYTES_IN_QuKi))//&
                   ' bytes of memory for the '//TRIM( Descr )//' array.'
       END IF
    ELSE
@@ -1276,9 +1094,8 @@ CONTAINS
       ErrMsg  = ''
    END IF
 
-
    RETURN
-   END SUBROUTINE AllR16Ary2 ! (  Ary, AryDim1, AryDim2, Descr, ErrStat, ErrMsg )
+   END SUBROUTINE AllR16Ary2
 !=======================================================================
    SUBROUTINE AllRAry3 (  Ary, AryDim1, AryDim2, AryDim3, Descr, ErrStat, ErrMsg )
 
@@ -1298,20 +1115,14 @@ CONTAINS
    CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
-      ! Local declarations.
+   ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3) , STAT=ErrStat )
 
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-
-
-
-   ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3) , STAT=Sttus )
-
-   IF ( Sttus /= 0 ) THEN
+   IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
       IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
-         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*AryDim3*BYTES_IN_REAL))//&
+         ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*AryDim3*BYTES_IN_REAL))//&
                   ' bytes of memory for the '//TRIM( Descr )//' array.'
       END IF
    ELSE
@@ -1319,10 +1130,8 @@ CONTAINS
       ErrMsg  = ''
    END IF
 
-
-
    RETURN
-   END SUBROUTINE AllRAry3 ! (  Ary, AryDim1, AryDim2, AryDim3, Descr [, ErrStat] [, ErrMsg] )
+   END SUBROUTINE AllRAry3
 !=======================================================================
    SUBROUTINE AllRAry4 (  Ary, AryDim1, AryDim2, AryDim3, AryDim4, Descr, ErrStat, ErrMsg )
 
@@ -1343,20 +1152,14 @@ CONTAINS
    CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
-      ! Local declarations.
+   ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3,AryDim4) , STAT=ErrStat )
 
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-
-
-
-   ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3,AryDim4) , STAT=Sttus )
-
-   IF ( Sttus /= 0 ) THEN
+   IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
       IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
-         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*AryDim3*AryDim4*BYTES_IN_REAL))//&
+         ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*AryDim3*AryDim4*BYTES_IN_REAL))//&
                   ' bytes of memory for the '//TRIM( Descr )//' array.'
       END IF
    ELSE
@@ -1364,11 +1167,8 @@ CONTAINS
       ErrMsg  = ''
    END IF
 
-
-
-
    RETURN
-   END SUBROUTINE AllRAry4 ! (  Ary, AryDim1, AryDim2, AryDim3, AryDim4, Descr [, ErrStat] [, ErrMsg] )
+   END SUBROUTINE AllRAry4
 !=======================================================================
    SUBROUTINE AllRAry5 (  Ary, AryDim1, AryDim2, AryDim3, AryDim4, AryDim5, Descr, ErrStat, ErrMsg )
 
@@ -1390,20 +1190,14 @@ CONTAINS
    CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
-      ! Local declarations.
+   ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3,AryDim4,AryDim5) , STAT=ErrStat )
 
-   INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-
-
-
-   ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3,AryDim4,AryDim5) , STAT=Sttus )
-
-   IF ( Sttus /= 0 ) THEN
+   IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
       IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
-         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
+         ErrMsg = 'Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*AryDim3*AryDim4*AryDim5*BYTES_IN_REAL))//&
+         ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*AryDim3*AryDim4*AryDim5*BYTES_IN_REAL))//&
                   ' bytes of memory for the '//TRIM( Descr )//' array.'
       END IF
    ELSE
@@ -1414,7 +1208,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE AllRAry5 ! (  Ary, AryDim1, AryDim2, AryDim3, AryDim4, AryDim5, Descr [, ErrStat] [, ErrMsg] )
+   END SUBROUTINE AllRAry5
 !=======================================================================
    SUBROUTINE CheckArgs ( InputFile, ErrStat, Arg2, Flag )
 
@@ -1645,22 +1439,22 @@ CONTAINS
 
    IF ( IOS /= 0 )  THEN
       ErrStat = ErrID_Fatal
-      ErrMsg = ' The real-format specifier, '//TRIM(RealFmtVar)//', is invalid.  You set it to "'//TRIM( RealFmt )//'".'
+      ErrMsg = 'The real-format specifier, '//TRIM(RealFmtVar)//', is invalid.  You set it to "'//TRIM( RealFmt )//'".'
       FmtWidth = 0
    ELSEIF ( INDEX( RealStr, '*' ) > 0 )  THEN
       ErrStat = ErrID_Severe
-      ErrMsg = ' The real-format specifier, '//TRIM(RealFmtVar)//', is too narrow to print even '//TRIM(Num2LStr(TestVal)) &
-             //'.  You set it to "'//TRIM( RealFmt )//'".'
+      ErrMsg = 'The real-format specifier, '//TRIM(RealFmtVar)//', is too narrow to print even '//TRIM(Num2LStr(TestVal)) &
+             //'. You set it to "'//TRIM( RealFmt )//'".'
    ELSE
       ErrStat = ErrID_None
-      ErrMsg = ' I put this in here just to be silly.  Will it still be here in 100 years? - MLB, 07-January-2013'
+      ErrMsg = ""
    ENDIF
 
 
    RETURN
-   END SUBROUTINE ChkRealFmtStr ! ( RealFmt, TrapErrors )
+   END SUBROUTINE ChkRealFmtStr
 !=======================================================================
-   SUBROUTINE CheckIOS ( IOS, Fil, Variable, VarType, TrapErrors, ErrMsg )
+   SUBROUTINE CheckIOS ( IOS, Fil, Variable, VarType, ErrStat, ErrMsg, TrapErrors )
 
 
       ! This routine checks the I/O status and prints either an end-of-file or
@@ -1674,11 +1468,12 @@ CONTAINS
    CHARACTER(*),INTENT(IN)           :: Variable                              ! Variable name
    INTEGER,     INTENT(IN)           :: VarType                               ! Type of variable
    LOGICAL,     INTENT(IN), OPTIONAL :: TrapErrors                            ! Determines if the program should abort or return to calling function
+   INTEGER,     INTENT(OUT),OPTIONAL :: ErrStat                               ! Error status
    CHARACTER(*),INTENT(OUT),OPTIONAL :: ErrMsg                                ! Error message (if present, no message is written to the screen)
 
       ! local variables
    LOGICAL                           :: TrapThisError                         ! The local version of TrapErrors
-   CHARACTER(1024)                   :: Msg                                   ! Temporary error message
+   CHARACTER(ErrMsgLen)              :: Msg                                   ! Temporary error message
 
 
 
@@ -1693,6 +1488,7 @@ CONTAINS
 
       Msg = 'Premature EOF for file "'//TRIM( Fil )//'" occurred while trying to read '//TRIM( Variable )//'.'
 
+      IF ( PRESENT(ErrStat) ) ErrStat = ErrID_Fatal
       IF ( PRESENT(ErrMsg) ) THEN
          ErrMsg = Msg
       ELSE
@@ -1715,6 +1511,8 @@ CONTAINS
       ENDSELECT
       Msg = TRIM(Msg)//' for file "'//TRIM( Fil )//'" occurred while trying to read '//TRIM( Variable )//'.'
 
+      IF ( PRESENT(ErrStat) ) ErrStat = ErrID_Fatal
+      
       IF ( PRESENT(ErrMsg) ) THEN
          ErrMsg = Msg
       ELSE
@@ -1724,13 +1522,14 @@ CONTAINS
 
    ELSE
 
+      IF ( PRESENT(ErrStat) ) ErrStat = ErrID_None
       IF ( PRESENT(ErrMsg) ) ErrMsg = ""
 
    END IF
 
 
    RETURN
-   END SUBROUTINE CheckIOS ! ( IOS, Fil, Variable, VarType [, TrapErrors] [, ErrMsg] ) )
+   END SUBROUTINE CheckIOS
 !=======================================================================
    SUBROUTINE Conv2UC ( Str )
 
@@ -1761,7 +1560,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE Conv2UC !  ( Str )
+   END SUBROUTINE Conv2UC
 !=======================================================================
    FUNCTION CountWords ( Line )
 
@@ -1820,7 +1619,7 @@ CONTAINS
 
 
    RETURN
-   END FUNCTION CountWords ! ( Line )
+   END FUNCTION CountWords
 !=======================================================================
    FUNCTION CurDate( )
 
@@ -1885,7 +1684,7 @@ CONTAINS
 
 
    RETURN
-   END FUNCTION CurDate ! ()
+   END FUNCTION CurDate
 !=======================================================================
    FUNCTION CurTime( )
 
@@ -1910,14 +1709,14 @@ CONTAINS
 
 
    RETURN
-   END FUNCTION CurTime ! ()
+   END FUNCTION CurTime
 !=======================================================================
    SUBROUTINE DispCopyrightLicense( ProgInfo, AdditionalComment )
 
       ! This routine displays some text about copyright and license.
 
    TYPE( ProgDesc ), INTENT(IN)           :: ProgInfo    ! Contains the name and version info
-   CHARACTER(*),     INTENT(IN), optional :: AdditionalComment
+   CHARACTER(*),     INTENT(IN), OPTIONAL :: AdditionalComment
 
       ! local variable
    INTEGER(IntKi)         :: DateLen   ! the trim length of the ProgInfo date field
@@ -2011,7 +1810,6 @@ CONTAINS
       
       
    END SUBROUTINE DLLTypePack
-   
 !=======================================================================
    SUBROUTINE DLLTypeUnPack( OutData, ReKiBuf, DbKiBuf, IntKiBuf, ErrStat, ErrMsg )
    
@@ -2089,7 +1887,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE DispNVD1 ! ( ProgInfo )
+   END SUBROUTINE DispNVD1
 !=======================================================================
    SUBROUTINE DispNVD2 ( Name, Ver )
 
@@ -2108,7 +1906,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE DispNVD2 !  ( Name, Ver )
+   END SUBROUTINE DispNVD2
 !=======================================================================
    SUBROUTINE FindLine ( Str , MaxLen , StrEnd )
 
@@ -2157,7 +1955,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE FindLine ! ( Str , MaxLen , StrEnd )
+   END SUBROUTINE FindLine
 !=======================================================================
    SUBROUTINE GetNewUnit ( UnIn, ErrStat, ErrMsg )
 
@@ -2177,7 +1975,7 @@ CONTAINS
    LOGICAL                                :: Opened                                       ! Flag indicating whether or not a file is opened.
    INTEGER(IntKi), PARAMETER              :: StartUnit = 10                               ! Starting unit number to check (numbers less than 10 reserved)
    INTEGER(IntKi), PARAMETER              :: MaxUnit   = 99                               ! The maximum unit number available (or 10 less than the number of files you want to have open at a time)
-   CHARACTER(300)                         :: Msg                                          ! Temporary error message
+   CHARACTER(ErrMsgLen)                   :: Msg                                          ! Temporary error message
 
 
       ! Initialize subroutine outputs
@@ -2218,7 +2016,7 @@ CONTAINS
    UnIn = Un
 
    RETURN
-   END SUBROUTINE GetNewUnit !  ( UnIn [, ErrStat] [, ErrMsg] )
+   END SUBROUTINE GetNewUnit
 !=======================================================================
    FUNCTION GetErrStr  ( ErrID )
 
@@ -2269,7 +2067,7 @@ CONTAINS
 
       GetNVD = TRIM( ProgInfo%Name )//' ('//Trim( ProgInfo%Ver )//', '//Trim( ProgInfo%Date )//')'
 
-   END FUNCTION GetNVD ! ( ProgInfo )
+   END FUNCTION GetNVD
 !=======================================================================
    SUBROUTINE GetPath ( GivenFil, PathName )
 
@@ -2303,7 +2101,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE GetPath ! ( GivenFil, PathName )
+   END SUBROUTINE GetPath
 !=======================================================================
    SUBROUTINE GetRoot ( GivenFil, RootName )
 
@@ -2363,7 +2161,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE GetRoot ! ( GivenFil, RootName )
+   END SUBROUTINE GetRoot
 !=======================================================================
    SUBROUTINE GetTokens ( Line, NumTok, Tokens, Error )
 
@@ -2379,13 +2177,13 @@ CONTAINS
    LOGICAL, INTENT(OUT)         :: Error                                        ! Error flag to indicate an insuffient number of tokens were found.
 
    CHARACTER(*), INTENT(INOUT)  :: Line                                         ! The string to search.
-   CHARACTER(*), INTENT(OUT)    :: Tokens  (NumTok)                             ! The tokens that were found.
+   CHARACTER(*), INTENT(OUT)    :: Tokens  (:)                                  ! The tokens that were found.
 
 
       ! Local declarations.
 
-   INTEGER                      :: IT                                           ! Token index.
-   INTEGER                      :: NextBlank                                    ! The location of the next blank character.
+   INTEGER                      :: IT                                           ! Token index
+   INTEGER                      :: NextBlank                                    ! The location of the next blank character
 
 
 
@@ -2396,7 +2194,7 @@ CONTAINS
       Line      = ADJUSTL( Line(NextBlank+1:) )
       NextBlank = INDEX  ( Line , ' ' )
 
-      IF ( NextBlank == 0 )  THEN
+      IF ( NextBlank == 0 .OR. IT > SIZE(Tokens) )  THEN
         Error = .TRUE.
         RETURN
       END IF
@@ -2409,7 +2207,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE GetTokens ! ( Line, NumTok, Tokens, Error )
+   END SUBROUTINE GetTokens
 !=======================================================================
    SUBROUTINE GetWords ( Line, Words, NumWords )
 
@@ -2480,93 +2278,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE GetWords ! ( Line, Words, NumWords )
-!=======================================================================
-   SUBROUTINE InitInpErrs ( InputErrors, MaxErrs, ErrStat, ErrMsg )
-
-      ! This subroutine parses the specified line of text for AryLen REAL values.
-      ! Generate an error message if the value is the wrong type.
-
-
-         ! Arguments declarations.
-
-      INTEGER(IntKi), INTENT(OUT)            :: ErrStat                       ! The error status.
-      INTEGER(IntKi), INTENT(IN)             :: MaxErrs                       ! The maximum number of errors allowed.
-
-      CHARACTER(*),   INTENT(OUT)            :: ErrMsg                        ! The error message, if ErrStat /= 0.
-
-      TYPE (InpErrsType)                     :: InputErrors                   ! The derived type for holding the input errors.
-
-
-         ! Local declarations.
-
-      INTEGER(IntKi)                         :: ErrStatLcl                    ! Error status local to this routine.
-
-
-
-         ! Set up the error-messages structure for invalid entries.
-
-      InputErrors%MaxErrs = MaxErrs
-      InputErrors%NumErrs = 0
-
-      ALLOCATE ( InputErrors%FileLine( MaxErrs ), STAT=ErrStatLcl )
-      IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error allocating memory for the InputErrors%FileLine array in InitInpErrs.' )
-         RETURN
-      ENDIF
-
-      ALLOCATE ( InputErrors%ErrMsgs( MaxErrs ), STAT=ErrStatLcl )
-      IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error allocating memory for the InputErrors%ErrMsgs array in InitInpErrs.' )
-         RETURN
-      ENDIF
-
-      ALLOCATE ( InputErrors%FileList( MaxErrs ), STAT=ErrStatLcl )
-      IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error allocating memory for the InputErrors%FileList array in InitInpErrs.' )
-         RETURN
-      ENDIF
-
-      CALL ExitThisRoutine ( ErrID_None, ' ' )
-
-
-      RETURN
-
-   !=======================================================================
-   CONTAINS
-   !=======================================================================
-      SUBROUTINE ExitThisRoutine ( ErrID, Msg )
-
-         ! This subroutine cleans up the parent routine before exiting.
-
-
-            ! Argument declarations.
-
-         INTEGER(IntKi), INTENT(IN)       :: ErrID                            ! The error identifier (ErrLev)
-
-         CHARACTER(*),   INTENT(IN)       :: Msg                              ! The error message (ErrMsg)
-
-
-
-            ! Set error status/message
-
-         ErrStat = ErrID
-         ErrMsg  = Msg
-
-
-            ! If there is an error, deallocate the arrays that had been allocated.
-         IF ( ErrID /= 0 )  THEN
-            IF ( ALLOCATED( InputErrors%FileLine ) ) DEALLOCATE( InputErrors%FileLine )
-            IF ( ALLOCATED( InputErrors%ErrMsgs  ) ) DEALLOCATE( InputErrors%ErrMsgs  )
-            IF ( ALLOCATED( InputErrors%FileList ) ) DEALLOCATE( InputErrors%FileList )
-         ENDIF ! ( ErrID /= 0 )
-
-
-         RETURN
-
-      END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
-
-   END SUBROUTINE InitInpErrs ! ( InputErrors, ErrStat, ErrMsg )
+   END SUBROUTINE GetWords
 !=======================================================================
    SUBROUTINE IntAry2Str( IntAry, Str, ErrStat, ErrMsg )
    
@@ -2598,7 +2310,7 @@ CONTAINS
          ! Determine if the string will fit in the integer array:
       IF ( LAry > LStr ) THEN
          ErrStat = ErrID_Warn
-         ErrMsg  = 'Array exceeds string size in Int2Char().'
+         ErrMsg  = 'Int2Char:Array exceeds string size.'
          LAry    = LStr  ! we'll only convert the string values up to the array length
       ELSE
          ErrStat = ErrID_None
@@ -2635,9 +2347,9 @@ CONTAINS
 
 
    RETURN
-   END FUNCTION Int2LStr ! ( Intgr )
+   END FUNCTION Int2LStr
 !=======================================================================
-   SUBROUTINE NameOFile ( InArg, OutExten, OutFile, ErrStat )
+   SUBROUTINE NameOFile ( InArg, OutExten, OutFile, ErrStat, ErrMsg )
 
 
       ! Get the name of the input file from the InArgth command-line argument.
@@ -2646,11 +2358,12 @@ CONTAINS
 
       ! Argument declarations.
 
-   INTEGER, INTENT(OUT), OPTIONAL :: ErrStat                                     ! Error status; if present, program does not abort on error
+   INTEGER, INTENT(OUT)         :: ErrStat                                      ! Error status; if present, program does not abort on error
    INTEGER, INTENT(IN)          :: InArg                                        ! The number of the command-line argument that should hold the input file name.
 
    CHARACTER(*), INTENT(IN)     :: OutExten                                     ! The requested extension for the output file.
    CHARACTER(*), INTENT(OUT)    :: OutFile                                      ! The name of the output file.
+   CHARACTER(*), INTENT(OUT)    :: ErrMsg                                       ! Description of error
 
 
       ! Local declarations.
@@ -2663,10 +2376,13 @@ CONTAINS
       ! See if the command line has enough arguments.
 
    IF ( InArg > COMMAND_ARGUMENT_COUNT() )  THEN
-      CALL ProgAbort ( 'Insufficient arguments on the command line (at least '//&
-                         TRIM( Int2LStr( InArg ) )//' were expected).', PRESENT(ErrStat) )
-      IF ( PRESENT( ErrStat ) ) ErrStat = 1
+      ErrStat = ErrID_Fatal
+      ErrMsg = 'NameOFile:Insufficient arguments on the command line (at least '//&
+                         TRIM( Int2LStr( InArg ) )//' were expected).'
       RETURN
+   ELSE
+      ErrStat = ErrID_None
+      ErrMsg = ''      
    END IF
 
 
@@ -2677,10 +2393,9 @@ CONTAINS
 
    OutFile = TRIM( RootName )//'.'//OutExten
 
-   IF ( PRESENT( ErrStat ) ) ErrStat = 0
 
    RETURN
-   END SUBROUTINE NameOFile ! ( InArg, OutExten, OutFile [, ErrStat])
+   END SUBROUTINE NameOFile
 !=======================================================================
    SUBROUTINE NormStop
 
@@ -2761,7 +2476,7 @@ CONTAINS
 
    IF ( .NOT. Exists )  THEN
       ErrStat = ErrID_Fatal
-      ErrMsg  = ' The input file, "'//TRIM( InFile )//'", was not found.'
+      ErrMsg  = 'OpenBInpFile:The input file, "'//TRIM( InFile )//'", was not found.'
       RETURN
    END IF
 
@@ -2771,12 +2486,11 @@ CONTAINS
 
    IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
-      ErrMsg  = ' Cannot open file "'//TRIM( InFile )//'" for reading. Another program may have locked.'
+      ErrMsg  = 'OpenBInpFile:Cannot open file "'//TRIM( InFile )//'" for reading. Another program may have locked it.'
    ELSE
       ErrStat = ErrID_None
       ErrMsg  = ''
    END IF
-
 
 
    RETURN
@@ -2802,9 +2516,9 @@ CONTAINS
    OPEN( Un, FILE=TRIM( OutFile ), STATUS='UNKNOWN', FORM='UNFORMATTED' , ACCESS='STREAM', IOSTAT=ErrStat, ACTION='WRITE' )
 
    IF ( ErrStat /= 0 ) THEN
-      ErrMsg  = ' Cannot open file "'//TRIM( OutFile )//'". Another program may have locked it for writing.' &
-                //' (IOSTAT is '//TRIM(Num2LStr(ErrStat))//')'
       ErrStat = ErrID_Fatal
+      ErrMsg  = 'OpenBOutFile:Cannot open file "'//TRIM( OutFile )//'". Another program may have locked it for writing.' &
+                //' (IOSTAT is '//TRIM(Num2LStr(ErrStat))//')'
    ELSE
       ErrStat = ErrID_None
       ErrMsg  = ''
@@ -2813,7 +2527,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE OpenBOutFile ! ( Un, OutFile, ErrStat, ErrMsg )
+   END SUBROUTINE OpenBOutFile
 !=======================================================================
    SUBROUTINE OpenEcho ( Un, OutFile, ErrStat, ErrMsg, ProgVer )
 
@@ -2835,7 +2549,7 @@ CONTAINS
 
    INTEGER(IntKi)                        :: ErrStat2                                   ! Temporary Error status
    CHARACTER(ErrMsgLen)                  :: ErrMsg2                                    ! Temporary Error message
-
+   CHARACTER(*),PARAMETER                :: RoutineName = 'OpenEcho'
 
    ErrStat = ErrID_None
    ErrMsg  = ''
@@ -2844,22 +2558,16 @@ CONTAINS
       ! Get a unit number for the echo file:
 
    IF ( Un < 0 ) THEN
-      CALL GetNewUnit( Un, ErrStat, ErrMsg )
-      IF ( ErrStat >= AbortErrLev ) THEN
-         ErrMsg = ' Error opening echo file: '//TRIM(ErrMsg)
-         RETURN
-      END IF
+      CALL GetNewUnit( Un, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2,ErrStat, ErrMsg, RoutineName )
    END IF
 
 
       ! Open the file for writing:
 
    CALL OpenFOutFile( Un, OutFile, ErrStat2, ErrMsg2 )
-   IF ( ErrStat2 /= ErrID_None) THEN
-      ErrStat = MAX(ErrStat, ErrStat2)
-      ErrMsg = TRIM(ErrMsg)//TRIM(ErrMsg2)
+      CALL SetErrStat(ErrStat2, ErrMsg2,ErrStat, ErrMsg, RoutineName )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   END IF
 
 
       ! Write a heading line to the file
@@ -2870,16 +2578,14 @@ CONTAINS
                             ' on '//CurDate()//' at '//CurTime()//'.'
 
       IF ( ErrStat2 /= 0 ) THEN
-         ErrStat = MAX(ErrStat, ErrID_Info)
-         ErrMsg = TRIM(ErrMsg)//" OpenEcho() Could not write header information to the file."
-         IF ( ErrStat >= AbortErrLev ) RETURN
+         CALL SetErrStat(ErrID_Info, 'Could not write header information to the file.', ErrStat, ErrMsg, RoutineName )
       END IF
 
    END IF
 
 
    RETURN
-   END SUBROUTINE OpenEcho ! ( Un, OutFile [, ErrStat] [, ErrMsg] [, ProgVer]  )
+   END SUBROUTINE OpenEcho
 !=======================================================================
    SUBROUTINE OpenFInpFile ( Un, InFile, ErrStat, ErrMsg )
 
@@ -2891,8 +2597,8 @@ CONTAINS
 
    INTEGER,        INTENT(IN)          :: Un                                           ! Logical unit for the input file.
    CHARACTER(*),   INTENT(IN)          :: InFile                                       ! Name of the input file.
-   INTEGER(IntKi), INTENT(OUT),OPTIONAL:: ErrStat                                      ! Error status; if present, program does not abort on error
-   CHARACTER(*),   INTENT(OUT),OPTIONAL:: ErrMsg                                       ! Error message
+   INTEGER(IntKi), INTENT(OUT)         :: ErrStat                                      ! Error status
+   CHARACTER(*),   INTENT(OUT)         :: ErrMsg                                       ! Error message
 
 
       ! Local declarations.
@@ -2900,24 +2606,18 @@ CONTAINS
    INTEGER                      :: IOS                                                 ! I/O status of OPEN.
 
    LOGICAL                      :: Exists                                              ! Flag indicating whether or not a file Exists.
-   CHARACTER(1024)              :: Msg                                                 ! Temporary error message
-
+   CHARACTER(*), PARAMETER      :: RoutineName = 'OpenFInpFile'
+   
+   
+   ErrStat = ErrID_None
+   ErrMsg  = ""
 
       ! See if input file Exists.
 
    INQUIRE ( FILE=TRIM( InFile ) , EXIST=Exists )
 
    IF ( .NOT. Exists )  THEN
-
-      Msg = 'The input file, "'//TRIM( InFile )//'", was not found.'
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = ErrID_Fatal
-         IF ( PRESENT(ErrMsg) ) ErrMsg = Msg
-      ELSE
-         CALL ProgAbort ( ' '//TRIM(Msg) )
-      END IF
-
+      CALL SetErrStat( ErrID_Fatal, 'The input file, "'//TRIM( InFile )//'", was not found.', ErrStat, ErrMsg, RoutineName)
    ELSE
 
       ! Open input file.  Make sure it worked.
@@ -2926,27 +2626,15 @@ CONTAINS
 
       IF ( IOS /= 0 )  THEN
 
-         Msg = 'Cannot open file "'//TRIM( InFile )//'". Another program like MS Excel may have locked it for writing.'
-
-         IF ( PRESENT(ErrStat) ) THEN
-            ErrStat = ErrID_Fatal
-            IF ( PRESENT(ErrMsg) ) ErrMsg = Msg
-         ELSE
-            CALL ProgAbort ( ' '//TRIM(Msg) )
-         END IF
-
-      ELSE
-
-         IF ( PRESENT(ErrStat) ) ErrStat = ErrID_None
-         IF ( PRESENT(ErrMsg ) ) ErrMsg  = ""
-
+         CALL SetErrStat( ErrID_Fatal, 'Cannot open file "'//TRIM( InFile )//&
+              '". Another program like MS Excel may have locked it for writing.', ErrStat,ErrMsg,RoutineName)
       END IF
 
    END IF
 
 
    RETURN
-   END SUBROUTINE OpenFInpFile ! ( Un, InFile [, ErrStat] [, ErrMsg] )
+   END SUBROUTINE OpenFInpFile
 !=======================================================================
    SUBROUTINE OpenFOutFile ( Un, OutFile, ErrStat, ErrMsg )
 
@@ -2959,46 +2647,34 @@ CONTAINS
    INTEGER, INTENT(IN)                   :: Un                                          ! Logical unit for the output file.
    CHARACTER(*), INTENT(IN)              :: OutFile                                     ! Name of the output file.
 
-   INTEGER(IntKi), INTENT(OUT), OPTIONAL :: ErrStat                                     ! Error status; if present, program does not abort on error
-   CHARACTER(*),   INTENT(OUT), OPTIONAL :: ErrMsg                                      ! Error message
+   INTEGER(IntKi), INTENT(OUT)           :: ErrStat                                     ! Error status
+   CHARACTER(*),   INTENT(OUT)           :: ErrMsg                                      ! Error message
 
 
 
       ! Local declarations.
 
    INTEGER                                :: IOS                                         ! I/O status of OPEN
-   CHARACTER(1024)                        :: Msg                                         ! Temporary error message
+   CHARACTER(*), PARAMETER                :: RoutineName = 'OpenFOutFile'
 
-
+   
       ! Open output file.  Make sure it worked.
 
    OPEN( Un, FILE=TRIM( OutFile ), STATUS='UNKNOWN', FORM='FORMATTED', IOSTAT=IOS, ACTION="WRITE" )
 
 
    IF ( IOS /= 0 )  THEN
-
-      Msg = 'Cannot open file "'//TRIM( OutFile )//'".  Another program like MS Excel may have locked it for writing.'
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = ErrID_Fatal
-         IF ( PRESENT(ErrMsg)  )  then
-            ErrMsg  = Msg
-         ELSE
-            CALL WrScr( ' OpenFOutFile:'//TRIM(Msg) )
-         END IF
-         
-      ELSE
-         CALL ProgAbort( ' '//Msg )
-      END IF
-
+      ErrStat = ErrID_Fatal
+      ErrMsg  = 'OpenFOutFile:Cannot open file "'//TRIM( OutFile )//&
+         '". Another program like MS Excel may have locked it for writing.'
    ELSE
-      IF ( PRESENT(ErrStat) )  ErrStat = ErrID_None
-      IF ( PRESENT(ErrMsg)  )  ErrMsg  = ""
+      ErrStat = ErrID_None
+      ErrMsg  = ""      
    END IF
 
 
    RETURN
-   END SUBROUTINE OpenFOutFile ! ( Un, OutFile [, ErrStat] [, ErrMsg] )
+   END SUBROUTINE OpenFOutFile
 !=======================================================================
    SUBROUTINE OpenFUnkFile ( Un, OutFile, FailAbt, Failed, Exists, ErrStat, ErrMsg )
 
@@ -3027,9 +2703,7 @@ CONTAINS
 
       ! Check to see if the file already exists.
 
-   INQUIRE ( FILE=TRIM( OutFile ) , EXIST=Exists )
-
-!bjj: should we be checking something here?
+   INQUIRE ( FILE=TRIM( OutFile ) , EXIST=Exists )   
 
 
       ! Open output file.  Make sure it worked.
@@ -3040,7 +2714,7 @@ CONTAINS
    IF ( IOS /= 0 )  THEN
       Failed = .TRUE.
       ErrStat = ErrID_Fatal
-      ErrMsg = ' Cannot open file "'//TRIM( OutFile )//'".  Another program like MS Excel may have locked it for writing.'
+      ErrMsg = 'OpenFUnkFile:Cannot open file "'//TRIM( OutFile )//'".  Another program like MS Excel may have locked it for writing.'
       IF ( FailAbt )  CALL ProgAbort ( TRIM(ErrMsg) )
    ELSE
       Failed = .FALSE.
@@ -3050,7 +2724,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE OpenFUnkFile ! ( Un, OutFile, FailAbt, Failed, Exists, ErrStat, ErrMsg )
+   END SUBROUTINE OpenFUnkFile
 !=======================================================================
    SUBROUTINE OpenUInBEFile( Un, InFile, RecLen, ErrStat, ErrMsg )
 
@@ -3080,7 +2754,7 @@ CONTAINS
 
    IF ( .NOT. Exists )  THEN
       ErrStat = ErrID_Fatal
-      ErrMsg = ' The input file, "'//TRIM( InFile )//'", was not found.'
+      ErrMsg = 'OpenUInBEFile:The input file, "'//TRIM( InFile )//'", was not found.'
       RETURN
    END IF
 
@@ -3091,7 +2765,7 @@ CONTAINS
 
    IF ( Error )  THEN
       ErrStat = ErrID_Fatal
-      ErrMsg = ' Cannot open file "'//TRIM( InFile )//'".  Another program may have locked it.'
+      ErrMsg = 'OpenUInBEFile:Cannot open file "'//TRIM( InFile )//'".  Another program may have locked it.'
       RETURN
    ELSE
       ErrStat = ErrID_None
@@ -3101,7 +2775,7 @@ CONTAINS
 
    RETURN
 
-   END SUBROUTINE OpenUInBEFile !( Un, InFile, RecLen, ErrStat, ErrMsg )
+   END SUBROUTINE OpenUInBEFile
 !=======================================================================
    SUBROUTINE OpenUInfile ( Un, InFile, ErrStat, ErrMsg )
 
@@ -3132,7 +2806,7 @@ CONTAINS
 
    IF ( .NOT. Exists )  THEN
       ErrStat = ErrID_Fatal
-      ErrMsg = ' The input file, "'//TRIM( InFile )//'", was not found.'
+      ErrMsg = 'OpenUInfile:The input file, "'//TRIM( InFile )//'", was not found.'
       RETURN
    END IF
 
@@ -3143,7 +2817,7 @@ CONTAINS
 
    IF ( IOS /= 0 )  THEN
       ErrStat = ErrID_Fatal
-      ErrMsg  = ' Cannot open file "'//TRIM( InFile )//'".  Another program may have locked it.'
+      ErrMsg  = 'OpenUInfile:Cannot open file "'//TRIM( InFile )//'". Another program may have locked it.'
    ELSE
       ErrStat = ErrID_None
       ErrMsg  = ''
@@ -3151,7 +2825,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE OpenUInfile ! ( Un, InFile, ErrStat, ErrMsg )
+   END SUBROUTINE OpenUInfile
 !=======================================================================
    SUBROUTINE OpenUOutfile ( Un, OutFile, ErrStat, ErrMsg )
 
@@ -3180,7 +2854,7 @@ CONTAINS
 
    IF ( IOS /= 0 )  THEN
       ErrStat = ErrID_Fatal
-      ErrMsg  = ' Cannot open file "'//TRIM( OutFile )//'".  Another program may have locked it for writing.'
+      ErrMsg  = 'OpenUOutfile:Cannot open file "'//TRIM( OutFile )//'".  Another program may have locked it for writing.'
    ELSE
       ErrStat = ErrID_None
       ErrMsg  = ''
@@ -3188,7 +2862,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE OpenUOutfile ! ( Un, InFile [,ErrStat] )
+   END SUBROUTINE OpenUOutfile
 !=======================================================================
    SUBROUTINE ParseChVar ( FileInfo, LineNum, ExpVarName, ChVar, ErrStat, ErrMsg, UnEc )
 
@@ -3211,7 +2885,7 @@ CONTAINS
       CHARACTER(*),   INTENT(OUT)            :: ErrMsg                        ! The error message, if ErrStat /= 0.
       CHARACTER(*),   INTENT(IN)             :: ExpVarName                    ! The expected variable name.
 
-      TYPE (FileInfoType)                    :: FileInfo                      ! The derived type for holding the file information.
+      TYPE (FileInfoType), INTENT(IN)        :: FileInfo                      ! The derived type for holding the file information.
 
 
          ! Local declarations.
@@ -3220,33 +2894,31 @@ CONTAINS
       INTEGER(IntKi)                         :: NameIndx                      ! The index into the Words array that points to the variable name.
 
       CHARACTER(20)                          :: Words       (2)               ! The two "words" parsed from the line.
+      CHARACTER(ErrMsgLen)                   :: ErrMsg2
+      CHARACTER(*), PARAMETER                :: RoutineName = 'ParseChVar'
 
+      
+      ErrStat=ErrID_None
+      ErrMsg = ""
 
-
+      !' >> The text being parsed was :'//NewLine//'    "'//TRIM( FileInfo%Lines(LineNum) )//'
+      
       CALL GetWords ( FileInfo%Lines(LineNum), Words, 2 )                     ! Read the first two words in Line.
       IF ( Words(2) == '' )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, NewLine//' >> A fatal error occurred when parsing data from "' &
+         CALL SetErrStat ( ErrID_Fatal, 'A fatal error occurred when parsing data from "' &
                    //TRIM( FileInfo%FileList(FileInfo%FileIndx(LineNum)) )//'".'//NewLine//  &
                    ' >> The variable "'//TRIM( ExpVarName )//'" was not assigned valid string value on line #' &
-                   //TRIM( Num2LStr( LineNum ) )//'.' )
+                   //TRIM( Num2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
+                   //'    "'//TRIM( FileInfo%Lines(LineNum) )//'"',ErrStat,ErrMsg,RoutineName )
          RETURN
       ENDIF
 
       CALL ChkParseData ( Words, ExpVarName, FileInfo%FileList(FileInfo%FileIndx(LineNum)) &
-                        , FileInfo%FileLine(LineNum), NameIndx, ErrStatLcl, ErrMsg )
-      IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, ErrMsg )
-         RETURN
-      ENDIF
-
+                        , FileInfo%FileLine(LineNum), NameIndx, ErrStatLcl, ErrMsg2 )
+      CALL SetErrStat(ErrStatLcl, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         IF (ErrStat >= AbortErrLev) RETURN
+         
       ChVar = Words(3-NameIndx)
-      IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, NewLine//' >> A fatal error occurred when parsing data from "' &
-                   //TRIM( FileInfo%FileList(FileInfo%FileIndx(LineNum)) )//'".'//NewLine//  &
-                   ' >> The variable "'//TRIM( ExpVarName )//'" was not assigned valid REAL value on line #' &
-                   //TRIM( Num2LStr( LineNum ) )//'.' )
-         RETURN
-      ENDIF
 
       IF ( PRESENT(UnEc) )  THEN
          IF ( UnEc > 0 )  WRITE (UnEc,'(1X,A15," = ",A20)')  Words
@@ -3254,42 +2926,8 @@ CONTAINS
 
       LineNum = LineNum + 1
 
-      CALL ExitThisRoutine ( ErrID_None, ' ' )
-
       RETURN
-
-   !=======================================================================
-   CONTAINS
-   !=======================================================================
-      SUBROUTINE ExitThisRoutine ( ErrID, Msg )
-
-         ! This subroutine cleans up the parent routine before exiting.
-
-
-            ! Argument declarations.
-
-         INTEGER(IntKi), INTENT(IN)       :: ErrID                            ! The error identifier (ErrLev)
-
-         CHARACTER(*),   INTENT(IN)       :: Msg                              ! The error message (ErrMsg)
-
-
-            ! Local declarations.
-
-         LOGICAL                          :: IsOpen                           ! A flag that indicates if the input unit is still open.
-
-
-            ! Set error status/message
-
-         ErrStat = ErrID
-         ErrMsg  = TRIM( Msg )//NewLine//' >> The text being parsed was :'//NewLine//'    "'//TRIM( FileInfo%Lines(LineNum) )//'"'
-
-
-
-         RETURN
-
-      END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
-
-   END SUBROUTINE ParseChVar ! ( FileInfo, LineNum, ExpVarName, ChVar, ErrStat, ErrMsg, UnEc )
+   END SUBROUTINE ParseChVar
 !=======================================================================
    SUBROUTINE ParseDbAry ( FileInfo, LineNum, AryName, DbAry, AryLen, ErrStat, ErrMsg, UnEc )
 
@@ -3311,7 +2949,7 @@ CONTAINS
       CHARACTER(*),   INTENT(In)             :: AryName                       ! The array name we are trying to fill.
       CHARACTER(*),   INTENT(OUT)            :: ErrMsg                        ! The error message, if ErrStat /= 0.
 
-      TYPE (FileInfoType)                    :: FileInfo                      ! The derived type for holding the file information.
+      TYPE (FileInfoType), INTENT(IN)        :: FileInfo                      ! The derived type for holding the file information.
 
 
          ! Local declarations.
@@ -3319,24 +2957,29 @@ CONTAINS
       INTEGER(IntKi)                         :: ErrStatLcl                    ! Error status local to this routine.
 
       CHARACTER(20), ALLOCATABLE             :: Words       (:)               ! The array "words" parsed from the line.
+      CHARACTER(*), PARAMETER                :: RoutineName = 'ParseDbAry'
 
 
-
+      ErrStat = ErrID_None
+      ErrMsg  = ""
+      
       ALLOCATE ( Words( AryLen ) , STAT=ErrStatLcl )
       IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, NewLine//' >> Fatal error allocating memory for the Words array in ParseDbAry.' )
+         CALL SetErrStat ( ErrID_Fatal, 'Fatal error allocating memory for the Words array.',ErrStat,ErrMsg,RoutineName )
+         CALL Cleanup()
          RETURN
       ENDIF
 
 
       READ (FileInfo%Lines(LineNum),*,IOSTAT=ErrStatLcl)  DbAry
       IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, NewLine//' >> A fatal error occurred when parsing data from "' &
+         CALL SetErrStat ( ErrID_Fatal, 'A fatal error occurred when parsing data from "' &
                    //TRIM( FileInfo%FileList(FileInfo%FileIndx(LineNum)) )//'".'//NewLine//  &
                    ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
                    //TRIM( Num2LStr( FileInfo%FileLine(LineNum) ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
-                   //'    "'//TRIM( FileInfo%Lines(LineNum) )//'"' )
+                   //'    "'//TRIM( FileInfo%Lines(LineNum) )//'"',ErrStat,ErrMsg,RoutineName )
          RETURN
+         CALL Cleanup()         
       ENDIF
 
       IF ( PRESENT(UnEc) )  THEN
@@ -3344,36 +2987,16 @@ CONTAINS
       END IF
 
       LineNum = LineNum + 1
-
-      CALL ExitThisRoutine ( ErrID_None, ' ' )
+      CALL Cleanup()
 
       RETURN
 
    !=======================================================================
    CONTAINS
    !=======================================================================
-      SUBROUTINE ExitThisRoutine ( ErrID, Msg )
+      SUBROUTINE Cleanup ( )
 
          ! This subroutine cleans up the parent routine before exiting.
-
-
-            ! Argument declarations.
-
-         INTEGER(IntKi), INTENT(IN)       :: ErrID                            ! The error identifier (ErrLev)
-
-         CHARACTER(*),   INTENT(IN)       :: Msg                              ! The error message (ErrMsg)
-
-
-            ! Local declarations.
-
-         LOGICAL                          :: IsOpen                           ! A flag that indicates if the input unit is still open.
-
-
-            ! Set error status/message
-
-         ErrStat = ErrID
-         ErrMsg  = Msg
-
 
             ! Deallocate the Words array if it had been allocated.
 
@@ -3382,9 +3005,9 @@ CONTAINS
 
          RETURN
 
-      END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
+      END SUBROUTINE Cleanup
 
-   END SUBROUTINE ParseDbAry ! ( FileInfo, LineNum, AryName, DbAry, AryLen, ErrStat, ErrMsg, UnEc )
+   END SUBROUTINE ParseDbAry
 !=======================================================================
    SUBROUTINE ParseDbVar ( FileInfo, LineNum, ExpVarName, DbVar, ErrStat, ErrMsg, UnEc )
 
@@ -3405,7 +3028,7 @@ CONTAINS
       CHARACTER(*),   INTENT(OUT)            :: ErrMsg                        ! The error message, if ErrStat /= 0.
       CHARACTER(*),   INTENT(IN)             :: ExpVarName                    ! The expected variable name.
 
-      TYPE (FileInfoType)                    :: FileInfo                      ! The derived type for holding the file information.
+      TYPE (FileInfoType), INTENT(IN)        :: FileInfo                      ! The derived type for holding the file information.
 
 
          ! Local declarations.
@@ -3414,24 +3037,28 @@ CONTAINS
       INTEGER(IntKi)                         :: NameIndx                      ! The index into the Words array that points to the variable name.
 
       CHARACTER(20)                          :: Words       (2)               ! The two "words" parsed from the line.
+      CHARACTER(ErrMsgLen)                   :: ErrMsg2
+      CHARACTER(*), PARAMETER                :: RoutineName = 'ParseDbVar'
 
 
+      ErrStat = ErrID_None
+      ErrMsg  = ""
 
       CALL GetWords ( FileInfo%Lines(LineNum), Words, 2 )                     ! Read the first two words in Line.
 
       CALL ChkParseData ( Words, ExpVarName, FileInfo%FileList(FileInfo%FileIndx(LineNum)) &
-                        , FileInfo%FileLine(LineNum), NameIndx, ErrStatLcl, ErrMsg )
-      IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, ErrMsg )
-         RETURN
-      ENDIF
+                        , FileInfo%FileLine(LineNum), NameIndx, ErrStatLcl, ErrMsg2 )
+         CALL SetErrStat(ErrStatLcl, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         IF ( ErrStat >= AbortErrLev )  RETURN
 
+      
       READ (Words(3-NameIndx),*,IOSTAT=ErrStatLcl)  DbVar
       IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, NewLine//' >> A fatal error occurred when parsing data from "' &
+         CALL SetErrStat ( ErrID_Fatal, NewLine//'A fatal error occurred when parsing data from "' &
                    //TRIM( FileInfo%FileList(FileInfo%FileIndx(LineNum)) )//'".'//NewLine//  &
                    ' >> The variable "'//TRIM( Words(NameIndx) )//'" was not assigned valid REAL value on line #' &
-                   //TRIM( Num2LStr( LineNum ) )//'.' )
+                   //TRIM( Num2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//&
+                   NewLine//'    "'//TRIM( FileInfo%Lines(LineNum) )//'"', ErrStat, ErrMsg, RoutineName)
          RETURN
       ENDIF
 
@@ -3441,42 +3068,8 @@ CONTAINS
 
       LineNum = LineNum + 1
 
-      CALL ExitThisRoutine ( ErrID_None, ' ' )
-
       RETURN
-
-   !=======================================================================
-   CONTAINS
-   !=======================================================================
-      SUBROUTINE ExitThisRoutine ( ErrID, Msg )
-
-         ! This subroutine cleans up the parent routine before exiting.
-
-
-            ! Argument declarations.
-
-         INTEGER(IntKi), INTENT(IN)       :: ErrID                            ! The error identifier (ErrLev)
-
-         CHARACTER(*),   INTENT(IN)       :: Msg                              ! The error message (ErrMsg)
-
-
-            ! Local declarations.
-
-         LOGICAL                          :: IsOpen                           ! A flag that indicates if the input unit is still open.
-
-
-            ! Set error status/message
-
-         ErrStat = ErrID
-         ErrMsg  = TRIM( Msg )//NewLine//' >> The text being parsed was :'//NewLine//'    "'//TRIM( FileInfo%Lines(LineNum) )//'"'
-
-
-
-         RETURN
-
-      END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
-
-   END SUBROUTINE ParseDbVar ! ( FileInfo, LineNum, ExpVarName, DbVar, ErrStat, ErrMsg )
+   END SUBROUTINE ParseDbVar
 !=======================================================================
    SUBROUTINE ParseInAry ( FileInfo, LineNum, AryName, InAry, AryLen, ErrStat, ErrMsg, UnEc )
 
@@ -3498,7 +3091,7 @@ CONTAINS
       CHARACTER(*),   INTENT(In)             :: AryName                       ! The array name we are trying to fill.
       CHARACTER(*),   INTENT(OUT)            :: ErrMsg                        ! The error message, if ErrStat /= 0.
 
-      TYPE (FileInfoType)                    :: FileInfo                      ! The derived type for holding the file information.
+      TYPE (FileInfoType), INTENT(IN)        :: FileInfo                      ! The derived type for holding the file information.
 
 
          ! Local declarations.
@@ -3506,23 +3099,28 @@ CONTAINS
       INTEGER(IntKi)                         :: ErrStatLcl                    ! Error status local to this routine.
 
       CHARACTER(20), ALLOCATABLE             :: Words       (:)               ! The array "words" parsed from the line.
+      CHARACTER(*), PARAMETER                :: RoutineName = 'ParseInAry'
 
+      ErrStat = ErrID_None
+      ErrMsg  = ""
 
 
       ALLOCATE ( Words( AryLen ) , STAT=ErrStatLcl )
       IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, NewLine//' >> Fatal error allocating memory for the Words array in ParseInAry.' )
+         CALL SetErrStat ( ErrID_Fatal, 'Fatal error allocating memory for the Words array.',ErrStat,ErrMsg,RoutineName )
+         CALL Cleanup()
          RETURN
       ENDIF
 
 
       READ (FileInfo%Lines(LineNum),*,IOSTAT=ErrStatLcl)  InAry
       IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, NewLine//' >> A fatal error occurred when parsing data from "' &
+         CALL SetErrStat ( ErrID_Fatal, 'A fatal error occurred when parsing data from "' &
                    //TRIM( FileInfo%FileList(FileInfo%FileIndx(LineNum)) )//'".'//NewLine//  &
                    ' >> The "'//TRIM( AryName )//'" array was not assigned valid INTEGER values on line #' &
                    //TRIM( Num2LStr( FileInfo%FileLine(LineNum) ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
-                   //'    "'//TRIM( FileInfo%Lines(LineNum) )//'"' )
+                   //'    "'//TRIM( FileInfo%Lines(LineNum) )//'"',ErrStat,ErrMsg,RoutineName )
+         CALL Cleanup()
          RETURN
       ENDIF
 
@@ -3532,35 +3130,16 @@ CONTAINS
 
       LineNum = LineNum + 1
 
-      CALL ExitThisRoutine ( ErrID_None, ' ' )
-
+      CALL Cleanup()
+      
       RETURN
 
    !=======================================================================
    CONTAINS
    !=======================================================================
-      SUBROUTINE ExitThisRoutine ( ErrID, Msg )
+      SUBROUTINE Cleanup ( )
 
          ! This subroutine cleans up the parent routine before exiting.
-
-
-            ! Argument declarations.
-
-         INTEGER(IntKi), INTENT(IN)       :: ErrID                            ! The error identifier (ErrLev)
-
-         CHARACTER(*),   INTENT(IN)       :: Msg                              ! The error message (ErrMsg)
-
-
-            ! Local declarations.
-
-         LOGICAL                          :: IsOpen                           ! A flag that indicates if the input unit is still open.
-
-
-            ! Set error status/message
-
-         ErrStat = ErrID
-         ErrMsg  = Msg
-
 
             ! Deallocate the Words array if it had been allocated.
 
@@ -3569,9 +3148,9 @@ CONTAINS
 
          RETURN
 
-      END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
+      END SUBROUTINE Cleanup
 
-   END SUBROUTINE ParseInAry ! ( FileInfo, LineNum, AryName, InAry, AryLen, ErrStat, ErrMsg, UnEc )
+   END SUBROUTINE ParseInAry
 !=======================================================================
    SUBROUTINE ParseInclInfo ( InclInfo, FileName, RangeBeg, RangeEnd, ErrStat, ErrMsg )
 
@@ -3599,8 +3178,10 @@ CONTAINS
 
       CHARACTER( 20)                         :: InclInfoUC                    ! InclInfo converted to upper case.
       CHARACTER(512)                         :: Words       (2)               ! The two "words" parsed from the line.
+      CHARACTER(*), PARAMETER                :: RoutineName = 'ParseInclInfo'
 
-
+      ErrStat = ErrID_None
+      ErrMsg  = ""
 
          ! Check for an integer at the beginning of the line.  If found, it is where
          ! we will start reading the included file.
@@ -3619,13 +3200,13 @@ CONTAINS
 
             READ (Words(1)(:DashLoc-1),*,IOSTAT=ErrStatLcl)  RangeBeg         ! Parse the first number as the beginning fo the range.
             IF ( ErrStatLcl /= 0 )  THEN
-               CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error for an incorrectly formatted include-file line range.' )
+               CALL SetErrStat(ErrID_Fatal,'Fatal error for an incorrectly formatted include-file line range.',ErrStat,ErrMsg,RoutineName)
                RETURN
             ENDIF ! ( ErrStatLcl /= 0 )
 
             READ (Words(1)(DashLoc+1:),*,IOSTAT=ErrStatLcl)  RangeEnd
             IF ( ErrStatLcl /= 0 )  THEN
-               CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error for an incorrectly formatted include-file line range.' )
+               CALL SetErrStat(ErrID_Fatal,'Fatal error for an incorrectly formatted include-file line range.',ErrStat,ErrMsg,RoutineName)
                RETURN
             ENDIF ! ( ErrStatLcl /= 0 )
 
@@ -3633,16 +3214,16 @@ CONTAINS
                ! Are the line numbers valid?
 
             IF ( RangeBeg <= 0 )  THEN
-               CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error for an incorrectly formatted include-file line range.'//NewLine &
-                                                //'    The start of the range must be > 0.' )
+               CALL SetErrStat(ErrID_Fatal,'Fatal error for an incorrectly formatted include-file line range.'//NewLine// &
+                  '    The start of the range must be > 0.',ErrStat,ErrMsg,RoutineName)
                RETURN
             ELSEIF ( RangeEnd < 0 )  THEN
-               CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error for an incorrectly formatted include-file line range.'//NewLine &
-                                                //'    The end of the range must be >= 0.' )
+               CALL SetErrStat(ErrID_Fatal,'Fatal error for an incorrectly formatted include-file line range.'//NewLine// &
+                  '    The end of the range must be >= 0.',ErrStat,ErrMsg,RoutineName)
                RETURN
             ELSEIF ( ( RangeEnd > 0 ) .AND. ( RangeEnd < RangeBeg ) )  THEN
-               CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error for an incorrectly formatted include-file line range.'//NewLine &
-                                                //'    The end of the range must be >= '//TRIM( Num2LStr( RangeBeg ) )//' or = 0.' )
+               CALL SetErrStat(ErrID_Fatal,'Fatal error for an incorrectly formatted include-file line range.'//NewLine// &
+                  '    The end of the range must be >= '//TRIM( Num2LStr( RangeBeg ) )//' or = 0.',ErrStat,ErrMsg,RoutineName)
                RETURN
             ENDIF ! ( ErrStatLcl /= 0 )
 
@@ -3650,9 +3231,8 @@ CONTAINS
 
             READ (Words(1),*,IOSTAT=ErrStatLcl)  RangeBeg
             IF ( ErrStatLcl /= 0 )  THEN                                      ! Was there a number after the "@"?  If so, assume it is the line to start reading.
-               ErrStat = ErrID_Fatal
-               CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error for an incorrectly formatted include-file line range.'//NewLine &
-                                                //'    The end of the range must be >= '//TRIM( Num2LStr( RangeBeg ) )//' or = 0.' )
+               CALL SetErrStat(ErrID_Fatal,'Fatal error for an incorrectly formatted include-file line range.'//NewLine// &
+                  '    The end of the range must be >= '//TRIM( Num2LStr( RangeBeg ) )//' or = 0.',ErrStat,ErrMsg,RoutineName)
                RETURN
             ELSE                                                              ! Number found.  Assume it is the line to start reading.
                RangeEnd = 0                                                   ! TEMP: Read entire file after the start line.
@@ -3675,48 +3255,16 @@ CONTAINS
          ! If the file name is quote delimited, we should be able to read it as a quoted string.  Otherwise, leave it as is.
 
       IF ( INDEX( FileName, '"' )+INDEX( FileName, "'" ) > 0 )  THEN
-         READ (FileName,*,IOSTAT=ErrStatLcl,IOMSG=ErrMsg)  FileName
+         READ (FileName,*,IOSTAT=ErrStatLcl)  FileName  !,IOMSG=ErrMsg2
          IF ( ErrStatLcl /= 0 )  THEN
-            CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error for an incorrectly formatted include-file name found.' )
+            CALL SetErrStat(ErrID_Fatal,'Fatal error for an incorrectly formatted include-file line range.',ErrStat,ErrMsg,RoutineName)
             RETURN
          ENDIF ! ( ErrStatLcl /= 0 )
       ENDIF ! ( INDEX( InclInfo, '"' )+INDEX( InclInfo, "'" ) > 0 )
 
-      CALL ExitThisRoutine( ErrID_None, ' ' )
-
       RETURN
 
-   !=======================================================================
-   CONTAINS
-   !=======================================================================
-      SUBROUTINE ExitThisRoutine ( ErrID, Msg )
-
-         ! This subroutine cleans up the parent routine before exiting.
-
-
-            ! Argument declarations.
-
-         INTEGER(IntKi), INTENT(IN)       :: ErrID                            ! The error identifier (ErrLev)
-
-         CHARACTER(*),   INTENT(IN)       :: Msg                              ! The error message (ErrMsg)
-
-
-            ! Local declarations.
-
-         LOGICAL                          :: IsOpen                           ! A flage that indicates if the input unit is still open.
-
-
-            ! Set error status/message
-
-         ErrStat = ErrID
-         ErrMsg  = Msg
-
-
-         RETURN
-
-      END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
-
-   END SUBROUTINE ParseInclInfo ! ( InclInfo, FileName, RangeBeg, RangeEnd, FromFile, ErrStat, ErrMsg )
+   END SUBROUTINE ParseInclInfo
 !=======================================================================
    SUBROUTINE ParseInVar ( FileInfo, LineNum, ExpVarName, InVar, ErrStat, ErrMsg, UnEc )
 
@@ -3737,7 +3285,7 @@ CONTAINS
       CHARACTER(*),   INTENT(OUT)            :: ErrMsg                        ! The error message, if ErrStat /= 0.
       CHARACTER(*),   INTENT(IN)             :: ExpVarName                    ! The expected variable name.
 
-      TYPE (FileInfoType)                    :: FileInfo                      ! The derived type for holding the file information.
+      TYPE (FileInfoType), INTENT(IN)        :: FileInfo                      ! The derived type for holding the file information.
 
 
          ! Local declarations.
@@ -3746,24 +3294,27 @@ CONTAINS
       INTEGER(IntKi)                         :: NameIndx                      ! The index into the Words array that points to the variable name.
 
       CHARACTER(20)                          :: Words       (2)               ! The two "words" parsed from the line.
+      CHARACTER(ErrMsgLen)                   :: ErrMsg2
+      CHARACTER(*), PARAMETER                :: RoutineName = 'ParseInVar'
 
+      ErrStat = ErrID_None
+      ErrMsg  = ""
 
 
       CALL GetWords ( FileInfo%Lines(LineNum), Words, 2 )                                        ! Read the first two words in Line.
 
       CALL ChkParseData ( Words, ExpVarName, FileInfo%FileList(FileInfo%FileIndx(LineNum)) &
-                        , FileInfo%FileLine(LineNum), NameIndx, ErrStatLcl, ErrMsg )
-      IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, ErrMsg )
-         RETURN
-      ENDIF
+                        , FileInfo%FileLine(LineNum), NameIndx, ErrStatLcl, ErrMsg2 )
+         CALL SetErrStat ( ErrStatLcl, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         IF (ErrStat >= AbortErrLev) RETURN
 
       READ (Words(3-NameIndx),*,IOSTAT=ErrStatLcl)  InVar
       IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, NewLine//' >> A fatal error occurred when parsing data from "' &
+         CALL SetErrStat ( ErrID_Fatal, NewLine//' >> A fatal error occurred when parsing data from "' &
                    //TRIM( FileInfo%FileList(FileInfo%FileIndx(LineNum)) )//'".'//NewLine//  &
                    ' >> The variable "'//TRIM( Words(NameIndx) )//'" was not assigned valid INTEGER value on line #' &
-                   //TRIM( Num2LStr( FileInfo%FileLine(LineNum) ) )//'.' )
+                   //TRIM( Num2LStr( FileInfo%FileLine(LineNum) ) )//'.'//NewLine//&
+                   ' >> The text being parsed was :'//NewLine//'    "'//TRIM( FileInfo%Lines(LineNum) )//'"', ErrStat, ErrMsg, RoutineName )
          RETURN
       ENDIF
 
@@ -3773,38 +3324,9 @@ CONTAINS
 
       LineNum = LineNum + 1
 
-      CALL ExitThisRoutine ( ErrID_None, '' )
-
       RETURN
 
-   !=======================================================================
-   CONTAINS
-   !=======================================================================
-      SUBROUTINE ExitThisRoutine ( ErrID, Msg )
-
-         ! This subroutine cleans up the parent routine before exiting.
-
-
-            ! Argument declarations.
-
-         INTEGER(IntKi), INTENT(IN)       :: ErrID                            ! The error identifier (ErrLev).
-
-         CHARACTER(*),   INTENT(IN)       :: Msg                              ! The error message (ErrMsg).
-
-
-            ! Local declarations.
-
-         LOGICAL                          :: IsOpen                           ! A flag that indicates if the input unit is still open.
-
-
-            ! Set error status/message
-
-         ErrStat = ErrID
-         ErrMsg  = TRIM( Msg )//NewLine//' >> The text being parsed was :'//NewLine//'    "'//TRIM( FileInfo%Lines(LineNum) )//'"'
-
-      END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
-
-   END SUBROUTINE ParseInVar ! ( FileInfo, LineNum, ExpVarName, InVar, ErrStat, ErrMsg, UnEc )
+   END SUBROUTINE ParseInVar
 !=======================================================================
    SUBROUTINE ParseLoAry ( FileInfo, LineNum, AryName, LoAry, AryLen, ErrStat, ErrMsg, UnEc )
 
@@ -3826,7 +3348,7 @@ CONTAINS
       CHARACTER(*),   INTENT(In)             :: AryName                       ! The array name we are trying to fill.
       CHARACTER(*),   INTENT(OUT)            :: ErrMsg                        ! The error message, if ErrStat /= 0.
 
-      TYPE (FileInfoType)                    :: FileInfo                      ! The derived type for holding the file information.
+      TYPE (FileInfoType), INTENT(IN)        :: FileInfo                      ! The derived type for holding the file information.
 
 
          ! Local declarations.
@@ -3834,23 +3356,27 @@ CONTAINS
       INTEGER(IntKi)                         :: ErrStatLcl                    ! Error status local to this routine.
 
       CHARACTER(20), ALLOCATABLE             :: Words       (:)               ! The array "words" parsed from the line.
+      CHARACTER(*), PARAMETER                :: RoutineName = 'ParseLoAry'
 
-
+      ErrStat = ErrID_None
+      ErrMsg  = ""
 
       ALLOCATE ( Words( AryLen ) , STAT=ErrStatLcl )
       IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, NewLine//' >> Fatal error allocating memory for the Words array in ParseLoAry.' )
+         CALL SetErrStat ( ErrID_Fatal, NewLine//'Fatal error allocating memory for the Words array.',ErrStat,ErrMsg,RoutineName )
+         CALL Cleanup()
          RETURN
       ENDIF
 
 
       READ (FileInfo%Lines(LineNum),*,IOSTAT=ErrStatLcl)  LoAry
       IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, NewLine//' >> A fatal error occurred when parsing data from "' &
+         CALL SetErrStat ( ErrID_Fatal, 'A fatal error occurred when parsing data from "' &
                    //TRIM( FileInfo%FileList(FileInfo%FileIndx(LineNum)) )//'".'//NewLine//  &
                    ' >> The "'//TRIM( AryName )//'" array was not assigned valid LOGICAL values on line #' &
                    //TRIM( Num2LStr( FileInfo%FileLine(LineNum) ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
-                   //'    "'//TRIM( FileInfo%Lines(LineNum) )//'"' )
+                   //'    "'//TRIM( FileInfo%Lines(LineNum) )//'"',ErrStat,ErrMsg,RoutineName )
+         CALL Cleanup()
          RETURN
       ENDIF
 
@@ -3859,47 +3385,26 @@ CONTAINS
       END IF
 
       LineNum = LineNum + 1
-
-      CALL ExitThisRoutine ( ErrID_None, ' ' )
+      CALL Cleanup()
 
       RETURN
 
    !=======================================================================
    CONTAINS
    !=======================================================================
-      SUBROUTINE ExitThisRoutine ( ErrID, Msg )
+      SUBROUTINE Cleanup ( )
 
          ! This subroutine cleans up the parent routine before exiting.
-
-
-            ! Argument declarations.
-
-         INTEGER(IntKi), INTENT(IN)       :: ErrID                            ! The error identifier (ErrLev)
-
-         CHARACTER(*),   INTENT(IN)       :: Msg                              ! The error message (ErrMsg)
-
-
-            ! Local declarations.
-
-         LOGICAL                          :: IsOpen                           ! A flag that indicates if the input unit is still open.
-
-
-            ! Set error status/message
-
-         ErrStat = ErrID
-         ErrMsg  = Msg
-
 
             ! Deallocate the Words array if it had been allocated.
 
          IF ( ALLOCATED( Words ) ) DEALLOCATE( Words )
 
-
          RETURN
 
-      END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
+      END SUBROUTINE Cleanup
 
-   END SUBROUTINE ParseLoAry ! ( FileInfo, LineNum, AryName, LoAry, AryLen, ErrStat, ErrMsg, UnEc )
+   END SUBROUTINE ParseLoAry
 !=======================================================================
    SUBROUTINE ParseLoVar ( FileInfo, LineNum, ExpVarName, LoVar, ErrStat, ErrMsg, UnEc )
 
@@ -3920,7 +3425,7 @@ CONTAINS
       CHARACTER(*),   INTENT(OUT)            :: ErrMsg                        ! The error message, if ErrStat /= 0.
       CHARACTER(*),   INTENT(IN)             :: ExpVarName                    ! The expected variable name.
 
-      TYPE (FileInfoType)                    :: FileInfo                      ! The derived type for holding the file information.
+      TYPE (FileInfoType), INTENT(IN)        :: FileInfo                      ! The derived type for holding the file information.
 
 
          ! Local declarations.
@@ -3929,25 +3434,30 @@ CONTAINS
       INTEGER(IntKi)                         :: NameIndx                      ! The index into the Words array that points to the variable name.
 
       CHARACTER(20)                          :: Words       (2)               ! The two "words" parsed from the line.
+      CHARACTER(ErrMsgLen)                   :: ErrMsg2
+      CHARACTER(*), PARAMETER                :: RoutineName = 'ParseLoVar'
 
+      ErrStat = ErrID_None
+      ErrMsg  = ""
 
 
       CALL GetWords ( FileInfo%Lines(LineNum), Words, 2 )                     ! Read the first two words in Line.
 
       CALL ChkParseData ( Words, ExpVarName, FileInfo%FileList(FileInfo%FileIndx(LineNum)) &
-                        , FileInfo%FileLine(LineNum), NameIndx, ErrStatLcl, ErrMsg )
+                        , FileInfo%FileLine(LineNum), NameIndx, ErrStatLcl, ErrMsg2 )
       IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, ErrMsg )
+         CALL SetErrStat ( ErrStatLcl, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          RETURN
       ENDIF
 
       READ (Words(3-NameIndx),*,IOSTAT=ErrStatLcl)  LoVar
 
       IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, NewLine//' >> A fatal error occurred when parsing data from "' &
+         CALL SetErrStat ( ErrID_Fatal, 'A fatal error occurred when parsing data from "' &
                    //TRIM( FileInfo%FileList(FileInfo%FileIndx(LineNum)) )//'".'//NewLine//  &
                    ' >> The variable "'//TRIM( Words(NameIndx) )//'" was not assigned valid LOGICAL value on line #' &
-                   //TRIM( Num2LStr( LineNum ) )//'.' )
+                   //TRIM( Num2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
+                   //'    "'//TRIM( FileInfo%Lines(LineNum) )//'"', ErrStat, ErrMsg, RoutineName )
          RETURN
       ENDIF
 
@@ -3957,41 +3467,9 @@ CONTAINS
 
       LineNum = LineNum + 1
 
-      CALL ExitThisRoutine ( ErrID_None, ' ' )
-
       RETURN
 
-   !=======================================================================
-   CONTAINS
-   !=======================================================================
-      SUBROUTINE ExitThisRoutine ( ErrID, Msg )
-
-         ! This subroutine cleans up the parent routine before exiting.
-
-
-            ! Argument declarations.
-
-         INTEGER(IntKi), INTENT(IN)       :: ErrID                            ! The error identifier (ErrLev)
-
-         CHARACTER(*),   INTENT(IN)       :: Msg                              ! The error message (ErrMsg)
-
-
-            ! Local declarations.
-
-         LOGICAL                          :: IsOpen                           ! A flag that indicates if the input unit is still open.
-
-
-            ! Set error status/message
-
-         ErrStat = ErrID
-         ErrMsg  = TRIM( Msg )//NewLine//' >> The text being parsed was :'//NewLine//'    "'//TRIM( FileInfo%Lines(LineNum) )//'"'
-
-
-         RETURN
-
-      END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
-
-   END SUBROUTINE ParseLoVar ! ( FileInfo, LineNum, ExpVarName, LoVar, ErrStat, ErrMsg, UnEc )
+   END SUBROUTINE ParseLoVar
 !=======================================================================
    SUBROUTINE ParseSiAry ( FileInfo, LineNum, AryName, SiAry, AryLen, ErrStat, ErrMsg, UnEc )
 
@@ -4014,7 +3492,7 @@ CONTAINS
       CHARACTER(*),   INTENT(In)             :: AryName                       ! The array name we are trying to fill.
       CHARACTER(*),   INTENT(OUT)            :: ErrMsg                        ! The error message, if ErrStat /= 0.
 
-      TYPE (FileInfoType)                    :: FileInfo                      ! The derived type for holding the file information.
+      TYPE (FileInfoType), INTENT(IN)        :: FileInfo                      ! The derived type for holding the file information.
 
 
          ! Local declarations.
@@ -4022,23 +3500,28 @@ CONTAINS
       INTEGER(IntKi)                         :: ErrStatLcl                    ! Error status local to this routine.
 
       CHARACTER(20), ALLOCATABLE             :: Words       (:)               ! The array "words" parsed from the line.
+      CHARACTER(*), PARAMETER                :: RoutineName = 'ParseSiAry'
 
+      ErrStat = ErrID_None
+      ErrMsg  = ""
 
 
       ALLOCATE ( Words( AryLen ) , STAT=ErrStatLcl )
       IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, NewLine//' >> Fatal error allocating memory for the Words array in ParseSiAry.' )
+         CALL SetErrStat ( ErrID_Fatal, 'Fatal error allocating memory for the Words array.', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup()
          RETURN
       ENDIF
 
 
       READ (FileInfo%Lines(LineNum),*,IOSTAT=ErrStatLcl)  SiAry
       IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, NewLine//' >> A fatal error occurred when parsing data from "' &
+         CALL SetErrStat ( ErrID_Fatal, NewLine//' >> A fatal error occurred when parsing data from "' &
                    //TRIM( FileInfo%FileList(FileInfo%FileIndx(LineNum)) )//'".'//NewLine//  &
                    ' >> The "'//TRIM( AryName )//'" array was not assigned valid REAL values on line #' &
                    //TRIM( Num2LStr( FileInfo%FileLine(LineNum) ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine &
-                   //'    "'//TRIM( FileInfo%Lines(LineNum) )//'"' )
+                   //'    "'//TRIM( FileInfo%Lines(LineNum) )//'"', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup()
          RETURN
       ENDIF
 
@@ -4048,46 +3531,26 @@ CONTAINS
 
       LineNum = LineNum + 1
 
-      CALL ExitThisRoutine ( ErrID_None, ' ' )
+      CALL Cleanup ( )
 
       RETURN
 
    !=======================================================================
    CONTAINS
    !=======================================================================
-      SUBROUTINE ExitThisRoutine ( ErrID, Msg )
+      SUBROUTINE Cleanup ( )
 
          ! This subroutine cleans up the parent routine before exiting.
-
-
-            ! Argument declarations.
-
-         INTEGER(IntKi), INTENT(IN)       :: ErrID                            ! The error identifier (ErrLev)
-
-         CHARACTER(*),   INTENT(IN)       :: Msg                              ! The error message (ErrMsg)
-
-
-            ! Local declarations.
-
-         LOGICAL                          :: IsOpen                           ! A flag that indicates if the input unit is still open.
-
-
-            ! Set error status/message
-
-         ErrStat = ErrID
-         ErrMsg  = Msg
-
 
             ! Deallocate the Words array if it had been allocated.
 
          IF ( ALLOCATED( Words ) ) DEALLOCATE( Words )
 
-
          RETURN
 
-      END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
+      END SUBROUTINE Cleanup
 
-   END SUBROUTINE ParseSiAry ! ( FileInfo, LineNum, AryName, SiAry, AryLen, ErrStat, ErrMsg, UnEc )
+   END SUBROUTINE ParseSiAry
 !=======================================================================
    SUBROUTINE ParseSiVar ( FileInfo, LineNum, ExpVarName, SiVar, ErrStat, ErrMsg, UnEc )
 
@@ -4108,7 +3571,7 @@ CONTAINS
       CHARACTER(*),   INTENT(OUT)            :: ErrMsg                        ! The error message, if ErrStat /= 0.
       CHARACTER(*),   INTENT(IN)             :: ExpVarName                    ! The expected variable name.
 
-      TYPE (FileInfoType)                    :: FileInfo                      ! The derived type for holding the file information.
+      TYPE (FileInfoType), INTENT(IN)        :: FileInfo                      ! The derived type for holding the file information.
 
 
          ! Local declarations.
@@ -4117,24 +3580,26 @@ CONTAINS
       INTEGER(IntKi)                         :: NameIndx                      ! The index into the Words array that points to the variable name.
 
       CHARACTER(20)                          :: Words       (2)               ! The two "words" parsed from the line.
+      CHARACTER(ErrMsgLen)                   :: ErrMsg2
+      CHARACTER(*), PARAMETER                :: RoutineName = 'ParseSiVar'
 
-
-
+      ErrStat = ErrID_None
+      ErrMsg  = ""
+      
       CALL GetWords ( FileInfo%Lines(LineNum), Words, 2 )                     ! Read the first two words in Line.
 
       CALL ChkParseData ( Words, ExpVarName, FileInfo%FileList(FileInfo%FileIndx(LineNum)) &
-                        , FileInfo%FileLine(LineNum), NameIndx, ErrStatLcl, ErrMsg )
-      IF ( ErrStatLcl /= ErrID_None )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, ErrMsg )
-         RETURN
-      ENDIF
+                        , FileInfo%FileLine(LineNum), NameIndx, ErrStatLcl, ErrMsg2 )
+      CALL SetErrStat( ErrStatLcl, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      IF ( ErrStat >= AbortErrLev )  RETURN
 
       READ (Words(3-NameIndx),*,IOSTAT=ErrStatLcl)  SiVar
       IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, NewLine//' >> A fatal error occurred when parsing data from "' &
+         CALL SetErrStat ( ErrID_Fatal, NewLine//' >> A fatal error occurred when parsing data from "' &
                    //TRIM( FileInfo%FileList(FileInfo%FileIndx(LineNum)) )//'".'//NewLine//  &
                    ' >> The variable "'//TRIM( Words(NameIndx) )//'" was not assigned valid REAL value on line #' &
-                   //TRIM( Num2LStr( LineNum ) )//'.' )
+                   //TRIM( Num2LStr( LineNum ) )//'.'//NewLine//' >> The text being parsed was :'//NewLine// &
+                   '    "'//TRIM( FileInfo%Lines(LineNum) )//'"', ErrStat, ErrMsg, RoutineName )
          RETURN
       ENDIF
 
@@ -4144,42 +3609,9 @@ CONTAINS
 
       LineNum = LineNum + 1
 
-      CALL ExitThisRoutine ( ErrID_None, ' ' )
-
       RETURN
 
-   !=======================================================================
-   CONTAINS
-   !=======================================================================
-      SUBROUTINE ExitThisRoutine ( ErrID, Msg )
-
-         ! This subroutine cleans up the parent routine before exiting.
-
-
-            ! Argument declarations.
-
-         INTEGER(IntKi), INTENT(IN)       :: ErrID                            ! The error identifier (ErrLev)
-
-         CHARACTER(*),   INTENT(IN)       :: Msg                              ! The error message (ErrMsg)
-
-
-            ! Local declarations.
-
-         LOGICAL                          :: IsOpen                           ! A flag that indicates if the input unit is still open.
-
-
-            ! Set error status/message
-
-         ErrStat = ErrID
-         ErrMsg  = TRIM( Msg )//NewLine//' >> The text being parsed was :'//NewLine//'    "'//TRIM( FileInfo%Lines(LineNum) )//'"'
-
-
-
-         RETURN
-
-      END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
-
-   END SUBROUTINE ParseSiVar ! ( FileInfo, LineNum, ExpVarName, SiVar, ErrStat, ErrMsg, UnEc )
+   END SUBROUTINE ParseSiVar
 !=======================================================================
    FUNCTION PathIsRelative ( GivenFil )
 
@@ -4217,7 +3649,7 @@ CONTAINS
    END IF
 
    RETURN
-   END FUNCTION PathIsRelative ! ( GivenFil )
+   END FUNCTION PathIsRelative
 !=======================================================================
    SUBROUTINE PremEOF ( Fil , Variable, TrapErrors, ErrMsg )
 
@@ -4234,7 +3666,7 @@ CONTAINS
 
       ! LOCAL variables
    LOGICAL                           :: TrapThisError                                ! The local version of TrapErrors
-   CHARACTER(1024)                   :: Msg                                          ! The local version of ErrMsg
+   CHARACTER(ErrMsgLen)              :: Msg                                          ! The local version of ErrMsg
 
 
    IF ( PRESENT( TrapErrors ) ) THEN
@@ -4285,7 +3717,9 @@ CONTAINS
       INTEGER(IntKi)                               :: RangeEnd  = 0           ! The last line in a range of lines to be included from a file.  Zero to read to the end of the file.
 
       INTEGER                                      :: File      = 0           ! Index into the arrays.
-
+      
+      CHARACTER(ErrMsgLen)                         :: ErrMsg2
+      CHARACTER(*),       PARAMETER                :: RoutineName = 'ProcessComFile'
       TYPE (FNlist_Type), POINTER                  :: CurrFile                ! The current file being pointed to in the linked list.
       TYPE (FNlist_Type), POINTER                  :: FirstFile               ! The first file in the linked list (TopFile).
       TYPE (FNlist_Type), POINTER                  :: LastFile                ! The last file in the linked list.
@@ -4295,17 +3729,21 @@ CONTAINS
          ! a linked list of the different files.
          ! This MUST be done before calling ReadComFile.
 
-      ALLOCATE ( FirstFile )
+      ErrStat = ErrID_None
+      ErrMsg  = ""
+      
+      ALLOCATE ( FirstFile ) !bjj: fix me , IOStat=ErrStatLcl2
       LastFile => FirstFile
       NULLIFY ( LastFile%Next )
       LastFile%Filename = TopFileName
       CurrFile => LastFile
 
-      CALL ScanComFile ( FirstFile, CurrFile, LastFile, 1, 0, FileInfo%NumLines, ErrStatLcl, ErrMsg )
-      IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, ErrMsg )
-         RETURN
-      ENDIF
+      CALL ScanComFile ( FirstFile, CurrFile, LastFile, 1, 0, FileInfo%NumLines, ErrStatLcl, ErrMsg2 )
+         CALL SetErrStat( ErrStatLcl, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         IF ( ErrStatLcl >= AbortErrLev )  THEN
+            CALL Cleanup()
+            RETURN
+         ENDIF
 
 
          ! Count the number of different files in the linked list and allocate the array for the list of files.
@@ -4321,10 +3759,11 @@ CONTAINS
       ENDDO
 
       ALLOCATE ( FileInfo%FileList( FileInfo%NumFiles ) , STAT=ErrStatLcl )
-      IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error allocating memory for the FileInfo%FileList array in ReadAFfile.' )
-         RETURN
-      ENDIF
+         IF ( ErrStatLcl /= 0 )  THEN
+            CALL SetErrStat( ErrID_Fatal, 'Error allocating memory for the FileInfo%FileList array.' , ErrStat, ErrMsg, RoutineName )
+            CALL Cleanup()
+            RETURN
+         ENDIF
 
 
          ! Copy the linked list of file names into the FileList array.
@@ -4344,70 +3783,50 @@ CONTAINS
          ! This MUST be done before calling ReadComFile.
 
       ALLOCATE ( FileInfo%FileLine( FileInfo%NumLines ) , STAT=ErrStatLcl )
-      IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error allocating memory for the FileInfo%FileLine array in ReadAFfile.' )
-         RETURN
-      ENDIF
+         IF ( ErrStatLcl /= 0 )  THEN
+            CALL SetErrStat( ErrID_Fatal, 'Error allocating memory for the FileInfo%FileLine array.' , ErrStat, ErrMsg, RoutineName )
+            CALL Cleanup()
+            RETURN
+         ENDIF
 
       ALLOCATE ( FileInfo%FileIndx( FileInfo%NumLines ) , STAT=ErrStatLcl )
-      IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error allocating memory for the FileInfo%FileIndx array in ReadAFfile.' )
-         RETURN
-      ENDIF
+         IF ( ErrStatLcl /= 0 )  THEN
+            CALL SetErrStat( ErrID_Fatal, 'Error allocating memory for the FileInfo%FileIndx array.' , ErrStat, ErrMsg, RoutineName )
+            CALL Cleanup()
+            RETURN
+         ENDIF
 
       ALLOCATE ( FileInfo%Lines( FileInfo%NumLines ) , STAT=ErrStatLcl )
-      IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error allocating memory for the FileInfo%Lines array in ReadAFfile.' )
-         RETURN
-      ENDIF
+         IF ( ErrStatLcl /= 0 )  THEN
+            CALL SetErrStat( ErrID_Fatal, 'Error allocating memory for the FileInfo%Lines array.' , ErrStat, ErrMsg, RoutineName )
+            CALL Cleanup()
+            RETURN
+         ENDIF
 
 
          ! Read the file and save all but the comments.
 
       AryInd = 0
-      CALL ReadComFile ( FileInfo, FileIndx, AryInd, RangeBeg, RangeEnd, ErrStatLcl, ErrMsg )
-      IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine( ErrID_Fatal, ErrMsg )
-         RETURN
-      ENDIF
+      CALL ReadComFile ( FileInfo, FileIndx, AryInd, RangeBeg, RangeEnd, ErrStatLcl, ErrMsg2 )
+         CALL SetErrStat( ErrStatLcl, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         IF ( ErrStatLcl >= AbortErrLev )  THEN
+            CALL Cleanup()
+            RETURN
+         ENDIF
 
-
+      CALL Cleanup()         
       RETURN
 
    !=======================================================================
    CONTAINS
    !=======================================================================
-      SUBROUTINE ExitThisRoutine ( ErrID, Msg )
+      SUBROUTINE Cleanup (  )
 
-         ! This subroutine cleans up all the allocatable arrays, sets the error status/message and closes the binary file
-
-            ! Passed arguments.
-
-         INTEGER(IntKi), INTENT(IN)     :: ErrID        ! The error identifier (ErrLev)
-
-         CHARACTER(*),   INTENT(IN)     :: Msg          ! The error message (ErrMsg)
-
+         ! This subroutine cleans up all the allocatable arrays and closes the binary file
 
             ! Local arguments.
 
          TYPE (FNlist_Type), POINTER     :: NextFile    ! The next file being pointed to in the linked list.
-
-
-            ! Set error status/message
-
-         ErrStat = ErrID
-         ErrMsg  = Msg
-
-
-            ! If there was an error, deallocate the arrays in the FileInfo structure.
-
-         IF ( ErrStat /= 0 )  THEN
-            IF ( ALLOCATED( FileInfo%FileLine ) ) DEALLOCATE( FileInfo%FileLine )
-            IF ( ALLOCATED( FileInfo%Lines    ) ) DEALLOCATE( FileInfo%FileIndx )
-            IF ( ALLOCATED( FileInfo%FileLine ) ) DEALLOCATE( FileInfo%FileList )
-            IF ( ALLOCATED( FileInfo%Lines    ) ) DEALLOCATE( FileInfo%Lines    )
-         END IF ! ( ErrLev /= 0 )
-
 
             ! Deallocate the linked list of file names.
 
@@ -4419,11 +3838,17 @@ CONTAINS
               CurrFile => NextFile
               NextFile => CurrFile%Next
           ENDDO
+          
+!bjj: this needs to happen elsewhere...
+          
+         !IF ( ALLOCATED( FileInfo%FileLine ) ) DEALLOCATE( FileInfo%FileLine )
+         !IF ( ALLOCATED( FileInfo%Lines    ) ) DEALLOCATE( FileInfo%FileIndx )
+         !IF ( ALLOCATED( FileInfo%FileLine ) ) DEALLOCATE( FileInfo%FileList )
+         !IF ( ALLOCATED( FileInfo%Lines    ) ) DEALLOCATE( FileInfo%Lines    )
+                    
+      END SUBROUTINE Cleanup 
 
-
-      END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
-
-   END SUBROUTINE ProcessComFile ! ( TopFileName, FileInfo, ErrStat, ErrMsg )
+   END SUBROUTINE ProcessComFile
 !=======================================================================
    SUBROUTINE ProgAbort ( Message, TrapErrors, TimeWait, ErrLevel )
 
@@ -4477,7 +3902,7 @@ CONTAINS
    END IF
 
 
-   END SUBROUTINE ProgAbort ! ( Message [, TrapErrors, TimeWait, ErrLevel] )
+   END SUBROUTINE ProgAbort
 !=======================================================================
    SUBROUTINE ProgPause()
 
@@ -4511,7 +3936,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE ProgWarn ! ( Message )
+   END SUBROUTINE ProgWarn 
 !=======================================================================
    FUNCTION R2LStr4 ( FltNum )
 
@@ -4546,7 +3971,7 @@ CONTAINS
 
 
    RETURN
-   END FUNCTION R2LStr4 !  ( FltNum )
+   END FUNCTION R2LStr4
 !=======================================================================
    FUNCTION R2LStr8 ( FltNum )
 
@@ -4581,7 +4006,7 @@ CONTAINS
 
 
    RETURN
-   END FUNCTION R2LStr8 !  ( FltNum )
+   END FUNCTION R2LStr8
 !=======================================================================
    FUNCTION R2LStr16 ( FltNum )
 
@@ -4617,7 +4042,6 @@ CONTAINS
 
    RETURN
    END FUNCTION R2LStr16 !  ( FltNum )
-
 !======================================================================
    SUBROUTINE ReadCAry ( UnIn, Fil, CharAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
 
@@ -4645,28 +4069,20 @@ CONTAINS
    INTEGER                      :: IOS                                             ! I/O status returned from the read statement.
 
 
-
-
    READ (UnIn,*,IOSTAT=IOS)  ( CharAry(Ind), Ind=1,AryLen )
 
-   CALL CheckIOS ( IOS, Fil, TRIM( AryName ), StrType, .TRUE., ErrMsg )
+   CALL CheckIOS ( IOS, Fil, TRIM( AryName ), StrType, ErrStat, ErrMsg )
 
-   IF (IOS /= 0) THEN
-      ErrStat = ErrID_Fatal
-   ELSE
-
-      ErrStat = ErrID_None
+   IF (ErrStat >= AbortErrLev) RETURN
 
    IF ( PRESENT(UnEc) )  THEN
       IF ( UnEc > 0 ) &
          WRITE (UnEc,Ec_StrAryFrmt)  TRIM( AryName ), AryDescr, ( TRIM( CharAry(Ind) ), Ind=1,MIN(AryLen,NWTC_MaxAryLen) )
    END IF
 
-   END IF
-
 
    RETURN
-   END SUBROUTINE ReadCAry ! ( UnIn, Fil, CharAry, AryLen, AryName, AryDescr [, ErrStat] [, UnEc])
+   END SUBROUTINE ReadCAry
 !=======================================================================
    SUBROUTINE ReadCAryLines ( UnIn, Fil, CharAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
 
@@ -4696,16 +4112,14 @@ CONTAINS
 
 
     ErrStat = ErrID_None
+    ErrMsg = ""
 
    DO Ind=1,AryLen
       READ (UnIn,*,IOSTAT=IOS)  CharAry(Ind)
 
-      CALL CheckIOS ( IOS, Fil, TRIM( AryName )//'('//TRIM( Int2LStr( Ind ) )//')', StrType, .TRUE., ErrMsg )
+      CALL CheckIOS ( IOS, Fil, TRIM( AryName )//'('//TRIM( Int2LStr( Ind ) )//')', StrType, ErrStat, ErrMsg )
 
-      IF (IOS /= 0) THEN
-         ErrStat = ErrID_Fatal
-         RETURN
-      END IF
+      IF (ErrStat >= AbortErrLev) RETURN
 
       IF ( PRESENT(UnEc) )  THEN
          IF ( UnEc > 0 ) &
@@ -4714,7 +4128,7 @@ CONTAINS
    END DO
 
    RETURN
-   END SUBROUTINE ReadCAryLines ! ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg [, UnEc] )
+   END SUBROUTINE ReadCAryLines
 !=======================================================================
    SUBROUTINE ReadCom ( UnIn, Fil, ComName, ErrStat, ErrMsg, UnEc )
 
@@ -4727,8 +4141,8 @@ CONTAINS
    INTEGER,        INTENT(IN), OPTIONAL:: UnEc                                     ! I/O unit for echo file. If present and > 0, write to UnEc
    CHARACTER(*),   INTENT(IN)          :: Fil                                      ! Name of the input file.
    CHARACTER(*),   INTENT(IN)          :: ComName                                  ! Text string containing the comment name.
-   INTEGER(IntKi), INTENT(OUT),OPTIONAL:: ErrStat                                  ! Error status; if present, program does not abort on error
-   CHARACTER(*),   INTENT(OUT),OPTIONAL:: ErrMsg                                   ! Error message
+   INTEGER(IntKi), INTENT(OUT)         :: ErrStat                                  ! Error status; if present, program does not abort on error
+   CHARACTER(*),   INTENT(OUT)         :: ErrMsg                                   ! Error message
 
 
 
@@ -4742,21 +4156,10 @@ CONTAINS
 
    READ (UnIn,'(A)',IOSTAT=IOS)  Comment
 
-   IF ( PRESENT( ErrMsg) ) THEN
-      CALL CheckIOS ( IOS, Fil, ComName, StrType, PRESENT(ErrStat), ErrMsg )
-   ELSE
-      CALL CheckIOS ( IOS, Fil, ComName, StrType, PRESENT(ErrStat) )
-   END IF
+   CALL CheckIOS ( IOS, Fil, ComName, StrType, ErrStat, ErrMsg )
 
 
-   IF ( PRESENT(ErrStat) ) THEN
-      IF ( IOS /= 0 ) THEN
-         ErrStat = ErrID_Fatal
-         RETURN
-      ELSE
-         ErrStat = ErrID_None
-      END IF
-   ENDIF
+   IF (ErrStat >= AbortErrLev) RETURN
 
    IF ( PRESENT(UnEc) )  THEN
       IF ( UnEc > 0 ) &
@@ -4765,7 +4168,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE ReadCom ! ( UnIn, Fil, ComName [, ErrStat] [, ErrMsg] [, UnEc] )
+   END SUBROUTINE ReadCom
 !=============================================================================
    RECURSIVE SUBROUTINE ReadComFile ( FileInfo, FileIndx, AryInd, StartLine, LastLine, ErrStat, ErrMsg )
 
@@ -4803,28 +4206,37 @@ CONTAINS
    CHARACTER(3), PARAMETER                   :: CommChars = '!#%'             ! Comment characters that mark the end of useful input.
    CHARACTER(1024)                           :: IncFileName                   ! The name of a file that this one includes.
    CHARACTER(512)                            :: Line                          ! The contents of a line returned from ReadLine() with comment removed.
+   CHARACTER(ErrMsgLen)                      :: ErrMsg2
+   CHARACTER(*), PARAMETER                   :: RoutineName = 'ReadComFile'
 
-
+   
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   
       ! Open the input file.
 
-   CALL GetNewUnit ( UnIn, ErrStatLcl, ErrMsg )
-   IF ( ErrStatLcl /= 0 )  THEN
-      CALL ExitThisRoutine( ErrID_Fatal, ErrMsg )
-      RETURN
-   ENDIF
+   CALL GetNewUnit ( UnIn, ErrStatLcl, ErrMsg2 )
+      CALL SetErrStat( ErrStatLcl, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
-   CALL OpenFInpFile ( UnIn, FileInfo%FileList(FileIndx), ErrStatLcl, ErrMsg )
-   IF ( ErrStatLcl /= 0 )  THEN
-      CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error opening "'//TRIM( FileInfo%FileList(FileIndx) )//' in ReadComFile.' )
-      RETURN
-   ENDIF
+   CALL OpenFInpFile ( UnIn, FileInfo%FileList(FileIndx), ErrStatLcl, ErrMsg2 )
+      CALL SetErrStat( ErrStatLcl, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      IF ( ErrStat >= AbortErrLev )  THEN
+         CALL Cleanup()
+         RETURN
+      END IF
+      
 
 
       ! Skip the beginning of the file, if requested.
 
    IF ( StartLine > 1 )  THEN
       DO FileLine=1,StartLine-1
-         READ(UnIn,'()')
+         READ(UnIn,'()',IOStat=ErrStatLcl)
+         IF (ErrStatLcl /= 0) THEN
+            CALL SetErrStat( ErrID_Fatal, "Error reading file beginning.", ErrStat, ErrMsg, RoutineName )
+            CALL Cleanup()
+            RETURN
+         END IF         
       ENDDO ! FileLine
    ENDIF ! ( StartLine > 1 )
 
@@ -4849,7 +4261,7 @@ CONTAINS
 
       CALL ReadLine ( UnIn, CommChars, Line, LineLen, ErrStatLcl )            ! Reads a line.  Returns what is before the first comment character.
 
-      IF ( ( ErrStatLcl == 0 )  .AND. ( LineLen > 0 ) )  THEN
+      IF ( ( ErrStatLcl == 0 )  .AND. ( LineLen > 0 ) )  THEN ! ErrStatLcl is IOStat from Read statement
 
          Line = ADJUSTL( Line )
 
@@ -4861,13 +4273,14 @@ CONTAINS
 
                ! Parse the contents of everything after the "@" to determine the name of the include file and the optional line range.
 
-            CALL ParseInclInfo ( Line(2:), IncFileName, RangeBeg, RangeEnd, ErrStat, ErrMsg )
-            IF ( ErrStatLcl /= 0 )  THEN
-               CALL ExitThisRoutine( ErrID_Fatal, ' >> The fatal error occurred in ReadComFile when processing line #'// &
-                                   TRIM( Num2LStr( FileLine ) )//' of "'//TRIM( FileInfo%FileList(FileIndx) )//'".' )
-               RETURN
-            ENDIF
-
+            CALL ParseInclInfo ( Line(2:), IncFileName, RangeBeg, RangeEnd, ErrStatLcl, ErrMsg2 )
+               CALL SetErrStat( ErrStatLcl, TRIM( FileInfo%FileList(FileIndx) )//':Line#'//TRIM( Num2LStr( FileLine ) ) &
+                                //':'//TRIM(ErrMsg2), ErrStat, ErrMsg, RoutineName )
+               IF ( ErrStat >= AbortErrLev )  THEN
+                  CALL Cleanup()
+                  RETURN
+               END IF
+               ErrStatLcl = 0
 
                ! Which file in the prestored list is the new one?
 
@@ -4881,11 +4294,13 @@ CONTAINS
 
                ! Let's recursively process this new file.
 
-            CALL ReadComFile ( FileInfo, NewIndx, AryInd, RangeBeg, RangeEnd, ErrStatLcl, ErrMsg )
-            IF ( ErrStatLcl /= 0 )  THEN
-               CALL ExitThisRoutine( ErrID_Fatal, ErrMsg )
-               RETURN
-            ENDIF
+            CALL ReadComFile ( FileInfo, NewIndx, AryInd, RangeBeg, RangeEnd, ErrStatLcl, ErrMsg2 )
+               CALL SetErrStat( ErrStatLcl, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+               IF ( ErrStat >= AbortErrLev )  THEN
+                  CALL Cleanup()
+                  RETURN
+               END IF
+               ErrStatLcl = 0
 
          ELSE
 
@@ -4903,38 +4318,24 @@ CONTAINS
 
    ENDDO ! WHILE ( ErrStatLcl == 0 )
 
-   CALL ExitThisRoutine( ErrID_None, '' )
+   CALL Cleanup(  )
 
    RETURN
 
    !=======================================================================
    CONTAINS
    !=======================================================================
-      SUBROUTINE ExitThisRoutine ( ErrID, Msg )
+      SUBROUTINE Cleanup ( )
 
          ! This subroutine cleans up all the allocatable arrays, sets the error status/message and closes the binary file
-
-            ! Passed arguments
-
-         INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrLev)
-
-         CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
-
-
-
-            ! Set error status/message
-
-         ErrStat = ErrID
-         ErrMsg  = Msg
-
 
             ! Close the input file.
 
          CLOSE ( UnIn )
 
-      END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
+      END SUBROUTINE Cleanup
 
-   END SUBROUTINE ReadComFile ! ( FileInfo, FileIndx, AggLine, StartLine, LastLine, ErrStat, ErrMsg )
+   END SUBROUTINE ReadComFile
 !=======================================================================
    SUBROUTINE ReadCVar ( UnIn, Fil, CharVar, VarName, VarDescr, ErrStat, ErrMsg, UnEc )
 
@@ -4946,8 +4347,8 @@ CONTAINS
 
    INTEGER,        INTENT(IN)          :: UnIn                                            ! I/O unit for input file.
    INTEGER,        INTENT(IN), OPTIONAL:: UnEc                                            ! I/O unit for echo file. If present and > 0, write to UnEc
-   INTEGER(IntKi), INTENT(OUT),OPTIONAL:: ErrStat                                         ! Error status; if present, program does not abort on error
-   CHARACTER(*),   INTENT(OUT),OPTIONAL:: ErrMsg                                          ! Error message
+   INTEGER(IntKi), INTENT(OUT)         :: ErrStat                                         ! Error status; if present, program does not abort on error
+   CHARACTER(*),   INTENT(OUT)         :: ErrMsg                                          ! Error message
 
    CHARACTER(*),   INTENT(OUT)         :: CharVar                                         ! Integer variable being read.
    CHARACTER(*),   INTENT(IN)          :: Fil                                             ! Name of the input file.
@@ -4964,22 +4365,10 @@ CONTAINS
    READ (UnIn,*,IOSTAT=IOS)  CharVar
 
 
-   IF ( PRESENT( ErrMsg) ) THEN
-      CALL CheckIOS ( IOS, Fil, VarName, StrType, PRESENT(ErrStat), ErrMsg )
-   ELSE
-      CALL CheckIOS ( IOS, Fil, VarName, StrType, PRESENT(ErrStat) )
-   END IF
+   CALL CheckIOS ( IOS, Fil, VarName, StrType, ErrStat, ErrMsg )
 
 
-   IF ( PRESENT(ErrStat) ) THEN
-      IF ( IOS /= 0 ) THEN
-         ErrStat = ErrID_Fatal
-         RETURN
-      ELSE
-         ErrStat = ErrID_None
-      END IF
-   ENDIF
-
+   IF (ErrStat >= AbortErrLev) RETURN
 
    IF ( PRESENT(UnEc) )  THEN
       IF ( UnEc > 0 ) &
@@ -4988,9 +4377,9 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE ReadCVar ! ( UnIn, Fil, CharVar, VarName, VarDescr [, ErrStat] [, ErrMsg] [, UnEc] )
+   END SUBROUTINE ReadCVar
 !=======================================================================
-   SUBROUTINE ReadFASTbin ( UnIn, Init, FASTdata, ErrLev, ErrMsg )
+   SUBROUTINE ReadFASTbin ( UnIn, Init, FASTdata, ErrStat, ErrMsg )
 
       ! This routine reads the contents of a FAST binary output file (FASTbinFile) and stores it in FASTdata.
       ! It is assumed that the name of the binary file is preloaded into FASTdata%File by the calling procedure.
@@ -4998,12 +4387,12 @@ CONTAINS
 
       ! Argument declarations.
 
-   INTEGER(IntKi), OPTIONAL, INTENT(OUT)  :: ErrLev                  ! An optional error level to be returned to the calling routine.
-   INTEGER(IntKi), INTENT(INOUT)          :: UnIn                    ! The IO unit for the FAST binary file.
+   INTEGER(IntKi),      INTENT(  OUT)     :: ErrStat                 ! An optional error level to be returned to the calling routine.
+   INTEGER(IntKi),      INTENT(INOUT)     :: UnIn                    ! The IO unit for the FAST binary file.
 
-   LOGICAL, INTENT(IN)                    :: Init                    ! A flag to tell the routine to read only the file header for initialization purposes.
+   LOGICAL,             INTENT(IN)        :: Init                    ! A flag to tell the routine to read only the file header for initialization purposes.
 
-   CHARACTER(*),        INTENT(OUT)       :: ErrMsg                  ! An optional error message to be returned to the calling routine.
+   CHARACTER(*),        INTENT(  OUT)     :: ErrMsg                  ! An optional error message to be returned to the calling routine.
 
    TYPE (FASTdataType), INTENT(INOUT)     :: FASTdata                ! The derived type for holding FAST output data.
 
@@ -5037,11 +4426,25 @@ CONTAINS
    INTEGER(B1Ki), ALLOCATABLE             :: DescStrASCII(:)         ! The ASCII equivalent of DescStr.
    INTEGER(B1Ki)                          :: TmpStrASCII(MaxChrLen)  ! The temporary ASCII equivalent of a channel name or units.
 
+   INTEGER(IntKi)                         :: ErrStat2
+   CHARACTER(ErrMsgLen)                   :: ErrMsg2
+   CHARACTER(*), PARAMETER                :: RoutineName = 'ReadFASTbin'
 
+   
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+
+   
+   
       !  Open data file.
 
-   CALL OpenBInpFile ( UnIn, FASTdata%File, ErrLev, ErrMsg )
-   IF ( ErrLev /= ErrID_None )  RETURN
+   CALL OpenBInpFile ( UnIn, FASTdata%File, ErrStat2, ErrMsg2 )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      IF (ErrStat >= AbortErrLev) THEN
+         CALL Cleanup()
+         RETURN
+      END IF
+      
 
 
       ! Process the requested data records of this file.
@@ -5052,24 +4455,27 @@ CONTAINS
 
       ! Read some of the header information.
 
-   READ (UnIn, IOSTAT=ErrLev)  FileType
-   IF ( ErrLev /= 0 )  THEN
-      CALL ExitThisRoutine ( ErrID_Fatal, '>> Fatal error reading FileType in ReadFASTbin for file "'//TRIM( FASTdata%File )//'".' )
+   READ (UnIn, IOSTAT=ErrStat2)  FileType
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL SetErrStat ( ErrID_Fatal, 'Fatal error reading FileType from file "'//TRIM( FASTdata%File )//'".', ErrStat, ErrMsg, RoutineName )
+      CALL Cleanup()
       RETURN
    ENDIF
 
-   READ (UnIn, IOSTAT=ErrLev)  Tmp4BInt
-   IF ( ErrLev /= 0 )  THEN
-      CALL ExitThisRoutine ( ErrID_Fatal, '>> Fatal error reading the number of channels in ReadFASTbin for file "' &
-                                      //TRIM( FASTdata%File )//'".' )
+   READ (UnIn, IOSTAT=ErrStat2)  Tmp4BInt
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL SetErrStat ( ErrID_Fatal, 'Fatal error reading the number of channels from file "' &
+                                      //TRIM( FASTdata%File )//'".', ErrStat, ErrMsg, RoutineName )
+      CALL Cleanup()
       RETURN
    ENDIF
    FASTdata%NumChans = Tmp4BInt  ! possible type conversion
 
-   READ (UnIn, IOSTAT=ErrLev)  Tmp4BInt
-   IF ( ErrLev /= 0 )  THEN
-      CALL ExitThisRoutine ( ErrID_Fatal, '>> Fatal error reading the number of records in ReadFASTbin for file "' &
-                                          //TRIM( FASTdata%File )//'".' )
+   READ (UnIn, IOSTAT=ErrStat2)  Tmp4BInt
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL SetErrStat ( ErrID_Fatal, 'Fatal error reading the number of records from file "' &
+                                          //TRIM( FASTdata%File )//'".', ErrStat, ErrMsg, RoutineName )
+      CALL Cleanup()
       RETURN
    ENDIF
    FASTdata%NumRecs = Tmp4BInt ! possible type conversion
@@ -5079,33 +4485,37 @@ CONTAINS
 
    IF ( FileType == FileFmtID_WithTime )  THEN
 
-      READ (UnIn, IOSTAT=ErrLev)  TimeScl
-      IF ( ErrLev /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, '>> Fatal error reading TimeScl in ReadFASTbin for file "'//TRIM( FASTdata%File ) &
-                                           //'".' )
+      READ (UnIn, IOSTAT=ErrStat2)  TimeScl
+      IF ( ErrStat2 /= 0 )  THEN
+         CALL SetErrStat ( ErrID_Fatal, 'Fatal error reading TimeScl from file "'//TRIM( FASTdata%File ) &
+                                           //'".', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup()
          RETURN
       ENDIF
 
-      READ (UnIn, IOSTAT=ErrLev)  TimeOff
-      IF ( ErrLev /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error reading TimeOff in ReadFASTbin for file "'//TRIM( FASTdata%File ) &
-                                           //'".' )
+      READ (UnIn, IOSTAT=ErrStat2)  TimeOff
+      IF ( ErrStat2 /= 0 )  THEN
+         CALL SetErrStat ( ErrID_Fatal, 'Fatal error reading TimeOff from file "'//TRIM( FASTdata%File ) &
+                                           //'".', ErrStat, ErrMsg, RoutineName )
          RETURN
+         CALL Cleanup()
       ENDIF
 
    ELSE
 
-      READ (UnIn, IOSTAT=ErrLev)  TimeOut1
-      IF ( ErrLev /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error reading TimeOut1 in ReadFASTbin for file "'//TRIM( FASTdata%File ) &
-                                           //'".' )
+      READ (UnIn, IOSTAT=ErrStat2)  TimeOut1
+      IF ( ErrStat2 /= 0 )  THEN
+         CALL SetErrStat ( ErrID_Fatal, 'Fatal error reading TimeOut1 from file "'//TRIM( FASTdata%File ) &
+                                           //'".', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup()
          RETURN
       ENDIF
 
-      READ (UnIn, IOSTAT=ErrLev)  TimeIncr
-      IF ( ErrLev /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error reading TimeIncr in ReadFASTbin for file "'//TRIM( FASTdata%File ) &
-                                           //'".' )
+      READ (UnIn, IOSTAT=ErrStat2)  TimeIncr
+      IF ( ErrStat2 /= 0 )  THEN
+         CALL SetErrStat ( ErrID_Fatal, 'Fatal error reading TimeIncr from file "'//TRIM( FASTdata%File ) &
+                                           //'".', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup()
          RETURN
       ENDIF
 
@@ -5114,96 +4524,110 @@ CONTAINS
 
       ! Allocate the necessary arrays.
 
-   ALLOCATE ( ColMax( FASTdata%NumChans ) , STAT=ErrLev )
-   IF ( ErrLev /= 0 )  THEN
-      CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error allocating memory for ColMax array in ReadFASTbin.' )
+   ALLOCATE ( ColMax( FASTdata%NumChans ) , STAT=ErrStat2 )
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL SetErrStat ( ErrID_Fatal, 'Fatal error allocating memory for ColMax array.', ErrStat, ErrMsg, RoutineName )
+      CALL Cleanup()
       RETURN
    ENDIF
 
-   ALLOCATE ( ColMin( FASTdata%NumChans ) , STAT=ErrLev )
-   IF ( ErrLev /= 0 )  THEN
-      CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error allocating memory for ColMin array in ReadFASTbin.' )
+   ALLOCATE ( ColMin( FASTdata%NumChans ) , STAT=ErrStat2 )
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL SetErrStat ( ErrID_Fatal, 'Fatal error allocating memory for ColMin array.', ErrStat, ErrMsg, RoutineName )
+      CALL Cleanup()
       RETURN
    ENDIF
 
-   ALLOCATE ( ColOff( FASTdata%NumChans ) , STAT=ErrLev )
-   IF ( ErrLev /= 0 )  THEN
-      CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error allocating memory for ColOff array in ReadFASTbin.' )
+   ALLOCATE ( ColOff( FASTdata%NumChans ) , STAT=ErrStat2 )
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL SetErrStat ( ErrID_Fatal, 'Fatal error allocating memory for ColOff array.', ErrStat, ErrMsg, RoutineName )
+      CALL Cleanup()
       RETURN
    ENDIF
 
-   ALLOCATE ( FASTdata%ChanNames( FASTdata%NumChans+1 ) , STAT=ErrLev )
-   IF ( ErrLev /= 0 )  THEN
-      CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error allocating memory for FASTdata%ChanNames array in ReadFASTbin.' )
+   ALLOCATE ( FASTdata%ChanNames( FASTdata%NumChans+1 ) , STAT=ErrStat2 )
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL SetErrStat ( ErrID_Fatal, 'Fatal error allocating memory for FASTdata%ChanNames array.', ErrStat, ErrMsg, RoutineName )
+      CALL Cleanup()
       RETURN
    ENDIF
 
-   ALLOCATE ( FASTdata%ChanUnits( FASTdata%NumChans+1 ) , STAT=ErrLev )
-   IF ( ErrLev /= 0 )  THEN
-      CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error allocating memory for FASTdata%ChanUnits array in ReadFASTbin.' )
+   ALLOCATE ( FASTdata%ChanUnits( FASTdata%NumChans+1 ) , STAT=ErrStat2 )
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL SetErrStat( ErrID_Fatal, 'Fatal error allocating memory for FASTdata%ChanUnits array.', ErrStat, ErrMsg, RoutineName )
+      CALL Cleanup()
       RETURN
    ENDIF
 
-   ALLOCATE ( ColScl( FASTdata%NumChans ) , STAT=ErrLev )
-   IF ( ErrLev /= 0 )  THEN
-      CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error allocating memory for ColScl array in ReadFASTbin.' )
+   ALLOCATE ( ColScl( FASTdata%NumChans ) , STAT=ErrStat2 )
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL SetErrStat ( ErrID_Fatal, 'Fatal error allocating memory for ColScl array.', ErrStat, ErrMsg, RoutineName )
+      CALL Cleanup()
       RETURN
    ENDIF
 
-   ALLOCATE ( TmpInArray( FASTdata%NumRecs, FASTdata%NumChans ) , STAT=ErrLev )
-   IF ( ErrLev /= 0 )  THEN
-      CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error allocating memory for the TmpInArray array in ReadFASTbin.' )
+   ALLOCATE ( TmpInArray( FASTdata%NumRecs, FASTdata%NumChans ) , STAT=ErrStat2 )
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL SetErrStat ( ErrID_Fatal, 'Fatal error allocating memory for the TmpInArray array.', ErrStat, ErrMsg, RoutineName )
+      CALL Cleanup()
       RETURN
    ENDIF
 
    IF ( FileType == FileFmtID_WithTime ) THEN
-      ALLOCATE ( TmpTimeArray( FASTdata%NumRecs ) , STAT=ErrLev )
-      IF ( ErrLev /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error allocating memory for the TmpTimeArray array in ReadFASTbin.' )
+      ALLOCATE ( TmpTimeArray( FASTdata%NumRecs ) , STAT=ErrStat2 )
+      IF ( ErrStat2 /= 0 )  THEN
+         CALL SetErrStat ( ErrID_Fatal, 'Fatal error allocating memory for the TmpTimeArray array.', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup()
          RETURN
       ENDIF
    END IF
 
-   ALLOCATE ( FASTdata%Data( FASTdata%NumRecs, FASTdata%NumChans+1 ) , STAT=ErrLev )
-   IF ( ErrLev /= 0 )  THEN
-      CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error allocating memory for the FASTdata%Data array in ReadFASTbin.' )
+   ALLOCATE ( FASTdata%Data( FASTdata%NumRecs, FASTdata%NumChans+1 ) , STAT=ErrStat2 )
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL SetErrStat ( ErrID_Fatal, 'Fatal error allocating memory for the FASTdata%Data array.', ErrStat, ErrMsg, RoutineName )
+      CALL Cleanup()
       RETURN
    ENDIF
 
 
       ! Read more of the header information.
 
-   READ (UnIn, IOSTAT=ErrLev)  ColScl
-   IF ( ErrLev /= 0 )  THEN
-      CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error reading the ColScl array in ReadFASTbin for file "' &
-                                          //TRIM( FASTdata%File )//'".' )
+   READ (UnIn, IOSTAT=ErrStat2)  ColScl
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL SetErrStat ( ErrID_Fatal, 'Fatal error reading the ColScl array from file "' &
+                                          //TRIM( FASTdata%File )//'".', ErrStat, ErrMsg, RoutineName )
+      CALL Cleanup()
       RETURN
    ENDIF
 
-   READ (UnIn, IOSTAT=ErrLev)  ColOff
-   IF ( ErrLev /= 0 )  THEN
-      CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error reading the ColOff array in ReadFASTbin for file "' &
-                                          //TRIM( FASTdata%File )//'".' )
+   READ (UnIn, IOSTAT=ErrStat2)  ColOff
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL SetErrStat ( ErrID_Fatal, 'Fatal error reading the ColOff array from file "' &
+                                          //TRIM( FASTdata%File )//'".', ErrStat, ErrMsg, RoutineName )
+      CALL Cleanup()
       RETURN
    ENDIF
 
-   READ (UnIn, IOSTAT=ErrLev)  LenDesc
-   IF ( ErrLev /= 0 )  THEN
-      CALL ExitThisRoutine ( ErrID_Fatal, '>> Fatal error reading LenDesc in ReadFASTbin for file "'//TRIM( FASTdata%File )//'".' )
+   READ (UnIn, IOSTAT=ErrStat2)  LenDesc
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL SetErrStat ( ErrID_Fatal, 'Fatal error reading LenDesc from file "'//TRIM( FASTdata%File )//'".', ErrStat, ErrMsg, RoutineName )
+      CALL Cleanup()
       RETURN
    ENDIF
    LenDesc = MIN( LenDesc, MaxLenDesc )
 
-   ALLOCATE ( DescStrASCII( LenDesc ) , STAT=ErrLev )
-   IF ( ErrLev /= 0 )  THEN
-      CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error allocating memory for the DescStrASCII array in ReadFASTbin.' )
+   ALLOCATE ( DescStrASCII( LenDesc ) , STAT=ErrStat2 )
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL SetErrStat ( ErrID_Fatal, 'Fatal error allocating memory for the DescStrASCII array.', ErrStat, ErrMsg, RoutineName )
+      CALL Cleanup()
       RETURN
    ENDIF
 
-   READ (UnIn, IOSTAT=ErrLev)  DescStrASCII
-   IF ( ErrLev /= 0 )  THEN
-      CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error reading the DescStrASCII array in ReadFASTbin for file "' &
-                                      //TRIM( FASTdata%File )//'".' )
+   READ (UnIn, IOSTAT=ErrStat2)  DescStrASCII
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL SetErrStat ( ErrID_Fatal, 'Fatal error reading the DescStrASCII array from file "' &
+                                      //TRIM( FASTdata%File )//'".', ErrStat, ErrMsg, RoutineName )
+      CALL Cleanup()
       RETURN
    ENDIF
 
@@ -5215,10 +4639,11 @@ CONTAINS
 
    TmpStrASCII(:) = ICHAR( ' ' )
    DO IChan=1,FASTdata%NumChans+1
-      READ (UnIn, IOSTAT=ErrLev)  TmpStrASCII
-      IF ( ErrLev /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error reading the title of Channel #'//Int2LStr(  IChan )// &
-                                          ' in ReadFASTbin for file "'//TRIM( FASTdata%File )//'".' )
+      READ (UnIn, IOSTAT=ErrStat2)  TmpStrASCII
+      IF ( ErrStat2 /= 0 )  THEN
+         CALL SetErrStat ( ErrID_Fatal, 'Fatal error reading the title of Channel #'//Int2LStr(  IChan )// &
+                                          ' from file "'//TRIM( FASTdata%File )//'".', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup()
          RETURN
       ENDIF
       FASTdata%ChanNames(IChan) = ''
@@ -5229,10 +4654,11 @@ CONTAINS
 
    TmpStrASCII(:) = ICHAR( ' ' )
    DO IChan=1,FASTdata%NumChans+1
-      READ (UnIn, IOSTAT=ErrLev)  TmpStrASCII
-      IF ( ErrLev /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error reading the units of Channel #'//Int2LStr(  IChan )// &
-                                          ' in ReadFASTbin for file "'//TRIM( FASTdata%File )//'".' )
+      READ (UnIn, IOSTAT=ErrStat2)  TmpStrASCII
+      IF ( ErrStat2 /= 0 )  THEN
+         CALL SetErrStat ( ErrID_Fatal, 'Fatal error reading the units of Channel #'//Int2LStr(  IChan )// &
+                                          ' from file "'//TRIM( FASTdata%File )//'".', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup()
          RETURN
       ENDIF
       FASTdata%ChanUnits(IChan) = ''
@@ -5245,8 +4671,7 @@ CONTAINS
       ! Return if we only wanted to read the header.
 
    IF ( Init )  THEN
-      CLOSE ( UnIn)
-      CALL ExitThisRoutine( ErrID_None, '' )
+      CALL Cleanup()
       RETURN
    ENDIF
 
@@ -5256,9 +4681,10 @@ CONTAINS
 
    IF ( FileType == FileFmtID_WithTime ) THEN
 
-      READ (UnIn, IOSTAT=ErrLev)  TmpTimeArray                                 ! Time data stored in normalized 32-bit integers
-      IF ( ErrLev /= 0 )  THEN
-         CALL ExitThisRoutine ( ErrID_Fatal, ' >> Fatal error reading time data from the FAST binary file "'//TRIM( FASTdata%File )//'".' )
+      READ (UnIn, IOSTAT=ErrStat2)  TmpTimeArray                                 ! Time data stored in normalized 32-bit integers
+      IF ( ErrStat2 /= 0 )  THEN
+         CALL SetErrStat ( ErrID_Fatal, 'Fatal error reading time data from file "'//TRIM( FASTdata%File )//'".', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup()
          RETURN
       ENDIF
 
@@ -5279,7 +4705,12 @@ CONTAINS
       ! Read the FAST channel data.
 
    DO IRow=1,FASTdata%NumRecs
-      READ (UnIn, IOSTAT=ErrLev)  TmpInArray(IRow,:)
+      READ (UnIn, IOSTAT=ErrStat2)  TmpInArray(IRow,:)
+      IF ( ErrStat2 /= 0 )  THEN
+         CALL SetErrStat ( ErrID_Fatal, 'Fatal error reading channel data from file "'//TRIM( FASTdata%File )//'".', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup()
+         RETURN
+      ENDIF
    END DO ! IRow=1,FASTdata%NumRecs
 
 
@@ -5290,26 +4721,15 @@ CONTAINS
    END DO ! IRow=1,FASTdata%NumRecs
 
 
-   CALL ExitThisRoutine( ErrID_None, '' )
+   CALL Cleanup( )
    RETURN
 
    !=======================================================================
    CONTAINS
    !=======================================================================
-      SUBROUTINE ExitThisRoutine ( ErrID, Msg )
+      SUBROUTINE Cleanup ( )
 
          ! This subroutine cleans up all the allocatable arrays, sets the error status/message and closes the binary file
-
-            ! Passed arguments
-
-         INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrLev)
-         CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
-
-
-            ! Set error status/message
-
-         ErrLev = ErrID
-         ErrMsg  = Msg
 
 
             ! Deallocate arrays created in this routine.
@@ -5323,22 +4743,13 @@ CONTAINS
          IF ( ALLOCATED( TmpTimeArray       ) ) DEALLOCATE( TmpTimeArray       )
 
 
-            ! If there was an error, deallocate the arrays in the FASTdata structure.
-
-         IF ( ErrLev /= 0 )  THEN
-            IF ( ALLOCATED( FASTdata%ChanNames ) ) DEALLOCATE( FASTdata%ChanNames )
-            IF ( ALLOCATED( FASTdata%ChanUnits ) ) DEALLOCATE( FASTdata%ChanUnits )
-            IF ( ALLOCATED( FASTdata%Data      ) ) DEALLOCATE( FASTdata%Data      )
-         END IF ! ( ErrLev /= 0 )
-
-
             ! Close file
 
          CLOSE ( UnIn )
 
-      END SUBROUTINE ExitThisRoutine
+      END SUBROUTINE Cleanup
 
-   END SUBROUTINE ReadFASTbin ! ( UnIn, Init, FASTdata, ErrLev, ErrMsg )
+   END SUBROUTINE ReadFASTbin
 !=======================================================================
    SUBROUTINE ReadIAry ( UnIn, Fil, IntAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
 
@@ -5369,25 +4780,21 @@ CONTAINS
 
    READ (UnIn,*,IOSTAT=IOS)  ( IntAry(Ind), Ind=1,AryLen )
 
-   CALL CheckIOS ( IOS, Fil, TRIM( AryName ), NumType, .TRUE., ErrMsg )
+   CALL CheckIOS ( IOS, Fil, TRIM( AryName ), NumType, ErrStat, ErrMsg )
 
-   IF ( IOS /= 0 ) THEN
-      ErrStat = ErrID_Fatal
-   ELSE
-      ErrStat = ErrID_None
+   IF (ErrStat >= AbortErrLev) RETURN
 
    IF ( PRESENT(UnEc) )  THEN
          IF ( UnEc > 0 ) THEN
             WRITE( UnEc, Ec_IntAryFrmt ) TRIM( AryName ), AryDescr, IntAry(1:MIN(AryLen,NWTC_MaxAryLen))
          END IF
-      END IF !present(unec)
+   END IF !present(unec)
 
-   END IF
 
 
 
    RETURN
-   END SUBROUTINE ReadIAry ! ( UnIn, Fil, IntAry, AryLen, AryName, AryDescr [, ErrStat] [, UnEc] )
+   END SUBROUTINE ReadIAry
 !=======================================================================
    SUBROUTINE ReadIVar ( UnIn, Fil, IntVar, VarName, VarDescr, ErrStat, ErrMsg, UnEc )
 
@@ -5400,8 +4807,8 @@ CONTAINS
    INTEGER,        INTENT(OUT)         :: IntVar                                          ! Integer variable being read.
    INTEGER,        INTENT(IN)          :: UnIn                                            ! I/O unit for input file.
    INTEGER,        INTENT(IN), OPTIONAL:: UnEc                                            ! I/O unit for echo file. If present and > 0, write to UnEc
-   INTEGER(IntKi), INTENT(OUT),OPTIONAL:: ErrStat                                         ! Error status; if present, program does not abort on error
-   CHARACTER(*),   INTENT(OUT),OPTIONAL:: ErrMsg                                          ! Error message
+   INTEGER(IntKi), INTENT(OUT)         :: ErrStat                                         ! Error status; if present, program does not abort on error
+   CHARACTER(*),   INTENT(OUT)         :: ErrMsg                                          ! Error message
 
    CHARACTER(*),   INTENT(IN)          :: Fil                                             ! Name of the input file.
    CHARACTER(*),   INTENT(IN)          :: VarDescr                                        ! Text string describing the variable.
@@ -5415,43 +4822,16 @@ CONTAINS
    CHARACTER(30)                       :: Word                                            ! String to hold the first word on the line.
 
 
-
-   IF ( PRESENT(ErrStat) ) THEN
-
-      IF ( PRESENT(ErrMsg) ) THEN
-         CALL ReadNum ( UnIn, Fil, Word, VarName, ErrStat, ErrMsg )
-      ELSE
-         CALL ReadNum ( UnIn, Fil, Word, VarName, ErrStat )
-      END IF
-
-      IF ( ErrStat == ErrID_Fatal ) RETURN  ! If we're about to read a T/F and treat it as a number, we have a less severe ErrStat
-
-   ELSE
-
-      CALL ReadNum ( UnIn, Fil, Word, VarName )
-
-   END IF
+   CALL ReadNum ( UnIn, Fil, Word, VarName, ErrStat, ErrMsg )   
+   IF ( ErrStat >= AbortErrLev ) RETURN  ! If we're about to read a T/F and treat it as a number, we have a less severe ErrStat
 
 
    READ (Word,*,IOSTAT=IOS)  IntVar
 
 
-   IF ( PRESENT( ErrMsg) ) THEN
-      CALL CheckIOS ( IOS, Fil, VarName, NumType, PRESENT(ErrStat), ErrMsg )
-   ELSE
-      CALL CheckIOS ( IOS, Fil, VarName, NumType, PRESENT(ErrStat) )
-   END IF
+   CALL CheckIOS ( IOS, Fil, VarName, NumType, ErrStat, ErrMsg )
 
-
-   IF ( PRESENT(ErrStat) ) THEN
-      IF ( IOS /= 0 ) THEN
-         ErrStat = ErrID_Fatal
-         RETURN
-      ELSE
-         ErrStat = ErrID_None
-      END IF
-   ENDIF
-
+   IF (ErrStat >= AbortErrLev) RETURN
 
    IF ( PRESENT(UnEc) )  THEN
       IF ( UnEc > 0 ) &
@@ -5460,7 +4840,7 @@ CONTAINS
 
 
    RETURN
-   END SUBROUTINE ReadIVar ! ( UnIn, Fil, IntVar, VarName, VarDescr [, ErrStat] [, UnEc] )
+   END SUBROUTINE ReadIVar
 !=======================================================================
    SUBROUTINE ReadLAry ( UnIn, Fil, LogAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
 
@@ -5492,25 +4872,20 @@ CONTAINS
 
    READ (UnIn,*,IOSTAT=IOS)  ( LogAry(Ind), Ind=1,AryLen )
 
-   CALL CheckIOS ( IOS, Fil, TRIM( AryName ), FlgType, .TRUE., ErrMsg )
+   CALL CheckIOS ( IOS, Fil, TRIM( AryName ), FlgType, ErrStat, ErrMsg )
 
-   IF ( IOS /= 0 ) THEN
-      ErrStat = ErrID_Fatal
-   ELSE
-      ErrStat = ErrID_None
+   IF (ErrStat >= AbortErrLev) RETURN
 
-      IF ( PRESENT(UnEc) )  THEN
-         IF ( UnEc > 0 ) THEN
-            WRITE( UnEc, Ec_LgAryFrmt ) TRIM( AryName ), AryDescr, LogAry(1:MIN(AryLen,NWTC_MaxAryLen))
-         END IF
-      END IF !present(unec)
-
-   END IF
+   IF ( PRESENT(UnEc) )  THEN
+      IF ( UnEc > 0 ) THEN
+         WRITE( UnEc, Ec_LgAryFrmt ) TRIM( AryName ), AryDescr, LogAry(1:MIN(AryLen,NWTC_MaxAryLen))
+      END IF
+   END IF !present(unec)
 
    RETURN
-   END SUBROUTINE ReadLAry ! ( UnIn, Fil, LogAry, AryLen, AryName, AryDescr [, ErrStat] [, UnEc] )
+   END SUBROUTINE ReadLAry
 !=============================================================================
-SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
+SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, IOStat )
 
 
       ! This routine reads a line from the specified input file and returns the non-comment
@@ -5519,7 +4894,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
       ! Argument declarations.
 
-   INTEGER(IntKi), INTENT(OUT)               :: ErrStat                       ! Error status.
+   INTEGER(IntKi), INTENT(OUT)               :: IOStat                       ! Error status.
 
    INTEGER, INTENT(IN)                       :: UnIn                          ! The unit number for the file being read.
    INTEGER, INTENT(OUT)                      :: LineLen                       ! The length of the line returned from ReadLine().
@@ -5527,22 +4902,19 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
    CHARACTER(*), INTENT(IN)                  :: CommChars                     ! The list of possible comment characters.
    CHARACTER(*), INTENT(OUT)                 :: Line                          ! The decommented line being returned to the calling routine.
 
-
       ! Local declarations.
 
    INTEGER                                    :: CommLoc                      ! The left-most location of a given comment character in the Line.
    INTEGER                                    :: FirstComm                    ! The location of first comment character in the Line.
    INTEGER                                    :: IC                           ! The index for the character location in the string.
-   INTEGER                                    :: IOS                          ! The status of the read.
    INTEGER                                    :: NumCommChars                 ! The number of comment characters in the CommChars array.
 
 
-   READ (UnIn,'(A)',IOSTAT=IOS)  Line
+   READ (UnIn,'(A)',IOSTAT=IOStat)  Line
 
-   IF ( IOS /= 0 )  THEN
+   IF ( IOStat /= 0 )  THEN
       Line    = ''
       LineLen = 0
-      ErrStat = IOS
       RETURN
    ENDIF
 
@@ -5565,7 +4937,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
 
    RETURN
-   END SUBROUTINE ReadLine ! ( UnIn, CommChars, Line, LineLen, ErrStat )
+   END SUBROUTINE ReadLine
 !=======================================================================
    SUBROUTINE ReadLVar ( UnIn, Fil, LogVar, VarName, VarDescr, ErrStat, ErrMsg, UnEc )
 
@@ -5577,8 +4949,8 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
    INTEGER,        INTENT(IN)          :: UnIn                                            ! I/O unit for input file.
    INTEGER,        INTENT(IN), OPTIONAL:: UnEc                                            ! I/O unit for echo file. If present and > 0, write to UnEc
-   INTEGER(IntKi), INTENT(OUT),OPTIONAL:: ErrStat                                         ! Error status; if present, program does not abort on error
-   CHARACTER(*),   INTENT(OUT),OPTIONAL:: ErrMsg                                          ! Error message
+   INTEGER(IntKi), INTENT(OUT)         :: ErrStat                                         ! Error status; if present, program does not abort on error
+   CHARACTER(*),   INTENT(OUT)         :: ErrMsg                                          ! Error message
 
    LOGICAL,        INTENT(OUT)         :: LogVar                                          ! Logical variable being read.
 
@@ -5591,33 +4963,13 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
    INTEGER                             :: IOS                                             ! I/O status returned from the read statement.
 
-   CHARACTER( 4)                       :: VName                                           ! Temporary holder for the variable name.
-
-
-
 
    READ (UnIn,*,IOSTAT=IOS)  LogVar
 
-   IF ( PRESENT( ErrMsg) ) THEN
-      CALL CheckIOS ( IOS, Fil, VarName, FlgType, PRESENT(ErrStat), ErrMsg )
-   ELSE
-      CALL CheckIOS ( IOS, Fil, VarName, FlgType, PRESENT(ErrStat) )
-   END IF
+   CALL CheckIOS ( IOS, Fil, VarName, FlgType, ErrStat, ErrMsg )
 
+   IF (ErrStat >= AbortErrLev) RETURN
 
-   IF ( PRESENT(ErrStat) ) THEN
-      IF ( IOS /= 0 ) THEN
-         ErrStat = ErrID_Fatal
-         RETURN
-      ELSE
-         ErrStat = ErrID_None
-      END IF
-   ENDIF
-
-
-   VName = VarName
-
-   CALL Conv2UC ( VName )
 
    IF ( PRESENT(UnEc) )  THEN
       IF ( UnEc > 0 ) &
@@ -5626,7 +4978,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
 
    RETURN
-   END SUBROUTINE ReadLVar ! ( UnIn, Fil, LogVar, VarName, VarDescr [, ErrStat] [,ErrMsg] [, UnEc] )
+   END SUBROUTINE ReadLVar
 !=======================================================================
    SUBROUTINE ReadNum ( UnIn, Fil, Word, VarName, ErrStat, ErrMsg )
 
@@ -5637,8 +4989,8 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
       ! Argument declarations:
 
    INTEGER,       INTENT(IN)          :: UnIn                                            ! I/O unit for input file.
-   INTEGER(IntKi),INTENT(OUT),OPTIONAL:: ErrStat                                         ! Error status; if present, program does not abort on error
-   CHARACTER(*),  INTENT(OUT),OPTIONAL:: ErrMsg                                          ! Error message
+   INTEGER(IntKi),INTENT(OUT)         :: ErrStat                                         ! Error status; if present, program does not abort on error
+   CHARACTER(*),  INTENT(OUT)         :: ErrMsg                                          ! Error message
 
    CHARACTER(*),  INTENT(IN)          :: Fil                                             ! Name of the input file.
    CHARACTER(*),  INTENT(IN)          :: VarName                                         ! Text string containing the variable name.
@@ -5648,8 +5000,6 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
       ! Local declarations:
 
    INTEGER                            :: IOS                                             ! I/O status returned from the read statement.
-   CHARACTER(1024)                    :: Msg                                             ! Temporary error message
-
 
 
 
@@ -5658,47 +5008,26 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
    READ (UnIn,*,IOSTAT=IOS)  Word
 
 
-   IF ( PRESENT(ErrMsg) ) THEN
-      CALL CheckIOS ( IOS, Fil, VarName, NumType, PRESENT(ErrStat), ErrMsg )
-   ELSE
-      CALL CheckIOS ( IOS, Fil, VarName, NumType, PRESENT(ErrStat) )
-   END IF
+   CALL CheckIOS ( IOS, Fil, VarName, NumType, ErrStat, ErrMsg )
 
 
-   IF ( PRESENT(ErrStat) ) THEN
-      IF ( IOS /= 0 ) THEN
-         ErrStat = ErrID_Fatal
-         RETURN
-      ELSE
-         ErrStat = ErrID_None
-      END IF
-   ENDIF
+   IF (ErrStat >= AbortErrLev) RETURN
 
 
       ! See if the word starts with a T or F.  If so, flag it as an invalid number.
 
    IF ( INDEX( 'FTft', Word(:1) ) > 0 )  THEN
-
-      Msg = 'Invalid numeric input for file "'//TRIM( Fil )//'". "'//TRIM( Word )// &
-             '" found when trying to read the number, '//TRIM( VarName )//'.'
-
-      IF ( PRESENT( ErrStat ) ) THEN
-         ErrStat = ErrID_Severe
-
-         IF ( PRESENT( ErrMsg ) ) THEN
-            ErrMsg  = Msg
-         END IF
-      ELSE
-         CALL WrScr ( '' )
-         CALL ProgAbort( ' '//TRIM(Msg) )
-      END IF
+      
+      ErrStat = ErrID_Severe
+      ErrMsg = 'ReadNum:Invalid numeric input for file "'//TRIM( Fil )//'". "'//TRIM( Word )// &
+               '" found when trying to read the number, '//TRIM( VarName )//'.'
 
    END IF
 
 
 
    RETURN
-   END SUBROUTINE ReadNum ! ( UnIn, Fil, Word, VarName [, ErrStat] [,ErrMsg] )
+   END SUBROUTINE ReadNum
 !=======================================================================
    SUBROUTINE ReadOutputList ( UnIn, Fil, CharAry, AryLenRead, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
 
@@ -5750,7 +5079,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
    DO
 
       CALL ReadVar ( UnIn, Fil, OutLine, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
-      IF ( ErrStat /= ErrID_None ) RETURN
+      IF ( ErrStat >= AbortErrLev ) RETURN
 
       EndOfFile = OutLine(1:3)            ! EndOfFile is the 1st 3 characters of OutLine
       CALL Conv2UC( EndOfFile )           ! Convert EndOfFile to upper case
@@ -5765,7 +5094,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
       IF ( AryLenRead > MaxAryLen )  THEN
 
          ErrStat = ErrID_Fatal
-         ErrMsg = ' The maximum number of output channels allowed is '//TRIM( Int2LStr(MaxAryLen) )//'.'
+         ErrMsg = 'ReadOutputList:The maximum number of output channels allowed is '//TRIM( Int2LStr(MaxAryLen) )//'.'
          RETURN
 
       ELSE
@@ -5778,7 +5107,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
 
    RETURN
-   END SUBROUTINE ReadOutputList ! ( UnIn, Fil, CharAry, AryLenRead, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
+   END SUBROUTINE ReadOutputList
 !=======================================================================
    SUBROUTINE ReadR4Ary ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
 
@@ -5812,23 +5141,19 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
    READ (UnIn,*,IOSTAT=IOS)  ( RealAry(Ind), Ind=1,AryLen )
 
-   CALL CheckIOS ( IOS, Fil, TRIM( AryName ), NumType, .TRUE., ErrMsg )
+   CALL CheckIOS ( IOS, Fil, TRIM( AryName ), NumType, ErrStat, ErrMsg )
 
-   IF ( IOS /= 0 ) THEN
-      ErrStat = ErrID_Fatal
-   ELSE
-      ErrStat = ErrID_None
+   IF (ErrStat >= AbortErrLev) RETURN
 
-      IF ( PRESENT(UnEc) )  THEN
-         IF ( UnEc > 0 ) THEN
-            WRITE( UnEc, Ec_ReAryFrmt ) TRIM( AryName ), AryDescr, RealAry(1:MIN(AryLen,NWTC_MaxAryLen))
-         END IF
+   IF ( PRESENT(UnEc) )  THEN
+      IF ( UnEc > 0 ) THEN
+         WRITE( UnEc, Ec_ReAryFrmt ) TRIM( AryName ), AryDescr, RealAry(1:MIN(AryLen,NWTC_MaxAryLen))
       END IF
-
    END IF
 
+
    RETURN
-   END SUBROUTINE ReadR4Ary ! ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
+   END SUBROUTINE ReadR4Ary
 !=======================================================================
    SUBROUTINE ReadR8Ary ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
 
@@ -5862,23 +5187,18 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
    READ (UnIn,*,IOSTAT=IOS)  ( RealAry(Ind), Ind=1,AryLen )
 
-   CALL CheckIOS ( IOS, Fil, TRIM( AryName ), NumType, .TRUE., ErrMsg )
+   CALL CheckIOS ( IOS, Fil, TRIM( AryName ), NumType, ErrStat, ErrMsg )
 
-   IF ( IOS /= 0 ) THEN
-      ErrStat = ErrID_Fatal
-   ELSE
-      ErrStat = ErrID_None
+   IF (ErrStat >= AbortErrLev) RETURN
 
-      IF ( PRESENT(UnEc) )  THEN
-         IF ( UnEc > 0 ) THEN
-            WRITE( UnEc, Ec_ReAryFrmt ) TRIM( AryName ), AryDescr, RealAry(1:MIN(AryLen,NWTC_MaxAryLen))
-         END IF
+   IF ( PRESENT(UnEc) )  THEN
+      IF ( UnEc > 0 ) THEN
+         WRITE( UnEc, Ec_ReAryFrmt ) TRIM( AryName ), AryDescr, RealAry(1:MIN(AryLen,NWTC_MaxAryLen))
       END IF
-
    END IF
 
    RETURN
-   END SUBROUTINE ReadR8Ary ! ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
+   END SUBROUTINE ReadR8Ary
 !=======================================================================
    SUBROUTINE ReadR16Ary ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
 
@@ -5912,23 +5232,19 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
    READ (UnIn,*,IOSTAT=IOS)  ( RealAry(Ind), Ind=1,AryLen )
 
-   CALL CheckIOS ( IOS, Fil, TRIM( AryName ), NumType, .TRUE., ErrMsg )
+   CALL CheckIOS ( IOS, Fil, TRIM( AryName ), NumType, ErrStat, ErrMsg )
 
-   IF ( IOS /= 0 ) THEN
-      ErrStat = ErrID_Fatal
-   ELSE
-      ErrStat = ErrID_None
+   IF (ErrStat >= AbortErrLev) RETURN
 
-      IF ( PRESENT(UnEc) )  THEN
-         IF ( UnEc > 0 ) THEN
-            WRITE( UnEc, Ec_ReAryFrmt ) TRIM( AryName ), AryDescr, RealAry(1:MIN(AryLen,NWTC_MaxAryLen))
-         END IF
+   IF ( PRESENT(UnEc) )  THEN
+      IF ( UnEc > 0 ) THEN
+         WRITE( UnEc, Ec_ReAryFrmt ) TRIM( AryName ), AryDescr, RealAry(1:MIN(AryLen,NWTC_MaxAryLen))
       END IF
-
    END IF
 
+
    RETURN
-   END SUBROUTINE ReadR16Ary ! ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
+   END SUBROUTINE ReadR16Ary
 !=======================================================================
    SUBROUTINE ReadR4AryLines ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
 
@@ -5959,16 +5275,14 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
 
    ErrStat = ErrID_None
+   ErrMsg  = ""
 
    DO Ind=1,AryLen
       READ (UnIn,*,IOSTAT=IOS)  RealAry(Ind)
 
-      CALL CheckIOS ( IOS, Fil, TRIM( AryName )//'('//TRIM( Num2LStr( Ind ) )//')', NumType, .TRUE., ErrMsg )
+      CALL CheckIOS ( IOS, Fil, TRIM( AryName )//'('//TRIM( Num2LStr( Ind ) )//')', NumType, ErrStat, ErrMsg )
 
-      IF (IOS /= 0) THEN
-         ErrStat = ErrID_Fatal
-         RETURN
-      ENDIF
+      IF (ErrStat >= AbortErrLev) RETURN
 
       IF ( PRESENT(UnEc) )  THEN
          IF ( UnEc > 0 ) &
@@ -5977,7 +5291,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
    END DO
 
    RETURN
-   END SUBROUTINE ReadR4AryLines ! ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg [, UnEc] )
+   END SUBROUTINE ReadR4AryLines
 !=======================================================================
    SUBROUTINE ReadR8AryLines ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
 
@@ -6008,16 +5322,14 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
 
    ErrStat = ErrID_None
-
+   ErrMsg  = ""
+   
    DO Ind=1,AryLen
       READ (UnIn,*,IOSTAT=IOS)  RealAry(Ind)
 
-      CALL CheckIOS ( IOS, Fil, TRIM( AryName )//'('//TRIM( Num2LStr( Ind ) )//')', NumType, .TRUE., ErrMsg )
+      CALL CheckIOS ( IOS, Fil, TRIM( AryName )//'('//TRIM( Num2LStr( Ind ) )//')', NumType, ErrStat, ErrMsg )
 
-      IF (IOS /= 0) THEN
-         ErrStat = ErrID_Fatal
-         RETURN
-      ENDIF
+      IF (ErrStat >= AbortErrLev) RETURN
 
       IF ( PRESENT(UnEc) )  THEN
          IF ( UnEc > 0 ) &
@@ -6026,7 +5338,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
    END DO
 
    RETURN
-   END SUBROUTINE ReadR8AryLines ! ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg [, UnEc] )
+   END SUBROUTINE ReadR8AryLines
 !=======================================================================
    SUBROUTINE ReadR16AryLines ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg, UnEc )
 
@@ -6057,25 +5369,23 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
 
    ErrStat = ErrID_None
-
+   ErrMsg  = ""
+   
    DO Ind=1,AryLen
       READ (UnIn,*,IOSTAT=IOS)  RealAry(Ind)
 
-      CALL CheckIOS ( IOS, Fil, TRIM( AryName )//'('//TRIM( Num2LStr( Ind ) )//')', NumType, .TRUE., ErrMsg )
+      CALL CheckIOS ( IOS, Fil, TRIM( AryName )//'('//TRIM( Num2LStr( Ind ) )//')', NumType, ErrStat, ErrMsg )
 
-      IF (IOS /= 0) THEN
-         ErrStat = ErrID_Fatal
-         RETURN
-      ENDIF
+      IF (ErrStat >= AbortErrLev) RETURN
 
-   IF ( PRESENT(UnEc) )  THEN
-      IF ( UnEc > 0 ) &
-             WRITE (UnEc,Ec_ReFrmt)  RealAry(Ind), TRIM( AryName )//'('//TRIM( Int2LStr( Ind ) )//')', AryDescr
-   END IF
+      IF ( PRESENT(UnEc) )  THEN
+         IF ( UnEc > 0 ) &
+                WRITE (UnEc,Ec_ReFrmt)  RealAry(Ind), TRIM( AryName )//'('//TRIM( Int2LStr( Ind ) )//')', AryDescr
+      END IF
    END DO
 
    RETURN
-   END SUBROUTINE ReadR16AryLines ! ( UnIn, Fil, RealAry, AryLen, AryName, AryDescr, ErrStat, ErrMsg [, UnEc] )
+   END SUBROUTINE ReadR16AryLines
 !=======================================================================
    SUBROUTINE ReadR4Var ( UnIn, Fil, RealVar, VarName, VarDescr, ErrStat, ErrMsg, UnEc )
 
@@ -6087,8 +5397,8 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
       ! Argument declarations:
 
    REAL(SiKi),    INTENT(OUT)         :: RealVar                                         ! Real (4-byte) variable being read.
-   INTEGER(IntKi),INTENT(OUT),OPTIONAL:: ErrStat                                         ! Error status; if present, program does not abort on error
-   CHARACTER(*),  INTENT(OUT),OPTIONAL:: ErrMsg                                          ! Error message
+   INTEGER(IntKi),INTENT(OUT)         :: ErrStat                                         ! Error status; if present, program does not abort on error
+   CHARACTER(*),  INTENT(OUT)         :: ErrMsg                                          ! Error message
 
    INTEGER,       INTENT(IN)          :: UnIn                                            ! I/O unit for input file.
    INTEGER,       INTENT(IN), OPTIONAL:: UnEc                                            ! I/O unit for echo file. If present and > 0, write to UnEc
@@ -6101,47 +5411,19 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
       ! Local declarations:
 
    INTEGER                            :: IOS                                             ! I/O status returned from the read statement.
-   CHARACTER(1024)                    :: Msg                                             ! Temporary error message
    CHARACTER(30)                      :: Word                                            ! String to hold the first word on the line.
 
 
 
-   IF ( PRESENT(ErrStat) ) THEN
-
-      IF ( PRESENT(ErrMsg) ) THEN
-         CALL ReadNum ( UnIn, Fil, Word, VarName, ErrStat, ErrMsg )
-      ELSE
-         CALL ReadNum ( UnIn, Fil, Word, VarName, ErrStat )
-      END IF
-
-      IF ( ErrStat == ErrID_Fatal ) RETURN  ! If we're about to read a T/F and treat it as a number, we have a less severe ErrStat
-
-   ELSE
-
-      CALL ReadNum ( UnIn, Fil, Word, VarName )
-
-   END IF
+   CALL ReadNum ( UnIn, Fil, Word, VarName, ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev) RETURN  ! If we're about to read a T/F and treat it as a number, we have a less severe ErrStat
 
 
    READ (Word,*,IOSTAT=IOS)  RealVar
 
+   CALL CheckIOS ( IOS, Fil, VarName, NumType, ErrStat, ErrMsg )
 
-   IF ( PRESENT(ErrMsg) ) THEN
-      CALL CheckIOS ( IOS, Fil, VarName, NumType, PRESENT(ErrStat), Msg )
-      ErrMsg = TRIM(Msg)//' '//TRIM(ErrMsg)
-   ELSE
-      CALL CheckIOS ( IOS, Fil, VarName, NumType, PRESENT(ErrStat) )
-   END IF
-
-
-   IF ( PRESENT(ErrStat) ) THEN
-      IF ( IOS /= 0 ) THEN
-         ErrStat = ErrID_Fatal
-         RETURN
-      ELSE
-         ErrStat = ErrID_None
-      END IF
-   ENDIF
+   IF (ErrStat >= AbortErrLev) RETURN
 
 
    IF ( PRESENT(UnEc) )  THEN
@@ -6149,10 +5431,8 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
          WRITE (UnEc,Ec_ReFrmt)  RealVar, VarName, VarDescr
    END IF
 
-
-
    RETURN
-   END SUBROUTINE ReadR4Var ! ( UnIn, Fil, RealVar, VarName, VarDescr [, ErrStat] [, ErrMsg] [, UnEc] )
+   END SUBROUTINE ReadR4Var
 !=======================================================================
    SUBROUTINE ReadR8Var ( UnIn, Fil, RealVar, VarName, VarDescr, ErrStat, ErrMsg, UnEc )
 
@@ -6164,11 +5444,11 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
       ! Argument declarations:
 
    REAL(R8Ki),    INTENT(OUT)         :: RealVar                                         ! Real (8-byte) variable being read.
-   INTEGER(IntKi),INTENT(OUT),OPTIONAL:: ErrStat                                         ! Error status; if present, program does not abort on error
-   CHARACTER(*),  INTENT(OUT),OPTIONAL:: ErrMsg                                          ! Error message
+   INTEGER(IntKi),INTENT(OUT)         :: ErrStat                                         ! Error status; if present, program does not abort on error
+   CHARACTER(*),  INTENT(OUT)         :: ErrMsg                                          ! Error message
 
    INTEGER,       INTENT(IN)          :: UnIn                                            ! I/O unit for input file.
-   INTEGER,        INTENT(IN), OPTIONAL:: UnEc                                            ! I/O unit for echo file. If present and > 0, write to UnEc
+   INTEGER,       INTENT(IN), OPTIONAL:: UnEc                                            ! I/O unit for echo file. If present and > 0, write to UnEc
 
    CHARACTER( *), INTENT(IN)          :: Fil                                             ! Name of the input file.
    CHARACTER( *), INTENT(IN)          :: VarDescr                                        ! Text string describing the variable.
@@ -6183,42 +5463,16 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
 
 
-   IF ( PRESENT(ErrStat) ) THEN
-
-      IF ( PRESENT(ErrMsg) ) THEN
-         CALL ReadNum ( UnIn, Fil, Word, VarName, ErrStat, ErrMsg )
-      ELSE
-         CALL ReadNum ( UnIn, Fil, Word, VarName, ErrStat )
-      END IF
-
-      IF ( ErrStat == ErrID_Fatal ) RETURN  ! If we're about to read a T/F and treat it as a number, we have a less severe ErrStat
-
-   ELSE
-
-      CALL ReadNum ( UnIn, Fil, Word, VarName )
-
-   END IF
+   CALL ReadNum ( UnIn, Fil, Word, VarName, ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev) RETURN  ! If we're about to read a T/F and treat it as a number, we have a less severe ErrStat
 
 
    READ (Word,*,IOSTAT=IOS)  RealVar
 
-
-   IF ( PRESENT(ErrMsg) ) THEN
-      CALL CheckIOS ( IOS, Fil, VarName, NumType, PRESENT(ErrStat), ErrMsg )
-   ELSE
-      CALL CheckIOS ( IOS, Fil, VarName, NumType, PRESENT(ErrStat) )
-   END IF
+   CALL CheckIOS ( IOS, Fil, VarName, NumType, ErrStat, ErrMsg )
 
 
-   IF ( PRESENT(ErrStat) ) THEN
-      IF ( IOS /= 0 ) THEN
-         ErrStat = ErrID_Fatal
-         RETURN
-      ELSE
-         ErrStat = ErrID_None
-      END IF
-   ENDIF
-
+   IF (ErrStat >= AbortErrLev) RETURN
 
    IF ( PRESENT(UnEc) )  THEN
       IF ( UnEc > 0 ) &
@@ -6227,7 +5481,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
 
    RETURN
-   END SUBROUTINE ReadR8Var ! ( UnIn, Fil, RealVar, VarName, VarDescr [, ErrStat] [, ErrMsg] [, UnEc] )
+   END SUBROUTINE ReadR8Var
 !=======================================================================
    SUBROUTINE ReadR16Var ( UnIn, Fil, RealVar, VarName, VarDescr, ErrStat, ErrMsg, UnEc )
 
@@ -6258,42 +5512,17 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
 
 
-   IF ( PRESENT(ErrStat) ) THEN
 
-      IF ( PRESENT(ErrMsg) ) THEN
-         CALL ReadNum ( UnIn, Fil, Word, VarName, ErrStat, ErrMsg )
-      ELSE
-         CALL ReadNum ( UnIn, Fil, Word, VarName, ErrStat )
-      END IF
-
-      IF ( ErrStat == ErrID_Fatal ) RETURN  ! If we're about to read a T/F and treat it as a number, we have a less severe ErrStat
-
-   ELSE
-
-      CALL ReadNum ( UnIn, Fil, Word, VarName )
-
-   END IF
+   CALL ReadNum ( UnIn, Fil, Word, VarName, ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev) RETURN  ! If we're about to read a T/F and treat it as a number, we have a less severe ErrStat
 
 
    READ (Word,*,IOSTAT=IOS)  RealVar
 
-
-   IF ( PRESENT(ErrMsg) ) THEN
-      CALL CheckIOS ( IOS, Fil, VarName, NumType, PRESENT(ErrStat), ErrMsg )
-   ELSE
-      CALL CheckIOS ( IOS, Fil, VarName, NumType, PRESENT(ErrStat) )
-   END IF
+   CALL CheckIOS ( IOS, Fil, VarName, NumType, ErrStat, ErrMsg )
 
 
-   IF ( PRESENT(ErrStat) ) THEN
-      IF ( IOS /= 0 ) THEN
-         ErrStat = ErrID_Fatal
-         RETURN
-      ELSE
-         ErrStat = ErrID_None
-      END IF
-   ENDIF
-
+   IF (ErrStat >= AbortErrLev) RETURN
 
    IF ( PRESENT(UnEc) )  THEN
       IF ( UnEc > 0 ) &
@@ -6302,7 +5531,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
 
    RETURN
-   END SUBROUTINE ReadR16Var ! ( UnIn, Fil, RealVar, VarName, VarDescr [, ErrStat] [, ErrMsg] [, UnEc] )
+   END SUBROUTINE ReadR16Var
 !=======================================================================
    SUBROUTINE ReadStr ( UnIn, Fil, CharVar, VarName, VarDescr, ErrStat, ErrMsg, UnEc )
 
@@ -6314,8 +5543,8 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
    INTEGER,        INTENT(IN)          :: UnIn                                            ! I/O unit for input file.
    INTEGER,        INTENT(IN), OPTIONAL:: UnEc                                            ! I/O unit for echo file. If present and > 0, write to UnEc
-   INTEGER(IntKi), INTENT(OUT),OPTIONAL:: ErrStat                                         ! Error status; if present, program does not abort on error
-   CHARACTER(*),   INTENT(OUT),OPTIONAL:: ErrMsg                                          ! Error message
+   INTEGER(IntKi), INTENT(OUT)         :: ErrStat                                         ! Error status; if present, program does not abort on error
+   CHARACTER(*),   INTENT(OUT)         :: ErrMsg                                          ! Error message
 
    CHARACTER(*),   INTENT(OUT)         :: CharVar                                         ! Integer variable being read.
    CHARACTER(*),   INTENT(IN)          :: Fil                                             ! Name of the input file.
@@ -6325,28 +5554,15 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
       ! Local declarations:
 
-   INTEGER                      :: IOS                                             ! I/O status returned from the read statement.
+   INTEGER                             :: IOS                                             ! I/O status returned from the read statement.
 
 
 
    READ (UnIn,'(A)',IOSTAT=IOS)  CharVar
 
-   IF ( PRESENT( ErrMsg) ) THEN
-      CALL CheckIOS ( IOS, Fil, VarName, StrType, PRESENT(ErrStat), ErrMsg )
-   ELSE
-      CALL CheckIOS ( IOS, Fil, VarName, StrType, PRESENT(ErrStat) )
-   END IF
+   CALL CheckIOS ( IOS, Fil, VarName, StrType, ErrStat, ErrMsg )
 
-
-   IF ( PRESENT(ErrStat) ) THEN
-      IF ( IOS /= 0 ) THEN
-         ErrStat = ErrID_Fatal
-         RETURN
-      ELSE
-         ErrStat = ErrID_None
-      END IF
-   ENDIF
-
+   IF (ErrStat >= AbortErrLev) RETURN
 
    IF ( PRESENT(UnEc) )  THEN
       IF ( UnEc > 0 ) &
@@ -6356,7 +5572,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
 
    RETURN
-   END SUBROUTINE ReadStr ! ( UnIn, Fil, CharVar, VarName, VarDescr [, ErrStat] [, ErrMsg] [, UnEc] )
+   END SUBROUTINE ReadStr
 !=======================================================================   
    SUBROUTINE RemoveNullChar( Str )
    
@@ -6402,7 +5618,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
          ! Local declarations.
 
-      INTEGER(IntKi)                               :: ErrStatLcl              ! Error status local to this routine.
+      INTEGER(IntKi)                               :: ErrStatLcl              ! Error status local to this routine and/or IOStatus.
 
       INTEGER                                      :: CurrLine                ! The current line in the file.
       INTEGER                                      :: RangeBeg                ! The first line in a range of lines to be included from a file.
@@ -6418,35 +5634,35 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
       CHARACTER(1024)                              :: FileName                ! The name of this file being processed.
       CHARACTER(1024)                              :: IncFileName             ! The name of a file that this one includes.
       CHARACTER(512)                               :: Line                    ! The contents of a line returned from ReadLine() with comment removed.
+      CHARACTER(ErrMsgLen)                         :: ErrMsg2
+      CHARACTER(*),       PARAMETER                :: RoutineName = 'ScanComFile'
 
       TYPE (FNlist_Type), POINTER                  :: CurrFile                ! The current file being pointed to in the linked list.
       TYPE (FNlist_Type), POINTER                  :: NewFile                 ! The file being pointed to in the linked list is is to be included by ThisFile.
 
 
+      ErrStat = ErrID_None
+      ErrMsg  = ""
 
          ! Is this file already open from earlier in the recursion.  That would be bad.
 
       FileName = ThisFile%Filename
       INQUIRE ( FILE=Filename, OPENED=IsOpen )
       IF ( IsOpen )  THEN
-         ErrStat = ErrID_Fatal
-         CALL ExitThisRoutine( ErrID_Fatal, ' >> Fatal error scanning "'//TRIM( Filename ) &
-                                          //'" in ScanComFile.  A file cannot directly or indirectly include itself.' )
+         CALL SetErrStat( ErrID_Fatal, 'Fatal error scanning "'//TRIM( Filename ) &
+                          //'". A file cannot directly or indirectly include itself.', ErrStat, ErrMsg, RoutineName )
          RETURN
       ENDIF
 
 
          ! Open the input file.
+      UnIn = -1
+      CALL GetNewUnit ( UnIn, ErrStatLcl, ErrMsg2 )
 
-      CALL GetNewUnit ( UnIn, ErrStatLcl, ErrMsg )
+      CALL OpenFInpFile ( UnIn, Filename, ErrStatLcl, ErrMsg2 )
       IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine( ErrID_Fatal, ' >> '//TRIM( ADJUSTL( ErrMsg ) ) )
-         RETURN
-      ENDIF ! ( ErrStatLcl /= 0 )
-
-      CALL OpenFInpFile ( UnIn, Filename, ErrStatLcl, ErrMsg )
-      IF ( ErrStatLcl /= 0 )  THEN
-         CALL ExitThisRoutine( ErrID_Fatal, ' >> '//TRIM( ADJUSTL( ErrMsg ) ) )
+         CALL SetErrStat( ErrStatLcl, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup()
          RETURN
       ENDIF ! ( ErrStatLcl /= 0 )
 
@@ -6455,7 +5671,12 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
       IF ( StartLine > 1 )  THEN
          DO CurrLine=1,StartLine-1
-            READ(UnIn,'()')
+            READ(UnIn,'()', IOStat=ErrStatLcl)
+            IF (ErrStatLcl /= 0) THEN
+               CALL SetErrStat( ErrID_Fatal, "Error reading file beginning.", ErrStat, ErrMsg, RoutineName )
+               CALL Cleanup()
+               RETURN
+            END IF            
          ENDDO ! CurrLine
       ENDIF ! ( StartLine > 1 )
 
@@ -6466,8 +5687,8 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
       IF ( LastLine > 0 )  THEN
          IF ( StartLine > LastLine )  THEN
-            CALL ExitThisRoutine( ErrID_Fatal, &
-                              ' >> Fatal error: In the call to ScanComFile, LastLine must be >= StartLine unless it is zero.' )
+            CALL SetErrStat( ErrID_Fatal, 'Fatal error: LastLine must be >= StartLine unless it is zero.', ErrStat, ErrMsg, RoutineName )
+            CALL Cleanup()
             RETURN
          ENDIF ! ( StartLine > LastLine )
       ENDIF ! ( LastLine > 0 )
@@ -6489,9 +5710,9 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
             ! Process the next line.
 
-         CALL ReadLine ( UnIn, CommChars, Line, LineLen, ErrStatLcl )               ! Reads a line.  Returns what is before the first comment character.
+         CALL ReadLine ( UnIn, CommChars, Line, LineLen, ErrStatLcl )  ! Reads a line.  Returns what is before the first comment character.
 
-         IF ( ( ErrStatLcl == 0 )  .AND. ( LineLen > 0 ) )  THEN
+         IF ( ( ErrStatLcl == 0 )  .AND. ( LineLen > 0 ) )  THEN ! ErrStatLcl is IOStatus from read statement
 
             Line = ADJUSTL( Line )
 
@@ -6503,13 +5724,13 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
                   ! Parse the contents of everything after the "@" to determine the name of the include file and the optional line range.
 
-               CALL ParseInclInfo ( Line(2:), IncFileName, RangeBeg, RangeEnd, ErrStat, ErrMsg )
-               IF ( ErrStatLcl /= 0 )  THEN
-                  CALL ExitThisRoutine( ErrID_Fatal, ErrMsg//Newline// &
-                      ' >> The fatal error occurred in ScanComFile when processing line #'// &
-                      TRIM( Num2LStr( CurrLine ) )//' of "'//TRIM( FileName )//'".' )
-                  RETURN
-               ENDIF
+               CALL ParseInclInfo ( Line(2:), IncFileName, RangeBeg, RangeEnd, ErrStatLcl, ErrMsg2 )
+                  CALL SetErrStat( ErrStatLcl, TRIM( FileName )//':Line#'//TRIM( Num2LStr( CurrLine ) )//':'//TRIM(ErrMsg2), ErrStat, ErrMsg, RoutineName )
+                  IF (ErrStat >= AbortErrLev) THEN
+                     CALL Cleanup()
+                     RETURN
+                  END IF
+                  ErrStatLcl = 0
 
 
                   ! Check to see if this file has been opened before.
@@ -6538,16 +5759,13 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
                   NewFile => LastFile
                ENDIF ! ( .NOT. FileFound )
 
-
-
-
-               CALL ScanComFile ( FirstFile, NewFile, LastFile, RangeBeg, RangeEnd, NumLines, ErrStatLcl, ErrMsg )
-               IF ( ErrStatLcl /= 0 )  THEN
-                  CALL ExitThisRoutine( ErrID_Fatal, ErrMsg//Newline// &
-                      ' >> The fatal error occurred in ScanComFile when processing line #'// &
-                      TRIM( Num2LStr( CurrLine ) )//' of "'//TRIM( FileName )//'".' )
-                  RETURN
-               ENDIF
+               CALL ScanComFile ( FirstFile, NewFile, LastFile, RangeBeg, RangeEnd, NumLines, ErrStatLcl, ErrMsg2 )
+                  CALL SetErrStat( ErrStatLcl, TRIM( FileName )//':Line#'//TRIM( Num2LStr( CurrLine ) )//':'//TRIM(ErrMsg2), ErrStat, ErrMsg, RoutineName )
+                  IF (ErrStat >= AbortErrLev) THEN
+                     CALL Cleanup()
+                     RETURN
+                  END IF
+                  ErrStatLcl = 0
 
             ELSE
 
@@ -6559,7 +5777,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
       ENDDO ! WHILE ( ErrStatLcl == 0 )
 
-      CALL ExitThisRoutine( ErrID_None, ' ' )
+      CALL Cleanup()
 
 
       RETURN
@@ -6567,27 +5785,13 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 !=======================================================================
    CONTAINS
    !=======================================================================
-      SUBROUTINE ExitThisRoutine ( ErrID, Msg )
+      SUBROUTINE Cleanup ( )
 
          ! This subroutine cleans up the parent routine before exiting.
-
-
-            ! Argument declarations.
-
-         INTEGER(IntKi), INTENT(IN)       :: ErrID                            ! The error identifier (ErrLev)
-
-         CHARACTER(*),   INTENT(IN)       :: Msg                              ! The error message (ErrMsg)
-
 
             ! Local declarations.
 
          LOGICAL                          :: IsOpen                           ! A flage that indicates if the input unit is still open.
-
-
-            ! Set error status/message
-
-         ErrStat = ErrID
-         ErrMsg  = Msg
 
 
             ! Close the file if it it open..
@@ -6595,12 +5799,11 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
          INQUIRE ( UnIn, OPENED=IsOpen )
          IF ( IsOpen )  CLOSE ( UnIn )
 
-
          RETURN
 
-      END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
+      END SUBROUTINE Cleanup
 
-   END SUBROUTINE ScanComFile ! ( FileName, NumLines, NumFiles, ErrStat, ErrMsg )
+   END SUBROUTINE ScanComFile
 !=======================================================================
    SUBROUTINE Str2IntAry( Str, IntAry, ErrStat, ErrMsg )
    
@@ -6629,7 +5832,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
          ! Determine if the string will fit in the integer array:
       IF ( LStr > LAry ) THEN
          ErrStat = ErrID_Warn
-         ErrMsg  = 'String exceeds array size in Char2Int().'
+         ErrMsg  = 'Char2Int:String exceeds array size.'
          LStr    = LAry  ! we'll only convert the string values up to the array length
       ELSE
          ErrStat = ErrID_None
@@ -6679,9 +5882,9 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
 
    RETURN
-   END SUBROUTINE WaitTime ! ( Seconds )
+   END SUBROUTINE WaitTime
 !=======================================================================
-SUBROUTINE WrBinFAST(FileName, FileID, DescStr, ChanName, ChanUnit, TimeData, AllOutData, ErrStat, ErrMsg)
+   SUBROUTINE WrBinFAST(FileName, FileID, DescStr, ChanName, ChanUnit, TimeData, AllOutData, ErrStat, ErrMsg)
 
    ! This subroutine opens a binary file named FileName, and writes a the AllOutData Matrix to a 16-bit packed 
    ! binary file. A text DescStr is written to the file as well as the text in the ChanName and ChanUnit arrays.
@@ -6753,7 +5956,7 @@ SUBROUTINE WrBinFAST(FileName, FileID, DescStr, ChanName, ChanUnit, TimeData, Al
    INTEGER(B1Ki), ALLOCATABLE    :: ChanUnitASCII(:)                 ! The ASCII equivalent of ChanUnit
 
    CHARACTER(ErrMsgLen)          :: ErrMsg2                          ! temporary error message
-
+   CHARACTER(*), PARAMETER       :: RoutineName = 'WrBinFAST'
 
    !...............................................................................................................................
    ! Initialize some values
@@ -6768,58 +5971,58 @@ SUBROUTINE WrBinFAST(FileName, FileID, DescStr, ChanName, ChanUnit, TimeData, Al
       ! Generate the unit number for the binary file
    UnIn = 0
    CALL GetNewUnit( UnIn, ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
    !...............................................................................................................................
    ! Open the binary file for output
    !...............................................................................................................................
 
-   CALL OpenBOutFile ( UnIn, TRIM(FileName), ErrStat, ErrMsg )
-   IF ( ErrStat >= AbortErrLev ) RETURN
+   CALL OpenBOutFile ( UnIn, TRIM(FileName), ErrStat2, ErrMsg2 )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      IF ( ErrStat >= AbortErrLev ) THEN
+         CALL Cleanup()
+         RETURN
+      END IF
+      
 
    !...............................................................................................................................
    ! Allocate arrays
    !...............................................................................................................................
 
    CALL AllocAry( ColMax, NumOutChans, 'column maxima (ColMax)', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
    CALL AllocAry( ColMin, NumOutChans, 'column minima (ColMin)', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
    CALL AllocAry( ColOff, NumOutChans, 'column offsets (ColOff)', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
    CALL AllocAry( ColScl, NumOutChans, 'column scales (ColScl)', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
    CALL AllocAry( TmpOutArray, NumOutChans*NT, 'temporary output array (TmpOutArray)', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
    CALL AllocAry( ChanNameASCII, (1+NumOutChans)*LenName , 'temporary channel name array (ChanNameASCII)', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
    CALL AllocAry( ChanUnitASCII, (1+NumOutChans)*LenUnit, 'temporary channel unit names (ChanUnitASCII)', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
    CALL AllocAry( DescStrASCII, LenDesc, 'temporary file description (DescStrASCII)', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
    IF ( FileID == FileFmtID_WithTime ) THEN
       CALL AllocAry( TmpTimeArray, NT, 'temporary output time array (TmpTimeArray)', ErrStat2, ErrMsg2 )
-         CALL CheckError( ErrStat2, ErrMsg2 )
-         IF ( ErrStat >= AbortErrLev ) RETURN
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    END IF
 
+   IF ( ErrStat >= AbortErrLev ) THEN
+      CALL Cleanup( )
+      RETURN
+   END IF
+      
 
    !...............................................................................................................................
    ! Convert character strings to ASCII
@@ -6945,20 +6148,23 @@ SUBROUTINE WrBinFAST(FileName, FileID, DescStr, ChanName, ChanUnit, TimeData, Al
 
    WRITE (UnIn, IOSTAT=ErrStat2)   INT( FileID             , B2Ki )            ! FAST output file format
       IF ( ErrStat2 /= 0 ) THEN
-         CALL CheckError( ErrID_Fatal, 'Error writing FileID to the FAST binary file.' )
+         CALL SetErrStat( ErrID_Fatal, 'Error writing FileID to the FAST binary file.', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup( )
          RETURN
       END IF
 
    WRITE (UnIn, IOSTAT=ErrStat2)   INT( NumOutChans        , B4Ki )            ! The number of output channels
       IF ( ErrStat2 /= 0 ) THEN
-         CALL CheckError( ErrID_Fatal, 'Error writing NumOutChans to the FAST binary file.' )
+         CALL SetErrStat( ErrID_Fatal, 'Error writing NumOutChans to the FAST binary file.', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup( )
          RETURN
       END IF
 
 
    WRITE (UnIn, IOSTAT=ErrStat2)   INT( NT                 , B4Ki )            ! The number of time steps
       IF ( ErrStat2 /= 0 ) THEN
-         CALL CheckError( ErrID_Fatal, 'Error writing NT to the FAST binary file.' )
+         CALL SetErrStat( ErrID_Fatal, 'Error writing NT to the FAST binary file.', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup( )
          RETURN
       END IF
 
@@ -6968,13 +6174,15 @@ SUBROUTINE WrBinFAST(FileName, FileID, DescStr, ChanName, ChanUnit, TimeData, Al
 
       WRITE (UnIn, IOSTAT=ErrStat2)  TimeScl                                  ! The time slope for scaling
          IF ( ErrStat2 /= 0 ) THEN
-            CALL CheckError( ErrID_Fatal, 'Error writing TimeScl to the FAST binary file.' )
+            CALL SetErrStat( ErrID_Fatal, 'Error writing TimeScl to the FAST binary file.', ErrStat, ErrMsg, RoutineName )
+            CALL Cleanup( )
             RETURN
          END IF
 
       WRITE (UnIn, IOSTAT=ErrStat2)  TimeOff                                  ! The time offset for scaling
          IF ( ErrStat2 /= 0 ) THEN
-            CALL CheckError( ErrID_Fatal, 'Error writing TimeOff to the FAST binary file.' )
+            CALL SetErrStat( ErrID_Fatal, 'Error writing TimeOff to the FAST binary file.', ErrStat, ErrMsg, RoutineName )
+            CALL Cleanup( )
             RETURN
          END IF
 
@@ -6983,13 +6191,15 @@ SUBROUTINE WrBinFAST(FileName, FileID, DescStr, ChanName, ChanUnit, TimeData, Al
 
       WRITE (UnIn, IOSTAT=ErrStat2)  TimeOut1                                  ! The first output time
          IF ( ErrStat2 /= 0 ) THEN
-            CALL CheckError( ErrID_Fatal, 'Error writing TimeOut1 to the FAST binary file.' )
+            CALL SetErrStat( ErrID_Fatal, 'Error writing TimeOut1 to the FAST binary file.', ErrStat, ErrMsg, RoutineName )
+            CALL Cleanup( )
             RETURN
          END IF
 
       WRITE (UnIn, IOSTAT=ErrStat2)  TimeIncrement                             ! The time increment (between subsequent outputs)
          IF ( ErrStat2 /= 0 ) THEN
-            CALL CheckError( ErrID_Fatal, 'Error writing TimeIncrement to the FAST binary file.' )
+            CALL SetErrStat( ErrID_Fatal, 'Error writing TimeIncrement to the FAST binary file.', ErrStat, ErrMsg, RoutineName )
+            CALL Cleanup( )
             RETURN
          END IF
 
@@ -6997,38 +6207,44 @@ SUBROUTINE WrBinFAST(FileName, FileID, DescStr, ChanName, ChanUnit, TimeData, Al
 
    WRITE (UnIn, IOSTAT=ErrStat2)  ColScl(:)                                    ! The channel slopes for scaling
       IF ( ErrStat2 /= 0 ) THEN
-         CALL CheckError( ErrID_Fatal, 'Error writing ColScl to the FAST binary file.' )
+         CALL SetErrStat( ErrID_Fatal, 'Error writing ColScl to the FAST binary file.', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup( )
          RETURN
       END IF
 
    WRITE (UnIn, IOSTAT=ErrStat2)  ColOff(:)                                    ! The channel offsets for scaling
       IF ( ErrStat2 /= 0 ) THEN
-         CALL CheckError( ErrID_Fatal, 'Error writing ColOff to the FAST binary file.' )
+         CALL SetErrStat( ErrID_Fatal, 'Error writing ColOff to the FAST binary file.', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup( )
          RETURN
       END IF
 
    WRITE (UnIn, IOSTAT=ErrStat2)   INT( LenDesc            , B4Ki )            ! The number of characters in the string
       IF ( ErrStat2 /= 0 ) THEN
-         CALL CheckError( ErrID_Fatal, 'Error writing LenDesc to the FAST binary file.' )
+         CALL SetErrStat( ErrID_Fatal, 'Error writing LenDesc to the FAST binary file.', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup( )
          RETURN
       END IF
 
    WRITE (UnIn, IOSTAT=ErrStat2)  DescStrASCII                                 ! DescStr converted to ASCII
       IF ( ErrStat2 /= 0 ) THEN
-         CALL CheckError( ErrID_Fatal, 'Error writing file description to the FAST binary file.' )
+         CALL SetErrStat( ErrID_Fatal, 'Error writing file description to the FAST binary file.', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup( )
          RETURN
       END IF
 
    WRITE (UnIn, IOSTAT=ErrStat2)  ChanNameASCII                                 ! ChanName converted to ASCII
       IF ( ErrStat2 /= 0 ) THEN
-         CALL CheckError( ErrID_Fatal, 'Error writing channel names to the FAST binary file.' )
+         CALL SetErrStat( ErrID_Fatal, 'Error writing channel names to the FAST binary file.', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup( )
          RETURN
       END IF
 
 
    WRITE (UnIn, IOSTAT=ErrStat2)  ChanUnitASCII                                 ! ChanUnit converted to ASCII
       IF ( ErrStat2 /= 0 ) THEN
-         CALL CheckError( ErrID_Fatal, 'Error writing channel units to the FAST binary file.' )
+         CALL SetErrStat( ErrID_Fatal, 'Error writing channel units to the FAST binary file.', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup( )
          RETURN
       END IF
 
@@ -7038,7 +6254,8 @@ SUBROUTINE WrBinFAST(FileName, FileID, DescStr, ChanName, ChanUnit, TimeData, Al
    IF ( FileID == FileFmtID_WithTime ) THEN
       WRITE (UnIn, IOSTAT=ErrStat2)  TmpTimeArray                               ! TimeData converted to packed binary (32-bit)
          IF ( ErrStat2 /= 0 ) THEN
-            CALL CheckError( ErrID_Fatal, 'Error writing time data to the FAST binary file.' )
+            CALL SetErrStat( ErrID_Fatal, 'Error writing time data to the FAST binary file.', ErrStat, ErrMsg, RoutineName )
+            CALL Cleanup( )
             RETURN
          END IF
    END IF ! FileID
@@ -7046,7 +6263,8 @@ SUBROUTINE WrBinFAST(FileName, FileID, DescStr, ChanName, ChanUnit, TimeData, Al
 
    WRITE (UnIn, IOSTAT=ErrStat2)  TmpOutArray                                  ! AllOutData converted to packed binary (16-bit)
       IF ( ErrStat2 /= 0 ) THEN
-         CALL CheckError( ErrID_Fatal, 'Error writing channel data to the FAST binary file.' )
+         CALL SetErrStat( ErrID_Fatal, 'Error writing channel data to the FAST binary file.', ErrStat, ErrMsg, RoutineName )
+         CALL Cleanup( )
          RETURN
       END IF
 
@@ -7054,63 +6272,33 @@ SUBROUTINE WrBinFAST(FileName, FileID, DescStr, ChanName, ChanUnit, TimeData, Al
    ! We're finished: clean up ALLOCATABLE arrays and close the file
    !...............................................................................................................................
 
-   CALL ExitThisRoutine()
+   CALL Cleanup()
    RETURN
 
 !..................................................................................................................................
-CONTAINS
-!..................................................................................................................................
-   SUBROUTINE CheckError(ErrID,Msg)
-   ! This subroutine sets the error message and level
-   !...............................................................................................................................
-
-         ! Passed arguments
-      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
-      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
-
-
+   CONTAINS
       !............................................................................................................................
-      ! Set error status/message;
+      SUBROUTINE Cleanup()
+      ! This subroutine cleans up all the allocatable arrays and closes the binary file.
       !............................................................................................................................
-
-      IF ( ErrID /= ErrID_None ) THEN
-
-         IF ( ErrStat /= ErrID_None ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//'WrBinFAST:'//TRIM(Msg)
-         ErrStat = MAX(ErrStat, ErrID)
-
-         !.........................................................................................................................
-         ! Clean up if we're going to return on error: close file, deallocate local arrays
-         !.........................................................................................................................
-         IF ( ErrStat >= AbortErrLev ) THEN
-            CALL ExitThisRoutine( )
-         END IF
-
-      END IF
-
-   END SUBROUTINE CheckError
+      
+            ! Deallocate local arrays:
+         IF ( ALLOCATED( ColMax        ) ) DEALLOCATE( ColMax )
+         IF ( ALLOCATED( ColMin        ) ) DEALLOCATE( ColMin )
+         IF ( ALLOCATED( ColOff        ) ) DEALLOCATE( ColOff )
+         IF ( ALLOCATED( ColScl        ) ) DEALLOCATE( ColScl )
+         IF ( ALLOCATED( TmpTimeArray  ) ) DEALLOCATE( TmpTimeArray )
+         IF ( ALLOCATED( TmpOutArray   ) ) DEALLOCATE( TmpOutArray )
+         IF ( ALLOCATED( DescStrASCII  ) ) DEALLOCATE( DescStrASCII )
+         IF ( ALLOCATED( ChanNameASCII ) ) DEALLOCATE( ChanNameASCII )
+         IF ( ALLOCATED( ChanUnitASCII ) ) DEALLOCATE( ChanUnitASCII )
+      
+            ! Close file:
+         CLOSE ( UnIn )
+      
+      END SUBROUTINE Cleanup
    !...............................................................................................................................
-   SUBROUTINE ExitThisRoutine()
-   ! This subroutine cleans up all the allocatable arrays and closes the binary file. ErrStat is set in CheckError routine.
-   !...............................................................................................................................
-
-         ! Deallocate local arrays:
-      IF ( ALLOCATED( ColMax        ) ) DEALLOCATE( ColMax )
-      IF ( ALLOCATED( ColMin        ) ) DEALLOCATE( ColMin )
-      IF ( ALLOCATED( ColOff        ) ) DEALLOCATE( ColOff )
-      IF ( ALLOCATED( ColScl        ) ) DEALLOCATE( ColScl )
-      IF ( ALLOCATED( TmpTimeArray  ) ) DEALLOCATE( TmpTimeArray )
-      IF ( ALLOCATED( TmpOutArray   ) ) DEALLOCATE( TmpOutArray )
-      IF ( ALLOCATED( DescStrASCII  ) ) DEALLOCATE( DescStrASCII )
-      IF ( ALLOCATED( ChanNameASCII ) ) DEALLOCATE( ChanNameASCII )
-      IF ( ALLOCATED( ChanUnitASCII ) ) DEALLOCATE( ChanUnitASCII )
-
-         ! Close file:
-      CLOSE ( UnIn )
-
-   END SUBROUTINE ExitThisRoutine
-   !...............................................................................................................................
-END SUBROUTINE WrBinFAST
+   END SUBROUTINE WrBinFAST
 !==================================================================================================================================
    SUBROUTINE WrFileNR ( Unit, Str )
 
@@ -7130,7 +6318,7 @@ END SUBROUTINE WrBinFAST
 
 
    RETURN
-   END SUBROUTINE WrFileNR ! ( Unit, Str )
+   END SUBROUTINE WrFileNR
 !=======================================================================
    SUBROUTINE WrMatrix1R4( A, Un, ReFmt, MatName )
    
@@ -7300,7 +6488,7 @@ END SUBROUTINE WrBinFAST
 
 
    RETURN
-   END SUBROUTINE WrML ! ( Str )
+   END SUBROUTINE WrML
 !=======================================================================
    SUBROUTINE WrPr ( Str )
 
@@ -7320,7 +6508,7 @@ END SUBROUTINE WrBinFAST
 
 
    RETURN
-   END SUBROUTINE WrPr ! ( Str )
+   END SUBROUTINE WrPr
 !=======================================================================
    SUBROUTINE WrReAryFileNR ( Unit, Ary, Fmt, ErrStat, ErrMsg  )
 
@@ -7341,25 +6529,29 @@ END SUBROUTINE WrBinFAST
    CHARACTER(50)                :: Fmt2                                         ! Fmt of entire array to be written (will be copied).
 
 
-   ErrStat = ErrID_None
-   ErrMsg  = ''
 
-   IF ( SIZE(Ary) == 0 ) RETURN
-
+   IF ( SIZE(Ary) == 0 ) THEN
+      ErrStat = ErrID_None
+      ErrMsg  = ''
+      RETURN
+   END IF
+   
 
    WRITE(Fmt2,*) SIZE(Ary)
    Fmt2 = '('//TRIM(Fmt2)//'('//TRIM(Fmt)//'))'
 
    WRITE (Unit,Fmt2,ADVANCE='NO',IOSTAT=ErrStat)  Ary
    IF ( ErrStat /= 0 ) THEN
-      ErrMsg = 'Error '//TRIM(Num2LStr(ErrStat))//' occurred while writing to file in WrReAryFileNR() using this format: '&
-               //TRIM(Fmt2)
       ErrStat = ErrID_Fatal
+      ErrMsg = 'WrReAryFileNR:Error '//TRIM(Num2LStr(ErrStat))//' occurred while writing to file using this format: '//TRIM(Fmt2)
+   ELSE
+      ErrStat = ErrID_None
+      ErrMsg  = ''
    END IF
 
 
    RETURN
-   END SUBROUTINE WrReAryFileNR ! ( Unit, Ary, Fmt, ErrStat, ErrMsg )
+   END SUBROUTINE WrReAryFileNR
 !=======================================================================
    RECURSIVE SUBROUTINE WrScr ( InStr )
 
@@ -7447,7 +6639,7 @@ END SUBROUTINE WrBinFAST
 
 
    RETURN
-   END SUBROUTINE WrScr ! ( Str )
+   END SUBROUTINE WrScr
 !=======================================================================
    SUBROUTINE WrScr1 ( Str )
 
@@ -7469,8 +6661,7 @@ END SUBROUTINE WrBinFAST
 
 
    RETURN
-   END SUBROUTINE WrScr1 ! ( Str )
-
+   END SUBROUTINE WrScr1
 !=======================================================================
 
 END MODULE NWTC_IO

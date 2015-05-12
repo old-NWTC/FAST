@@ -113,6 +113,9 @@ LOGICAL,    SAVE            :: SFLAG  = .TRUE.
 CHARACTER(1024)             :: TITLE
 CHARACTER(1024)             :: inFileName                                     ! name of the input file
 
+INTEGER(IntKi)              :: ErrStat
+CHARACTER(ErrMsgLen)        :: ErrMsg
+
 !bjj: there are numerical issues with time in this routine 
 
   ! Abort if GBRatio is not unity; since this example routine returns the
@@ -136,7 +139,8 @@ IF ( SFLAG )  THEN
    END IF
 
 
-   CALL OpenFInpFile ( UnCont, TRIM(inFileName) )
+   CALL OpenFInpFile ( UnCont, TRIM(inFileName), ErrStat, ErrMsg )
+   IF (ErrStat >= AbortErrLev) CALL ProgAbort(TRIM(ErrMsg))
 
    READ (UnCont,'(A)') TITLE
 

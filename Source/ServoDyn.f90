@@ -32,7 +32,7 @@ MODULE ServoDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.02.01a-bjj', '30-Apr-2015' )
+   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.02.02a-bjj', '11-May-2015' )
    CHARACTER(*),   PARAMETER            :: SrvD_Nickname = 'SrvD'
    
 #ifdef COMPILE_SIMULINK
@@ -983,7 +983,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
    INTEGER(IntKi)                :: I                                         ! loop counter
    INTEGER(IntKi)                :: UnIn                                      ! Unit number for reading file
      
-   INTEGER(IntKi)                :: ErrStat2                                  ! Temporary Error status
+   INTEGER(IntKi)                :: ErrStat2, IOS                             ! Temporary Error status
    LOGICAL                       :: Echo                                      ! Determines if an echo file should be written
    CHARACTER(ErrMsgLen)          :: ErrMsg2                                   ! Temporary Error message
    CHARACTER(1024)               :: PriPath                                   ! Path name of the primary file
@@ -1081,12 +1081,10 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       IF ( ErrStat >= AbortErrLev ) RETURN
       CALL Conv2UC( Line )
       IF ( INDEX(Line, "DEFAULT" ) /= 1 ) THEN ! If it's not "default", read this variable; otherwise use the value already stored in InputFileData%DT
-         READ( Line, *, IOSTAT=ErrStat2) InputFileData%DT
-         IF ( ErrStat2 /= 0 ) THEN
-            CALL CheckIOS ( ErrStat2, InputFile, "DT", NumType, .TRUE., ErrMsg2 )
-            CALL CheckError( ErrID_Fatal, ErrMsg2 )
-            RETURN
-         END IF
+         READ( Line, *, IOSTAT=IOS) InputFileData%DT
+            CALL CheckIOS ( IOS, InputFile, 'DT', NumType, ErrStat2, ErrMsg2 )
+            CALL CheckError(ErrStat2, ErrMsg2)
+            IF ( ErrStat >= AbortErrLev ) RETURN
       END IF   
       
       
@@ -1301,7 +1299,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
       
-      ! YCMode - Yaw control mode {0: none, 1: simple, 3: user-defined from routine UserYawCont, 4: user-defined from Simulink/LabVIEW} (-):
+      ! YCMode - Yaw control mode {0: none, 3: user-defined from routine UserYawCont, 4: user-defined from Simulink/LabVIEW} (-):
    CALL ReadVar( UnIn, InputFile, InputFileData%YCMode, "YCMode", "Yaw control mode (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
@@ -1756,10 +1754,9 @@ CONTAINS
    !...............................................................................................................................
    
             ! checks for yaw control mode:
-      IF ( InputFileData%YCMode /= ControlMode_NONE .and. &
-           InputFileData%YCMode /= ControlMode_SIMPLE .and. InputFileData%YCMode /= ControlMode_USER   )  THEN
+      IF ( InputFileData%YCMode /= ControlMode_NONE .and. InputFileData%YCMode /= ControlMode_USER   )  THEN
          IF ( InputFileData%YCMode /= ControlMode_DLL .and. InputFileData%YCMode /= ControlMode_EXTERN )  &
-         CALL SetErrors( ErrID_Fatal, 'YCMode must be 0, 1, 3, 4 or 5.' )
+         CALL SetErrors( ErrID_Fatal, 'YCMode must be 0, 3, 4 or 5.' )
       ENDIF
 
             
@@ -1768,7 +1765,7 @@ CONTAINS
          
          IF ( InputFileData%YCMode == ControlMode_EXTERN )  THEN
             CALL SetErrors( ErrID_Fatal, 'YCMode can only equal '//TRIM(Num2LStr(ControlMode_EXTERN))//' when ServoDyn is interfaced with Simulink or LabVIEW.'// &
-                      '  Set YCMode to 0, 1, 3, or 5 or interface ServoDyn with Simulink or LabVIEW.' )          
+                      '  Set YCMode to 0, 3, or 5 or interface ServoDyn with Simulink or LabVIEW.' )          
          END IF
    
      END IF

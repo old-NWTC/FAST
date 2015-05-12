@@ -20,9 +20,9 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-05-01 13:17:32 -0600 (Fri, 01 May 2015) $
-! (File) Revision #: $Rev: 1002 $
-! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/ED_for_BD/Source/ElastoDyn.f90 $
+! File last committed: $Date: 2015-05-08 14:26:35 -0600 (Fri, 08 May 2015) $
+! (File) Revision #: $Rev: 1012 $
+! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn.f90 $
 !**********************************************************************************************************************************
 
 MODULE ElastoDyn_Parameters
@@ -2485,7 +2485,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
             
                y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum) = y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum) - y%BladeLn2Mesh(K)%Position(:,NodeNum)
                         
-                  ! Orientation
+                  ! Orientation  (use "n" system for AeroDyn 15)
                y%BladeLn2Mesh(K)%Orientation(1,1,NodeNum) =     OtherState%CoordSys%te1(K,J,1)
                y%BladeLn2Mesh(K)%Orientation(2,1,NodeNum) =     OtherState%CoordSys%te2(K,J,1)
                y%BladeLn2Mesh(K)%Orientation(3,1,NodeNum) =     OtherState%CoordSys%te3(K,J,1)
@@ -7108,9 +7108,9 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
 
       ! Local variables:
    INTEGER(IntKi)               :: I                                         ! loop counter
-!   INTEGER(IntKi)               :: NumOuts                                   ! Number of output channel names read from the file
+!   INTEGER(IntKi)               :: NumOuts                                  ! Number of output channel names read from the file
    INTEGER(IntKi)               :: UnIn                                      ! Unit number for reading file
-
+   INTEGER(IntKi)               :: IOS
    INTEGER(IntKi)               :: ErrStat2                                  ! Temporary Error status
    LOGICAL                      :: Echo                                      ! Determines if an echo file should be written
    CHARACTER(ErrMsgLen)         :: ErrMsg2                                   ! Temporary Error message
@@ -7218,10 +7218,10 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       IF ( ErrStat >= AbortErrLev ) RETURN
       CALL Conv2UC( Line )
       IF ( INDEX(Line, "DEFAULT" ) /= 1 ) THEN ! If it's not "default", read this variable; otherwise use the value already stored in InputFileData%DT
-         READ( Line, *, IOSTAT=ErrStat2) InputFileData%DT
-         IF ( ErrStat2 /= 0 ) THEN
-            CALL CheckIOS ( ErrStat2, InputFile, "DT", NumType, .TRUE., ErrMsg2 )
-            CALL CheckError( ErrID_Fatal, ErrMsg2 )
+         READ( Line, *, IOSTAT=IOS) InputFileData%DT
+         IF ( IOS /= 0 ) THEN
+            CALL CheckIOS ( IOS, InputFile, "DT", NumType, ErrStat2, ErrMsg2 )
+            CALL CheckError( ErrStat2, ErrMsg2 )
             RETURN
          END IF
       END IF
