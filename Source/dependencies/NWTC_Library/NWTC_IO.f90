@@ -4163,7 +4163,7 @@ CONTAINS
 
    IF ( PRESENT(UnEc) )  THEN
       IF ( UnEc > 0 ) &
-         WRITE (UnEc,'(A)')  Comment
+         WRITE (UnEc,'(A)')  TRIM(Comment)
    END IF
 
 

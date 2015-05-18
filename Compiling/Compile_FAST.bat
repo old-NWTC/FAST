@@ -68,8 +68,8 @@ SET NETLIB_Loc=%FAST_Loc%\dependencies\NetLib
 SET ED_Loc=%FAST_Loc%\dependencies\ElastoDyn
 SET SrvD_Loc=%FAST_Loc%\dependencies\ServoDyn
 SET TMD_Loc=%SrvD_Loc%
-SET AD_Loc=%FAST_Loc%\dependencies\AeroDyn
-SET DWM_Loc=%AD_Loc%
+SET AD14_Loc=%FAST_Loc%\dependencies\AeroDyn14
+SET DWM_Loc=%AD14_Loc%
 SET IfW_Loc=%FAST_Loc%\dependencies\InflowWind
 SET HD_Loc=%FAST_Loc%\dependencies\HydroDyn
 SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
@@ -152,11 +152,11 @@ SET IfW_SOURCES=^
  "%IfW_Loc%\InflowWind.f90"
 
 
-SET AD_SOURCES=^
- "%AD_Loc%\AeroDyn_Types.f90"^
- "%AD_Loc%\GenSubs.f90"^
- "%AD_Loc%\AeroSubs.f90"^
- "%AD_Loc%\AeroDyn.f90"
+SET AD14_SOURCES=^
+ "%AD14_Loc%\AeroDyn14_Types.f90"^
+ "%AD14_Loc%\GenSubs.f90"^
+ "%AD14_Loc%\AeroSubs.f90"^
+ "%AD14_Loc%\AeroDyn14.f90"
 
 SET DWM_SOURCES=^
  "%DWM_Loc%\DWM_Types.f90"^
@@ -273,7 +273,7 @@ ECHO.
 
 SET CURR_LOC=%FAST_Loc%
 SET ModuleName=FAST
-%REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD_Loc%" -I^
+%REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
  "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Reg_Loc%"  -I^
  "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -noextrap -O "%CURR_LOC%"
 
@@ -303,9 +303,9 @@ CALL :RunRegistry_IfW InflowWind
 
 
 ECHO %Lines%
-SET CURR_LOC=%AD_Loc%
-SET ModuleName=AeroDyn
-%REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -I "%DWM_Loc%" -O "%CURR_LOC%"
+SET CURR_LOC=%AD14_Loc%
+SET ModuleName=AeroDyn14
+%REGISTRY% "%CURR_LOC%\Registry-AD14.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -I "%DWM_Loc%" -O "%CURR_LOC%"
 
 ECHO %Lines%
 SET CURR_LOC=%DWM_Loc%
@@ -384,7 +384,7 @@ if exist %INTER_DIR%\*.obj DEL %INTER_DIR%\*.obj
 
 
 :: ECHO %Lines%
-:: ECHO Compiling FAST, AeroDyn, ElastoDyn, ServoDyn, HydroDyn, InflowWind, SubDyn, MAP, FEAMooring, IceFloe, IceDyn, and NWTC_Library routines to create %ROOT_NAME%.exe:
+:: ECHO Compiling FAST, AeroDyn14, ElastoDyn, ServoDyn, HydroDyn, InflowWind, SubDyn, MAP, FEAMooring, IceFloe, IceDyn, and NWTC_Library routines to create %ROOT_NAME%.exe:
 
 rem ifort %COMPOPTS% %NWTC_Files%  %LINKOPTS% /out:%ROOT_NAME%.exe
 rem NOTE that I'm compiling the modules separately then linking them later. I split it up because the list of source files was getting too long ("Input line too long" error)
@@ -408,8 +408,8 @@ IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 
 ECHO %Lines%
-ECHO Compiling AeroDyn:
-ifort %COMPOPTS% %AD_SOURCES%   /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+ECHO Compiling AeroDyn14:
+ifort %COMPOPTS% %AD14_SOURCES%   /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 

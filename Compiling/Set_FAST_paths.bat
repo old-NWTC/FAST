@@ -23,9 +23,8 @@ SET ED_Loc=%FAST_Loc%
 SET SrvD_Loc=%FAST_Loc%
 SET TMD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\TMD\SVNdirectory\Source
 
-SET AD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\trunk\Source
-rem SET AD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\branches\DWM_fromOct3\Source
-SET DWM_Loc=%AD_Loc%\DWM
+SET AD14_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\trunk\Source
+SET DWM_Loc=%AD14_Loc%\DWM
 
 SET IfW_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\InflowWind\SVNdirectory\branches\modularization2\Source
 SET IfW_Reg_Loc=%IfW_Loc%\Registry

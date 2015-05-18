@@ -17,13 +17,13 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-30 13:02:12 -0600 (Thu, 30 Apr 2015) $
-! (File) Revision #: $Rev: 191 $
+! File last committed: $Date: 2015-05-18 10:07:10 -0600 (Mon, 18 May 2015) $
+! (File) Revision #: $Rev: 196 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/AeroDyn.f90 $
 !**********************************************************************************************************************************
-MODULE AeroDyn
+MODULE AeroDyn14
 
-   USE AeroDyn_Types
+   USE AeroDyn14_Types
    USE AeroSubs
    USE NWTC_Library
 
@@ -32,52 +32,48 @@ MODULE AeroDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: AD_Ver = ProgDesc( 'AeroDyn', 'v14.04.00a-bjj', '14-Apr-2015' )
+   TYPE(ProgDesc), PARAMETER            :: AD14_Ver = ProgDesc( 'AeroDyn14', 'v14.04.00a-bjj', '14-Apr-2015' )
 
       ! ..... Public Subroutines ............
 
-   PUBLIC :: AD_Init                           ! Initialization routine
-   PUBLIC :: AD_End                            ! Ending routine (includes clean up)
+   PUBLIC :: AD14_Init                           ! Initialization routine
+   PUBLIC :: AD14_End                            ! Ending routine (includes clean up)
 
-   PUBLIC :: AD_UpdateStates                   ! Loose coupling routine for solving for constraint states, integrating
-                                               !   continuous states, and updating discrete states
-   PUBLIC :: AD_CalcOutput                     ! Routine for computing outputs
+   PUBLIC :: AD14_UpdateStates                   ! Loose coupling routine for solving for constraint states, integrating
+                                                 !   continuous states, and updating discrete states
+   PUBLIC :: AD14_CalcOutput                     ! Routine for computing outputs
 
-   PUBLIC :: AD_CalcConstrStateResidual        ! Tight coupling routine for returning the constraint state residual
-   PUBLIC :: AD_CalcContStateDeriv             ! Tight coupling routine for computing derivatives of continuous states
-   PUBLIC :: AD_UpdateDiscState                ! Tight coupling routine for updating discrete states
+   PUBLIC :: AD14_CalcConstrStateResidual        ! Tight coupling routine for returning the constraint state residual
+   PUBLIC :: AD14_CalcContStateDeriv             ! Tight coupling routine for computing derivatives of continuous states
+   PUBLIC :: AD14_UpdateDiscState                ! Tight coupling routine for updating discrete states
 
-
-! Note that the following routines will be updated with new definitions of arrays returned (no longer one-byte arrays)
-!   PUBLIC :: AD_Pack                           ! Routine to pack (save) data into one array of bytes
-!   PUBLIC :: AD_Unpack                         ! Routine to unpack an array of bytes into data structures usable by the module
 
 CONTAINS
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, ErrMess )
+SUBROUTINE AD14_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, ErrMess )
 !..................................................................................................................................
    USE               AeroGenSubs,   ONLY: ElemOpen
    USE DWM
    IMPLICIT NONE
 
-   TYPE(AD_InitInputType),       INTENT(INOUT)  :: InitInp     ! Input data for initialization routine
-   TYPE(AD_InputType),           INTENT(  OUT)  :: u           ! An initial guess for the input; input mesh must be defined
-   TYPE(AD_ParameterType),       INTENT(  OUT)  :: p           ! Parameters
-   TYPE(AD_ContinuousStateType), INTENT(  OUT)  :: x           ! Initial continuous states
-   TYPE(AD_DiscreteStateType),   INTENT(  OUT)  :: xd          ! Initial discrete states
-   TYPE(AD_ConstraintStateType), INTENT(  OUT)  :: z           ! Initial guess of the constraint states
-   TYPE(AD_OtherStateType),      INTENT(  OUT)  :: O !therState  Initial other/optimization states
-   TYPE(AD_OutputType),          INTENT(  OUT)  :: y           ! Initial system outputs (outputs are not calculated;
+   TYPE(AD14_InitInputType),       INTENT(INOUT)  :: InitInp     ! Input data for initialization routine
+   TYPE(AD14_InputType),           INTENT(  OUT)  :: u           ! An initial guess for the input; input mesh must be defined
+   TYPE(AD14_ParameterType),       INTENT(  OUT)  :: p           ! Parameters
+   TYPE(AD14_ContinuousStateType), INTENT(  OUT)  :: x           ! Initial continuous states
+   TYPE(AD14_DiscreteStateType),   INTENT(  OUT)  :: xd          ! Initial discrete states
+   TYPE(AD14_ConstraintStateType), INTENT(  OUT)  :: z           ! Initial guess of the constraint states
+   TYPE(AD14_OtherStateType),      INTENT(  OUT)  :: O !therState  Initial other/optimization states
+   TYPE(AD14_OutputType),          INTENT(  OUT)  :: y           ! Initial system outputs (outputs are not calculated;
                                                                !   only the output mesh is initialized)
-   REAL(DbKi),                   INTENT(INOUT)  :: Interval    ! Coupling interval in seconds: the rate that
-                                                               !   (1) AD_UpdateStates() is called in loose coupling &
-                                                               !   (2) AD_UpdateDiscState() is called in tight coupling.
-                                                               !   Input is the suggested time from the glue code;
-                                                               !   Output is the actual coupling interval that will be used
-                                                               !   by the glue code.
-   TYPE(AD_InitOutputType),      INTENT(  OUT)  :: InitOut     ! Output for initialization routine
-   INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-   CHARACTER(*),                 INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
+   REAL(DbKi),                     INTENT(INOUT)  :: Interval    ! Coupling interval in seconds: the rate that
+                                                                 !   (1) AD14_UpdateStates() is called in loose coupling &
+                                                                 !   (2) AD14_UpdateDiscState() is called in tight coupling.
+                                                                 !   Input is the suggested time from the glue code;
+                                                                 !   Output is the actual coupling interval that will be used
+                                                                 !   by the glue code.
+   TYPE(AD14_InitOutputType),      INTENT(  OUT)  :: InitOut     ! Output for initialization routine
+   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+   CHARACTER(*),                   INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
 
 
       ! Internal variables
@@ -101,7 +97,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    INTEGER                                   :: ErrStatLcL        ! Error status returned by called routines.
 
    CHARACTER(ErrMsgLen)                      :: ErrMessLcl          ! Error message returned by called routines.
-   CHARACTER(*), PARAMETER                   :: RoutineName = 'AD_Init'
+   CHARACTER(*), PARAMETER                   :: RoutineName = 'AD14_Init'
 
          ! Initialize ErrStat
 
@@ -123,9 +119,9 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    
          ! Display the module information
 
-   CALL DispNVD( AD_Ver )
+   CALL DispNVD( AD14_Ver )
    
-   InitOut%Ver = AD_Ver
+   InitOut%Ver = AD14_Ver
    O%FirstWarn = .TRUE.
    !-------------------------------------------------------------------------------------------------
    ! Set up AD variables
@@ -133,7 +129,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
 
    p%LinearizeFlag     = .FALSE.             ! InitInp%LinearizeFlag
    p%Blade%BladeLength = InitInp%TurbineComponents%BladeLength
-   p%DtAero            = Interval            ! set the default DT here; may be overwritten later, when we read the input file in AD_GetInput()
+   p%DtAero            = Interval            ! set the default DT here; may be overwritten later, when we read the input file in AD14_GetInput()
    p%UseDWM            = InitInp%UseDWM
 
          ! Define parameters here:
@@ -150,10 +146,10 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
 
          ! Define initial system states here:
    !-------------------------------------------------------------------------------------------------
-   ! Read the AeroDyn input file and open the output file if requested
+   ! Read the AeroDyn14 input file and open the output file if requested
    ! bjj: these should perhaps be combined
    !-------------------------------------------------------------------------------------------------
-   CALL AD_GetInput(InitInp, P, x, xd, z, O, y, ErrStatLcl, ErrMessLcl )
+   CALL AD14_GetInput(InitInp, P, x, xd, z, O, y, ErrStatLcl, ErrMessLcl )
       CALL SetErrStat( ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,RoutineName)
       IF (ErrStat >= AbortErrLev ) RETURN 
 
@@ -188,7 +184,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    P%UnWndOut = -1
    P%UnElem = -1   
    IF ( p%ElemPrn )  THEN
-      CALL ElemOpen ( TRIM( InitInp%OutRootName )//'.AD.out', P, O, ErrStat, ErrMess, AD_Ver )
+      CALL ElemOpen ( TRIM( InitInp%OutRootName )//'.AD.out', P, O, ErrStat, ErrMess, AD14_Ver )
          CALL SetErrStat( ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,RoutineName)
          IF (ErrStat >= AbortErrLev ) RETURN 
    END IF
@@ -206,7 +202,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
                              - InitInp%TurbineComponents%Hub%Position(:),         &
                                InitInp%TurbineComponents%Blade(IB)%Orientation(3,:) )
       IF ( ABS( TmpVar - HubRadius ) > 0.001 ) THEN ! within 1 mm
-         CALL ProgWarn( ' AeroDyn\AD_Init() calculated HubRadius is not the same for all '// &
+         CALL ProgWarn( ' AeroDyn\AD14_Init() calculated HubRadius is not the same for all '// &
                            'blades. Using value from blade 1.' )
          EXIT
       END IF
@@ -221,7 +217,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
       TmpVar  = ASIN( DOT_PRODUCT( InitInp%TurbineComponents%Blade(IB)%Orientation(3,:), &
                                    InitInp%TurbineComponents%Hub%Orientation(1,:) ) )
       IF ( ABS( TmpVar - CosPrecone ) > 0.009 ) THEN     ! within ~ 1/2 degree
-         CALL ProgWarn( ' AeroDyn\AD_Init() calculated precone angle is not the same for all'// &
+         CALL ProgWarn( ' AeroDyn\AD14_Init() calculated precone angle is not the same for all'// &
                            ' blades. Using value from blade 1.' )
          EXIT
       END IF
@@ -403,7 +399,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
 
    IF (p%WrOptFile) THEN
 
-      CALL ADOut(InitInp, P, O, AD_Ver, TRIM(InitInp%OutRootName)//'.AD.sum', ErrStatLcl, ErrMessLcl )
+      CALL ADOut(InitInp, P, O, AD14_Ver, TRIM(InitInp%OutRootName)//'.AD.sum', ErrStatLcl, ErrMessLcl )
          CALL SetErrStat(ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,RoutineName )
          IF ( ErrStat >= AbortErrLev )  RETURN
 
@@ -472,7 +468,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    ! u%TurbineComponents
    !..........
 
-   CALL AD_CopyAeroConfig( InitInp%TurbineComponents, u%TurbineComponents, MESH_NEWCOPY, ErrStatLcl, ErrMessLcl )
+   CALL AD14_CopyAeroConfig( InitInp%TurbineComponents, u%TurbineComponents, MESH_NEWCOPY, ErrStatLcl, ErrMessLcl )
       CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,RoutineName )
       IF (ErrStat >= AbortErrLev) RETURN
    
@@ -629,24 +625,24 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
 
    RETURN
 
-END SUBROUTINE AD_Init
+END SUBROUTINE AD14_Init
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE AD_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMess )
+SUBROUTINE AD14_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMess )
 ! This routine is called at the end of the simulation.
 !..................................................................................................................................
       USE DWM_Types
       USE DWM
 
-      TYPE(AD_InputType),           INTENT(INOUT)  :: u           ! System inputs
-      TYPE(AD_ParameterType),       INTENT(INOUT)  :: p           ! Parameters
-      TYPE(AD_ContinuousStateType), INTENT(INOUT)  :: x           ! Continuous states
-      TYPE(AD_DiscreteStateType),   INTENT(INOUT)  :: xd          ! Discrete states
-      TYPE(AD_ConstraintStateType), INTENT(INOUT)  :: z           ! Constraint states
-      TYPE(AD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
-      TYPE(AD_OutputType),          INTENT(INOUT)  :: y           ! System outputs
-      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                 INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
+      TYPE(AD14_InputType),           INTENT(INOUT)  :: u           ! System inputs
+      TYPE(AD14_ParameterType),       INTENT(INOUT)  :: p           ! Parameters
+      TYPE(AD14_ContinuousStateType), INTENT(INOUT)  :: x           ! Continuous states
+      TYPE(AD14_DiscreteStateType),   INTENT(INOUT)  :: xd          ! Discrete states
+      TYPE(AD14_ConstraintStateType), INTENT(INOUT)  :: z           ! Constraint states
+      TYPE(AD14_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
+      TYPE(AD14_OutputType),          INTENT(INOUT)  :: y           ! System outputs
+      INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                   INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
 
 
 
@@ -670,7 +666,7 @@ SUBROUTINE AD_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMess )
 
          ! Close files here:
 
-      ! AD_IOParams
+      ! AD14_IOParams
    IF (P%UnEc > 0)    CLOSE(P%UnEc) ! not currently used
 
    IF (P%UnWndOut > 0) CLOSE(P%UnWndOut)
@@ -678,55 +674,55 @@ SUBROUTINE AD_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMess )
 
          ! Destroy the input data:
 
-      CALL AD_DestroyInput( u, ErrStat, ErrMess )
+      CALL AD14_DestroyInput( u, ErrStat, ErrMess )
 
 
          ! Destroy the parameter data:
 
-      CALL AD_DestroyParam( p, ErrStat, ErrMess )
+      CALL AD14_DestroyParam( p, ErrStat, ErrMess )
 
 
          ! Destroy the state data:
 
-      CALL AD_DestroyContState(   x,           ErrStat, ErrMess )
-      CALL AD_DestroyDiscState(   xd,          ErrStat, ErrMess )
-      CALL AD_DestroyConstrState( z,           ErrStat, ErrMess )
-      CALL AD_DestroyOtherState(  OtherState,  ErrStat, ErrMess )
+      CALL AD14_DestroyContState(   x,           ErrStat, ErrMess )
+      CALL AD14_DestroyDiscState(   xd,          ErrStat, ErrMess )
+      CALL AD14_DestroyConstrState( z,           ErrStat, ErrMess )
+      CALL AD14_DestroyOtherState(  OtherState,  ErrStat, ErrMess )
 
 
          ! Destroy the output data:
 
-      CALL AD_DestroyOutput( y, ErrStat, ErrMess )
+      CALL AD14_DestroyOutput( y, ErrStat, ErrMess )
 
 
 
 
-END SUBROUTINE AD_End
+END SUBROUTINE AD14_End
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE AD_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMess )
+SUBROUTINE AD14_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMess )
 ! Loose coupling routine for solving for constraint states, integrating continuous states, and updating discrete states
 ! Constraint states are solved for input Time; Continuous and discrete states are updated for Time + Interval
 !..................................................................................................................................
 
-      REAL(DbKi),                         INTENT(IN   ) :: t           ! Current simulation time in seconds
-      INTEGER(IntKi),                     INTENT(IN   ) :: n           ! Current simulation time step n = 0,1,...
-      TYPE(AD_InputType),                 INTENT(INOUT) :: u(:)        ! Inputs at utimes (out only for mesh record-keeping in ExtrapInterp routine)
-      REAL(DbKi),                         INTENT(IN   ) :: utimes(:)   ! Times associated with u(:), in seconds
-      TYPE(AD_ParameterType),             INTENT(IN   ) :: p           ! Parameters
-      TYPE(AD_ContinuousStateType),       INTENT(INOUT) :: x           ! Input: Continuous states at t;
+      REAL(DbKi),                           INTENT(IN   ) :: t           ! Current simulation time in seconds
+      INTEGER(IntKi),                       INTENT(IN   ) :: n           ! Current simulation time step n = 0,1,...
+      TYPE(AD14_InputType),                 INTENT(INOUT) :: u(:)        ! Inputs at utimes (out only for mesh record-keeping in ExtrapInterp routine)
+      REAL(DbKi),                           INTENT(IN   ) :: utimes(:)   ! Times associated with u(:), in seconds
+      TYPE(AD14_ParameterType),             INTENT(IN   ) :: p           ! Parameters
+      TYPE(AD14_ContinuousStateType),       INTENT(INOUT) :: x           ! Input: Continuous states at t;
                                                                        !   Output: Continuous states at t + Interval
-      TYPE(AD_DiscreteStateType),         INTENT(INOUT) :: xd          ! Input: Discrete states at t;
+      TYPE(AD14_DiscreteStateType),         INTENT(INOUT) :: xd          ! Input: Discrete states at t;
                                                                        !   Output: Discrete states at t  + Interval
-      TYPE(AD_ConstraintStateType),       INTENT(INOUT) :: z           ! Input: Initial guess of constraint states at t;
+      TYPE(AD14_ConstraintStateType),       INTENT(INOUT) :: z           ! Input: Initial guess of constraint states at t;
                                                                        !   Output: Constraint states at t
-      TYPE(AD_OtherStateType),            INTENT(INOUT) :: OtherState  ! Other/optimization states
-      INTEGER(IntKi),                     INTENT(  OUT) :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                       INTENT(  OUT) :: ErrMess     ! Error message if ErrStat /= ErrID_None
+      TYPE(AD14_OtherStateType),            INTENT(INOUT) :: OtherState  ! Other/optimization states
+      INTEGER(IntKi),                       INTENT(  OUT) :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                         INTENT(  OUT) :: ErrMess     ! Error message if ErrStat /= ErrID_None
 
          ! Local variables
 
-      TYPE(AD_ContinuousStateType)                 :: dxdt        ! Continuous state derivatives at Time
-      TYPE(AD_ConstraintStateType)                 :: z_Residual  ! Residual of the constraint state equations (Z)
+      TYPE(AD14_ContinuousStateType)                 :: dxdt        ! Continuous state derivatives at Time
+      TYPE(AD14_ConstraintStateType)                 :: z_Residual  ! Residual of the constraint state equations (Z)
 
 !      INTEGER(IntKi)                                    :: ErrStat2    ! Error status of the operation (occurs after initial error)
 !      CHARACTER(ErrMsgLen)                              :: ErrMess2     ! Error message if ErrStat2 /= ErrID_None
@@ -740,9 +736,9 @@ SUBROUTINE AD_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, E
 
 
 
-END SUBROUTINE AD_UpdateStates
+END SUBROUTINE AD14_UpdateStates
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
+SUBROUTINE AD14_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
 ! Routine for computing outputs, used in both loose and tight coupling.
 !..................................................................................................................................
    
@@ -750,17 +746,17 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
       USE               DWM_Types
       USE               DWM
 
-      REAL(DbKi),                   INTENT(IN   )  :: Time        ! Current simulation time in seconds
-      TYPE(AD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
-      TYPE(AD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-      TYPE(AD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
-      TYPE(AD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
-      TYPE(AD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
-      TYPE(AD_OtherStateType),      INTENT(INOUT)  :: O!therState ! Other/optimization states
-      TYPE(AD_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed at Time (Input only so that mesh con-
+      REAL(DbKi),                     INTENT(IN   )  :: Time        ! Current simulation time in seconds
+      TYPE(AD14_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
+      TYPE(AD14_ParameterType),       INTENT(IN   )  :: p           ! Parameters
+      TYPE(AD14_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
+      TYPE(AD14_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
+      TYPE(AD14_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
+      TYPE(AD14_OtherStateType),      INTENT(INOUT)  :: O!therState ! Other/optimization states
+      TYPE(AD14_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed at Time (Input only so that mesh con-
                                                                        !   nectivity information does not have to be recalculated)
-      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                 INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
+      INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                   INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
 
 
       ! Local variables
@@ -842,7 +838,7 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
       IF ( O%FirstWarn ) THEN
          CALL SetErrStat ( ErrID_Warn, 'AeroDyn was designed for an explicit-loose coupling scheme. '//&
             'Using last calculated values from AeroDyn on all subsequent calls until time is advanced. '//&
-            'Warning will not be displayed again.', ErrStat,ErrMess,'AD_CalcOutput' )
+            'Warning will not be displayed again.', ErrStat,ErrMess,'AD14_CalcOutput' )
          O%FirstWarn = .FALSE.       
          IF (ErrStat >= AbortErrLev) THEN
             CALL CleanUp()
@@ -910,7 +906,7 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
    o%InducedVel%SumInfl = 0.0   ! reset to sum for the current time step
 
    CALL DiskVel(Time, P, O, u%AvgInfVel, ErrStatLcl, ErrMessLcl)  ! Get a sort of "Average velocity" - sets a bunch of stored variables...
-      CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD_CalcOutput/DiskVel' )
+      CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD14_CalcOutput/DiskVel' )
       IF (ErrStat >= AbortErrLev) THEN
          CALL CleanUp()
          RETURN
@@ -922,7 +918,7 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
 
    IF ( p%Wake )  THEN
       CALL Inflow(Time, P, O, ErrStatLcl, ErrMessLcl)
-         CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD_CalcOutput/Inflow' )
+         CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD14_CalcOutput/Inflow' )
          IF (ErrStat >= AbortErrLev) THEN
             CALL CleanUp()
             RETURN
@@ -981,7 +977,7 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
          VelocityVec(:)    = AD_WindVelocityWithDisturbance( Time, u, p, x, xd, z, O, y, ErrStatLcl, ErrMessLcl, &
                                                              u%InputMarkers(IBlade)%Position(:,IElement), &
                                                              u%InflowVelocity(:,Node) )
-            CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD_CalcOutput' )
+            CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD14_CalcOutput' )
             IF (ErrStat >= AbortErrLev) THEN
                CALL CleanUp()
                RETURN
@@ -1009,7 +1005,7 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
                      CALL   DWM_phase1( Time, O%DWM_Inputs, p%DWM_Params, x%DWM_contstates, xd%DWM_discstates, z%DWM_constrstates, &
                                            o%DWM_otherstates, y%DWM_outputs, ErrStatLcl, ErrMessLcl )
                  
-                     CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD_CalcOutput/DWM_phase1' )
+                     CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD14_CalcOutput/DWM_phase1' )
                      IF (ErrStat >= AbortErrLev) THEN
                         CALL CleanUp()
                         RETURN
@@ -1020,7 +1016,7 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
               
                   o%DWM_otherstates%velocity_wake_mean    = o%DWM_otherstates%velocity_wake_mean * p%DWM_Params%Wind_file_Mean_u
               
-                  VelocityVec(1) = (VelocityVec(1) - p%DWM_Params%Wind_file_Mean_u)*(O%DWM_Inputs%Upwind_result%upwind_small_TI(I)/p%DWM_Params%TI_amb) &
+                  VelocityVec(1) = (VelocityVec(1) - p%DWM_Params%Wind_file_Mean_u)*(O%DWM_Inputs%Upwind_result%upwind_small_TI(1)/p%DWM_Params%TI_amb) &
                                   + o%DWM_otherstates%velocity_wake_mean
               
                END IF
@@ -1037,7 +1033,7 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
                CALL   DWM_phase2( Time, O%DWM_Inputs, p%DWM_Params, x%DWM_contstates, xd%DWM_discstates, z%DWM_constrstates, &
                                            o%DWM_otherstates, y%DWM_outputs, ErrStatLcl, ErrMessLcl )
             
-                     CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD_CalcOutput/DWM_phase1' )
+                     CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD14_CalcOutput/DWM_phase1' )
                      IF (ErrStat >= AbortErrLev) THEN
                         CALL CleanUp()
                         RETURN
@@ -1046,7 +1042,7 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
          
                !CALL CalVelScale(VelocityVec(1),VelocityVec(2),O%o%DWM_otherstatesutputType,DWM_ConstraintStateType)
          
-               !CALL turbine_average_velocity( VelocityVec(1), IBlade, IElement, O%o%DWM_otherstatesutputType,AD_ParameterType,DWM_ConstraintStateType)
+               !CALL turbine_average_velocity( VelocityVec(1), IBlade, IElement, O%o%DWM_otherstatesutputType,AD14_ParameterType,DWM_ConstraintStateType)
             END IF
          END IF ! UseDWM
             
@@ -1076,7 +1072,7 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
          CALL ELEMFRC( p, O, ErrStatLcl, ErrMessLcl,                             &
                        AzimuthAngle, rLocal, IElement, IBlade, VelNormalToRotor2, VTTotal, VNWind, &
                        VNElement, DFN, DFT, PMA, o%NoLoadsCalculated )
-            CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD_CalcOutput' )
+            CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD14_CalcOutput' )
             IF (ErrStat >= AbortErrLev) THEN
                CALL CleanUp()
                RETURN
@@ -1088,7 +1084,7 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
          IF ( p%DynInfl .OR. O%DynInit ) THEN
             CALL GetRM (P, O, ErrStatLcl, ErrMessLcl, &
                         rLocal, DFN, DFT, AzimuthAngle, IElement, IBlade)
-               CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD_CalcOutput' )
+               CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD14_CalcOutput' )
                IF (ErrStat >= AbortErrLev) THEN
                   CALL CleanUp()
                   RETURN
@@ -1155,13 +1151,13 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
          CALL   DWM_phase3( Time, O%DWM_Inputs, p%DWM_Params, x%DWM_contstates, xd%DWM_discstates, z%DWM_constrstates, &
                                 o%DWM_otherstates, y%DWM_outputs, ErrStatLcl, ErrMessLcl )
     
-            CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD_CalcOutput/DWM_phase3' )
+            CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD14_CalcOutput/DWM_phase3' )
             IF (ErrStat >= AbortErrLev) THEN
                CALL CleanUp()
                RETURN
             END IF   
       
-         !CALL filter_average_induction_factor( AD_ParameterType, DWM_ConstraintStateType, O%o%DWM_otherstatesutputType )
+         !CALL filter_average_induction_factor( AD14_ParameterType, DWM_ConstraintStateType, O%o%DWM_otherstatesutputType )
       END IF
    END IF !UseDWM
    
@@ -1216,23 +1212,23 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
    END SUBROUTINE CleanUp 
    
 
-END SUBROUTINE AD_CalcOutput
+END SUBROUTINE AD14_CalcOutput
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE AD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMess )
+SUBROUTINE AD14_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMess )
 ! Tight coupling routine for computing derivatives of continuous states
 !..................................................................................................................................
 
-      REAL(DbKi),                   INTENT(IN   )  :: Time        ! Current simulation time in seconds
-      TYPE(AD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
-      TYPE(AD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-      TYPE(AD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
-      TYPE(AD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
-      TYPE(AD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
-      TYPE(AD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
-      TYPE(AD_ContinuousStateType), INTENT(  OUT)  :: dxdt        ! Continuous state derivatives at Time
-      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                 INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
+      REAL(DbKi),                     INTENT(IN   )  :: Time        ! Current simulation time in seconds
+      TYPE(AD14_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
+      TYPE(AD14_ParameterType),       INTENT(IN   )  :: p           ! Parameters
+      TYPE(AD14_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
+      TYPE(AD14_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
+      TYPE(AD14_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
+      TYPE(AD14_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
+      TYPE(AD14_ContinuousStateType), INTENT(  OUT)  :: dxdt        ! Continuous state derivatives at Time
+      INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                   INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
 
 
          ! Initialize ErrStat
@@ -1246,22 +1242,22 @@ SUBROUTINE AD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrSta
 !     dxdt%DummyDiscState = 0.
 
 
-END SUBROUTINE AD_CalcContStateDeriv
+END SUBROUTINE AD14_CalcContStateDeriv
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE AD_UpdateDiscState( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMess )
+SUBROUTINE AD14_UpdateDiscState( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMess )
 ! Tight coupling routine for updating discrete states
 !..................................................................................................................................
 
-      REAL(DbKi),                   INTENT(IN   )  :: Time        ! Current simulation time in seconds
-      TYPE(AD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
-      TYPE(AD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-      TYPE(AD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
-      TYPE(AD_DiscreteStateType),   INTENT(INOUT)  :: xd          ! Input: Discrete states at Time;
-                                                                  !   Output: Discrete states at Time + Interval
-      TYPE(AD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
-      TYPE(AD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
-      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                 INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
+      REAL(DbKi),                     INTENT(IN   )  :: Time        ! Current simulation time in seconds
+      TYPE(AD14_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
+      TYPE(AD14_ParameterType),       INTENT(IN   )  :: p           ! Parameters
+      TYPE(AD14_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
+      TYPE(AD14_DiscreteStateType),   INTENT(INOUT)  :: xd          ! Input: Discrete states at Time;
+                                                                    !   Output: Discrete states at Time + Interval
+      TYPE(AD14_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
+      TYPE(AD14_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
+      INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                   INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
 
 
          ! Initialize ErrStat
@@ -1274,23 +1270,23 @@ SUBROUTINE AD_UpdateDiscState( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMes
 
       ! StateData%DiscState =
 
-END SUBROUTINE AD_UpdateDiscState
+END SUBROUTINE AD14_UpdateDiscState
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE AD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_residual, ErrStat, ErrMess )
+SUBROUTINE AD14_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_residual, ErrStat, ErrMess )
 ! Tight coupling routine for solving for the residual of the constraint state equations
 !..................................................................................................................................
 
-      REAL(DbKi),                   INTENT(IN   )  :: Time        ! Current simulation time in seconds
-      TYPE(AD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
-      TYPE(AD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-      TYPE(AD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
-      TYPE(AD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
-      TYPE(AD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time (possibly a guess)
-      TYPE(AD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
-      TYPE(AD_ConstraintStateType), INTENT(  OUT)  :: z_residual  ! Residual of the constraint state equations using
-                                                                  !     the input values described above
-      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                 INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
+      REAL(DbKi),                     INTENT(IN   )  :: Time        ! Current simulation time in seconds
+      TYPE(AD14_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
+      TYPE(AD14_ParameterType),       INTENT(IN   )  :: p           ! Parameters
+      TYPE(AD14_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
+      TYPE(AD14_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
+      TYPE(AD14_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time (possibly a guess)
+      TYPE(AD14_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
+      TYPE(AD14_ConstraintStateType), INTENT(  OUT)  :: z_residual  ! Residual of the constraint state equations using
+                                                                    !     the input values described above
+      INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                   INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
 
 
          ! Initialize ErrStat
@@ -1303,7 +1299,7 @@ SUBROUTINE AD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_resid
 
 !      z_residual%DummyConstrState = 0.
 
-END SUBROUTINE AD_CalcConstrStateResidual
+END SUBROUTINE AD14_CalcConstrStateResidual
 
 
 
@@ -1313,6 +1309,6 @@ END SUBROUTINE AD_CalcConstrStateResidual
 !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !----------------------------------------------------------------------------------------------------------------------------------
 
-END MODULE AeroDyn
+END MODULE AeroDyn14
 !**********************************************************************************************************************************
 

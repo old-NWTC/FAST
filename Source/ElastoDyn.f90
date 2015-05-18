@@ -5730,7 +5730,7 @@ SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrS
    CHARACTER(ErrMsgLen)         :: ErrMsg2                                         ! Temporary Err msg
 
 
-
+   UnIn = -1
    CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
    IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -5980,7 +5980,7 @@ CONTAINS
          ! Clean up if we're going to return on error: close file, deallocate local arrays
          !.........................................................................................................................
          IF ( ErrStat >= AbortErrLev ) THEN
-            CLOSE( UnIn )
+            IF (UnIn > 0) CLOSE( UnIn )
          END IF
 
       END IF

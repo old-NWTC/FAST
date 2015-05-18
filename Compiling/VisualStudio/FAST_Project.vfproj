@@ -27,27 +27,27 @@
 		<Filter Name="Header Files" Filter="fi;fd"/>
 		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
-		<Filter Name="AeroDyn">
+		<Filter Name="AeroDyn14">
 		<Filter Name="DWM">
 		<Filter Name="RegistryFiles">
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\DWM_Types.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\Registry-DWM.txt">
+		<File RelativePath="..\..\Source\dependencies\AeroDyn14\DWM_Types.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn14\Registry-DWM.txt">
 			<FileConfiguration Name="Debug|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat DWM" Description="Running Registry for DWM" Outputs="..\..\Source\dependencies\AeroDyn\DWM_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat DWM" Description="Running Registry for DWM" Outputs="..\..\Source\dependencies\AeroDyn14\DWM_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat DWM" Description="Running Registry for DWM" Outputs="..\..\Source\dependencies\AeroDyn\DWM_Types.f90"/></FileConfiguration></File></Filter>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\DWM.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\DWM_Wake_Sub_ver2.f90"/></Filter>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat DWM" Description="Running Registry for DWM" Outputs="..\..\Source\dependencies\AeroDyn14\DWM_Types.f90"/></FileConfiguration></File></Filter>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn14\DWM.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn14\DWM_Wake_Sub_ver2.f90"/></Filter>
 		<Filter Name="RegistryFiles">
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn_Types.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\Registry-AD.txt">
+		<File RelativePath="..\..\Source\dependencies\AeroDyn14\AeroDyn14_Types.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn14\Registry-AD14.txt">
 			<FileConfiguration Name="Debug|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AeroDyn" Description="Running Registry for AeroDyn" Outputs="..\..\Source\dependencies\AeroDyn\AeroDyn_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AeroDyn14" Description="Running Registry for AeroDyn14" Outputs="..\..\Source\dependencies\AeroDyn14\AeroDyn14_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AeroDyn" Description="Running Registry for AeroDyn" Outputs="..\..\Source\dependencies\AeroDyn\AeroDyn_Types.f90"/></FileConfiguration></File></Filter>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroSubs.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\GenSubs.f90"/></Filter>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AeroDyn14" Description="Running Registry for AeroDyn14" Outputs="..\..\Source\dependencies\AeroDyn14\AeroDyn14_Types.f90"/></FileConfiguration></File></Filter>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn14\AeroDyn14.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn14\AeroSubs.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn14\GenSubs.f90"/></Filter>
 		<Filter Name="ElastoDyn">
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ElastoDyn_Registry.txt">

@@ -20,8 +20,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-05-08 14:26:35 -0600 (Fri, 08 May 2015) $
-! (File) Revision #: $Rev: 1012 $
+! File last committed: $Date: 2015-05-11 22:55:16 -0600 (Mon, 11 May 2015) $
+! (File) Revision #: $Rev: 1018 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn.f90 $
 !**********************************************************************************************************************************
 
@@ -5730,7 +5730,7 @@ SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrS
    CHARACTER(ErrMsgLen)         :: ErrMsg2                                         ! Temporary Err msg
 
 
-
+   UnIn = -1
    CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
    IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -5980,7 +5980,7 @@ CONTAINS
          ! Clean up if we're going to return on error: close file, deallocate local arrays
          !.........................................................................................................................
          IF ( ErrStat >= AbortErrLev ) THEN
-            CLOSE( UnIn )
+            IF (UnIn > 0) CLOSE( UnIn )
          END IF
 
       END IF

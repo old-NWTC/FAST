@@ -26,8 +26,9 @@ SET NWTC_Lib_Loc=%FAST_Loc%\dependencies\NWTC_Library
 SET ED_Loc=%FAST_Loc%\dependencies\ElastoDyn
 SET SrvD_Loc=%FAST_Loc%\dependencies\ServoDyn
 SET TMD_Loc=%SrvD_Loc%
-SET AD_Loc=%FAST_Loc%\dependencies\AeroDyn
-SET DWM_Loc=%AD_Loc%
+rem SET AD_Loc=%FAST_Loc%\dependencies\AeroDyn
+SET AD14_Loc=%FAST_Loc%\dependencies\AeroDyn14
+SET DWM_Loc=%AD14_Loc%
 SET IfW_Loc=%FAST_Loc%\dependencies\InflowWind
 SET HD_Loc=%FAST_Loc%\dependencies\HydroDyn
 SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
@@ -56,7 +57,7 @@ REM ----------------------------------------------------------------------------
 :FAST
 ECHO on
 SET CURR_LOC=%FAST_Loc%
-%REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD_Loc%" -I^
+%REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
  "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Reg_Loc%"  -I^
  "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -noextrap -O "%CURR_LOC%"
 
@@ -97,9 +98,9 @@ SET CURR_LOC=%IfW_Loc%
 GOTO checkError
 
 
-:AeroDyn
-SET CURR_LOC=%AD_Loc%
-%REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -I "%AD_Loc%" -I "%DWM_Loc%"  -O "%CURR_LOC%"
+:AeroDyn14
+SET CURR_LOC=%AD14_Loc%
+%REGISTRY% "%CURR_LOC%\Registry-AD14.txt" -I "%NWTC_Lib_Loc%" -I "%AD14_Loc%" -I "%DWM_Loc%" -I "%IfW_Reg_Loc%" -O "%CURR_LOC%"
 GOTO checkError
 
 :DWM
@@ -181,7 +182,7 @@ SET REGISTRY=
 SET NWTC_Lib_Loc=
 SET ED_Loc=
 SET SrvD_Loc=
-SET AD_Loc=
+SET AD14_Loc=
 SET DWM_Loc=
 SET IfW_Loc=
 SET HD_Loc=

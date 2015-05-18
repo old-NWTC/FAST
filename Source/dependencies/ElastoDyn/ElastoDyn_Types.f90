@@ -1,9 +1,9 @@
-!STARTOFREGISTRYGENERATEDFILE './ElastoDyn_Types.f90'
+!STARTOFREGISTRYGENERATEDFILE '..\Source\dependencies\ElastoDyn/ElastoDyn_Types.f90'
 !
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.07.00, 28-Apr-2015)
+! FAST Registry (v2.08.00, 8-May-2015)
 !*********************************************************************************************************************************
 ! ElastoDyn_Types
 !.................................................................................................................................

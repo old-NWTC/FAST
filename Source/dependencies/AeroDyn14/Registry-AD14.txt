@@ -1,6 +1,6 @@
 ###################################################################################################################################
-# Registry for AeroDyn in the FAST Modularization Framework
-# This Registry file is used to create MODULE AeroDyn_Types  which contains all of the user-defined types needed in AeroDyn.
+# Registry for AeroDyn14 in the FAST Modularization Framework
+# This Registry file is used to create MODULE AeroDyn_Types  which contains all of the user-defined types needed in AeroDyn14.
 # It also contains copy, destroy, pack, and unpack routines associated with each defined data types.
 # See the NWTC Programmer's Handbook for further information on the format/contents of this file.
 ###################################################################################################################################
@@ -18,19 +18,19 @@ include	Registry_NWTC_Library.txt
 usefrom	Registry-DWM.txt
 
 # AeroDyn Subtypes
-typedef	AeroDyn/AD	Marker	Reki	Position	3	0.0	-		-
+typedef	AeroDyn14/AD14	Marker	Reki	Position	3	0.0	-		-
 typedef	^	Marker	^	Orientation	{3}{3}	0.0	-		-
 typedef	^	Marker	^	TranslationVel	3	0.0	-		-
 typedef	^	Marker	^	RotationVel	3	0.0	-		-
 
 #ADOptions
-#typedef	AeroDyn/AD	ADOptions	CHARACTER(1024)	ADFile
+#typedef	AeroDyn14/AD14	ADOptions	CHARACTER(1024)	ADFile
 #typedef	^	ADOptions	CHARACTER(1024)	RootName
 #typedef	^	ADOptions	CHARACTER(1024)	SumFile
 #typedef	^	ADOptions	LOGICAL	WrSumFile
 
 #AeroConfig
-typedef	AeroDyn/AD	AeroConfig	Marker	Blade	{:}	-	-		-
+typedef	AeroDyn14/AD14	AeroConfig	Marker	Blade	{:}	-	-		-
 typedef	^	AeroConfig	^	Hub	-	-	-		-
 typedef	^	AeroConfig	^	RotorFurl	-	-	-		-
 typedef	^	AeroConfig	^	Nacelle	-	-	-		-
@@ -41,10 +41,10 @@ typedef	^	AeroConfig	^	Foundation	-	-	-		-
 typedef	^	AeroConfig	ReKi	BladeLength	-	-	-		-
 
 #AllAeroMarkers
-#typedef	AeroDyn/AD	AllAeroMarkers	MeshType	Blade	{:}	-	-		-
+#typedef	AeroDyn14/AD14	AllAeroMarkers	MeshType	Blade	{:}	-	-		-
 
 #Airfoil
-typedef	AeroDyn/AD	AirFoil	ReKi	AL	{:}{:}	-	-		-
+typedef	AeroDyn14/AD14	AirFoil	ReKi	AL	{:}{:}	-	-		-
 typedef	^	AirFoil	ReKi	CD	{:}{:}{:}	-	-		-
 typedef	^	AirFoil	ReKi	CL	{:}{:}{:}	-	-		-
 typedef	^	AirFoil	ReKi	CM	{:}{:}{:}	-	-		-
@@ -142,7 +142,7 @@ typedef	^	BladeParms	ReKi	BladeLength	-	-	-	"Blade Length"
 dimspec	maxinfl	constant=6
 dimspec	maxinfl0	constant=2
 dimspec	maxinfl1	constant=3:6
-typedef	AeroDyn/AD	DynInflow	ReKi	dAlph_dt	{maxinfl}{4}	-	-
+typedef	AeroDyn14/AD14	DynInflow	ReKi	dAlph_dt	{maxinfl}{4}	-	-
 typedef	^	DynInflow	ReKi	dBeta_dt	{maxinfl1}{4}	-	-
 typedef	^	DynInflow	ReKi	DTO	-	-	-
 typedef	^	DynInflow	ReKi	old_Alph	{maxinfl}	-	-
@@ -275,13 +275,13 @@ typedef	^	WindParms	ReKi	KinVisc	-	-	-	"Kinematic air viscosity"	(m^2/sec)
 
 ##################	Registry	for	AeroDyn	###############
 
-typedef	AeroDyn/AD	PositionType	ReKi	Pos	3	-	-	"X,Y,Z coordinate of a point"
-typedef	AeroDyn/AD	OrientationType	ReKi	Orient	{3}{3}	-	-	"Direction Cosine Matrix"
+typedef	AeroDyn14/AD14	PositionType	ReKi	Pos	3	-	-	"X,Y,Z coordinate of a point"
+typedef	AeroDyn14/AD14	OrientationType	ReKi	Orient	{3}{3}	-	-	"Direction Cosine Matrix"
 
 # ..... Initialization data .......................................................................................................
 # Define inputs that the initialization routine may need here:
-#typedef	AeroDyn/AD	InitInputType	ADOptions	ADOptions	-	-	-
-typedef	AeroDyn/AD	InitInputType	CHARACTER(1024)	Title	-	-	-	"Title"
+#typedef	AeroDyn14/AD14	InitInputType	ADOptions	ADOptions	-	-	-
+typedef	AeroDyn14/AD14	InitInputType	CHARACTER(1024)	Title	-	-	-	"Title"
 typedef	^	InitInputType	CHARACTER(1024)	OutRootName	-	-	-
 typedef	^	InitInputType	CHARACTER(1024)	ADFileName	-	-	-	"AeroDyn file name"
 typedef	^	InitInputType	LOGICAL	WrSumFile	-	-	-	"T/F: Write an AeroDyn summary"
@@ -300,7 +300,7 @@ typedef	^	InitInputType	ReKi	HubHt	-	-	-	"hub height wrt inertial origin"	m
 typedef	^	InitInputType	DWM_InitInputType	DWM_InitInputs	-	-	-		-
 
 # Define outputs from the initialization routine here:
-typedef	AeroDyn/AD	InitOutputType	ProgDesc	Ver	-	-	-	"version information"
+typedef	AeroDyn14/AD14	InitOutputType	ProgDesc	Ver	-	-	-	"version information"
 typedef	^	InitOutputType	DWM_InitOutputType	DWM_InitOutput	-	-	-		-
 
 # ..... States ....................................................................................................................

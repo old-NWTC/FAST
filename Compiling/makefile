@@ -12,9 +12,37 @@
 # Older versions of the source code may not work with this makefile.             #
 #================================================================================#
 
-   # 32-bit or 64-bit?
+
+   # Name of compiler to use and flags to use.
+FC      = gfortran
+
+# 32-bit or 64-bit?
 BITS = 32
 #BITS = 64
+
+
+FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
+LDFLAGS = -O2 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware
+
+#FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -g -pg
+#LDFLAGS = -O0 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware -g -pg
+
+#.........................................
+# preprocessor definitions:
+#  -DDOUBLE_PRECISION
+#
+# some useful gfortran options:
+#  -DFPE_TRAP_ENABLED
+#  -Wl,--large-address-aware   # not necessary when $(BITS) is 64 (64-bit target)
+#  -Wl,--stack=999999999       # not necessary when $(BITS) is 64
+#  -Wconversion-extra -Wconversion
+#  -fdefault-real-8 -fcheck=bounds,do,mem,pointer -std=f2003 -O0 -v -Wall
+#  -pg                          # generate debugging info for debugger
+# http://gcc.gnu.org/onlinedocs/gfortran/Option-Index.html#Option-Index
+#
+# makefile options:
+#  --warn-undefined-variables
+#.........................................
 
 
    # Location of source files for FAST, and its modules.
@@ -25,7 +53,7 @@ NWTC_Lib_DIR = $(FAST_DIR)/dependencies/NWTC_Library
 NETLIB_DIR   = $(FAST_DIR)/dependencies/NetLib
 ED_DIR       = $(FAST_DIR)/dependencies/ElastoDyn
 SrvD_DIR     = $(FAST_DIR)/dependencies/ServoDyn
-AD_DIR       = $(FAST_DIR)/dependencies/AeroDyn
+AD14_DIR     = $(FAST_DIR)/dependencies/AeroDyn14
 IfW_DIR      = $(FAST_DIR)/dependencies/InflowWind
 HD_DIR       = $(FAST_DIR)/dependencies/HydroDyn
 SD_DIR       = $(FAST_DIR)/dependencies/SubDyn
@@ -36,7 +64,7 @@ IceF_DIR     = $(FAST_DIR)/dependencies/IceFloe
 IceD_DIR     = $(FAST_DIR)/dependencies/IceDyn
 
 TMD_DIR      = $(SrvD_DIR)
-DWM_DIR      = $(AD_DIR)
+DWM_DIR      = $(AD14_DIR)
 HD_DIR_Reg   = $(HD_DIR)
 IfW_DIR_Reg  = $(IfW_DIR)
 BIN_DIR      = ../bin
@@ -45,39 +73,31 @@ BIN_DIR      = ../bin
    # You will probably need to change these for your system.
 
 ifeq ($(OS),Windows_NT)
+
    Registry     = $(BIN_DIR)/Registry_win32.exe
    MAP_lib      = $(MAP_DIR)/MAP_win32.lib
-   LAPACK_LINK  = -llapack -lblas -LC:/LAPACK/win32
+   LDFLAGS     := $(LDFLAGS) -llapack -lblas -LC:/LAPACK/win32
+   LAPACK_LINK :=
+
 else
+
    Registry     = registry.exe
    MAP_lib      = $(MAP_DIR)/MAP.so
-   LAPACK_LINK  = -llapack -lblas
+
+   UNAME := $(shell uname -s)
+
+   ifeq ($(UNAME), Darwin)
+         # Mac needs some additional flags prepended for linking to get lapack working:
+      LDFLAGS     := -framework Accelerate $(LDFLAGS)
+      LAPACK_LINK :=
+   else
+        # ifeq ($(UNAME), Linux)
+        # (bjj verify this:)
+        # I've been told that the lapack linking needs to occur at the end of the line (after all the object files) on linux:
+      LAPACK_LINK  = -llapack -lblas
+   endif
+
 endif
-
-
-   # Name of compiler to use and flags to use.
-FC      = gfortran
-
-#FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
-#LDFLAGS = -O2 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware
-
-FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -g -pg
-LDFLAGS = -O0 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware -g -pg
-
-#-DDOUBLE_PRECISION
-
-# -mthreads
-# some useful gfortran options:
-#  -DFPE_TRAP_ENABLED
-#  -Wl,--large-address-aware   # not necessary when $(BITS) is 64 (64-bit target)
-#  -Wl,--stack=999999999       # not necessary when $(BITS) is 64
-#  -Wconversion-extra -Wconversion
-#  -fdefault-real-8 -fcheck=bounds,do,mem,pointer -std=f2003 -O0 -v -Wall
-#  -pg                          # generate debugging info for debugger
-# http://gcc.gnu.org/onlinedocs/gfortran/Option-Index.html#Option-Index
-#
-# makefile:
-# --warn-undefined-variables
 
 
 
@@ -103,7 +123,7 @@ ifeq ($(OS),Windows_NT)
    PATH_SEP  = \\
    SYS_FILE  = SysGnuWin
 else
-      # Linux
+      # Linux/Mac
    DEL_CMD   = rm -f
    EXE_EXT   = _glin$(BITS)
    INTER_DIR = Obj_lin$(BITS)
@@ -153,11 +173,11 @@ IfW_SOURCES =                  \
 	Lidar.f90                   \
 	InflowWind.f90
 
-AD_SOURCES =             \
-	AeroDyn_Types.f90     \
+AD14_SOURCES =           \
+	AeroDyn14_Types.f90   \
 	GenSubs.f90           \
 	AeroSubs.f90          \
-	AeroDyn.f90
+	AeroDyn14.f90
 
 DWM_SOURCES =            \
 	DWM_Types.f90         \
@@ -257,12 +277,12 @@ FAST_SOURCES =           \
 	FAST_Subs.f90         \
 	FAST_Prog.f90
 
-vpath %.f90       $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(SD_DIR) $(MAP_DIR) \
+vpath %.f90       $(NWTC_Lib_DIR) $(AD14_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(SD_DIR) $(MAP_DIR) \
                   $(FAST_DIR) $(NETLIB_DIR) $(FEAM_DIR) $(MD_DIR) $(IceF_DIR) $(IceD_DIR) $(DWM_DIR)
 vpath %.f         $(NETLIB_DIR)
 vpath %.mod       $(INTER_DIR)
 vpath %$(OBJ_EXT) $(INTER_DIR)
-vpath %.txt       $(FAST_DIR) $(AD_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(IceD_DIR) \
+vpath %.txt       $(FAST_DIR) $(AD14_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(IceD_DIR) \
                   $(DWM_DIR) $(FEAM_DIR) $(MD_DIR) $(MAP_DIR)
 vpath %.inp       $(IceF_DIR)
 #apparently vpath doesn't work as expected if I use %.F90 (is it not case sensitive???)
@@ -270,7 +290,7 @@ vpath %.inp       $(IceF_DIR)
 vpath %           $(IceF_DIR)
 
 
-ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD_SOURCES) $(DWM_SOURCES) \
+ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD14_SOURCES) $(DWM_SOURCES) \
               $(SrvD_SOURCES) $(ED_SOURCES) $(HD_SOURCES)  $(SD_SOURCES) \
               $(MAP_SOURCES) $(FEAM_SOURCES) $(MD_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES)
 ALL_OBJS    = $(ALL_SOURCES:.f90=$(OBJ_EXT))
@@ -303,7 +323,7 @@ default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
    # General rules for creating _Types.f90 files from Registry files.
 
 FAST_Types.f90: FAST_Registry.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(TMD_DIR) -I $(AD_DIR) \
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(TMD_DIR) -I $(AD14_DIR) \
 	-I $(HD_DIR_Reg) -I $(IceF_DIR) -I $(IceD_DIR) -I $(MAP_DIR) -I $(FEAM_DIR) -I $(MD_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR) \
 	-noextrap -O $(FAST_DIR)
 
@@ -316,8 +336,8 @@ ServoDyn_Types.f90: ServoDyn_Registry.txt
 ElastoDyn_Types.f90: ElastoDyn_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(ED_DIR)
 
-AeroDyn_Types.f90: Registry-AD.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR)  -O $(AD_DIR)
+AeroDyn14_Types.f90: Registry-AD14.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR)  -O $(AD14_DIR)
 
 DWM_Types.f90: Registry-DWM.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)  -O $(DWM_DIR)
@@ -392,16 +412,15 @@ InflowWind$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  InflowWind_Subs$(OBJ
 
 
 
-#AeroDyn dependency rules:
-AeroDyn_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  InflowWind_Types$(OBJ_EXT)  DWM_Types$(OBJ_EXT)
-GenSubs$(OBJ_EXT):                NWTC_Library$(OBJ_EXT)  AeroDyn_Types$(OBJ_EXT)
-AeroSubs$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  AeroDyn_Types$(OBJ_EXT) InflowWind$(OBJ_EXT) GenSubs$(OBJ_EXT)
-AeroDyn$(OBJ_EXT):                AeroDyn_Types$(OBJ_EXT) AeroSubs$(OBJ_EXT)  GenSubs$(OBJ_EXT)  InflowWind$(OBJ_EXT) \
-                                     DWM$(OBJ_EXT) DWM_Types$(OBJ_EXT)
+#AeroDyn14 dependency rules:
+AeroDyn14_Types$(OBJ_EXT):        NWTC_Library$(OBJ_EXT)  DWM_Types$(OBJ_EXT)  InflowWind_Types$(OBJ_EXT)
+GenSubs$(OBJ_EXT):                NWTC_Library$(OBJ_EXT)  AeroDyn14_Types$(OBJ_EXT)
+AeroSubs$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  AeroDyn14_Types$(OBJ_EXT) GenSubs$(OBJ_EXT)
+AeroDyn14$(OBJ_EXT):              AeroDyn14_Types$(OBJ_EXT) AeroSubs$(OBJ_EXT) GenSubs$(OBJ_EXT) DWM$(OBJ_EXT) DWM_Types$(OBJ_EXT)
 
 #DWM dependency rules:
-DWM_Types$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)
-DWM_Wake_Sub_ver2$(OBJ_EXT):      NWTC_Library$(OBJ_EXT) DWM_Types$(OBJ_EXT)
+DWM_Types$(OBJ_EXT):              NWTC_Library$(OBJ_EXT) InflowWind_Types$(OBJ_EXT)
+DWM_Wake_Sub_ver2$(OBJ_EXT):      NWTC_Library$(OBJ_EXT) DWM_Types$(OBJ_EXT) InflowWind$(OBJ_EXT)
 DWM$(OBJ_EXT):                    NWTC_Library$(OBJ_EXT) DWM_Types$(OBJ_EXT) DWM_Wake_Sub_ver2$(OBJ_EXT)
 
 
@@ -515,11 +534,11 @@ IceDyn$(OBJ_EXT):                 NWTC_Library$(OBJ_EXT) IceDyn_Types$(OBJ_EXT)
 
 # FAST dependency rules:
 FAST_Types$(OBJ_EXT):             NWTC_Library$(OBJ_EXT)  ElastoDyn_Types$(OBJ_EXT)  ServoDyn_Types$(OBJ_EXT)   \
-                                     AeroDyn_Types$(OBJ_EXT)  SubDyn_Types$(OBJ_EXT)  HydroDyn_Types$(OBJ_EXT)  \
+                                     AeroDyn14_Types$(OBJ_EXT)  SubDyn_Types$(OBJ_EXT)  HydroDyn_Types$(OBJ_EXT)  \
                                      MAP_Types$(OBJ_EXT)  FEAMooring_Types$(OBJ_EXT)  MoorDyn_Types$(OBJ_EXT)   \
                                      IceFloe_Types$(OBJ_EXT)  IceDyn_Types$(OBJ_EXT)
 FAST_Mods$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Types$(OBJ_EXT)
-FAST_Subs$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Mods$(OBJ_EXT)  NWTC_LAPACK$(OBJ_EXT)  AeroDyn$(OBJ_EXT) \
+FAST_Subs$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Mods$(OBJ_EXT)  NWTC_LAPACK$(OBJ_EXT)  AeroDyn14$(OBJ_EXT) \
                                      InflowWind$(OBJ_EXT)  ServoDyn$(OBJ_EXT)  ElastoDyn$(OBJ_EXT) SubDyn$(OBJ_EXT)     \
                                      HydroDyn$(OBJ_EXT)  MAP$(OBJ_EXT)  FEAM$(OBJ_EXT)  MoorDyn$(OBJ_EXT)               \
                                      IceFloe$(OBJ_EXT) IceDyn$(OBJ_EXT)
@@ -551,7 +570,7 @@ superclean:
 	$(DEL_CMD) "$(TMD_DIR)$(PATH_SEP)TMD_Types.f90"
 	$(DEL_CMD) "$(SrvD_DIR)$(PATH_SEP)ServoDyn_Types.f90"
 	$(DEL_CMD) "$(ED_DIR)$(PATH_SEP)ElastoDyn_Types.f90"
-	$(DEL_CMD) "$(AD_DIR)$(PATH_SEP)AeroDyn_Types.f90"
+	$(DEL_CMD) "$(AD14_DIR)$(PATH_SEP)AeroDyn14_Types.f90"
 	$(DEL_CMD) "$(DWM_DIR)$(PATH_SEP)DWM_Types.f90"
 	$(DEL_CMD) "$(SD_DIR)$(PATH_SEP)SubDyn_Types.f90"
 	$(DEL_CMD) "$(FEAM_DIR)$(PATH_SEP)FEAMooring_Types.f90"
