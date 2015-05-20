@@ -327,51 +327,51 @@ FAST_Types.f90: FAST_Registry.txt
 	-I $(HD_DIR_Reg) -I $(IceF_DIR) -I $(IceD_DIR) -I $(MAP_DIR) -I $(FEAM_DIR) -I $(MD_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR) \
 	-noextrap -O $(FAST_DIR)
 
-TMD_Types.f90: TMD_Registry.txt
+$(TMD_DIR)/TMD_Types.f90: TMD_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -O $(TMD_DIR)
 
-ServoDyn_Types.f90: ServoDyn_Registry.txt
+$(SrvD_DIR)/ServoDyn_Types.f90: ServoDyn_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(TMD_DIR) -O $(SrvD_DIR)
 
-ElastoDyn_Types.f90: ElastoDyn_Registry.txt
+$(ED_DIR)/ElastoDyn_Types.f90: ElastoDyn_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(ED_DIR)
 
-AeroDyn14_Types.f90: Registry-AD14.txt
+$(AD14_DIR)/AeroDyn14_Types.f90: Registry-AD14.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR)  -O $(AD14_DIR)
 
-DWM_Types.f90: Registry-DWM.txt
+$(DWM_DIR)/DWM_Types.f90: Registry-DWM.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)  -O $(DWM_DIR)
 
-SubDyn_Types.f90: SubDyn_Registry.txt
+$(SD_DIR)/SubDyn_Types.f90: SubDyn_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(SD_DIR)
 
-MAP_Types.f90: MAP_Registry.txt
+$(MAP_DIR)/MAP_Types.f90: MAP_Registry.txt
 	$(Registry) $< -ccode -I $(NWTC_Lib_DIR) -O $(MAP_DIR)
 
-FEAMooring_Types.f90: FEAM_Registry.txt
+$(FEAM_DIR)/FEAMooring_Types.f90: FEAM_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -O $(FEAM_DIR)
 
-MoorDyn_Types.f90: MoorDyn_Registry.txt
+$(MD_DIR)/MoorDyn_Types.f90: MoorDyn_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(MD_DIR)
 
-IceFloe_Types.f90: IceFloe_FASTRegistry.inp
+$(IceF_DIR)/IceFloe_Types.f90: IceFloe_FASTRegistry.inp
 	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(IceF_DIR)
 
-IceDyn_Types.f90: Registry_IceDyn.txt
+$(IceD_DIR)/IceDyn_Types.f90: Registry_IceDyn.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(IceD_DIR)
 
-InflowWind_Types.f90: InflowWind.txt
+$(IfW_DIR)/InflowWind_Types.f90: InflowWind.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(IfW_DIR)
 
-Lidar_Types.f90: Lidar.txt
+$(IfW_DIR)/Lidar_Types.f90: Lidar.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(IfW_DIR)
 
    # InflowWind Registry files:
-IfW_%_Types.f90: $(IfW_Reg_DIR)/IfW_%.txt
+$(IfW_DIR)/IfW_%_Types.f90: $(IfW_Reg_DIR)/IfW_%.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -noextrap  -O $(IfW_DIR)
 
    # HydroDyn Registry files:
-%_Types.f90: $(HD_DIR_Reg)/%.txt
+$(HD_DIR)/%_Types.f90: $(HD_DIR_Reg)/%.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(HD_DIR_Reg)  -O $(HD_DIR)
 
 
