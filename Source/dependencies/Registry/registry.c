@@ -54,12 +54,12 @@ main( int argc, char *argv[], char *env[] )
   setrlimit ( RLIMIT_STACK , &rlim ) ;
 #endif
 
-   thisprog_ver = "FAST Registry (v2.08.00, 8-May-2015)";
+   thisprog_ver = "FAST Registry (v2.08.01, 21-May-2015)";
 
   fprintf(stderr,"\n") ;
   fprintf(stderr,"----- %s --------------\n", thisprog_ver) ;
-//  fprintf(stderr,"Revision $Rev: 1011 $\n") ;
-//  fprintf(stderr,"Date $LastChangedDate: 2015-05-08 14:14:42 -0600 (Fri, 08 May 2015) $ \n" ) ;
+//  fprintf(stderr,"Revision $Rev: 1021 $\n") ;
+//  fprintf(stderr,"Date $LastChangedDate: 2015-05-22 10:09:31 -0600 (Fri, 22 May 2015) $ \n" ) ;
   fprintf(stderr,"URL  $URL: https://windsvn.nrel.gov/FAST/branches/FAST_Registry/source/registry.c $\n" ) ;
   fprintf(stderr,"----------------------------------------------------------\n") ;
 
@@ -310,7 +310,7 @@ int
 matches( char * str , char * match )   // both must be null terminated
 {
    char * p, * q ;
-   int n, retval ;
+   int n  ;
 
    for ( n = 0, p = str, q = match ;  (*p && *q) ; p++, q++, n++ )
    {

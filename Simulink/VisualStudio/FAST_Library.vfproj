@@ -48,17 +48,35 @@
 		<Filter Name="Header Files" Filter="fi;fd"/>
 		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
+		<Filter Name="Aero">
 		<Filter Name="AeroDyn">
+		<Filter Name="RegistryFiles">
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn_Types.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\AirfoilInfo_Types.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMT_Types.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\UnsteadyAero_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\AirfoilInfo.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMT.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMTCoupled.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMTUncoupled.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\BladeElement.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\Brent.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\fmin_fcn.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\mod_root1dim.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\nwtc_bemt_minpack.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\UnsteadyAero.f90"/></Filter>
+		<Filter Name="AeroDyn14">
 		<Filter Name="DWM">
 		<Filter Name="RegistryFiles">
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\DWM_Types.f90"/></Filter>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\DWM.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\DWM_Wake_Sub_ver2.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn14\DWM_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn14\DWM.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn14\DWM_Wake_Sub_ver2.f90"/></Filter>
 		<Filter Name="RegistryFiles">
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn_Types.f90"/></Filter>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroSubs.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\GenSubs.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn14\AeroDyn14_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn14\AeroDyn14.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn14\AeroSubs.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn14\GenSubs.f90"/></Filter></Filter>
 		<Filter Name="ElastoDyn">
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ElastoDyn_Types.f90"/></Filter>
@@ -159,6 +177,8 @@
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration></File></Filter>
+		<Filter Name="FitPACK">
+		<File RelativePath="..\..\Source\dependencies\NetLib\dierckx_fitpack.f"/></Filter>
 		<Filter Name="ScaLAPACK">
 		<File RelativePath="..\..\Source\dependencies\NetLib\dlasrt2.f">
 			<FileConfiguration Name="Debug|Win32">
@@ -179,6 +199,7 @@
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration></File></Filter>
 		<File RelativePath="..\..\Source\dependencies\NetLib\NWTC_FFTPACK.f90"/>
+		<File RelativePath="..\..\Source\dependencies\NetLib\NWTC_FitPack.f90"/>
 		<File RelativePath="..\..\Source\dependencies\NetLib\NWTC_LAPACK.f90"/>
 		<File RelativePath="..\..\Source\dependencies\NetLib\NWTC_ScaLAPACK.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\NWTC_Library\ModMesh.f90"/>

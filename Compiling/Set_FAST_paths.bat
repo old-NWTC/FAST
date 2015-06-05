@@ -23,6 +23,13 @@ SET ED_Loc=%FAST_Loc%
 SET SrvD_Loc=%FAST_Loc%
 SET TMD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\TMD\SVNdirectory\Source
 
+
+SET AD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\WTPerf\SVNdirectory\branches\v4.x\Source\dependencies\AeroDyn
+SET BEMT_Loc=%AD_Loc%\..\BEMT
+SET UA_Loc=%AD_Loc%\..\UnsteadyAero
+SET AFI_Loc=%AD_Loc%\..\Airfoil_Info
+
+
 SET AD14_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\trunk\Source
 SET DWM_Loc=%AD14_Loc%\DWM
 

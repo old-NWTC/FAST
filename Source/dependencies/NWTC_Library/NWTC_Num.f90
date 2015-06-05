@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-05-11 21:38:05 -0600 (Mon, 11 May 2015) $
-! (File) Revision #: $Rev: 309 $
+! File last committed: $Date: 2015-05-29 23:31:01 -0600 (Fri, 29 May 2015) $
+! (File) Revision #: $Rev: 313 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Num.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_Num
@@ -1057,7 +1057,148 @@ END SUBROUTINE DCM_SetLogMapForInterp
    ENDIF
 
 
-  END FUNCTION EqualRealNos16
+   END FUNCTION EqualRealNos16
+!=======================================================================
+   FUNCTION EulerConstruct(theta) result(M)
+   
+      ! this function creates a rotation matrix, M, from a 1-2-3 rotation
+      ! sequence of the 3 Euler angles, theta_x, theta_y, and theta_z.
+      ! M represents a change of basis (from global to local coordinates; 
+      ! not a physical rotation of the body). it is the inverse of EulerExtract().
+      !
+      ! M = R(theta_z) * R(theta_y) * R(theta_x)
+      !   = [ cz sz 0 |   [ cy  0 -sy |   [ 1   0   0 |
+      !     |-sz cz 0 | * |  0  1   0 | * | 0  cx  sx |
+      !     |  0  0 1 ]   | sy  0  cy ]   | 0 -sx  cx ]
+      !   = [ cy*cz   cx*sz+sx*sy*cz    sx*sz-cx*sy*cz |
+      !     |-cy*sz   cx*cz-sx*sy*sz    sx*cz+cx*sy*sz |
+      !     | sy           -sx*cy             cx*cy    ]
+      ! where cz = cos(theta_z), sz = sin(theta_z), cy = cos(theta_y), etc.
+   
+      REAL(ReKi)             :: M(3,3)    ! rotation matrix M 
+      REAL(ReKi), INTENT(IN) :: theta(3)  ! the 3 rotation angles: theta_x, theta_y, theta_z
+      
+      REAL(ReKi)             :: cx        ! cos(theta_x)
+      REAL(ReKi)             :: sx        ! sin(theta_x)
+      REAL(ReKi)             :: cy        ! cos(theta_y)
+      REAL(ReKi)             :: sy        ! sin(theta_y)
+      REAL(ReKi)             :: cz        ! cos(theta_z)
+      REAL(ReKi)             :: sz        ! sin(theta_z)
+   
+
+      cx = cos( theta(1) )
+      sx = sin( theta(1) )
+      
+      cy = cos( theta(2) )
+      sy = sin( theta(2) )
+      
+      cz = cos( theta(3) )
+      sz = sin( theta(3) )
+         
+      M(1,1) =  cy*cz            
+      M(2,1) = -cy*sz            
+      M(3,1) =  sy    
+      
+      M(1,2) =  cx*sz+sx*sy*cz            
+      M(2,2) =  cx*cz-sx*sy*sz            
+      M(3,2) =       -sx*cy     
+      
+      M(1,3) =  sx*sz-cx*sy*cz            
+      M(2,3) =  sx*cz+cx*sy*sz            
+      M(3,3) =        cx*cy               
+   
+   END FUNCTION EulerConstruct
+!=======================================================================
+   FUNCTION EulerExtract(M) result(theta)
+   
+      ! if M is a rotation matrix from a 1-2-3 rotation sequence, this function
+      ! returns the 3 Euler angles, theta_x, theta_y, and theta_z, that formed 
+      ! the matrix. M represents a change of basis (from global to local coordinates; 
+      ! not a physical rotation of the body). M is the inverse of EulerConstruct().
+      !
+      ! M = R(theta_z) * R(theta_y) * R(theta_x)
+      !   = [ cz sz 0 |   [ cy  0 -sy |   [ 1   0   0 |
+      !     |-sz cz 0 | * |  0  1   0 | * | 0  cx  sx |
+      !     |  0  0 1 ]   | sy  0  cy ]   | 0 -sx  cx ]
+      !   = [ cy*cz   cx*sz+sx*sy*cz    sx*sz-cx*sy*cz |
+      !     |-cy*sz   cx*cz-sx*sy*sz    sx*cz+cx*sy*sz |
+      !     | sy           -sx*cy             cx*cy    ]
+      ! where cz = cos(theta_z), sz = sin(theta_z), cy = cos(theta_y), etc.
+   
+      REAL(ReKi), INTENT(IN) :: M(3,3)    ! rotation matrix M 
+      REAL(ReKi)             :: theta(3)  ! the 3 rotation angles: theta_x, theta_y, theta_z
+      
+      REAL(ReKi)             :: cx        ! cos(theta_x)
+      REAL(ReKi)             :: sx        ! sin(theta_x)
+      REAL(ReKi)             :: cy        ! cos(theta_y)
+      REAL(ReKi)             :: sy        ! sin(theta_y)
+      REAL(ReKi)             :: cz        ! cos(theta_z)
+      REAL(ReKi)             :: sz        ! sin(theta_z)
+   
+         ! use trig identity sx**2 + cx**2 = 1 to get cy:
+      cy = sqrt( m(1,1)**2 + m(2,1)**2 ) 
+            
+      if ( EqualRealNos(cy,0.0_ReKi) ) then
+      !if ( cy < 16*epsilon(0.0_ReKi) ) then
+         
+         theta(2) = atan2( m(3,1), cy )               ! theta_y
+         
+         ! cy = 0 -> sy = +/- 1
+         ! M  = [  0   cx*sz+/-sx*cz    sx*sz-/+cx*cz |
+         !      |  0   cx*cz-/+sx*sz    sx*cz+/-cx*sz |
+         !      |+/-1        0                0       ]
+         
+         ! gimbal lock allows us to choose theta_z = 0
+         theta(3) = 0.0_ReKi                          ! theta_z
+         
+         ! which reduces the matrix to 
+         ! M  = [  0  +/-sx  -/+cx |
+         !      |  0     cx     sx |
+         !      |+/-1    0       0 ]
+         
+         theta(1) = atan2(  m(2,3), m(2,2) )          ! theta_x
+      else
+
+         theta(3) = atan2( -m(2,1), m(1,1) )          ! theta_z         
+         cz       = cos( theta(3) )
+         sz       = sin( theta(3) )
+
+            ! get the appropriate sign for cy:
+         if ( EqualRealNos(cz, 0.0_ReKi) ) then
+            cy = sign( cy, -m(2,1)/sz )
+            !cy = -m(2,1)/sz
+         else
+            cy = sign( cy, m(1,1)/cz )
+            !cy = -m(1,1)/cz
+         end if
+         theta(2) = atan2( m(3,1), cy )               ! theta_y
+         
+        !theta(1) = atan2( -m(3,2), m(3,3) )          ! theta_x
+         
+         ! for numerical reasons, we're going to get theta_x using
+         ! M' = (R(theta_z) * R(theta_y))^T * M = R(theta_x)
+         !    = [ cy  0  sy |   [ cz -sz 0 |       [ 1   0   0 |
+         !      |  0  1   0 | * | sz  cz 0 | * M = | 0  cx  sx |
+         !      |-sy  0  cy ]   |  0   0 1 ]       | 0 -sx  cx ]
+         !    = [ cy*cz  -cy*sz  sy |       [ 1   0   0 |
+         !      |    sz      cz   0 | * M = | 0  cx  sx |
+         !      |-sy*cz   sy*sz  cy ]       | 0 -sx  cx ]
+         ! taking M'(2,2) and M'(2,3) , we get cx and sx:
+         ! sz*m(1,2) + cz*m(2,2) = cx
+         ! sz*m(1,3) + cz*m(2,3) = sx
+
+         cz = cos( theta(3) )
+         sz = sin( theta(3) )
+         
+         cx = sz*m(1,2) + cz*m(2,2)
+         sx = sz*m(1,3) + cz*m(2,3)
+         
+         theta(1) = atan2( sx, cx )
+         
+      end if
+            
+      
+   END FUNCTION EulerExtract
 !=======================================================================
    SUBROUTINE Eye2( A, ErrStat, ErrMsg )
 
@@ -3184,6 +3325,107 @@ END SUBROUTINE InterpStpReal3D
       RETURN
    END SUBROUTINE RombergInt
 !=======================================================================
+   SUBROUTINE RunTimes( StrtTime, UsrTime1, SimStrtTime, UsrTime2, ZTime, UsrTime_out )
+   ! This routine displays a message that gives that status of the simulation and the predicted end time of day.
+
+      IMPLICIT                        NONE
+
+         ! Passed variables
+
+      INTEGER   , INTENT(IN)       :: StrtTime (8)                                    ! Start time of simulation (including initialization)
+      INTEGER   , INTENT(IN)       :: SimStrtTime (8)                                 ! Start time of simulation (after initialization)
+      REAL      , INTENT(IN)       :: UsrTime1                                        ! User CPU time for simulation initialization.
+      REAL,       INTENT(IN)       :: UsrTime2                                        ! User CPU time for simulation (without intialization)
+      REAL(DbKi), INTENT(IN)       :: ZTime                                           ! The final simulation time (not necessarially TMax)
+      REAL,OPTIONAL, INTENT(OUT)   :: UsrTime_out                                     ! User CPU time for entire run - optional value returned to calling routine
+
+         ! Local variables
+
+      REAL                         :: ClckTime                                        ! Elapsed clock time for the entire run.
+      REAL                         :: ClckTimeSim                                     ! Elapsed clock time for the simulation phase of the run.
+      REAL                         :: Factor                                          ! Ratio of seconds to a specified time period.
+      REAL                         :: TRatio                                          ! Ratio of simulation time to elapsed clock time.
+      REAL(ReKi), PARAMETER        :: SecPerDay = 24*60*60.0_ReKi                     ! Number of seconds per day
+
+      REAL                         :: UsrTime                                         ! User CPU time for entire run.
+      REAL                         :: UsrTimeSim                                      ! User CPU time for simulation (not including initialization).
+      INTEGER                      :: EndTimes (8)                                    ! An array holding the ending clock time of the simulation.
+
+      CHARACTER( 8)                :: TimePer
+      CHARACTER(MaxWrScrLen)       :: BlankLine
+
+         ! Get the end times to compare with start times.
+
+      CALL DATE_AND_TIME ( VALUES=EndTimes )
+      CALL CPU_TIME ( UsrTime )
+      UsrTime = MAX( 0.0, UsrTime )  ! CPU_TIME: If a meaningful time cannot be returned, a processor-dependent negative value is returned
+   
+
+      ! Calculate the elapsed wall-clock time in seconds.
+
+      ClckTime     = GetClockTime(StrtTime,      EndTimes)
+     !ClckTimeInit = GetClockTime(StrtTime,   SimStrtTime)
+      ClckTimeSim  = GetClockTime(SimStrtTime,   EndTimes)
+
+         ! Calculate CPU times.
+
+      UsrTime    = MAX( 0.0, UsrTime - UsrTime1 )
+      UsrTimeSim = MAX( 0.0, UsrTime - UsrTime2 )
+
+
+      IF ( .NOT. EqualRealNos( UsrTimeSim, 0.0 ) .AND. ZTime > 0.0_DbKi )  THEN
+
+         TRatio = REAL(ZTime) / UsrTimeSim
+
+         IF     ( UsrTime > SecPerDay )  THEN
+            Factor = 1.0/SecPerDay
+            TimePer = ' days'
+         ELSEIF ( UsrTime >  3600.0 )  THEN
+            Factor = 1.0/3600.0
+            TimePer = ' hours'
+         ELSEIF ( UsrTime >    60.0 )  THEN
+            Factor = 1.0/60.0
+            TimePer = ' minutes'
+         ELSE
+            Factor = 1.0
+            TimePer = ' seconds'
+         ENDIF
+
+         BlankLine = ""
+         CALL WrOver( BlankLine )  ! BlankLine contains MaxWrScrLen spaces
+         CALL WrScr1( ' Total Real Time:       '//TRIM( Num2LStr( Factor*ClckTime      ) )//TRIM( TimePer ) )
+         CALL WrScr ( ' Total CPU Time:        '//TRIM( Num2LStr( Factor*UsrTime       ) )//TRIM( TimePer ) )
+   !     CALL WrScr ( ' ')
+   !     CALL WrScr ( ' Simulation Real Time:  '//TRIM( Num2LStr( Factor*ClckTimeSim   ) )//TRIM( TimePer ) )
+         CALL WrScr ( ' Simulation CPU Time:   '//TRIM( Num2LStr( Factor*UsrTimeSim    ) )//TRIM( TimePer ) )      
+         CALL WrScr ( ' Simulated Time:        '//TRIM( Num2LStr( Factor*REAL( ZTime ) ) )//TRIM( TimePer ) )
+         CALL WrScr ( ' Time Ratio (Sim/CPU):  '//TRIM( Num2LStr( TRatio ) ) )
+
+      ENDIF
+
+      IF (PRESENT(UsrTime_out)) UsrTime_out = UsrTime
+      RETURN
+   CONTAINS
+
+      FUNCTION GetClockTime(StartClockTime, EndClockTime)
+      ! return the number of seconds between StartClockTime and EndClockTime
+   
+         REAL                         :: GetClockTime          ! Elapsed clock time for the simulation phase of the run.
+         INTEGER   , INTENT(IN)       :: StartClockTime (8)                                 ! Start time of simulation (after initialization)
+         INTEGER   , INTENT(IN)       :: EndClockTime (8)                                 ! Start time of simulation (after initialization)
+   
+      !bjj: This calculation will be wrong at certain times (e.g. if it's near midnight on the last day of the month), but to my knowledge, no one has complained...
+         GetClockTime =       0.001*( EndClockTime(8) - StartClockTime(8) ) &  ! Is the milliseconds of the second (range 0 to 999) - local time
+                        +           ( EndClockTime(7) - StartClockTime(7) ) &  ! Is the seconds of the minute (range 0 to 59) - local time
+                        +      60.0*( EndClockTime(6) - StartClockTime(6) ) &  ! Is the minutes of the hour (range 0 to 59) - local time
+                        +    3600.0*( EndClockTime(5) - StartClockTime(5) ) &  ! Is the hour of the day (range 0 to 23) - local time
+                        + SecPerDay*( EndClockTime(3) - StartClockTime(3) )    ! Is the day of the month
+   
+   
+      END FUNCTION GetClockTime
+   
+   END SUBROUTINE RunTimes   
+!=======================================================================   
    SUBROUTINE SetAnglesForInterp( angles )
 
       ! this routine takes angles (in radians) and converts them to appropriate
@@ -3256,6 +3498,116 @@ END SUBROUTINE InterpStpReal3D
 
    RETURN
    END SUBROUTINE SetConstants
+!=======================================================================   
+   SUBROUTINE SimStatus_FirstTime( PrevSimTime, PrevClockTime, SimStrtTime, UsrTimeSim, ZTime, TMax )
+      ! This routine displays a message that gives that status of the simulation.
+
+      IMPLICIT                        NONE
+
+         ! Passed variables
+      REAL(DbKi), INTENT(IN   )    :: ZTime                                           ! Current simulation time (s)
+      REAL(DbKi), INTENT(IN   )    :: TMax                                            ! Expected simulation time (s)
+      REAL(DbKi), INTENT(  OUT)    :: PrevSimTime                                     ! Previous time message was written to screen (s > 0)
+      REAL(ReKi), INTENT(  OUT)    :: PrevClockTime                                   ! Previous clock time in seconds past midnight
+      INTEGER,    INTENT(  OUT)    :: SimStrtTime (8)                                 ! An array containing the elements of the start time.
+      REAL,       INTENT(  OUT)    :: UsrTimeSim                                      ! User CPU time for simulation (without intialization)
+
+         ! Local variables.
+
+      REAL(ReKi)                   :: CurrClockTime                                   ! Current time in seconds past midnight.
+
+
+         ! How many seconds past midnight?
+
+      CALL DATE_AND_TIME ( Values=SimStrtTime )
+      CALL CPU_TIME ( UsrTimeSim )                                                    ! Initial CPU time   
+      UsrTimeSim = MAX( 0.0, UsrTimeSim )  ! CPU_TIME: If a meaningful time cannot be returned, a processor-dependent negative value is returned
+
+      CurrClockTime = TimeValues2Seconds( SimStrtTime )
+
+
+      CALL WrScr ( ' Timestep: '//TRIM( Num2LStr( NINT( ZTime ) ) )//' of '//TRIM( Num2LStr( TMax ) )//' seconds.')
+
+
+      ! Let's save this time as the previous time for the next call to the routine
+      PrevClockTime = CurrClockTime
+      PrevSimTime   = ZTime
+
+      RETURN
+   END SUBROUTINE SimStatus_FirstTime
+!=======================================================================
+   SUBROUTINE SimStatus( PrevSimTime, PrevClockTime, ZTime, TMax )
+   
+   ! This routine displays a message that gives that status of the simulation and the predicted end time of day.
+
+      IMPLICIT                        NONE
+
+         ! Passed variables
+      REAL(DbKi), INTENT(IN)       :: ZTime                                ! Current simulation time (s)
+      REAL(DbKi), INTENT(IN)       :: TMax                                 ! Expected simulation time (s)
+      REAL(DbKi), INTENT(INOUT)    :: PrevSimTime                          ! Previous time message was written to screen (s > 0)
+      REAL(ReKi), INTENT(INOUT)    :: PrevClockTime                        ! Previous clock time in seconds past midnight
+
+
+         ! Local variables.
+
+      REAL(ReKi)                   :: CurrClockTime                        ! Current time in seconds past midnight.
+      REAL(ReKi)                   :: DeltTime                             ! The amount of time elapsed since the last call.
+      REAL(ReKi)                   :: EndTime                              ! Approximate time of day when simulation will complete.
+      REAL(ReKi), PARAMETER        :: InSecHr  = 1.0_ReKi/3600.0_ReKi      ! Inverse of the number of seconds in an hour
+      REAL(ReKi), PARAMETER        :: InSecMn  = 1.0_ReKi/  60.0_ReKi      ! Inverse of the number of seconds in a minute
+      REAL(ReKi)                   :: SimTimeLeft                          ! Approximate clock time remaining before simulation completes
+
+      REAL(ReKi), PARAMETER        :: SecPerDay = 24*60*60.0_ReKi          ! Number of seconds per day
+
+      INTEGER(4)                   :: EndHour                              ! The hour when the simulations is expected to complete.
+      INTEGER(4)                   :: EndMin                               ! The minute when the simulations is expected to complete.
+      INTEGER(4)                   :: EndSec                               ! The second when the simulations is expected to complete.
+      INTEGER(4)                   :: TimeAry  (8)                         ! An array containing the elements of the start time.
+
+      CHARACTER( 8)                :: ETimeStr                             ! String containing the end time.
+
+
+      IF ( ZTime <= PrevSimTime ) RETURN
+
+
+         ! How many seconds past midnight?
+
+      CALL DATE_AND_TIME ( Values=TimeAry )
+      CurrClockTime = TimeValues2Seconds( TimeAry )
+
+         ! Calculate elapsed clock time
+
+      DeltTime = CurrClockTime - PrevClockTime
+
+
+         ! We may have passed midnight since the last revoultion.  We will assume that (ZTime - PrevSimTime) of 
+        !  simulation time doesn't take more than a day.
+
+      IF ( CurrClockTime < PrevClockTime )  THEN
+         DeltTime = DeltTime + SecPerDay
+      ENDIF
+
+
+         ! Estimate the end time in hours, minutes, and seconds
+
+      SimTimeLeft = REAL( ( TMax - ZTime )*DeltTime/( ZTime - PrevSimTime ), ReKi )          ! DeltTime/( ZTime - PrevSimTime ) is the delta_ClockTime divided by the delta_SimulationTime
+      EndTime  =  MOD( CurrClockTime+SimTimeLeft, SecPerDay )
+      EndHour  =  INT(   EndTime*InSecHr )
+      EndMin   =  INT( ( EndTime - REAL( 3600*EndHour ) )*InSecMn )
+      EndSec   = NINT(   EndTime - REAL( 3600*EndHour + 60*EndMin ) ) !bjj: this NINT can make the seconds say "60"
+
+      WRITE (ETimeStr,"(I2.2,2(':',I2.2))")  EndHour, EndMin, EndSec
+
+      CALL WrOver ( ' Timestep: '//TRIM( Num2LStr( NINT( ZTime ) ) )//' of '//TRIM( Num2LStr( TMax ) )// &
+                    ' seconds.  Estimated final completion at '//ETimeStr//'.'                             )
+
+         ! Let's save this time as the previous time for the next call to the routine
+      PrevClockTime = CurrClockTime
+      PrevSimTime   = ZTime
+
+      RETURN
+   END SUBROUTINE SimStatus   
 !=======================================================================
    SUBROUTINE SmllRotTrans( RotationType, Theta1, Theta2, Theta3, TransMat, ErrTxt, ErrStat, ErrMsg )
 
@@ -3494,6 +3846,20 @@ END SUBROUTINE InterpStpReal3D
 
    RETURN
    END FUNCTION StdDevFn ! ( Ary, AryLen, Mean )
+!=======================================================================
+   FUNCTION TimeValues2Seconds( TimeAry )
+      ! This routine takes an array of time values such as that returned from
+      !     CALL DATE_AND_TIME ( Values=TimeAry )
+      ! and converts TimeAry to the number of seconds past midnight.
+
+      ! Passed variables:
+   INTEGER, INTENT(IN)          :: TimeAry  (8)                                    ! An array containing the elements of the time
+   REAL(ReKi)                   :: TimeValues2Seconds                              ! Current time in seconds past midnight
+
+
+   TimeValues2Seconds = 3600*TimeAry(5) + 60*TimeAry(6) + TimeAry(7) + 0.001_ReKi*TimeAry(8)
+
+   END FUNCTION TimeValues2Seconds
 !=======================================================================
    FUNCTION trace(A)
    

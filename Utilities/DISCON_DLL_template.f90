@@ -9,7 +9,7 @@ SUBROUTINE DISCON ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) BIND (C, N
    ! Modified by B. Jonkman, National Renewable Energy Laboratory
    ! to conform to ISO C Bindings (standard Fortran 2003) and 
    ! compile with either gfortran or Intel Visual Fortran (IVF)
-   ! DO NOT REMOVE LINES starting with "!DEC$" or "!GCC$"
+   ! DO NOT REMOVE or MODIFY LINES starting with "!DEC$" or "!GCC$"
    ! !DEC$ specifies attributes for IVF and !GCC$ specifies attributes for gfortran
    
 USE, INTRINSIC :: ISO_C_Binding
@@ -36,8 +36,10 @@ REAL(4)                      :: rMeasuredSpeed                                  
 REAL(4), SAVE                :: rPitchDemand                                    ! Desired collective pitch angles returned by this DLL (rad).
 REAL(4)                      :: rTime                                           ! Current simulation time (sec).
 
+INTEGER(4)                   :: ErrStat
 INTEGER(4)                   :: I                                               ! Generic index.
 INTEGER(4)                   :: iStatus                                         ! A status flag set by the simulation as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation.
+INTEGER(4), PARAMETER        :: Un            = 87                              ! I/O unit for pack/unpack (checkpoint & restart)
  
 CHARACTER(SIZE(accINFILE)-1) :: InFile                                          ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
 CHARACTER(SIZE(avcOUTNAME)-1):: RootName                                        ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
@@ -91,8 +93,8 @@ IF ( iStatus == 0 )  THEN  ! .TRUE. if we are on the first call to the DLL
 ELSEIF (iStatus == -1)  ! .TRUE. if we are on the last call to the DLL
    
    ! Clean up any allocated arrays and close files
-   
-   
+     
+                  
 ENDIF
 
 
@@ -110,6 +112,37 @@ IF ( ( iStatus >= 0 ) .AND. ( aviFAIL >= 0 ) )  THEN  ! Only compute control cal
    aviFAIL  = 0   ! SET aviFAIL AND cMessage IF ERROR RESULTS
    ErrMsg   = ''  !
 
+ELSEIF ( iStatus == -8 )  THEN ! .TRUE. if we need to pack data for FAST checkpoint
+   
+   OPEN( Un, FILE=TRIM( InFile ), STATUS='UNKNOWN', FORM='UNFORMATTED' , ACCESS='STREAM', IOSTAT=ErrStat, ACTION='WRITE' )
+
+   IF ( ErrStat /= 0 ) THEN
+      ErrMsg  = 'Cannot open file "'//TRIM( InFile )//'". Another program may have locked it for writing.'
+      aviFAIL = -1
+   ELSE
+   
+      ! write all static variables to the checkpoint file (inverse of unpack):   
+      ! WRITE( Un, IOSTAT=ErrStat ) GenSpeedF               ! Filtered HSS (generator) speed, rad/s.
+      
+      CLOSE ( Un )
+      
+   END IF   
+   
+ELSEIF( iStatus == -9 ) THEN ! .TRUE. if we need to unpack data for FAST restart
+
+   OPEN( Un, FILE=TRIM( InFile ), STATUS='OLD', FORM='UNFORMATTED', ACCESS='STREAM', IOSTAT=ErrStat, ACTION='READ' )
+
+   IF ( ErrStat /= 0 ) THEN
+      aviFAIL = -1
+      ErrMsg  = ' Cannot open file "'//TRIM( InFile )//'" for reading. Another program may have locked.'
+   ELSE
+      
+      ! READ all static variables from the restart file (inverse of pack):   
+      !READ( Un, IOSTAT=ErrStat ) GenSpeedF               ! Filtered HSS (generator) speed, rad/s.
+   
+      CLOSE ( Un )
+   END IF
+   
 ENDIF
 
 

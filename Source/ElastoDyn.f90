@@ -2564,43 +2564,43 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
          
       ! Translation displacement  ! rS at the root
       !BJJ: FIX ME!!!!
-      y%BladeRootMotions(K)%TranslationDisp(1,1) =        OtherState%RtHS%rQ(1) + p%HubRad * OtherState%CoordSys%j3(K,1) 
-      y%BladeRootMotions(K)%TranslationDisp(2,1) =  -1.*( OtherState%RtHS%rQ(3) + p%HubRad * OtherState%CoordSys%j3(K,3) )
-      y%BladeRootMotions(K)%TranslationDisp(3,1) =        OtherState%RtHS%rQ(2) + p%HubRad * OtherState%CoordSys%j3(K,2) + p%PtfmRefzt
-      y%BladeRootMotions(K)%TranslationDisp      = y%BladeRootMotions(K)%TranslationDisp - y%BladeRootMotions(K)%Position ! make it relative
+      y%BladeRootMotion(K)%TranslationDisp(1,1) =        OtherState%RtHS%rQ(1) + p%HubRad * OtherState%CoordSys%j3(K,1) 
+      y%BladeRootMotion(K)%TranslationDisp(2,1) =  -1.*( OtherState%RtHS%rQ(3) + p%HubRad * OtherState%CoordSys%j3(K,3) )
+      y%BladeRootMotion(K)%TranslationDisp(3,1) =        OtherState%RtHS%rQ(2) + p%HubRad * OtherState%CoordSys%j3(K,2) + p%PtfmRefzt
+      y%BladeRootMotion(K)%TranslationDisp      = y%BladeRootMotion(K)%TranslationDisp - y%BladeRootMotion(K)%Position ! make it relative
       
       ! Orientation 
-      y%BladeRootMotions(K)%Orientation(1,1,1)   =     OtherState%CoordSys%j1(K,1)
-      y%BladeRootMotions(K)%Orientation(2,1,1)   =     OtherState%CoordSys%j2(K,1)
-      y%BladeRootMotions(K)%Orientation(3,1,1)   =     OtherState%CoordSys%j3(K,1)
-      y%BladeRootMotions(K)%Orientation(1,2,1)   = -1.*OtherState%CoordSys%j1(K,3)
-      y%BladeRootMotions(K)%Orientation(2,2,1)   = -1.*OtherState%CoordSys%j2(K,3)
-      y%BladeRootMotions(K)%Orientation(3,2,1)   = -1.*OtherState%CoordSys%j3(K,3)
-      y%BladeRootMotions(K)%Orientation(1,3,1)   =     OtherState%CoordSys%j1(K,2)
-      y%BladeRootMotions(K)%Orientation(2,3,1)   =     OtherState%CoordSys%j2(K,2)
-      y%BladeRootMotions(K)%Orientation(3,3,1)   =     OtherState%CoordSys%j3(K,2)
+      y%BladeRootMotion(K)%Orientation(1,1,1)   =     OtherState%CoordSys%j1(K,1)
+      y%BladeRootMotion(K)%Orientation(2,1,1)   =     OtherState%CoordSys%j2(K,1)
+      y%BladeRootMotion(K)%Orientation(3,1,1)   =     OtherState%CoordSys%j3(K,1)
+      y%BladeRootMotion(K)%Orientation(1,2,1)   = -1.*OtherState%CoordSys%j1(K,3)
+      y%BladeRootMotion(K)%Orientation(2,2,1)   = -1.*OtherState%CoordSys%j2(K,3)
+      y%BladeRootMotion(K)%Orientation(3,2,1)   = -1.*OtherState%CoordSys%j3(K,3)
+      y%BladeRootMotion(K)%Orientation(1,3,1)   =     OtherState%CoordSys%j1(K,2)
+      y%BladeRootMotion(K)%Orientation(2,3,1)   =     OtherState%CoordSys%j2(K,2)
+      y%BladeRootMotion(K)%Orientation(3,3,1)   =     OtherState%CoordSys%j3(K,2)
 
       ! Translation velocity ! LinVelES (at root, but it's not currently defined there)
       !BJJ: FIX ME!!!!!!
-      y%BladeRootMotions(K)%TranslationVel(1,1)  =     OtherState%RtHS%LinVelES(1,0,K)
-      y%BladeRootMotions(K)%TranslationVel(2,1)  = -1.*OtherState%RtHS%LinVelES(3,0,K)
-      y%BladeRootMotions(K)%TranslationVel(3,1)  =     OtherState%RtHS%LinVelES(2,0,K)
+      y%BladeRootMotion(K)%TranslationVel(1,1)  =     OtherState%RtHS%LinVelES(1,0,K)
+      y%BladeRootMotion(K)%TranslationVel(2,1)  = -1.*OtherState%RtHS%LinVelES(3,0,K)
+      y%BladeRootMotion(K)%TranslationVel(3,1)  =     OtherState%RtHS%LinVelES(2,0,K)
 
       ! Rotation velocity  
-      y%BladeRootMotions(K)%RotationVel(1,1)     =      OtherState%RtHS%AngVelEH(1)
-      y%BladeRootMotions(K)%RotationVel(2,1)     =  -1.*OtherState%RtHS%AngVelEH(3)
-      y%BladeRootMotions(K)%RotationVel(3,1)     =      OtherState%RtHS%AngVelEH(2)
+      y%BladeRootMotion(K)%RotationVel(1,1)     =      OtherState%RtHS%AngVelEH(1)
+      y%BladeRootMotion(K)%RotationVel(2,1)     =  -1.*OtherState%RtHS%AngVelEH(3)
+      y%BladeRootMotion(K)%RotationVel(3,1)     =      OtherState%RtHS%AngVelEH(2)
       
       ! Translation acceleration  ! LinAccES (at root, but it's not currently defined there)
       !BJJ: FIX ME!!!!!!
-      y%BladeRootMotions(K)%TranslationAcc(1,1)  =       LinAccES(1,0,K)
-      y%BladeRootMotions(K)%TranslationAcc(2,1)  =   -1.*LinAccES(3,0,K)
-      y%BladeRootMotions(K)%TranslationAcc(3,1)  =       LinAccES(2,0,K)
+      y%BladeRootMotion(K)%TranslationAcc(1,1)  =       LinAccES(1,0,K)
+      y%BladeRootMotion(K)%TranslationAcc(2,1)  =   -1.*LinAccES(3,0,K)
+      y%BladeRootMotion(K)%TranslationAcc(3,1)  =       LinAccES(2,0,K)
       
       ! Rotation acceleration  
-      y%BladeRootMotions(K)%RotationAcc(1,1)     =      AngAccEH(1) 
-      y%BladeRootMotions(K)%RotationAcc(2,1)     =  -1.*AngAccEH(3) 
-      y%BladeRootMotions(K)%RotationAcc(3,1)     =      AngAccEH(2)
+      y%BladeRootMotion(K)%RotationAcc(1,1)     =      AngAccEH(1) 
+      y%BladeRootMotion(K)%RotationAcc(2,1)     =  -1.*AngAccEH(3) 
+      y%BladeRootMotion(K)%RotationAcc(3,1)     =      AngAccEH(2)
       
    END DO   
    
@@ -2646,15 +2646,15 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       
    DO K=1,p%NumBl
          
-      y%BladeRootMotions14%Orientation(1,1,K) =     OtherState%CoordSys%i1(K,1)
-      y%BladeRootMotions14%Orientation(2,1,K) =     OtherState%CoordSys%i2(K,1)
-      y%BladeRootMotions14%Orientation(3,1,K) =     OtherState%CoordSys%i3(K,1)
-      y%BladeRootMotions14%Orientation(1,2,K) = -1.*OtherState%CoordSys%i1(K,3)
-      y%BladeRootMotions14%Orientation(2,2,K) = -1.*OtherState%CoordSys%i2(K,3)
-      y%BladeRootMotions14%Orientation(3,2,K) = -1.*OtherState%CoordSys%i3(K,3)
-      y%BladeRootMotions14%Orientation(1,3,K) =     OtherState%CoordSys%i1(K,2)
-      y%BladeRootMotions14%Orientation(2,3,K) =     OtherState%CoordSys%i2(K,2)
-      y%BladeRootMotions14%Orientation(3,3,K) =     OtherState%CoordSys%i3(K,2)
+      y%BladeRootMotion14%Orientation(1,1,K) =     OtherState%CoordSys%i1(K,1)
+      y%BladeRootMotion14%Orientation(2,1,K) =     OtherState%CoordSys%i2(K,1)
+      y%BladeRootMotion14%Orientation(3,1,K) =     OtherState%CoordSys%i3(K,1)
+      y%BladeRootMotion14%Orientation(1,2,K) = -1.*OtherState%CoordSys%i1(K,3)
+      y%BladeRootMotion14%Orientation(2,2,K) = -1.*OtherState%CoordSys%i2(K,3)
+      y%BladeRootMotion14%Orientation(3,2,K) = -1.*OtherState%CoordSys%i3(K,3)
+      y%BladeRootMotion14%Orientation(1,3,K) =     OtherState%CoordSys%i1(K,2)
+      y%BladeRootMotion14%Orientation(2,3,K) =     OtherState%CoordSys%i2(K,2)
+      y%BladeRootMotion14%Orientation(3,3,K) =     OtherState%CoordSys%i3(K,2)
             
    END DO
    
@@ -2732,15 +2732,15 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    !...........         
    
       ! Tower base position should be rT(0) instead of rZ, but AeroDyn needs this for  the HubVDue2Yaw calculation:
-   y%TowerMotion%TranslationDisp(1,1) =     OtherState%RtHS%rZ(1)
-   y%TowerMotion%TranslationDisp(2,1) = -1.*OtherState%RtHS%rZ(3)
-   y%TowerMotion%TranslationDisp(3,1) =     OtherState%RtHS%rZ(2) + p%PtfmRefzt
+   y%TowerBaseMotion%TranslationDisp(1,1) =     OtherState%RtHS%rZ(1)
+   y%TowerBaseMotion%TranslationDisp(2,1) = -1.*OtherState%RtHS%rZ(3)
+   y%TowerBaseMotion%TranslationDisp(3,1) =     OtherState%RtHS%rZ(2) + p%PtfmRefzt
    
-   y%TowerMotion%TranslationDisp      = y%TowerMotion%TranslationDisp - y%TowerMotion%Position   
+   y%TowerBaseMotion%TranslationDisp      = y%TowerBaseMotion%TranslationDisp - y%TowerBaseMotion%Position   
       
-   y%TowerMotion%RotationVel(1,1)     =     OtherState%RtHS%AngVelEX(1)
-   y%TowerMotion%RotationVel(2,1)     = -1.*OtherState%RtHS%AngVelEX(3)
-   y%TowerMotion%RotationVel(3,1)     =     OtherState%RtHS%AngVelEX(2) 
+   y%TowerBaseMotion%RotationVel(1,1)     =     OtherState%RtHS%AngVelEX(1)
+   y%TowerBaseMotion%RotationVel(2,1)     = -1.*OtherState%RtHS%AngVelEX(3)
+   y%TowerBaseMotion%RotationVel(3,1)     =     OtherState%RtHS%AngVelEX(2) 
    
    !...............................................................................................................................
    ! Outputs required for HydroDyn
@@ -9120,8 +9120,8 @@ end if
          p%OutParam(I)%Units = "INVALID"
          p%OutParam(I)%SignM = 0                    ! multiply all results by zero
 
-         ErrStat = ErrID_Warn
-         ErrMsg  = p%OutParam(I)%Name//" is not an available output channel. "//TRIM(ErrMsg)
+         ErrStat = ErrID_Fatal
+         ErrMsg  = "SetOutParam:"//trim(p%OutParam(I)%Name)//" is not an available output channel. "//TRIM(ErrMsg)
       END IF
 
    END DO
@@ -13282,7 +13282,7 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
  
       
    ! -------------- Blade Roots -----------------------------------
-   ALLOCATE( y%BladeRootMotions(p%NumBl), Stat=ErrStat2 )
+   ALLOCATE( y%BladeRootMotion(p%NumBl), Stat=ErrStat2 )
    IF ( ErrStat2 /= 0 ) THEN
       CALL CheckError( ErrID_Fatal, 'ED: Could not allocate space for y%BladeRootMotions{p%NumBl}' )
       RETURN
@@ -13290,7 +13290,7 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
                   
       
    DO k=1,p%NumBl      
-      CALL MeshCreate( BlankMesh       = y%BladeRootMotions(k)  &
+      CALL MeshCreate( BlankMesh       = y%BladeRootMotion(k)   &
                      ,IOS              = COMPONENT_OUTPUT       &
                      ,NNodes           = 1                      &
                      ,TranslationDisp  = .TRUE.                 & 
@@ -13306,7 +13306,7 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
    END DO
    
       
-   CALL MeshCreate( BlankMesh          = y%BladeRootMotions14   &
+   CALL MeshCreate( BlankMesh          = y%BladeRootMotion14    &
                      ,IOS              = COMPONENT_OUTPUT       &
                      ,NNodes           = p%NumBl                &
                      , Orientation     = .TRUE.                 &
@@ -13333,7 +13333,7 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
       Position(2) = 0.0_ReKi
       Position(3) = p%HubRad*p%CosPreC(K)      
       
-      CALL MeshPositionNode ( y%BladeRootMotions14, K, Position, &
+      CALL MeshPositionNode ( y%BladeRootMotion14, K, Position, &
                             ErrStat, ErrMsg, Orient=Orientation ) 
          CALL CheckError(ErrStat2,ErrMsg2)
          IF (ErrStat >= AbortErrLev) RETURN
@@ -13355,18 +13355,18 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
       Orientation(2,3) =     OtherState%CoordSys%j2(K,2)
       Orientation(3,3) =     OtherState%CoordSys%j3(K,2)
       
-      CALL MeshPositionNode ( y%BladeRootMotions(K), 1, Position, &
+      CALL MeshPositionNode ( y%BladeRootMotion(K), 1, Position, &
                             ErrStat, ErrMsg, Orient=Orientation ) 
          CALL CheckError(ErrStat2,ErrMsg2)
          IF (ErrStat >= AbortErrLev) RETURN
          
    END DO
                      
-   CALL CommitPointMesh( y%BladeRootMotions14 )
+   CALL CommitPointMesh( y%BladeRootMotion14 )
       IF (ErrStat >= AbortErrLev) RETURN
    
    DO k=1,p%NumBl      
-      CALL CommitPointMesh( y%BladeRootMotions(K) )
+      CALL CommitPointMesh( y%BladeRootMotion(K) )
          IF (ErrStat >= AbortErrLev) RETURN
    END DO
    
@@ -13412,8 +13412,8 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
       
       
      
-   ! -------------- Tower -----------------------------------
-   CALL MeshCreate( BlankMesh          = y%TowerMotion          &
+   ! -------------- Tower Base-----------------------------------
+   CALL MeshCreate( BlankMesh          = y%TowerBaseMotion      &
                      ,IOS              = COMPONENT_OUTPUT       &
                      ,NNodes           = 1                      &
                      , TranslationDisp = .TRUE.                 &
@@ -13424,13 +13424,13 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
       IF (ErrStat >= AbortErrLev) RETURN
 
 !bjj: FIX THIS>>>>     
-!call wrscr(newline//'fix TowerMotion initialization')
-   CALL MeshPositionNode ( y%TowerMotion, 1, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat, ErrMsg ) !orientation is identity by default
+!call wrscr(newline//'fix TowerBaseMotion initialization')
+   CALL MeshPositionNode ( y%TowerBaseMotion, 1, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat, ErrMsg ) !orientation is identity by default
 !<<<<<FIX THIS
       CALL CheckError(ErrStat2,ErrMsg2)
       IF (ErrStat >= AbortErrLev) RETURN
       
-   CALL CommitPointMesh( y%TowerMotion )
+   CALL CommitPointMesh( y%TowerBaseMotion )
       IF (ErrStat >= AbortErrLev) RETURN      
       
       

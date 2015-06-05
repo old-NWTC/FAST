@@ -5,7 +5,7 @@ extern void FAST_Start( int *NumInputs_c, int *NumOutputs_c, double *InputAry, d
 extern void FAST_Update(int *NumInputs_c, int *NumOutputs_c, double *InputAry, double *OutputAry, int *ErrStat, char *ErrMsg);
 extern void FAST_End();
 extern void FAST_CreateCheckpoint(char *CheckpointRootName, int *ErrStat, char *ErrMsg);
-extern void FAST_Restart(char *CheckpointRootName, int *ErrStat, char *ErrMsg);
+extern void FAST_Restart(char *CheckpointRootName, int *AbortErrLev, int * NumOuts, double * dt, int *ErrStat, char *ErrMsg);
 
 // some constants (keep these synced with values in FAST's fortran code)
 #define INTERFACE_STRING_LENGTH 1025

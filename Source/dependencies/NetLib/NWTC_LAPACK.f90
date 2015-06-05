@@ -214,7 +214,7 @@ CONTAINS
       REAL(R8Ki)      ,intent(in   ) :: A( :, : )         ! Matrix A
       REAL(R8Ki)      ,intent(in   ) :: B( :, : )         ! Matrix B
       REAL(R8Ki)      ,intent(inout) :: C( :, : )         ! Matrix C: Before entry, C must contain the matrix C, except when beta is zero, in which case C need not
-                                                          ! case C need not be set on entry. On exit, the array C is overwritten by the m by n matrix ( alpha*op( A )*op( B ) + beta*C ).
+                                                          ! be set on entry. On exit, the array C is overwritten by the m by n matrix ( alpha*op( A )*op( B ) + beta*C ).
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
@@ -292,7 +292,7 @@ CONTAINS
       REAL(SiKi)      ,intent(in   ) :: A( :, : )         ! Matrix A
       REAL(SiKi)      ,intent(in   ) :: B( :, : )         ! Matrix B
       REAL(SiKi)      ,intent(inout) :: C( :, : )         ! Matrix C: Before entry, C must contain the matrix C, except when beta is zero, in which case C need not
-                                                          ! case C need not be set on entry. On exit, the array C is overwritten by the m by n matrix ( alpha*op( A )*op( B ) + beta*C ).
+                                                          ! be set on entry. On exit, the array C is overwritten by the m by n matrix ( alpha*op( A )*op( B ) + beta*C ).
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error

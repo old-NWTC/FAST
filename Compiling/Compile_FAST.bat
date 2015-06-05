@@ -69,6 +69,7 @@ SET ED_Loc=%FAST_Loc%\dependencies\ElastoDyn
 SET SrvD_Loc=%FAST_Loc%\dependencies\ServoDyn
 SET TMD_Loc=%SrvD_Loc%
 SET AD14_Loc=%FAST_Loc%\dependencies\AeroDyn14
+SET AD_Loc=%FAST_Loc%\dependencies\AeroDyn
 SET DWM_Loc=%AD14_Loc%
 SET IfW_Loc=%FAST_Loc%\dependencies\InflowWind
 SET HD_Loc=%FAST_Loc%\dependencies\HydroDyn
@@ -78,6 +79,11 @@ SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
 SET MD_Loc=%FAST_Loc%\dependencies\MoorDyn
 SET IceF_Loc=%FAST_Loc%\dependencies\IceFloe
 SET IceD_Loc=%FAST_Loc%\dependencies\IceDyn
+
+SET AFI_Loc=%AD_Loc%
+SET UA_Loc=%AD_Loc%
+SET BEMT_Loc=%AD_Loc%
+
 
 SET MAP_Include_Lib=%MAP_Loc%\map_win32.lib
 IF "%BITS%"=="64" SET MAP_Include_Lib=%MAP_Loc%\map_x64.lib
@@ -133,7 +139,9 @@ SET NWTC_SOURCES=^
  "%NWTC_Lib_Loc%\ModMesh_Mapping.f90" ^
  "%NWTC_Lib_Loc%\NWTC_Library.f90" ^
  "%NETLIB_Loc%\fftpack4.1.f" ^
- "%NETLIB_Loc%\NWTC_FFTPACK.f90"
+ "%NETLIB_Loc%\NWTC_FFTPACK.f90" ^
+ "%NETLIB_Loc%\dierckx_fitpack.f" ^
+ "%NETLIB_Loc%\NWTC_FitPack.f90"
 
 
 SET IfW_SOURCES=^
@@ -162,6 +170,30 @@ SET DWM_SOURCES=^
  "%DWM_Loc%\DWM_Types.f90"^
  "%DWM_Loc%\DWM_Wake_Sub_ver2.f90"^
  "%DWM_Loc%\DWM.f90"
+
+
+SET AFI_SOURCES=^
+ "%AFI_Loc%\AirfoilInfo_Types.f90"^
+ "%AFI_Loc%\AirfoilInfo.f90"
+
+SET UA_SOURCES=^
+ "%UA_Loc%\UnsteadyAero_Types.f90"^
+ "%UA_Loc%\UnsteadyAero.f90"
+
+SET BEMT_SOURCES=^
+ "%BEMT_Loc%\BEMT_Types.f90"^
+ "%BEMT_Loc%\BladeElement.f90"^
+ "%BEMT_Loc%\BEMTCoupled.f90"^
+ "%BEMT_Loc%\nwtc_bemt_minpack.f90"^
+ "%BEMT_Loc%\BEMTUncoupled.f90"^
+ "%BEMT_Loc%\Brent.f90"^
+ "%BEMT_Loc%\fmin_fcn.f90"^
+ "%BEMT_Loc%\mod_root1dim.f90"^
+ "%BEMT_Loc%\BEMT.f90"
+
+SET AD_SOURCES=^
+ "%AD_Loc%\AeroDyn_Types.f90"^
+ "%AD_Loc%\AeroDyn.f90"
 
 
 SET ED_SOURCES=^
@@ -272,8 +304,9 @@ ECHO Running the FAST Registry to auto-generate source files:
 ECHO.
 
 SET CURR_LOC=%FAST_Loc%
-SET ModuleName=FAST
+
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
+ "%AD_Loc%" -I "%BEMT_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -I^
  "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Reg_Loc%"  -I^
  "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -noextrap -O "%CURR_LOC%"
 
@@ -294,28 +327,42 @@ CALL ::RunRegistry_fmt1 ServoDyn
 
 ECHO %Lines%
 SET CURR_LOC=%IfW_Loc%
-CALL :RunRegistry_IfW BladedFFWind
-CALL :RunRegistry_IfW TSFFWind
-CALL :RunRegistry_IfW UniformWind
-CALL :RunRegistry_IfW UserWind
+CALL :RunRegistry_IfW IfW_BladedFFWind -noextrap
+CALL :RunRegistry_IfW IfW_TSFFWind -noextrap
+CALL :RunRegistry_IfW IfW_UniformWind -noextrap
+CALL :RunRegistry_IfW IfW_UserWind -noextrap
 CALL :RunRegistry_IfW Lidar
 CALL :RunRegistry_IfW InflowWind
 
 
 ECHO %Lines%
 SET CURR_LOC=%AD14_Loc%
-SET ModuleName=AeroDyn14
 %REGISTRY% "%CURR_LOC%\Registry-AD14.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -I "%DWM_Loc%" -O "%CURR_LOC%"
 
 ECHO %Lines%
+SET CURR_LOC=%AD_Loc%
+%REGISTRY% "%CURR_LOC%\AeroDyn_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%BEMT_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -O "%CURR_LOC%"
+
+ECHO %Lines%
+SET CURR_LOC=%BEMT_Loc%
+%REGISTRY% "%CURR_LOC%\BEMT_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -O "%CURR_LOC%"
+
+ECHO %Lines%
+SET CURR_LOC=%AFI_Loc%
+%REGISTRY% "%CURR_LOC%\AirfoilInfo_Registry.txt" -I "%NWTC_Lib_Loc%" -noextrap -O "%CURR_LOC%"
+
+ECHO %Lines%
+SET CURR_LOC=%UA_Loc%
+%REGISTRY% "%CURR_LOC%\UnsteadyAero_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%AFI_Loc%" -O "%CURR_LOC%"
+
+
+ECHO %Lines%
 SET CURR_LOC=%DWM_Loc%
-SET ModuleName=DWM
 %REGISTRY% "%CURR_LOC%\Registry-DWM.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -O "%CURR_LOC%"
 
 
 ECHO %Lines%
 SET CURR_LOC=%FEAM_Reg_Loc%
-SET ModuleName=FEAMooring
 %REGISTRY% "%CURR_LOC%\FEAM_Registry.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
 
 ECHO %Lines%
@@ -324,19 +371,16 @@ CALL ::RunRegistry_fmt1 MoorDyn
 
 ECHO %Lines%
 SET CURR_LOC=%MAP_Loc_R%
-SET ModuleName=FEAMooring
 %REGISTRY% "%CURR_LOC%\MAP_Registry.txt" -ccode -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
 
 
 ECHO %Lines%
 SET CURR_LOC=%IceF_Loc%
-SET ModuleName=IceFloe
 %REGISTRY% "%CURR_LOC%\IceFloe_FASTRegistry.inp" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
 
 
 ECHO %Lines%
 SET CURR_LOC=%IceD_Loc%
-SET ModuleName=IceDyn
 %REGISTRY% "%CURR_LOC%\Registry_IceDyn.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
 
 
@@ -384,7 +428,7 @@ if exist %INTER_DIR%\*.obj DEL %INTER_DIR%\*.obj
 
 
 :: ECHO %Lines%
-:: ECHO Compiling FAST, AeroDyn14, ElastoDyn, ServoDyn, HydroDyn, InflowWind, SubDyn, MAP, FEAMooring, IceFloe, IceDyn, and NWTC_Library routines to create %ROOT_NAME%.exe:
+:: ECHO Compiling FAST and its component modules to create %ROOT_NAME%.exe:
 
 rem ifort %COMPOPTS% %NWTC_Files%  %LINKOPTS% /out:%ROOT_NAME%.exe
 rem NOTE that I'm compiling the modules separately then linking them later. I split it up because the list of source files was getting too long ("Input line too long" error)
@@ -410,6 +454,12 @@ IF %ERRORLEVEL% NEQ 0 GOTO checkError
 ECHO %Lines%
 ECHO Compiling AeroDyn14:
 ifort %COMPOPTS% %AD14_SOURCES%   /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
+
+ECHO %Lines%
+ECHO Compiling AeroDyn:
+ifort %COMPOPTS% %AFI_SOURCES% %UA_SOURCES% %BEMT_SOURCES%  %AD_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 
@@ -502,8 +552,9 @@ EXIT /B
 
 :RunRegistry_IfW
 SET ModuleName=%1
-%REGISTRY% "%IfW_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -O "%CURR_LOC%"
+%REGISTRY% "%IfW_Reg_Loc%\%ModuleName%.txt" %2 -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -O "%CURR_LOC%"
 EXIT /B
+
 
 :end
 REM ----------------------------------------------------------------------------

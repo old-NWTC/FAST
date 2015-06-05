@@ -1,9 +1,9 @@
-!STARTOFREGISTRYGENERATEDFILE '..\Source\dependencies\InflowWind/InflowWind_Types.f90'
+!STARTOFREGISTRYGENERATEDFILE 'InflowWind_Types.f90'
 !
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.08.00, 8-May-2015)
+! FAST Registry (v2.08.01, 21-May-2015)
 !*********************************************************************************************************************************
 ! InflowWind_Types
 !.................................................................................................................................

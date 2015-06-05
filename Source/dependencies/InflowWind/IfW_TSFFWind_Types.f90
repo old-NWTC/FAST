@@ -1,9 +1,9 @@
-!STARTOFREGISTRYGENERATEDFILE './IfW_TSFFWind_Types.f90'
+!STARTOFREGISTRYGENERATEDFILE 'IfW_TSFFWind_Types.f90'
 !
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.06.01, 21-Apr-2015)
+! FAST Registry (v2.08.01, 21-May-2015)
 !*********************************************************************************************************************************
 ! IfW_TSFFWind_Types
 !.................................................................................................................................
@@ -99,7 +99,7 @@ CONTAINS
    INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: i4, i4_l, i4_u  !  bounds (upper/lower) for an array dimension 4
    INTEGER(IntKi)                 :: ErrStat2
-   CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(ErrMsgLen)           :: ErrMsg2
    CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_TSFFWind_CopyInitInput'
 ! 
    ErrStat = ErrID_None
@@ -137,7 +137,7 @@ CONTAINS
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_TSFFWind_PackInitInput'
  ! buffers to store subtypes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -215,7 +215,7 @@ CONTAINS
   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
   INTEGER(IntKi)                 :: i4, i4_l, i4_u  !  bounds (upper/lower) for an array dimension 4
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_TSFFWind_UnPackInitInput'
  ! buffers to store meshes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -244,7 +244,7 @@ CONTAINS
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: ErrStat2
-   CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(ErrMsgLen)           :: ErrMsg2
    CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_TSFFWind_CopyInitOutput'
 ! 
    ErrStat = ErrID_None
@@ -284,7 +284,7 @@ CONTAINS
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_TSFFWind_PackInitOutput'
  ! buffers to store subtypes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -396,7 +396,7 @@ CONTAINS
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_TSFFWind_UnPackInitOutput'
  ! buffers to store meshes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -459,7 +459,7 @@ CONTAINS
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: ErrStat2
-   CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(ErrMsgLen)           :: ErrMsg2
    CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_TSFFWind_CopyOtherState'
 ! 
    ErrStat = ErrID_None
@@ -497,7 +497,7 @@ CONTAINS
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_TSFFWind_PackOtherState'
  ! buffers to store subtypes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -569,7 +569,7 @@ CONTAINS
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_TSFFWind_UnPackOtherState'
  ! buffers to store meshes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -600,7 +600,7 @@ CONTAINS
    INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
    INTEGER(IntKi)                 :: i4, i4_l, i4_u  !  bounds (upper/lower) for an array dimension 4
    INTEGER(IntKi)                 :: ErrStat2
-   CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(ErrMsgLen)           :: ErrMsg2
    CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_TSFFWind_CopyParam'
 ! 
    ErrStat = ErrID_None
@@ -699,7 +699,7 @@ ENDIF
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_TSFFWind_PackParam'
  ! buffers to store subtypes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -891,7 +891,7 @@ ENDIF
   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
   INTEGER(IntKi)                 :: i4, i4_l, i4_u  !  bounds (upper/lower) for an array dimension 4
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_TSFFWind_UnPackParam'
  ! buffers to store meshes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -1025,7 +1025,7 @@ ENDIF
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
    INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
-   CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(ErrMsgLen)           :: ErrMsg2
    CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_TSFFWind_CopyOutput'
 ! 
    ErrStat = ErrID_None
@@ -1079,7 +1079,7 @@ ENDIF
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_TSFFWind_PackOutput'
  ! buffers to store subtypes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -1171,7 +1171,7 @@ ENDIF
   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_TSFFWind_UnPackOutput'
  ! buffers to store meshes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
