@@ -392,7 +392,7 @@ $(DWM_DIR)/DWM_Types.f90: $(DWM_DIR)/Registry-DWM.txt
 $(SD_DIR)/SubDyn_Types.f90: $(SD_DIR)/SubDyn_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(SD_DIR)
 
-$(MAP_DIR)/MAP_Types.f90: $MAP_DIR_Reg)/MAP_Registry.txt
+$(MAP_DIR)/MAP_Types.f90: $(MAP_DIR_Reg)/MAP_Registry.txt
 	$(Registry) $< -ccode -I $(NWTC_Lib_DIR) -O $(MAP_DIR)
 
 $(FEAM_DIR)/FEAMooring_Types.f90: $(FEAM_DIR)/FEAM_Registry.txt
@@ -610,7 +610,8 @@ IceDyn$(OBJ_EXT):                 NWTC_Library$(OBJ_EXT) IceDyn_Types$(OBJ_EXT)
 
 # FAST dependency rules:
 FAST_Types$(OBJ_EXT):             NWTC_Library$(OBJ_EXT)  ElastoDyn_Types$(OBJ_EXT)  ServoDyn_Types$(OBJ_EXT)   \
-                                     AeroDyn14_Types$(OBJ_EXT)  SubDyn_Types$(OBJ_EXT)  HydroDyn_Types$(OBJ_EXT)  \
+                                     AeroDyn_Types$(OBJ_EXT)  AeroDyn14_Types$(OBJ_EXT)  InflowWind_Types$(OBJ_EXT) \
+                                     SubDyn_Types$(OBJ_EXT)  HydroDyn_Types$(OBJ_EXT)  \
                                      MAP_Types$(OBJ_EXT)  FEAMooring_Types$(OBJ_EXT)  MoorDyn_Types$(OBJ_EXT)   \
                                      IceFloe_Types$(OBJ_EXT)  IceDyn_Types$(OBJ_EXT) $(FAST_DIR)/FAST_Types.f90
 FAST_Mods$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Types$(OBJ_EXT)
