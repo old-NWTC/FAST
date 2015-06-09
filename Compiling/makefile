@@ -90,7 +90,7 @@ ifeq ($(OS),Windows_NT)
 
 else
 
-   Registry     = registry.exe
+   Registry     = $(FAST_DIR)/dependencies/Registry/registry.exe
    MAP_lib      = $(MAP_DIR)/MAP.so
 
    UNAME := $(shell uname -s)
@@ -574,7 +574,7 @@ ElastoDyn$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  ElastoDyn_Types$(OBJ_E
 # ServoDyn dependency rules:
 TMD_Types$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  $(TMD_DIR)/TMD_Types.f90
 TMD$(OBJ_EXT):                    NWTC_Library$(OBJ_EXT)  TMD_Types$(OBJ_EXT)
-ServoDyn_Types$(OBJ_EXT):         NWTC_Library$(OBJ_EXT)  TMD_Types$(OBJ_EXT) $(SD_DIR)/ServoDyn_Types.f90
+ServoDyn_Types$(OBJ_EXT):         NWTC_Library$(OBJ_EXT)  TMD_Types$(OBJ_EXT) $(SrvD_DIR)/ServoDyn_Types.f90
 BladedInterface$(OBJ_EXT):        NWTC_Library$(OBJ_EXT)  ServoDyn_Types$(OBJ_EXT)
 ServoDyn$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  ServoDyn_Types$(OBJ_EXT)  PitchCntrl_ACH$(OBJ_EXT)  UserSubs$(OBJ_EXT) \
                                      UserVSCont_KP$(OBJ_EXT)  BladedInterface$(OBJ_EXT) TMD$(OBJ_EXT)
