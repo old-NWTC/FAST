@@ -493,7 +493,7 @@ fmin_fcn$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  BEMTUncoupled$(OBJ_EXT
 mod_root1dim$(OBJ_EXT):           NWTC_Library$(OBJ_EXT)  fmin_fcn$(OBJ_EXT)
 BEMT$(OBJ_EXT):                   NWTC_Library$(OBJ_EXT)  BEMT_Types$(OBJ_EXT)  BEMTUncoupled$(OBJ_EXT)  BEMTCoupled$(OBJ_EXT)  \
                                                           Brent$(OBJ_EXT)  UnsteadyAero$(OBJ_EXT)  BladeElement$(OBJ_EXT) \
-                                                          mod_root1dim$(OBJ_EXT) fmin_fcn$(OBJ_EXT)
+                                                          mod_root1dim$(OBJ_EXT) fmin_fcn$(OBJ_EXT) nwtc_bemt_minpack$(OBJ_EXT)
 
 AeroDyn_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  AirfoilInfo_Types$(OBJ_EXT)  BEMT_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)  $(AD_DIR)/AeroDyn_Types.f90
 AeroDyn$(OBJ_EXT):                NWTC_Library$(OBJ_EXT)  AeroDyn_Types$(OBJ_EXT)  AirfoilInfo$(OBJ_EXT)  BEMT$(OBJ_EXT)
