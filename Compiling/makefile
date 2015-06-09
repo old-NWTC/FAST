@@ -1,15 +1,11 @@
 #================================================================================#
-# This makefile created by B. Jonkman on 2-Apr-2013,                             #
-# adapted from Crunch (M. Buhl on 25-Jan-2013).                                  #
-# (c) 2013-2014 National Renewable Energy Laboratory                             #
+# This makefile created by B. Jonkman,                                           #
+# adapted from Crunch (M. Buhl).                                                 #
+# (c) 2013-2015 National Renewable Energy Laboratory                             #
 #                                                                                #
 # This makefile has been tested on Windows 7 with gfortran.                      #
 # This makefile works with mingw32-make.exe.                                     #
 #                                                                                #
-# It was designed to be used with:                                               #
-#     FAST                    (v8.09.00a-bjj, 30-Sept-2014)                      #
-#                                                                                #
-# Older versions of the source code may not work with this makefile.             #
 #================================================================================#
 
 
@@ -52,6 +48,7 @@ FAST_DIR     = ../Source
 NWTC_Lib_DIR = $(FAST_DIR)/dependencies/NWTC_Library
 NETLIB_DIR   = $(FAST_DIR)/dependencies/NetLib
 ED_DIR       = $(FAST_DIR)/dependencies/ElastoDyn
+BD_DIR       = $(FAST_DIR)/dependencies/BeamDyn
 SrvD_DIR     = $(FAST_DIR)/dependencies/ServoDyn
 AD14_DIR     = $(FAST_DIR)/dependencies/AeroDyn14
 AD_DIR       = $(FAST_DIR)/dependencies/AeroDyn
@@ -217,6 +214,9 @@ AD_SOURCES =               \
 	AeroDyn_Types.f90       \
 	AeroDyn.f90
 
+BD_SOURCES =               \
+	BeamDyn_Types.f90       \
+	BeamDyn.f90
 
 HD_SOURCES =                 \
 	SS_Radiation_Types.f90    \
@@ -312,12 +312,12 @@ FAST_SOURCES =           \
 
 vpath %.f90       $(NWTC_Lib_DIR) $(AD14_DIR) $(IfW_DIR) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(SD_DIR) $(MAP_DIR) \
                   $(FAST_DIR) $(NETLIB_DIR) $(FEAM_DIR) $(MD_DIR) $(IceF_DIR) $(IceD_DIR) $(DWM_DIR) $(AFI_DIR) $(UA_DIR) \
-                  $(BEMT_DIR) $(AD_DIR)
+                  $(BEMT_DIR) $(AD_DIR) $(BD_DIR)
 vpath %.f         $(NETLIB_DIR)
 vpath %.mod       $(INTER_DIR)
 vpath %$(OBJ_EXT) $(INTER_DIR)
 vpath %.txt       $(FAST_DIR) $(AD14_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(IceD_DIR) \
-                  $(DWM_DIR) $(FEAM_DIR) $(MD_DIR) $(MAP_DIR) $(AFI_DIR) $(UA_DIR) $(BEMT_DIR) $(AD_DIR)
+                  $(DWM_DIR) $(FEAM_DIR) $(MD_DIR) $(MAP_DIR) $(AFI_DIR) $(UA_DIR) $(BEMT_DIR) $(AD_DIR) $(BD_DIR)
 vpath %.inp       $(IceF_DIR)
 #apparently vpath doesn't work as expected if I use %.F90 (is it not case sensitive???)
 #vpath %.F90      $(IceF_DIR)
@@ -327,7 +327,7 @@ vpath %           $(IceF_DIR)
 ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD14_SOURCES) $(DWM_SOURCES) \
               $(SrvD_SOURCES) $(ED_SOURCES) $(HD_SOURCES)  $(SD_SOURCES) \
               $(AFI_SOURCES) $(UA_SOURCES) $(BEMT_SOURCES) $(AD_SOURCES) \
-              $(MAP_SOURCES) $(FEAM_SOURCES) $(MD_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES)
+              $(MAP_SOURCES) $(FEAM_SOURCES) $(MD_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES) $(BD_SOURCES)
 ALL_OBJS    = $(ALL_SOURCES:.f90=$(OBJ_EXT))
 ALL_OBJS   := $(ALL_OBJS:.F90=$(OBJ_EXT))       #note the upper case here (from IceFloe)
 ALL_OBJS   := $(ALL_OBJS:.f=$(OBJ_EXT))
@@ -358,7 +358,7 @@ default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
    # General rules for creating _Types.f90 files from Registry files.
 
 $(FAST_DIR)/FAST_Types.f90: $(FAST_DIR)/FAST_Registry.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(TMD_DIR) -I $(AD14_DIR) \
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(TMD_DIR) -I $(AD14_DIR) -I $(AD_DIR) -I $(BD_DIR) \
 	-I $(HD_DIR_Reg) -I $(IceF_DIR) -I $(IceD_DIR) -I $(MAP_DIR) -I $(FEAM_DIR) -I $(MD_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR) \
 	-noextrap -O $(FAST_DIR)
 
@@ -370,6 +370,9 @@ $(SrvD_DIR)/ServoDyn_Types.f90: $(SrvD_DIR)/ServoDyn_Registry.txt
 
 $(ED_DIR)/ElastoDyn_Types.f90: $(ED_DIR)/ElastoDyn_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(ED_DIR)
+
+$(BD_DIR)/BeamDyn_Types.f90: $(BD_DIR)/Registry_BeamDyn.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(BD_DIR)
 
 $(AD14_DIR)/AeroDyn14_Types.f90: $(AD14_DIR)/Registry-AD14.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR)  -O $(AD14_DIR)
@@ -462,7 +465,6 @@ InflowWind_Subs$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  InflowWind_Types$(OB
 InflowWind$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  InflowWind_Subs$(OBJ_EXT) Lidar$(OBJ_EXT)
 
 
-
 #AeroDyn14 dependency rules:
 AeroDyn14_Types$(OBJ_EXT):        NWTC_Library$(OBJ_EXT)  DWM_Types$(OBJ_EXT)  InflowWind_Types$(OBJ_EXT) $(AD14_DIR)/AeroDyn14_Types.f90
 GenSubs$(OBJ_EXT):                NWTC_Library$(OBJ_EXT)  AeroDyn14_Types$(OBJ_EXT)
@@ -474,15 +476,16 @@ DWM_Types$(OBJ_EXT):              NWTC_Library$(OBJ_EXT) InflowWind_Types$(OBJ_E
 DWM_Wake_Sub_ver2$(OBJ_EXT):      NWTC_Library$(OBJ_EXT) DWM_Types$(OBJ_EXT) InflowWind$(OBJ_EXT)
 DWM$(OBJ_EXT):                    NWTC_Library$(OBJ_EXT) DWM_Types$(OBJ_EXT) DWM_Wake_Sub_ver2$(OBJ_EXT)
 
-
+#AeroDyn/AFI dependency rules:
 AirfoilInfo_Types$(OBJ_EXT):      NWTC_Library$(OBJ_EXT) $(AFI_DIR)/AirfoilInfo_Types.f90
 AirfoilInfo$(OBJ_EXT):            AirfoilInfo_Types$(OBJ_EXT)  NWTC_FitPack$(OBJ_EXT)
 
-
+#AeroDyn/UA dependency rules:
 UnsteadyAero_Types$(OBJ_EXT):     NWTC_Library$(OBJ_EXT)  AirfoilInfo_Types$(OBJ_EXT)  $(UA_DIR)/UnsteadyAero_Types.f90
 UnsteadyAero$(OBJ_EXT):           AirfoilInfo$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)
 
 
+#AeroDyn/BEMT dependency rules:
 BEMT_Types$(OBJ_EXT):             NWTC_Library$(OBJ_EXT)  AirfoilInfo_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)  $(BEMT_DIR)/BEMT_Types.f90
 BladeElement$(OBJ_EXT):           NWTC_Library$(OBJ_EXT)  UnsteadyAero$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)  AirfoilInfo_Types$(OBJ_EXT)
 BEMTCoupled$(OBJ_EXT):            NWTC_Library$(OBJ_EXT)  BladeElement$(OBJ_EXT)
@@ -495,8 +498,14 @@ BEMT$(OBJ_EXT):                   NWTC_Library$(OBJ_EXT)  BEMT_Types$(OBJ_EXT)  
                                                           Brent$(OBJ_EXT)  UnsteadyAero$(OBJ_EXT)  BladeElement$(OBJ_EXT) \
                                                           mod_root1dim$(OBJ_EXT) fmin_fcn$(OBJ_EXT) nwtc_bemt_minpack$(OBJ_EXT)
 
+#AeroDyn dependency rules:
 AeroDyn_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  AirfoilInfo_Types$(OBJ_EXT)  BEMT_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)  $(AD_DIR)/AeroDyn_Types.f90
 AeroDyn$(OBJ_EXT):                NWTC_Library$(OBJ_EXT)  AeroDyn_Types$(OBJ_EXT)  AirfoilInfo$(OBJ_EXT)  BEMT$(OBJ_EXT)
+
+
+#BeamDyn dependency rules:
+BeamDyn_Types.obj:                NWTC_Library.obj  $(BD_DIR)/BeamDyn_Types.f90
+BeamDyn.obj:                      BeamDyn_Types.obj
 
 
 #HydroDyn dependency rules:
@@ -611,14 +620,14 @@ IceDyn$(OBJ_EXT):                 NWTC_Library$(OBJ_EXT) IceDyn_Types$(OBJ_EXT)
 # FAST dependency rules:
 FAST_Types$(OBJ_EXT):             NWTC_Library$(OBJ_EXT)  ElastoDyn_Types$(OBJ_EXT)  ServoDyn_Types$(OBJ_EXT)   \
                                      AeroDyn_Types$(OBJ_EXT)  AeroDyn14_Types$(OBJ_EXT)  InflowWind_Types$(OBJ_EXT) \
-                                     SubDyn_Types$(OBJ_EXT)  HydroDyn_Types$(OBJ_EXT)  \
+                                     SubDyn_Types$(OBJ_EXT)  HydroDyn_Types$(OBJ_EXT)  BeamDyn_Types$(OBJ_EXT) \
                                      MAP_Types$(OBJ_EXT)  FEAMooring_Types$(OBJ_EXT)  MoorDyn_Types$(OBJ_EXT)   \
                                      IceFloe_Types$(OBJ_EXT)  IceDyn_Types$(OBJ_EXT) $(FAST_DIR)/FAST_Types.f90
 FAST_Mods$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Types$(OBJ_EXT)
 FAST_Subs$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Mods$(OBJ_EXT)  NWTC_LAPACK$(OBJ_EXT)  AeroDyn14$(OBJ_EXT) \
                                      InflowWind$(OBJ_EXT)  ServoDyn$(OBJ_EXT)  ElastoDyn$(OBJ_EXT) SubDyn$(OBJ_EXT)     \
                                      HydroDyn$(OBJ_EXT)  MAP$(OBJ_EXT)  FEAM$(OBJ_EXT)  MoorDyn$(OBJ_EXT)               \
-                                     IceFloe$(OBJ_EXT) IceDyn$(OBJ_EXT)  AeroDyn$(OBJ_EXT)
+                                     IceFloe$(OBJ_EXT) IceDyn$(OBJ_EXT)  AeroDyn$(OBJ_EXT)  BeamDyn$(OBJ_EXT)
 FAST_Prog$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Subs$(OBJ_EXT)
 
 
@@ -663,4 +672,5 @@ superclean:
 	$(DEL_CMD) "$(UA_DIR)$(PATH_SEP)UnsteadyAero_Types.f90"
 	$(DEL_CMD) "$(BEMT_DIR)$(PATH_SEP)BEMT_Types.f90"
 	$(DEL_CMD) "$(AD_DIR)$(PATH_SEP)AeroDyn_Types.f90"
+	$(DEL_CMD) "$(BD_DIR)$(PATH_SEP)BeamDyn_Types.f90"
 	$(DEL_CMD) *_Types.f90

@@ -20,8 +20,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-05-18 14:46:48 -0600 (Mon, 18 May 2015) $
-! (File) Revision #: $Rev: 1019 $
+! File last committed: $Date: 2015-06-05 15:01:42 -0600 (Fri, 05 Jun 2015) $
+! (File) Revision #: $Rev: 1022 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn.f90 $
 !**********************************************************************************************************************************
 
@@ -9120,8 +9120,8 @@ end if
          p%OutParam(I)%Units = "INVALID"
          p%OutParam(I)%SignM = 0                    ! multiply all results by zero
 
-         ErrStat = ErrID_Warn
-         ErrMsg  = p%OutParam(I)%Name//" is not an available output channel. "//TRIM(ErrMsg)
+         ErrStat = ErrID_Fatal
+         ErrMsg  = "SetOutParam:"//trim(p%OutParam(I)%Name)//" is not an available output channel. "//TRIM(ErrMsg)
       END IF
 
    END DO

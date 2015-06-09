@@ -9,9 +9,9 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed $Date$
-# (File) Revision #: $Rev$
-# URL: $HeadURL$
+# File last committed $Date: 2015-06-05 15:01:42 -0600 (Fri, 05 Jun 2015) $
+# (File) Revision #: $Rev: 1022 $
+# URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn_Registry.txt $
 ###################################################################################################################################
 # ...... Include files (definitions from NWTC Library) ............................................................................
 include	Registry_NWTC_Library.txt

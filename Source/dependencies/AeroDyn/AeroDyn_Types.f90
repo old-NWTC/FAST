@@ -71,7 +71,8 @@ IMPLICIT NONE
     REAL(DbKi)  :: DTAero      ! Time interval for aerodynamic calculations {or "default"} [s]
     INTEGER(IntKi)  :: WakeMod      ! Type of wake/induction model {0=none, 1=BEMT} [-]
     INTEGER(IntKi)  :: AFAeroMod      ! Type of blade airfoil aerodynamics model {1=steady model, 2=Beddoes-Leishman unsteady model} [-]
-    INTEGER(IntKi)  :: TwrInflnc      ! Type of tower influence model {0=none, 1=potential flow, 2=tower shadow} [-]
+    INTEGER(IntKi)  :: TwrPotent      ! Type tower influence on wind based on potential flow around the tower {0=none, 1=baseline potential flow, 2=potential flow with Bak correction} [-]
+    LOGICAL  :: TwrShadow      ! Calculate tower influence on wind based on downstream tower shadow? [-]
     LOGICAL  :: TwrAero      ! Calculate tower aerodynamic loads? [flag]
     REAL(ReKi)  :: AirDens      ! Air density [kg/m^3]
     REAL(ReKi)  :: KinVisc      ! Kinematic air viscosity [m^2/s]
@@ -95,7 +96,6 @@ IMPLICIT NONE
     CHARACTER(1024) , DIMENSION(:), ALLOCATABLE  :: AFNames      ! Airfoil file names (NumAF lines) [quoted strings]
     LOGICAL  :: UseBlCm      ! Include aerodynamic pitching moment in calculations? [flag]
     TYPE(AD_BladePropsType) , DIMENSION(:), ALLOCATABLE  :: BladeProps      ! blade property information from blade input files [-]
-    LOGICAL  :: TwrPFBak      ! Include Bak correction to potential flow? [used only when TwrInflnc=1] [flag]
     INTEGER(IntKi)  :: NumTwrNds      ! Number of tower nodes used in the analysis [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwrElev      ! Elevation at tower node [m]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwrDiam      ! Diameter of tower at node [m]
@@ -137,7 +137,8 @@ IMPLICIT NONE
   TYPE, PUBLIC :: AD_ParameterType
     REAL(DbKi)  :: DT      ! Time step for continuous state integration & discrete state update [seconds]
     INTEGER(IntKi)  :: WakeMod      ! Type of wake/induction model {0=none, 1=BEMT} [-]
-    INTEGER(IntKi)  :: TwrInflnc      ! Type of tower influence model {0=none, 1=potential flow, 2=tower shadow} [-]
+    INTEGER(IntKi)  :: TwrPotent      ! Type tower influence on wind based on potential flow around the tower {0=none, 1=baseline potential flow, 2=potential flow with Bak correction} [-]
+    LOGICAL  :: TwrShadow      ! Calculate tower influence on wind based on downstream tower shadow? [-]
     LOGICAL  :: TwrAero      ! Calculate tower aerodynamic loads? [flag]
     INTEGER(IntKi)  :: NumBlades      ! Number of blades on the turbine [-]
     INTEGER(IntKi)  :: NumBlNds      ! Number of nodes on each blade [-]
@@ -1387,7 +1388,8 @@ ENDIF
     DstInputFileData%DTAero = SrcInputFileData%DTAero
     DstInputFileData%WakeMod = SrcInputFileData%WakeMod
     DstInputFileData%AFAeroMod = SrcInputFileData%AFAeroMod
-    DstInputFileData%TwrInflnc = SrcInputFileData%TwrInflnc
+    DstInputFileData%TwrPotent = SrcInputFileData%TwrPotent
+    DstInputFileData%TwrShadow = SrcInputFileData%TwrShadow
     DstInputFileData%TwrAero = SrcInputFileData%TwrAero
     DstInputFileData%AirDens = SrcInputFileData%AirDens
     DstInputFileData%KinVisc = SrcInputFileData%KinVisc
@@ -1437,7 +1439,6 @@ IF (ALLOCATED(SrcInputFileData%BladeProps)) THEN
          IF (ErrStat>=AbortErrLev) RETURN
     ENDDO
 ENDIF
-    DstInputFileData%TwrPFBak = SrcInputFileData%TwrPFBak
     DstInputFileData%NumTwrNds = SrcInputFileData%NumTwrNds
 IF (ALLOCATED(SrcInputFileData%TwrElev)) THEN
   i1_l = LBOUND(SrcInputFileData%TwrElev,1)
@@ -1565,7 +1566,8 @@ ENDIF
       Db_BufSz   = Db_BufSz   + 1  ! DTAero
       Int_BufSz  = Int_BufSz  + 1  ! WakeMod
       Int_BufSz  = Int_BufSz  + 1  ! AFAeroMod
-      Int_BufSz  = Int_BufSz  + 1  ! TwrInflnc
+      Int_BufSz  = Int_BufSz  + 1  ! TwrPotent
+      Int_BufSz  = Int_BufSz  + 1  ! TwrShadow
       Int_BufSz  = Int_BufSz  + 1  ! TwrAero
       Re_BufSz   = Re_BufSz   + 1  ! AirDens
       Re_BufSz   = Re_BufSz   + 1  ! KinVisc
@@ -1616,7 +1618,6 @@ ENDIF
       END IF
     END DO
   END IF
-      Int_BufSz  = Int_BufSz  + 1  ! TwrPFBak
       Int_BufSz  = Int_BufSz  + 1  ! NumTwrNds
   Int_BufSz   = Int_BufSz   + 1     ! TwrElev allocated yes/no
   IF ( ALLOCATED(InData%TwrElev) ) THEN
@@ -1677,7 +1678,9 @@ ENDIF
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%AFAeroMod
       Int_Xferred   = Int_Xferred   + 1
-      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%TwrInflnc
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%TwrPotent
+      Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%TwrShadow , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%TwrAero , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
@@ -1779,8 +1782,6 @@ ENDIF
       ENDIF
     END DO
   END IF
-      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%TwrPFBak , IntKiBuf(1), 1)
-      Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumTwrNds
       Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%TwrElev) ) THEN
@@ -1892,7 +1893,9 @@ ENDIF
       Int_Xferred   = Int_Xferred + 1
       OutData%AFAeroMod = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
-      OutData%TwrInflnc = IntKiBuf( Int_Xferred ) 
+      OutData%TwrPotent = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%TwrShadow = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
       OutData%TwrAero = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
@@ -2019,8 +2022,6 @@ ENDIF
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
     END DO
   END IF
-      OutData%TwrPFBak = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
-      Int_Xferred   = Int_Xferred + 1
       OutData%NumTwrNds = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! TwrElev not allocated
@@ -3366,7 +3367,8 @@ ENDIF
    ErrMsg  = ""
     DstParamData%DT = SrcParamData%DT
     DstParamData%WakeMod = SrcParamData%WakeMod
-    DstParamData%TwrInflnc = SrcParamData%TwrInflnc
+    DstParamData%TwrPotent = SrcParamData%TwrPotent
+    DstParamData%TwrShadow = SrcParamData%TwrShadow
     DstParamData%TwrAero = SrcParamData%TwrAero
     DstParamData%NumBlades = SrcParamData%NumBlades
     DstParamData%NumBlNds = SrcParamData%NumBlNds
@@ -3486,7 +3488,8 @@ ENDIF
   Int_BufSz  = 0
       Db_BufSz   = Db_BufSz   + 1  ! DT
       Int_BufSz  = Int_BufSz  + 1  ! WakeMod
-      Int_BufSz  = Int_BufSz  + 1  ! TwrInflnc
+      Int_BufSz  = Int_BufSz  + 1  ! TwrPotent
+      Int_BufSz  = Int_BufSz  + 1  ! TwrShadow
       Int_BufSz  = Int_BufSz  + 1  ! TwrAero
       Int_BufSz  = Int_BufSz  + 1  ! NumBlades
       Int_BufSz  = Int_BufSz  + 1  ! NumBlNds
@@ -3595,7 +3598,9 @@ ENDIF
       Db_Xferred   = Db_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%WakeMod
       Int_Xferred   = Int_Xferred   + 1
-      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%TwrInflnc
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%TwrPotent
+      Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%TwrShadow , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%TwrAero , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
@@ -3779,7 +3784,9 @@ ENDIF
       Db_Xferred   = Db_Xferred + 1
       OutData%WakeMod = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
-      OutData%TwrInflnc = IntKiBuf( Int_Xferred ) 
+      OutData%TwrPotent = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%TwrShadow = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
       OutData%TwrAero = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
