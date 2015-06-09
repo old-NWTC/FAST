@@ -24,6 +24,7 @@ SET Registry=..\..\bin\Registry_win32.exe
 
 SET NWTC_Lib_Loc=%FAST_Loc%\dependencies\NWTC_Library
 SET ED_Loc=%FAST_Loc%\dependencies\ElastoDyn
+SET BD_Loc=%FAST_Loc%\dependencies\BeamDyn
 SET SrvD_Loc=%FAST_Loc%\dependencies\ServoDyn
 SET TMD_Loc=%SrvD_Loc%
 SET AD_Loc=%FAST_Loc%\dependencies\AeroDyn
@@ -61,11 +62,17 @@ REM ----------------------------------------------------------------------------
 ECHO on
 SET CURR_LOC=%FAST_Loc%
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
- "%AD_Loc%" -I "%BEMT_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -I^
+ "%AD_Loc%" -I "%BEMT_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -I "%BD_Loc%" -I^
  "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Reg_Loc%"  -I^
  "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -noextrap -O "%CURR_LOC%"
 
 echo off
+GOTO checkError
+
+
+:BeamDyn
+SET CURR_LOC=%BD_Loc%
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
 GOTO checkError
 
 

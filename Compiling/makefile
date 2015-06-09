@@ -464,7 +464,7 @@ InflowWind$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  InflowWind_Subs$(OBJ
 
 
 #AeroDyn14 dependency rules:
-AeroDyn14_Types$(OBJ_EXT):        NWTC_Library$(OBJ_EXT)  DWM_Types$(OBJ_EXT)  InflowWind_Types$(OBJ_EXT) $(AD_DIR)/AeroDyn14_Types.f90
+AeroDyn14_Types$(OBJ_EXT):        NWTC_Library$(OBJ_EXT)  DWM_Types$(OBJ_EXT)  InflowWind_Types$(OBJ_EXT) $(AD14_DIR)/AeroDyn14_Types.f90
 GenSubs$(OBJ_EXT):                NWTC_Library$(OBJ_EXT)  AeroDyn14_Types$(OBJ_EXT)
 AeroSubs$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  AeroDyn14_Types$(OBJ_EXT) GenSubs$(OBJ_EXT)
 AeroDyn14$(OBJ_EXT):              AeroDyn14_Types$(OBJ_EXT) AeroSubs$(OBJ_EXT) GenSubs$(OBJ_EXT) DWM$(OBJ_EXT) DWM_Types$(OBJ_EXT)
@@ -495,7 +495,7 @@ BEMT$(OBJ_EXT):                   NWTC_Library$(OBJ_EXT)  BEMT_Types$(OBJ_EXT)  
                                                           Brent$(OBJ_EXT)  UnsteadyAero$(OBJ_EXT)  BladeElement$(OBJ_EXT) \
                                                           mod_root1dim$(OBJ_EXT) fmin_fcn$(OBJ_EXT)
 
-AeroDyn_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  AirfoilInfo_Types$(OBJ_EXT)  BEMT_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)  $(AD14_DIR)/AeroDyn_Types.f90
+AeroDyn_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  AirfoilInfo_Types$(OBJ_EXT)  BEMT_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)  $(AD_DIR)/AeroDyn_Types.f90
 AeroDyn$(OBJ_EXT):                NWTC_Library$(OBJ_EXT)  AeroDyn_Types$(OBJ_EXT)  AirfoilInfo$(OBJ_EXT)  BEMT$(OBJ_EXT)
 
 

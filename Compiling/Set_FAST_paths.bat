@@ -20,9 +20,9 @@ SET FAST_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdir
 SET NWTC_Lib_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\trunk\source
 SET NETLIB_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\branches\NetLib\NWTC_source
 SET ED_Loc=%FAST_Loc%
+SET BD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\BeamDyn\GitforSVN\trunk\source
 SET SrvD_Loc=%FAST_Loc%
 SET TMD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\TMD\SVNdirectory\Source
-
 
 SET AD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\WTPerf\SVNdirectory\branches\v4.x\Source\dependencies\AeroDyn
 SET BEMT_Loc=%AD_Loc%\..\BEMT
