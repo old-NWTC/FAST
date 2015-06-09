@@ -489,7 +489,7 @@ BEMTCoupled$(OBJ_EXT):            NWTC_Library$(OBJ_EXT)  BladeElement$(OBJ_EXT)
 nwtc_bemt_minpack$(OBJ_EXT):      NWTC_Library$(OBJ_EXT)  BEMTCoupled$(OBJ_EXT)    AirFoilInfo_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)
 BEMTUncoupled$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  BladeElement$(OBJ_EXT)
 Brent$(OBJ_EXT):                  NWTC_Library$(OBJ_EXT)  BEMTUncoupled$(OBJ_EXT)  BEMT_Types$(OBJ_EXT)
-fmin_fcn$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  BEMTUnCoupled$(OBJ_EXT)  AirFoilInfo_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)
+fmin_fcn$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  BEMTUncoupled$(OBJ_EXT)  AirFoilInfo_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)
 mod_root1dim$(OBJ_EXT):           NWTC_Library$(OBJ_EXT)  fmin_fcn$(OBJ_EXT)
 BEMT$(OBJ_EXT):                   NWTC_Library$(OBJ_EXT)  BEMT_Types$(OBJ_EXT)  BEMTUncoupled$(OBJ_EXT)  BEMTCoupled$(OBJ_EXT)  \
                                                           Brent$(OBJ_EXT)  UnsteadyAero$(OBJ_EXT)  BladeElement$(OBJ_EXT) \
