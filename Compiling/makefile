@@ -18,7 +18,7 @@ BITS = 32
 
 
 FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
-LDFLAGS = -O2 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware
+LDFLAGS = -O2 -m$(BITS) -fbacktrace
 
 #FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -g -pg
 #LDFLAGS = -O0 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware -g -pg
@@ -378,16 +378,16 @@ $(AD14_DIR)/AeroDyn14_Types.f90: $(AD14_DIR)/Registry-AD14.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR)  -O $(AD14_DIR)
 
 $(AFI_DIR)/AirfoilInfo_Types.f90: $(AFI_DIR)/AirfoilInfo_Registry.txt
-	$(RegistryProgram) $< -I $(NWTC_Lib_DIR) -O $(AFI_DIR) -noextrap
+	$(Registry) $< -I $(NWTC_Lib_DIR) -O $(AFI_DIR) -noextrap
 
 $(UA_DIR)/UnsteadyAero_Types.f90: $(UA_DIR)/UnsteadyAero_Registry.txt
-	$(RegistryProgram) $< -I $(NWTC_Lib_DIR) -I $(AFI_DIR) -O $(UA_DIR)
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(AFI_DIR) -O $(UA_DIR)
 
 $(BEMT_DIR)/BEMT_Types.f90: $(BEMT_DIR)/BEMT_Registry.txt
-	$(RegistryProgram) $< -I $(NWTC_Lib_DIR) -I $(AFI_DIR) -I $(UA_DIR) -O $(BEMT_DIR)
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(AFI_DIR) -I $(UA_DIR) -O $(BEMT_DIR)
 
 $(AD_DIR)/AeroDyn_Types.f90: $(AD_DIR)/AeroDyn_Registry.txt
-	$(RegistryProgram) $< -I $(NWTC_Lib_DIR) -I $(AFI_DIR) -I $(UA_DIR) -I $(BEMT_DIR) -O $(AD_DIR)
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(AFI_DIR) -I $(UA_DIR) -I $(BEMT_DIR) -O $(AD_DIR)
 
 $(DWM_DIR)/DWM_Types.f90: $(DWM_DIR)/Registry-DWM.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)  -O $(DWM_DIR)
