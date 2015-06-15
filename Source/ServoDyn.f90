@@ -611,7 +611,7 @@ SUBROUTINE SrvD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState,
       END IF
       
       
-      IF (p%CompNTMD) THEN  !bjj: is this valid syntax? Inputs(:)%NTMD; if not, update here and in registry code; if yes, updated HydroDyn_UpdateStates 
+      IF (p%CompNTMD) THEN 
          CALL TMD_UpdateStates( t, n, u, InputTimes, p%NTMD, x%NTMD, xd%NTMD, z%NTMD, OtherState%NTMD, ErrStat2, ErrMsg2 )
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       END IF

@@ -89,6 +89,7 @@ IMPLICIT NONE
   TYPE, PUBLIC :: BEMT_OtherStateType
     REAL(ReKi)  :: DummyOtherState      !  [-]
     TYPE(UA_OtherStateType)  :: UA      ! other states for UnsteadyAero [-]
+    LOGICAL , DIMENSION(:,:), ALLOCATABLE  :: UA_Flag      ! logical flag indicating whether to use UnsteadyAero [-]
   END TYPE BEMT_OtherStateType
 ! =======================
 ! =========  BEMT_ParameterType  =======
@@ -1583,6 +1584,8 @@ ENDIF
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(ErrMsgLen)           :: ErrMsg2
    CHARACTER(*), PARAMETER        :: RoutineName = 'BEMT_CopyOtherState'
@@ -1593,6 +1596,20 @@ ENDIF
       CALL UA_CopyOtherState( SrcOtherStateData%UA, DstOtherStateData%UA, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
+IF (ALLOCATED(SrcOtherStateData%UA_Flag)) THEN
+  i1_l = LBOUND(SrcOtherStateData%UA_Flag,1)
+  i1_u = UBOUND(SrcOtherStateData%UA_Flag,1)
+  i2_l = LBOUND(SrcOtherStateData%UA_Flag,2)
+  i2_u = UBOUND(SrcOtherStateData%UA_Flag,2)
+  IF (.NOT. ALLOCATED(DstOtherStateData%UA_Flag)) THEN 
+    ALLOCATE(DstOtherStateData%UA_Flag(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%UA_Flag.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstOtherStateData%UA_Flag = SrcOtherStateData%UA_Flag
+ENDIF
  END SUBROUTINE BEMT_CopyOtherState
 
  SUBROUTINE BEMT_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
@@ -1605,6 +1622,9 @@ ENDIF
   ErrStat = ErrID_None
   ErrMsg  = ""
   CALL UA_DestroyOtherState( OtherStateData%UA, ErrStat, ErrMsg )
+IF (ALLOCATED(OtherStateData%UA_Flag)) THEN
+  DEALLOCATE(OtherStateData%UA_Flag)
+ENDIF
  END SUBROUTINE BEMT_DestroyOtherState
 
  SUBROUTINE BEMT_PackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -1661,6 +1681,11 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+  Int_BufSz   = Int_BufSz   + 1     ! UA_Flag allocated yes/no
+  IF ( ALLOCATED(InData%UA_Flag) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*2  ! UA_Flag upper/lower bounds for each dimension
+      Int_BufSz  = Int_BufSz  + SIZE(InData%UA_Flag)  ! UA_Flag
+  END IF
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -1718,6 +1743,22 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
+  IF ( .NOT. ALLOCATED(InData%UA_Flag) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%UA_Flag,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%UA_Flag,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%UA_Flag,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%UA_Flag,2)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%UA_Flag)>0) IntKiBuf ( Int_Xferred:Int_Xferred+SIZE(InData%UA_Flag)-1 ) = TRANSFER(PACK( InData%UA_Flag ,.TRUE.), IntKiBuf(1), SIZE(InData%UA_Flag))
+      Int_Xferred   = Int_Xferred   + SIZE(InData%UA_Flag)
+  END IF
  END SUBROUTINE BEMT_PackOtherState
 
  SUBROUTINE BEMT_UnPackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1739,6 +1780,8 @@ ENDIF
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+  INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'BEMT_UnPackOtherState'
@@ -1794,6 +1837,32 @@ ENDIF
       IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! UA_Flag not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%UA_Flag)) DEALLOCATE(OutData%UA_Flag)
+    ALLOCATE(OutData%UA_Flag(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%UA_Flag.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask2.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask2 = .TRUE. 
+      IF (SIZE(OutData%UA_Flag)>0) OutData%UA_Flag = UNPACK( TRANSFER( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%UA_Flag))-1 ), OutData%UA_Flag), mask2,.TRUE.)
+      Int_Xferred   = Int_Xferred   + SIZE(OutData%UA_Flag)
+    DEALLOCATE(mask2)
+  END IF
  END SUBROUTINE BEMT_UnPackOtherState
 
  SUBROUTINE BEMT_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )

@@ -19,7 +19,7 @@ typedef BeamDyn/BD InitInputType ReKi            GlbPos   {3} - - "Initial Posit
 typedef BeamDyn/BD InitInputType ReKi            GlbRot   {3}{3} - - "Initial direction cosine matrix of the loacl blade coordinate system"
 typedef BeamDyn/BD InitInputType ReKi            RootDisp {3} - - "Initial root displacement"
 typedef BeamDyn/BD InitInputType ReKi            RootOri  {3}{3} - - "Initial root orientation"
-typedef BeamDyn/BD InitInputType ReKi            RootVel  {:} - - "Initial root velocities and angular veolcities"
+typedef BeamDyn/BD InitInputType ReKi            RootVel  {6} - - "Initial root velocities and angular veolcities"
 
 # Define outputs that the initialization routine may need here:
 # e.g., the name of the input file, the file root name, etc.
@@ -71,7 +71,6 @@ typedef      ^            ^       ^     dof_total  - - -  "Total number of dofs"
 typedef      ^            ^       ^     ngp  - - -  "Number of Gauss points" -
 typedef      ^            ^       ^     analysis_type  - - -  "analysis_type flag" -
 typedef      ^            ^       ^     damp_flag  - - -  "damping flag" -
-typedef      ^            ^       ^     time_flag  - - -  "time integrator flag: 1-AM2, 2-G-Alpha, 3-RK4" -
 typedef      ^            ^       ^     niter  - - -  "analysis_type flag" -
 typedef      ^            ^      DbKi   dt     - - -  "module dt" s
 typedef      ^            ^      ReKi   beta   {:} - -  "Damping Coefficient" -
@@ -110,13 +109,15 @@ typedef BeamDyn/BD    BladeInputData    IntKi    damp_flag    - - - "Damping Fla
 # This is data defined in the Input File for this module (or could otherwise be passed in)
 # ..... Primary Input file data......................................................................
 typedef BeamDyn/BD    BD_InputFile    IntKi    analysis_type    - - - "Analysis Type: 0-Rigid, 1-Static, 2-Dynamic" -
-typedef BeamDyn/BD    BD_InputFile    IntKi    time_integrator    - - - "Analysis Type: 1-AM2, 2-G-Alpha, 3-RK4" -
 typedef BeamDyn/BD    BD_InputFile    IntKi    member_total     - - - "Total number of members" -
 typedef BeamDyn/BD    BD_InputFile    IntKi    kp_total         - - - "Total number of key point" -
 typedef BeamDyn/BD    BD_InputFile    IntKi    kp_member       {:} - - "Total number of key point" -
 typedef BeamDyn/BD    BD_InputFile    IntKi    order_elem       - - - "Order of interpolation (basis) function" -
+typedef BeamDyn/BD    BD_InputFile    IntKi    NRMax       - - - "Total number of key point" -
+typedef BeamDyn/BD    BD_InputFile    ReKi     stop_tol   - - - "Key point coordinates array" -
 typedef BeamDyn/BD    BD_InputFile    ReKi     kp_coordinate   {:}{:} - - "Key point coordinates array" -
 typedef BeamDyn/BD    BD_InputFile    DbKi     rhoinf          - - - "Key point coordinates array" -
+typedef BeamDyn/BD    BD_InputFile    DbKi     DTBeam          - - - "Time interval for BeamDyn  calculations {or default} (s)" -
 typedef BeamDyn/BD    BD_InputFile    BladeInputData    InpBl   - - - "Input data for individual blades"   "see BladeInputData Type" 
 typedef BeamDyn/BD    BD_InputFile    CHARACTER(1024) BldFile   - - -  "Name of blade input file"
 typedef BeamDyn/BD    BD_InputFile    Logical  Echo             - - -  "Echo"

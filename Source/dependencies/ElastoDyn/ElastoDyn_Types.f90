@@ -162,6 +162,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: PtfmRIner      ! Platform inertia for roll tilt rotation about the platform CM [kg m^2]
     REAL(ReKi)  :: PtfmPIner      ! Platform inertia for pitch tilt rotation about the platform CM [kg m^2]
     REAL(ReKi)  :: PtfmYIner      ! Platform inertia for yaw rotation about the platform CM [kg m^2]
+    REAL(ReKi)  :: BldNodes      ! Number of blade nodes (per blade) used for analysis [-]
     TYPE(ED_BladeMeshInputData) , DIMENSION(:), ALLOCATABLE  :: InpBlMesh      ! Input data for blade discretizations (could be on each blade) [see BladeMeshInputData]
     TYPE(BladeInputData) , DIMENSION(:), ALLOCATABLE  :: InpBl      ! Input data for individual blades [see BladeInputData type]
     INTEGER(IntKi)  :: TeetMod      ! Rotor-teeter spring/damper model switch [-]
@@ -804,9 +805,9 @@ IMPLICIT NONE
     TYPE(MeshType)  :: HubPtMotion      ! For AeroDyn and Lidar(InflowWind): motions of the hub [-]
     TYPE(MeshType)  :: BladeRootMotion14      ! For AeroDyn v14: motions of the blade roots [-]
     TYPE(MeshType) , DIMENSION(:), ALLOCATABLE  :: BladeRootMotion      ! For AeroDyn/BeamDyn: motions at the blade roots [-]
-    TYPE(MeshType)  :: RotorFurlMotion      ! For AeroDyn14: motions of the rotor furl point. [-]
+    TYPE(MeshType)  :: RotorFurlMotion14      ! For AeroDyn14: motions of the rotor furl point. [-]
     TYPE(MeshType)  :: NacelleMotion      ! For AeroDyn14 & ServoDyn/TMD: motions of the nacelle. [-]
-    TYPE(MeshType)  :: TowerBaseMotion      ! For AeroDyn 14: motions of the tower base [-]
+    TYPE(MeshType)  :: TowerBaseMotion14      ! For AeroDyn 14: motions of the tower base [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      ! Data to be written to an output file: see WriteOutputHdr for names of each variable [see WriteOutputUnt]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch      ! Current blade pitch angles [radians]
     REAL(ReKi)  :: Yaw      ! Current nacelle yaw [radians]
@@ -3161,6 +3162,7 @@ ENDIF
     DstInputFileData%PtfmRIner = SrcInputFileData%PtfmRIner
     DstInputFileData%PtfmPIner = SrcInputFileData%PtfmPIner
     DstInputFileData%PtfmYIner = SrcInputFileData%PtfmYIner
+    DstInputFileData%BldNodes = SrcInputFileData%BldNodes
 IF (ALLOCATED(SrcInputFileData%InpBlMesh)) THEN
   i1_l = LBOUND(SrcInputFileData%InpBlMesh,1)
   i1_u = UBOUND(SrcInputFileData%InpBlMesh,1)
@@ -3659,6 +3661,7 @@ ENDIF
       Re_BufSz   = Re_BufSz   + 1  ! PtfmRIner
       Re_BufSz   = Re_BufSz   + 1  ! PtfmPIner
       Re_BufSz   = Re_BufSz   + 1  ! PtfmYIner
+      Re_BufSz   = Re_BufSz   + 1  ! BldNodes
   Int_BufSz   = Int_BufSz   + 1     ! InpBlMesh allocated yes/no
   IF ( ALLOCATED(InData%InpBlMesh) ) THEN
     Int_BufSz   = Int_BufSz   + 2*1  ! InpBlMesh upper/lower bounds for each dimension
@@ -4069,6 +4072,8 @@ ENDIF
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%PtfmPIner
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%PtfmYIner
+      Re_Xferred   = Re_Xferred   + 1
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%BldNodes
       Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%InpBlMesh) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -4770,6 +4775,8 @@ ENDIF
       OutData%PtfmPIner = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
       OutData%PtfmYIner = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+      OutData%BldNodes = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! InpBlMesh not allocated
     Int_Xferred = Int_Xferred + 1
@@ -22353,13 +22360,13 @@ IF (ALLOCATED(SrcOutputData%BladeRootMotion)) THEN
          IF (ErrStat>=AbortErrLev) RETURN
     ENDDO
 ENDIF
-      CALL MeshCopy( SrcOutputData%RotorFurlMotion, DstOutputData%RotorFurlMotion, CtrlCode, ErrStat2, ErrMsg2 )
+      CALL MeshCopy( SrcOutputData%RotorFurlMotion14, DstOutputData%RotorFurlMotion14, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
       CALL MeshCopy( SrcOutputData%NacelleMotion, DstOutputData%NacelleMotion, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
-      CALL MeshCopy( SrcOutputData%TowerBaseMotion, DstOutputData%TowerBaseMotion, CtrlCode, ErrStat2, ErrMsg2 )
+      CALL MeshCopy( SrcOutputData%TowerBaseMotion14, DstOutputData%TowerBaseMotion14, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcOutputData%WriteOutput)) THEN
@@ -22436,9 +22443,9 @@ DO i1 = LBOUND(OutputData%BladeRootMotion,1), UBOUND(OutputData%BladeRootMotion,
 ENDDO
   DEALLOCATE(OutputData%BladeRootMotion)
 ENDIF
-  CALL MeshDestroy( OutputData%RotorFurlMotion, ErrStat, ErrMsg )
+  CALL MeshDestroy( OutputData%RotorFurlMotion14, ErrStat, ErrMsg )
   CALL MeshDestroy( OutputData%NacelleMotion, ErrStat, ErrMsg )
-  CALL MeshDestroy( OutputData%TowerBaseMotion, ErrStat, ErrMsg )
+  CALL MeshDestroy( OutputData%TowerBaseMotion14, ErrStat, ErrMsg )
 IF (ALLOCATED(OutputData%WriteOutput)) THEN
   DEALLOCATE(OutputData%WriteOutput)
 ENDIF
@@ -22614,20 +22621,20 @@ ENDIF
       END IF
     END DO
   END IF
-      Int_BufSz   = Int_BufSz + 3  ! RotorFurlMotion: size of buffers for each call to pack subtype
-      CALL MeshPack( InData%RotorFurlMotion, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2, .TRUE. ) ! RotorFurlMotion 
+      Int_BufSz   = Int_BufSz + 3  ! RotorFurlMotion14: size of buffers for each call to pack subtype
+      CALL MeshPack( InData%RotorFurlMotion14, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2, .TRUE. ) ! RotorFurlMotion14 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
-      IF(ALLOCATED(Re_Buf)) THEN ! RotorFurlMotion
+      IF(ALLOCATED(Re_Buf)) THEN ! RotorFurlMotion14
          Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
          DEALLOCATE(Re_Buf)
       END IF
-      IF(ALLOCATED(Db_Buf)) THEN ! RotorFurlMotion
+      IF(ALLOCATED(Db_Buf)) THEN ! RotorFurlMotion14
          Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
          DEALLOCATE(Db_Buf)
       END IF
-      IF(ALLOCATED(Int_Buf)) THEN ! RotorFurlMotion
+      IF(ALLOCATED(Int_Buf)) THEN ! RotorFurlMotion14
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
@@ -22648,20 +22655,20 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
-      Int_BufSz   = Int_BufSz + 3  ! TowerBaseMotion: size of buffers for each call to pack subtype
-      CALL MeshPack( InData%TowerBaseMotion, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2, .TRUE. ) ! TowerBaseMotion 
+      Int_BufSz   = Int_BufSz + 3  ! TowerBaseMotion14: size of buffers for each call to pack subtype
+      CALL MeshPack( InData%TowerBaseMotion14, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2, .TRUE. ) ! TowerBaseMotion14 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
-      IF(ALLOCATED(Re_Buf)) THEN ! TowerBaseMotion
+      IF(ALLOCATED(Re_Buf)) THEN ! TowerBaseMotion14
          Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
          DEALLOCATE(Re_Buf)
       END IF
-      IF(ALLOCATED(Db_Buf)) THEN ! TowerBaseMotion
+      IF(ALLOCATED(Db_Buf)) THEN ! TowerBaseMotion14
          Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
          DEALLOCATE(Db_Buf)
       END IF
-      IF(ALLOCATED(Int_Buf)) THEN ! TowerBaseMotion
+      IF(ALLOCATED(Int_Buf)) THEN ! TowerBaseMotion14
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
@@ -22946,7 +22953,7 @@ ENDIF
       ENDIF
     END DO
   END IF
-      CALL MeshPack( InData%RotorFurlMotion, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2, OnlySize ) ! RotorFurlMotion 
+      CALL MeshPack( InData%RotorFurlMotion14, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2, OnlySize ) ! RotorFurlMotion14 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -23002,7 +23009,7 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
-      CALL MeshPack( InData%TowerBaseMotion, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2, OnlySize ) ! TowerBaseMotion 
+      CALL MeshPack( InData%TowerBaseMotion14, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2, OnlySize ) ! TowerBaseMotion14 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -23480,7 +23487,7 @@ ENDIF
         Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
         Int_Xferred = Int_Xferred + Buf_size
       END IF
-      CALL MeshUnpack( OutData%RotorFurlMotion, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2 ) ! RotorFurlMotion 
+      CALL MeshUnpack( OutData%RotorFurlMotion14, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2 ) ! RotorFurlMotion14 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -23560,7 +23567,7 @@ ENDIF
         Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
         Int_Xferred = Int_Xferred + Buf_size
       END IF
-      CALL MeshUnpack( OutData%TowerBaseMotion, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2 ) ! TowerBaseMotion 
+      CALL MeshUnpack( OutData%TowerBaseMotion14, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2 ) ! TowerBaseMotion14 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -24046,11 +24053,11 @@ IF (ALLOCATED(y_out%BladeRootMotion) .AND. ALLOCATED(y1%BladeRootMotion)) THEN
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
    ENDDO
 END IF ! check if allocated
-      CALL MeshExtrapInterp1(y1%RotorFurlMotion, y2%RotorFurlMotion, tin, y_out%RotorFurlMotion, tin_out, ErrStat2, ErrMsg2 )
+      CALL MeshExtrapInterp1(y1%RotorFurlMotion14, y2%RotorFurlMotion14, tin, y_out%RotorFurlMotion14, tin_out, ErrStat2, ErrMsg2 )
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
       CALL MeshExtrapInterp1(y1%NacelleMotion, y2%NacelleMotion, tin, y_out%NacelleMotion, tin_out, ErrStat2, ErrMsg2 )
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-      CALL MeshExtrapInterp1(y1%TowerBaseMotion, y2%TowerBaseMotion, tin, y_out%TowerBaseMotion, tin_out, ErrStat2, ErrMsg2 )
+      CALL MeshExtrapInterp1(y1%TowerBaseMotion14, y2%TowerBaseMotion14, tin, y_out%TowerBaseMotion14, tin_out, ErrStat2, ErrMsg2 )
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
 IF (ALLOCATED(y_out%WriteOutput) .AND. ALLOCATED(y1%WriteOutput)) THEN
   ALLOCATE(b1(SIZE(y_out%WriteOutput,1)))
@@ -24197,11 +24204,11 @@ IF (ALLOCATED(y_out%BladeRootMotion) .AND. ALLOCATED(y1%BladeRootMotion)) THEN
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
    ENDDO
 END IF ! check if allocated
-      CALL MeshExtrapInterp2(y1%RotorFurlMotion, y2%RotorFurlMotion, y3%RotorFurlMotion, tin, y_out%RotorFurlMotion, tin_out, ErrStat2, ErrMsg2 )
+      CALL MeshExtrapInterp2(y1%RotorFurlMotion14, y2%RotorFurlMotion14, y3%RotorFurlMotion14, tin, y_out%RotorFurlMotion14, tin_out, ErrStat2, ErrMsg2 )
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
       CALL MeshExtrapInterp2(y1%NacelleMotion, y2%NacelleMotion, y3%NacelleMotion, tin, y_out%NacelleMotion, tin_out, ErrStat2, ErrMsg2 )
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-      CALL MeshExtrapInterp2(y1%TowerBaseMotion, y2%TowerBaseMotion, y3%TowerBaseMotion, tin, y_out%TowerBaseMotion, tin_out, ErrStat2, ErrMsg2 )
+      CALL MeshExtrapInterp2(y1%TowerBaseMotion14, y2%TowerBaseMotion14, y3%TowerBaseMotion14, tin, y_out%TowerBaseMotion14, tin_out, ErrStat2, ErrMsg2 )
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
 IF (ALLOCATED(y_out%WriteOutput) .AND. ALLOCATED(y1%WriteOutput)) THEN
   ALLOCATE(b1(SIZE(y_out%WriteOutput,1)))

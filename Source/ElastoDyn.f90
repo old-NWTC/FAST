@@ -2665,28 +2665,28 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    
       ! Rotor furl position should be rP instead of rV, but AeroDyn needs this for the HubVDue2Yaw calculation:
    
-   y%RotorFurlMotion%TranslationDisp(1,1) =     OtherState%RtHS%rV(1)
-   y%RotorFurlMotion%TranslationDisp(2,1) = -1.*OtherState%RtHS%rV(3)
-   y%RotorFurlMotion%TranslationDisp(3,1) =     OtherState%RtHS%rV(2) + p%PtfmRefzt
+   y%RotorFurlMotion14%TranslationDisp(1,1) =     OtherState%RtHS%rV(1)
+   y%RotorFurlMotion14%TranslationDisp(2,1) = -1.*OtherState%RtHS%rV(3)
+   y%RotorFurlMotion14%TranslationDisp(3,1) =     OtherState%RtHS%rV(2) + p%PtfmRefzt
    
-   y%RotorFurlMotion%TranslationDisp      = y%RotorFurlMotion%TranslationDisp - y%RotorFurlMotion%Position   
+   y%RotorFurlMotion14%TranslationDisp      = y%RotorFurlMotion14%TranslationDisp - y%RotorFurlMotion14%Position   
          
         ! Rotor furl orientation (note the different order than hub and blade root!)
    
-   y%RotorFurlMotion%Orientation(1,1,1) =     OtherState%CoordSys%c1(1)
-   y%RotorFurlMotion%Orientation(2,1,1) = -1.*OtherState%CoordSys%c3(1)
-   y%RotorFurlMotion%Orientation(3,1,1) =     OtherState%CoordSys%c2(1)
-   y%RotorFurlMotion%Orientation(1,2,1) = -1.*OtherState%CoordSys%c1(3)
-   y%RotorFurlMotion%Orientation(2,2,1) =     OtherState%CoordSys%c3(3)
-   y%RotorFurlMotion%Orientation(3,2,1) = -1.*OtherState%CoordSys%c2(3)
-   y%RotorFurlMotion%Orientation(1,3,1) =     OtherState%CoordSys%c1(2)
-   y%RotorFurlMotion%Orientation(2,3,1) = -1.*OtherState%CoordSys%c3(2)
-   y%RotorFurlMotion%Orientation(3,3,1) =     OtherState%CoordSys%c2(2) 
+   y%RotorFurlMotion14%Orientation(1,1,1) =     OtherState%CoordSys%c1(1)
+   y%RotorFurlMotion14%Orientation(2,1,1) = -1.*OtherState%CoordSys%c3(1)
+   y%RotorFurlMotion14%Orientation(3,1,1) =     OtherState%CoordSys%c2(1)
+   y%RotorFurlMotion14%Orientation(1,2,1) = -1.*OtherState%CoordSys%c1(3)
+   y%RotorFurlMotion14%Orientation(2,2,1) =     OtherState%CoordSys%c3(3)
+   y%RotorFurlMotion14%Orientation(3,2,1) = -1.*OtherState%CoordSys%c2(3)
+   y%RotorFurlMotion14%Orientation(1,3,1) =     OtherState%CoordSys%c1(2)
+   y%RotorFurlMotion14%Orientation(2,3,1) = -1.*OtherState%CoordSys%c3(2)
+   y%RotorFurlMotion14%Orientation(3,3,1) =     OtherState%CoordSys%c2(2) 
    
       ! rotaional velocity:
-   y%RotorFurlMotion%RotationVel(1,1) =     OtherState%RtHS%AngVelER(1)
-   y%RotorFurlMotion%RotationVel(2,1) = -1.*OtherState%RtHS%AngVelER(3)
-   y%RotorFurlMotion%RotationVel(3,1) =     OtherState%RtHS%AngVelER(2)
+   y%RotorFurlMotion14%RotationVel(1,1) =     OtherState%RtHS%AngVelER(1)
+   y%RotorFurlMotion14%RotationVel(2,1) = -1.*OtherState%RtHS%AngVelER(3)
+   y%RotorFurlMotion14%RotationVel(3,1) =     OtherState%RtHS%AngVelER(2)
       
    !...........
    ! Nacelle :
@@ -2732,15 +2732,15 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    !...........         
    
       ! Tower base position should be rT(0) instead of rZ, but AeroDyn needs this for  the HubVDue2Yaw calculation:
-   y%TowerBaseMotion%TranslationDisp(1,1) =     OtherState%RtHS%rZ(1)
-   y%TowerBaseMotion%TranslationDisp(2,1) = -1.*OtherState%RtHS%rZ(3)
-   y%TowerBaseMotion%TranslationDisp(3,1) =     OtherState%RtHS%rZ(2) + p%PtfmRefzt
+   y%TowerBaseMotion14%TranslationDisp(1,1) =     OtherState%RtHS%rZ(1)
+   y%TowerBaseMotion14%TranslationDisp(2,1) = -1.*OtherState%RtHS%rZ(3)
+   y%TowerBaseMotion14%TranslationDisp(3,1) =     OtherState%RtHS%rZ(2) + p%PtfmRefzt
    
-   y%TowerBaseMotion%TranslationDisp      = y%TowerBaseMotion%TranslationDisp - y%TowerBaseMotion%Position   
+   y%TowerBaseMotion14%TranslationDisp      = y%TowerBaseMotion14%TranslationDisp - y%TowerBaseMotion14%Position   
       
-   y%TowerBaseMotion%RotationVel(1,1)     =     OtherState%RtHS%AngVelEX(1)
-   y%TowerBaseMotion%RotationVel(2,1)     = -1.*OtherState%RtHS%AngVelEX(3)
-   y%TowerBaseMotion%RotationVel(3,1)     =     OtherState%RtHS%AngVelEX(2) 
+   y%TowerBaseMotion14%RotationVel(1,1)     =     OtherState%RtHS%AngVelEX(1)
+   y%TowerBaseMotion14%RotationVel(2,1)     = -1.*OtherState%RtHS%AngVelEX(3)
+   y%TowerBaseMotion14%RotationVel(3,1)     =     OtherState%RtHS%AngVelEX(2) 
    
    !...............................................................................................................................
    ! Outputs required for HydroDyn
@@ -4124,19 +4124,44 @@ SUBROUTINE SetBladeParameters( p, BladeInData, BladeMeshData, ErrStat, ErrMsg )
    IF (p%BD4Blades) RETURN ! we don't need the rest of this stuff....
    
 
+   
    DO K=1,1 ! we're going to assume the discretization is the same for all blades
 
-      p%RNodes   = BladeMeshData(K)%RNodes - p%HubRad   ! Radius to blade analysis nodes relative to root ( 0 < RNodes(:) < p%BldFlexL ) (Convert RNodes to be relative to the hub)
+      IF ( allocated( BladeMeshData(K)%Chord ) ) THEN      
+      
+         p%RNodes   = BladeMeshData(K)%RNodes - p%HubRad   ! Radius to blade analysis nodes relative to root ( 0 < RNodes(:) < p%BldFlexL ) (Convert RNodes to be relative to the hub)
 
-      p%DRNodes(1) = 2.0*p%RNodes(1)
-      DO J = 2,p%BldNodes
-         p%DRNodes(J) = 2.0*( p%RNodes(J) - p%RNodes(J-1) ) - p%DRNodes(J-1)
-      END DO
+         p%DRNodes(1) = 2.0*p%RNodes(1)
+         DO J = 2,p%BldNodes
+            p%DRNodes(J) = 2.0*( p%RNodes(J) - p%RNodes(J-1) ) - p%DRNodes(J-1)
+         END DO
 
-      p%Chord     = BladeMeshData(K)%Chord
-      p%AeroTwst  = BladeMeshData(K)%AeroTwst
-      p%CAeroTwst = COS(p%AeroTwst)
-      p%SAeroTwst = SIN(p%AeroTwst)
+         p%Chord     = BladeMeshData(K)%Chord
+         p%AeroTwst  = BladeMeshData(K)%AeroTwst
+         p%CAeroTwst = COS(p%AeroTwst)
+         p%SAeroTwst = SIN(p%AeroTwst)
+         
+      ELSE
+         
+         
+            ! DRNodes (Let's use constant-spaced nodes for now, but the rest of the code is written to handle variable-spaced nodes--
+            !          this will be a future input!):
+         p%DRNodes = p%BldFlexL/p%BldNodes !array
+
+            ! RNodes:
+         p%RNodes(1) = 0.5*p%DRNodes(1)
+         DO J=2,p%BldNodes
+            p%RNodes(J) = p%RNodes( J - 1 ) + 0.5*( p%DRNodes(J) + p%DRNodes( J - 1 ) )
+         END DO
+         
+            ! these values aren't used (at least they shouldn't be):
+         p%Chord     = 0.0_ReKi
+         p%AeroTwst  = 0.0_ReKi
+         p%CAeroTwst = 1.0_ReKi
+         p%SAeroTwst = 0.0_ReKi
+                        
+      END IF
+         
 
    END DO
 
@@ -5630,9 +5655,14 @@ SUBROUTINE ReadBladeInputs ( BldFile, MeshFile, ReadAdmVals, InputFileData, UnEc
 
 
       ! Get the blade discretization here:
-   CALL ReadBladeMeshFile( InputFileData%InpBlMesh(1), MeshFile, UnEc, ErrStat2, ErrMsg2 )
-      CALL CheckError(ErrStat2,ErrMsg2)
-      IF ( ErrStat >= AbortErrLev ) RETURN
+   IF ( len_trim(MeshFile) == 0 ) THEN
+      InputFileData%InpBlMesh(1)%BldNodes = InputFileData%BldNodes
+   ELSE
+         ! we will get the discretization from AeroDyn's input file
+      CALL ReadBladeMeshFileAD( InputFileData%InpBlMesh(1), MeshFile, UnEc, ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   END IF
 
 
       ! Read the input file(s) for all of the blades:
@@ -5990,8 +6020,8 @@ CONTAINS
 
 END SUBROUTINE ReadBladeFile
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ReadBladeMeshFile( BladeKInputFileMesh, MeshFile, UnEc, ErrStat, ErrMsg )
-! This routine reads in the AeroDyn v13.00.00 input file to get the
+SUBROUTINE ReadBladeMeshFileAD( BladeKInputFileMesh, MeshFile, UnEc, ErrStat, ErrMsg )
+! This routine reads in the AeroDyn v14.00.00 input file to get the
 !   blade discretization used in the structural dynamics module.
 !..................................................................................................................................
 
@@ -6144,7 +6174,7 @@ CONTAINS
       IF ( ErrID /= ErrID_None ) THEN
 
          IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//'ReadBladeMeshFile:'//TRIM(Msg)
+         ErrMsg = TRIM(ErrMsg)//'ReadBladeMeshFileAD:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -6160,7 +6190,7 @@ CONTAINS
    END SUBROUTINE CheckError
    !...............................................................................................................................
 
-END SUBROUTINE ReadBladeMeshFile
+END SUBROUTINE ReadBladeMeshFileAD
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ReadFurlFile( FurlFile, InputFileData, UnEc, ErrStat, ErrMsg  )
 ! This routine reads the furling file input and converts units as appropriate.
@@ -7608,6 +7638,12 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
+      ! BldNodes - Number of blade nodes (per blade) used for analysis (-):
+   CALL ReadVar( UnIn, InputFile, InputFileData%BldNodes, "BldNodes", "Number of blade nodes (per blade) used for analysis (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      
       ! InpBl - Blade file Input data for individual blades (see BladeInputData type):
    DO I = 1,MaxBl
       CALL ReadVar ( UnIn, InputFile, BldFile(I), 'BldFile('//TRIM(Num2Lstr(I))//')', 'Name of the file containing properties for blade '//TRIM(Num2Lstr(I)), ErrStat2, ErrMsg2, UnEc )
@@ -7922,6 +7958,8 @@ SUBROUTINE ValidatePrimaryData( InputFileData, BD4Blades, ErrStat, ErrMsg )
       ! Check that these integers are in appropriate ranges:
    IF ( InputFileData%TwrNodes < 1_IntKi ) CALL SetErrors( ErrID_Fatal, 'TwrNodes must not be less than 1.' )
 
+   IF ( InputFileData%BldNodes < 1_IntKi ) CALL SetErrors( ErrID_Fatal, 'BldNodes must not be less than 1.' )
+   
       ! Check that the gearbox efficiency is valid:
    IF ( ( InputFileData%GBoxEff <= 0.0_ReKi ) .OR. ( InputFileData%GBoxEff > 100.0 ) ) THEN
       CALL SetErrors( ErrID_Fatal, 'GBoxEff must be in the range (0,1] (i.e., (0,100] percent).' )
@@ -13372,7 +13410,7 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
    
       
    ! -------------- Rotor Furl -----------------------------------
-   CALL MeshCreate( BlankMesh          = y%RotorFurlMotion      &
+   CALL MeshCreate( BlankMesh          = y%RotorFurlMotion14    &
                      ,IOS              = COMPONENT_OUTPUT       &
                      ,NNodes           = 1                      &
                      , TranslationDisp = .TRUE.                 &
@@ -13385,12 +13423,12 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
 
 !bjj: FIX THIS>>>>     
 !call wrscr(newline//'fix RotorFurlMotion initialization')
-   CALL MeshPositionNode ( y%RotorFurlMotion, 1, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat, ErrMsg ) !orientation is identity by default
+   CALL MeshPositionNode ( y%RotorFurlMotion14, 1, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat, ErrMsg ) !orientation is identity by default
 !<<<<<FIX THIS
       CALL CheckError(ErrStat2,ErrMsg2)
       IF (ErrStat >= AbortErrLev) RETURN
       
-   CALL CommitPointMesh( y%RotorFurlMotion )
+   CALL CommitPointMesh( y%RotorFurlMotion14 )
       IF (ErrStat >= AbortErrLev) RETURN      
       
    ! -------------- Nacelle -----------------------------------      
@@ -13413,7 +13451,7 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
       
      
    ! -------------- Tower Base-----------------------------------
-   CALL MeshCreate( BlankMesh          = y%TowerBaseMotion      &
+   CALL MeshCreate( BlankMesh          = y%TowerBaseMotion14    &
                      ,IOS              = COMPONENT_OUTPUT       &
                      ,NNodes           = 1                      &
                      , TranslationDisp = .TRUE.                 &
@@ -13424,13 +13462,13 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
       IF (ErrStat >= AbortErrLev) RETURN
 
 !bjj: FIX THIS>>>>     
-!call wrscr(newline//'fix TowerBaseMotion initialization')
-   CALL MeshPositionNode ( y%TowerBaseMotion, 1, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat, ErrMsg ) !orientation is identity by default
+!call wrscr(newline//'fix TowerBaseMotion14 initialization')
+   CALL MeshPositionNode ( y%TowerBaseMotion14, 1, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat, ErrMsg ) !orientation is identity by default
 !<<<<<FIX THIS
       CALL CheckError(ErrStat2,ErrMsg2)
       IF (ErrStat >= AbortErrLev) RETURN
       
-   CALL CommitPointMesh( y%TowerBaseMotion )
+   CALL CommitPointMesh( y%TowerBaseMotion14 )
       IF (ErrStat >= AbortErrLev) RETURN      
       
       

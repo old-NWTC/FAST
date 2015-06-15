@@ -42,7 +42,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(1:3,1:3)  :: GlbRot      ! Initial direction cosine matrix of the loacl blade coordinate system [-]
     REAL(ReKi) , DIMENSION(1:3)  :: RootDisp      ! Initial root displacement [-]
     REAL(ReKi) , DIMENSION(1:3,1:3)  :: RootOri      ! Initial root orientation [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: RootVel      ! Initial root velocities and angular veolcities [-]
+    REAL(ReKi) , DIMENSION(1:6)  :: RootVel      ! Initial root velocities and angular veolcities [-]
   END TYPE BD_InitInputType
 ! =======================
 ! =========  BD_InitOutputType  =======
@@ -96,7 +96,6 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: ngp      ! Number of Gauss points [-]
     INTEGER(IntKi)  :: analysis_type      ! analysis_type flag [-]
     INTEGER(IntKi)  :: damp_flag      ! damping flag [-]
-    INTEGER(IntKi)  :: time_flag      ! time integrator flag: 1-AM2, 2-G-Alpha, 3-RK4 [-]
     INTEGER(IntKi)  :: niter      ! analysis_type flag [-]
     REAL(DbKi)  :: dt      ! module dt [s]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: beta      ! Damping Coefficient [-]
@@ -136,13 +135,15 @@ IMPLICIT NONE
 ! =========  BD_InputFile  =======
   TYPE, PUBLIC :: BD_InputFile
     INTEGER(IntKi)  :: analysis_type      ! Analysis Type: 0-Rigid, 1-Static, 2-Dynamic [-]
-    INTEGER(IntKi)  :: time_integrator      ! Analysis Type: 1-AM2, 2-G-Alpha, 3-RK4 [-]
     INTEGER(IntKi)  :: member_total      ! Total number of members [-]
     INTEGER(IntKi)  :: kp_total      ! Total number of key point [-]
     INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: kp_member      ! Total number of key point [-]
     INTEGER(IntKi)  :: order_elem      ! Order of interpolation (basis) function [-]
+    INTEGER(IntKi)  :: NRMax      ! Total number of key point [-]
+    REAL(ReKi)  :: stop_tol      ! Key point coordinates array [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: kp_coordinate      ! Key point coordinates array [-]
     REAL(DbKi)  :: rhoinf      ! Key point coordinates array [-]
+    REAL(DbKi)  :: DTBeam      ! Time interval for BeamDyn  calculations {or default} (s) [-]
     TYPE(BladeInputData)  :: InpBl      ! Input data for individual blades [see BladeInputData Type]
     CHARACTER(1024)  :: BldFile      ! Name of blade input file [-]
     LOGICAL  :: Echo      ! Echo [-]
@@ -173,18 +174,7 @@ CONTAINS
     DstInitInputData%GlbRot = SrcInitInputData%GlbRot
     DstInitInputData%RootDisp = SrcInitInputData%RootDisp
     DstInitInputData%RootOri = SrcInitInputData%RootOri
-IF (ALLOCATED(SrcInitInputData%RootVel)) THEN
-  i1_l = LBOUND(SrcInitInputData%RootVel,1)
-  i1_u = UBOUND(SrcInitInputData%RootVel,1)
-  IF (.NOT. ALLOCATED(DstInitInputData%RootVel)) THEN 
-    ALLOCATE(DstInitInputData%RootVel(i1_l:i1_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%RootVel.', ErrStat, ErrMsg,RoutineName)
-      RETURN
-    END IF
-  END IF
     DstInitInputData%RootVel = SrcInitInputData%RootVel
-ENDIF
  END SUBROUTINE BD_CopyInitInput
 
  SUBROUTINE BD_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
@@ -196,9 +186,6 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(InitInputData%RootVel)) THEN
-  DEALLOCATE(InitInputData%RootVel)
-ENDIF
  END SUBROUTINE BD_DestroyInitInput
 
  SUBROUTINE BD_PackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -243,11 +230,7 @@ ENDIF
       Re_BufSz   = Re_BufSz   + SIZE(InData%GlbRot)  ! GlbRot
       Re_BufSz   = Re_BufSz   + SIZE(InData%RootDisp)  ! RootDisp
       Re_BufSz   = Re_BufSz   + SIZE(InData%RootOri)  ! RootOri
-  Int_BufSz   = Int_BufSz   + 1     ! RootVel allocated yes/no
-  IF ( ALLOCATED(InData%RootVel) ) THEN
-    Int_BufSz   = Int_BufSz   + 2*1  ! RootVel upper/lower bounds for each dimension
       Re_BufSz   = Re_BufSz   + SIZE(InData%RootVel)  ! RootVel
-  END IF
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -293,19 +276,8 @@ ENDIF
       Re_Xferred   = Re_Xferred   + SIZE(InData%RootDisp)
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%RootOri))-1 ) = PACK(InData%RootOri,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%RootOri)
-  IF ( .NOT. ALLOCATED(InData%RootVel) ) THEN
-    IntKiBuf( Int_Xferred ) = 0
-    Int_Xferred = Int_Xferred + 1
-  ELSE
-    IntKiBuf( Int_Xferred ) = 1
-    Int_Xferred = Int_Xferred + 1
-    IntKiBuf( Int_Xferred    ) = LBOUND(InData%RootVel,1)
-    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%RootVel,1)
-    Int_Xferred = Int_Xferred + 2
-
-      IF (SIZE(InData%RootVel)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%RootVel))-1 ) = PACK(InData%RootVel,.TRUE.)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%RootVel))-1 ) = PACK(InData%RootVel,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%RootVel)
-  END IF
  END SUBROUTINE BD_PackInitInput
 
  SUBROUTINE BD_UnPackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -410,29 +382,17 @@ ENDIF
       OutData%RootOri = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%RootOri))-1 ), mask2, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%RootOri)
     DEALLOCATE(mask2)
-  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! RootVel not allocated
-    Int_Xferred = Int_Xferred + 1
-  ELSE
-    Int_Xferred = Int_Xferred + 1
-    i1_l = IntKiBuf( Int_Xferred    )
-    i1_u = IntKiBuf( Int_Xferred + 1)
-    Int_Xferred = Int_Xferred + 2
-    IF (ALLOCATED(OutData%RootVel)) DEALLOCATE(OutData%RootVel)
-    ALLOCATE(OutData%RootVel(i1_l:i1_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%RootVel.', ErrStat, ErrMsg,RoutineName)
-       RETURN
-    END IF
+    i1_l = LBOUND(OutData%RootVel,1)
+    i1_u = UBOUND(OutData%RootVel,1)
     ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
     IF (ErrStat2 /= 0) THEN 
        CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%RootVel)>0) OutData%RootVel = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%RootVel))-1 ), mask1, 0.0_ReKi )
+      OutData%RootVel = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%RootVel))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%RootVel)
     DEALLOCATE(mask1)
-  END IF
  END SUBROUTINE BD_UnPackInitInput
 
  SUBROUTINE BD_CopyInitOutput( SrcInitOutputData, DstInitOutputData, CtrlCode, ErrStat, ErrMsg )
@@ -1707,7 +1667,6 @@ ENDIF
     DstParamData%ngp = SrcParamData%ngp
     DstParamData%analysis_type = SrcParamData%analysis_type
     DstParamData%damp_flag = SrcParamData%damp_flag
-    DstParamData%time_flag = SrcParamData%time_flag
     DstParamData%niter = SrcParamData%niter
     DstParamData%dt = SrcParamData%dt
 IF (ALLOCATED(SrcParamData%beta)) THEN
@@ -1880,7 +1839,6 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1  ! ngp
       Int_BufSz  = Int_BufSz  + 1  ! analysis_type
       Int_BufSz  = Int_BufSz  + 1  ! damp_flag
-      Int_BufSz  = Int_BufSz  + 1  ! time_flag
       Int_BufSz  = Int_BufSz  + 1  ! niter
       Db_BufSz   = Db_BufSz   + 1  ! dt
   Int_BufSz   = Int_BufSz   + 1     ! beta allocated yes/no
@@ -2050,8 +2008,6 @@ ENDIF
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%analysis_type
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%damp_flag
-      Int_Xferred   = Int_Xferred   + 1
-      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%time_flag
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%niter
       Int_Xferred   = Int_Xferred   + 1
@@ -2331,8 +2287,6 @@ ENDIF
       OutData%analysis_type = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%damp_flag = IntKiBuf( Int_Xferred ) 
-      Int_Xferred   = Int_Xferred + 1
-      OutData%time_flag = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%niter = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
@@ -3705,7 +3659,6 @@ ENDIF
    ErrStat = ErrID_None
    ErrMsg  = ""
     DstInputFileData%analysis_type = SrcInputFileData%analysis_type
-    DstInputFileData%time_integrator = SrcInputFileData%time_integrator
     DstInputFileData%member_total = SrcInputFileData%member_total
     DstInputFileData%kp_total = SrcInputFileData%kp_total
 IF (ALLOCATED(SrcInputFileData%kp_member)) THEN
@@ -3721,6 +3674,8 @@ IF (ALLOCATED(SrcInputFileData%kp_member)) THEN
     DstInputFileData%kp_member = SrcInputFileData%kp_member
 ENDIF
     DstInputFileData%order_elem = SrcInputFileData%order_elem
+    DstInputFileData%NRMax = SrcInputFileData%NRMax
+    DstInputFileData%stop_tol = SrcInputFileData%stop_tol
 IF (ALLOCATED(SrcInputFileData%kp_coordinate)) THEN
   i1_l = LBOUND(SrcInputFileData%kp_coordinate,1)
   i1_u = UBOUND(SrcInputFileData%kp_coordinate,1)
@@ -3736,6 +3691,7 @@ IF (ALLOCATED(SrcInputFileData%kp_coordinate)) THEN
     DstInputFileData%kp_coordinate = SrcInputFileData%kp_coordinate
 ENDIF
     DstInputFileData%rhoinf = SrcInputFileData%rhoinf
+    DstInputFileData%DTBeam = SrcInputFileData%DTBeam
       CALL BD_Copybladeinputdata( SrcInputFileData%InpBl, DstInputFileData%InpBl, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
@@ -3797,7 +3753,6 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
       Int_BufSz  = Int_BufSz  + 1  ! analysis_type
-      Int_BufSz  = Int_BufSz  + 1  ! time_integrator
       Int_BufSz  = Int_BufSz  + 1  ! member_total
       Int_BufSz  = Int_BufSz  + 1  ! kp_total
   Int_BufSz   = Int_BufSz   + 1     ! kp_member allocated yes/no
@@ -3806,12 +3761,15 @@ ENDIF
       Int_BufSz  = Int_BufSz  + SIZE(InData%kp_member)  ! kp_member
   END IF
       Int_BufSz  = Int_BufSz  + 1  ! order_elem
+      Int_BufSz  = Int_BufSz  + 1  ! NRMax
+      Re_BufSz   = Re_BufSz   + 1  ! stop_tol
   Int_BufSz   = Int_BufSz   + 1     ! kp_coordinate allocated yes/no
   IF ( ALLOCATED(InData%kp_coordinate) ) THEN
     Int_BufSz   = Int_BufSz   + 2*2  ! kp_coordinate upper/lower bounds for each dimension
       Re_BufSz   = Re_BufSz   + SIZE(InData%kp_coordinate)  ! kp_coordinate
   END IF
       Db_BufSz   = Db_BufSz   + 1  ! rhoinf
+      Db_BufSz   = Db_BufSz   + 1  ! DTBeam
    ! Allocate buffers for subtypes, if any (we'll get sizes from these) 
       Int_BufSz   = Int_BufSz + 3  ! InpBl: size of buffers for each call to pack subtype
       CALL BD_Packbladeinputdata( Re_Buf, Db_Buf, Int_Buf, InData%InpBl, ErrStat2, ErrMsg2, .TRUE. ) ! InpBl 
@@ -3861,8 +3819,6 @@ ENDIF
 
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%analysis_type
       Int_Xferred   = Int_Xferred   + 1
-      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%time_integrator
-      Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%member_total
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%kp_total
@@ -3882,6 +3838,10 @@ ENDIF
   END IF
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%order_elem
       Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NRMax
+      Int_Xferred   = Int_Xferred   + 1
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%stop_tol
+      Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%kp_coordinate) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
@@ -3899,6 +3859,8 @@ ENDIF
       Re_Xferred   = Re_Xferred   + SIZE(InData%kp_coordinate)
   END IF
       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%rhoinf
+      Db_Xferred   = Db_Xferred   + 1
+      DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%DTBeam
       Db_Xferred   = Db_Xferred   + 1
       CALL BD_Packbladeinputdata( Re_Buf, Db_Buf, Int_Buf, InData%InpBl, ErrStat2, ErrMsg2, OnlySize ) ! InpBl 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
@@ -3972,8 +3934,6 @@ ENDIF
   Int_Xferred  = 1
       OutData%analysis_type = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
-      OutData%time_integrator = IntKiBuf( Int_Xferred ) 
-      Int_Xferred   = Int_Xferred + 1
       OutData%member_total = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%kp_total = IntKiBuf( Int_Xferred ) 
@@ -4003,6 +3963,10 @@ ENDIF
   END IF
       OutData%order_elem = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
+      OutData%NRMax = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%stop_tol = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! kp_coordinate not allocated
     Int_Xferred = Int_Xferred + 1
   ELSE
@@ -4030,6 +3994,8 @@ ENDIF
     DEALLOCATE(mask2)
   END IF
       OutData%rhoinf = DbKiBuf( Db_Xferred ) 
+      Db_Xferred   = Db_Xferred + 1
+      OutData%DTBeam = DbKiBuf( Db_Xferred ) 
       Db_Xferred   = Db_Xferred + 1
       Buf_size=IntKiBuf( Int_Xferred )
       Int_Xferred = Int_Xferred + 1

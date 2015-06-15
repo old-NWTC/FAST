@@ -404,7 +404,16 @@ real(ReKi) function Get_f_c_from_Lookup( Re, alpha, alpha0, C_nalpha, AFInfo, Er
       if (ErrStat > ErrID_None) return
    
    Cc =  Cl*sin(alpha) - (Cd-Cd0)*cos(alpha)
-   Get_f_c_from_Lookup = (  Cc / ( C_nalpha*( alpha-alpha0 )*tan(alpha) )  ) **2 
+      ! Apply an offset of 0.2 to fix cases where f_c should be negative, but we are using **2 so can only return positive values
+      ! Note: because we include this offset, it must be accounted for in the final value of Cc, eqn 1.38.  This will be applied
+      ! For both UA_Mod = 1,2, and 3 when using Flookup = T
+   Get_f_c_from_Lookup = (  Cc / ( C_nalpha*( alpha-alpha0 )*tan(alpha) )  + 0.2 ) **2 
+   
+   !Get_f_c_from_Lookup = (  Cc / ( C_nalpha*( alpha-alpha0 )*tan(alpha) )  ) **2 
+   !if ( Cc < 0.0_ReKi ) then
+   !   Get_f_c_from_Lookup = -Get_f_c_from_Lookup
+   !end if
+   
    if ( Get_f_c_from_Lookup > 1.0 ) then
       Get_f_c_from_Lookup = 1.0_ReKi
    end if
@@ -560,7 +569,7 @@ end function Get_Cn_v
 
 
 !==============================================================================
-real(ReKi) function Get_Cm_FS( Cm0, k0, k1, k2, k3, Cn_alpha_q_circ, fprimeprime, Cm_q_circ, Cn_alpha_nc, Cm_q_nc, Dalphaf, alpha_f, Cn_FS, fprimeprime_m, AFInfo, UAMod, ErrStat, ErrMsg )
+real(ReKi) function Get_Cm_FS( Cm0, k0, k1, k2, k3, Cn_alpha_q_circ, fprimeprime, Cm_q_circ, Cn_alpha_nc, Cm_q_nc, Dalphaf, alpha_f, Cn_FS, fprimeprime_m, AFInfo, UAMod, Cm_alpha_nc, ErrStat, ErrMsg )
 ! Leishman's pitching moment coefficient about the 1/4 chord
 ! Called by : ComputeKelvinChain
 ! Calls  to : NONE
@@ -582,6 +591,7 @@ real(ReKi) function Get_Cm_FS( Cm0, k0, k1, k2, k3, Cn_alpha_q_circ, fprimeprime
    real(ReKi),       intent(in   ) :: fprimeprime_m
    type(AFInfoType), intent(in   ) :: AFInfo
    integer,          intent(in   ) :: UAMod                         ! UA model
+   real(ReKi),       intent(  out) :: Cm_alpha_nc
    integer(IntKi),   intent(  out) :: ErrStat           ! Error status of the operation
    character(*),     intent(  out) :: ErrMsg            ! Error message if ErrStat /= ErrID_None
   
@@ -596,7 +606,8 @@ real(ReKi) function Get_Cm_FS( Cm0, k0, k1, k2, k3, Cn_alpha_q_circ, fprimeprime
 
    
       ! Eqn 1.21 + 1.23 + 1.25a
-   Cm_common = Cm_q_circ - Cn_alpha_nc / 4.0_ReKi + Cm_q_nc
+   Cm_alpha_nc = - Cn_alpha_nc / 4.0_ReKi 
+   Cm_common = Cm_q_circ + Cm_alpha_nc + Cm_q_nc
    
    if ( UAMod == 1 ) then
          ! Eqn 1.40
@@ -614,7 +625,7 @@ real(ReKi) function Get_Cm_FS( Cm0, k0, k1, k2, k3, Cn_alpha_q_circ, fprimeprime
       
    else ! UAMod == 2
          ! TODO: Incomplete because we are not computing fprimeprime_m yet. GJH 5/21/2015
-      Get_Cm_FS = Cn_FS*fprimeprime_m + Cm_common
+      Get_Cm_FS = Cm0 + Cn_FS*fprimeprime_m + Cm_common
    end if
    
 end function Get_Cm_FS
@@ -653,7 +664,7 @@ end function Get_Cm
 subroutine ComputeKelvinChain( i, j, u, p, xd, OtherState, AFInfo, Cn_prime, Cn1, Cn2, Cd0, Cm0, k0, k1, k2, k3, T_VL, x_cp_bar, &
                                St_sh, Kalpha, alpha_e, alpha0, dalpha0, alpha_f, eta_e, Kq, q_cur, X1, X2, X3, X4, &
                                Kprime_alpha, Kprime_q, Dp, Cn_pot, Cc_pot, fprimeprime, Df, Df_c, Dalphaf, fprime, fprime_c, fprimeprime_c, fprimeprime_m, &
-                               Cn_alpha_q_circ, Cm_q_circ, Cn_alpha_nc, Cm_q_nc, Cn_v, C_V, Cn_FS, ErrStat, ErrMsg )
+                               Cn_alpha_q_circ, Cn_q_circ, Cn_q_nc, Cm_q_circ, Cn_alpha_nc, Cm_q_nc, Cn_v, C_V, Cn_FS, T_f, T_V, ErrStat, ErrMsg )
 ! 
 ! Called by : DRIVER
 ! Calls  to : Get_Beta_M_Sqrd, Get_Beta_M, AFI_GetAirfoilParams, Get_ds, Get_Pitchrate, Get_k_, Get_Kupper, Get_ExpEqn
@@ -699,6 +710,8 @@ subroutine ComputeKelvinChain( i, j, u, p, xd, OtherState, AFInfo, Cn_prime, Cn1
    real(ReKi),                             intent(  out) :: Cn_alpha_q_circ   !
    real(ReKi),                             intent(  out) :: Cm_q_circ         !
    real(ReKi),                             intent(  out) :: Cn_alpha_nc       ! non-circulatory component of the normal force coefficient response to step change in alpha
+   real(ReKi),                             intent(  out) :: Cn_q_circ
+   real(ReKi),                             intent(  out) :: Cn_q_nc
    real(ReKi),                             intent(  out) :: Cm_q_nc           ! non-circulatory component of the moment coefficient response to step change in q
    real(ReKi),                             intent(  out) :: fprimeprime       !
    real(ReKi),                             intent(  out) :: Df                !
@@ -711,6 +724,8 @@ subroutine ComputeKelvinChain( i, j, u, p, xd, OtherState, AFInfo, Cn_prime, Cn1
    real(ReKi),                             intent(  out) :: Cn_v              ! normal force coefficient due to the presence of LE vortex
    real(ReKi),                             intent(  out) :: C_V               ! contribution to the normal force coefficient due to accumulated vorticity in the LE vortex
    real(ReKi),                             intent(  out) :: Cn_FS             !
+   real(ReKi),                             intent(  out) :: T_f                                           !
+   real(ReKi),                             intent(  out) :: T_V                                           ! backwards finite difference of the non-dimensionalized distance parameter
                                                                               !
    integer(IntKi),                         intent(  out) :: ErrStat           ! Error status of the operation
    character(*),                           intent(  out) :: ErrMsg            ! Error message if ErrStat /= ErrID_None
@@ -721,12 +736,9 @@ subroutine ComputeKelvinChain( i, j, u, p, xd, OtherState, AFInfo, Cn_prime, Cn1
    real(ReKi)                :: beta_M                                        ! Prandtl-Glauert compressibility correction factor,  sqrt(1-M**2)
    real(ReKi)                :: beta_M_Sqrd                                   ! square of the Prandtl-Glauert compressibility correction factor,  (1-M**2)
    real(ReKi)                :: Cn_alpha_q_nc                                 ! non-circulatory component of normal force coefficient response to step change in alpha and q
-   real(ReKi)                :: Cn_q_circ
    real(ReKi)                :: k_alpha                                       !
    real(ReKi)                :: T_alpha                                       !
    real(ReKi)                :: T_q                                           !
-   real(ReKi)                :: T_f                                           !
-   real(ReKi)                :: T_V                                           ! backwards finite difference of the non-dimensionalized distance parameter
    real(ReKi)                :: T_I                                           !
    real(ReKi)                :: C_nalpha_circ                                 ! slope of the circulatory normal force coefficient vs alpha curve
    real(ReKi)                :: T_f0                                          ! initial value of T_f, airfoil specific, used to compute D_f and fprimeprime
@@ -745,7 +757,6 @@ subroutine ComputeKelvinChain( i, j, u, p, xd, OtherState, AFInfo, Cn_prime, Cn1
    real(ReKi)                :: S2                                            ! constant in the f-curve best-fit, alpha >= alpha0
    real(ReKi)                :: S3                                            ! constant in the f-curve best-fit, alpha <  alpha0
    real(ReKi)                :: S4                                            ! constant in the f-curve best-fit, alpha <  alpha0
-   real(ReKi)                :: Cn_q_nc                                       !
    real(ReKi)                :: k_q                                           !
    real(ReKi)                :: Kalpha_minus1                                 !
    real(ReKi)                :: Kq_minus1                                     !
@@ -760,6 +771,7 @@ subroutine ComputeKelvinChain( i, j, u, p, xd, OtherState, AFInfo, Cn_prime, Cn1
    real(ReKi)                :: k_mq                                          !
    real(ReKi)                :: Kprimeprime_q                                 !
    real(ReKi)                :: fprime_c_minus1
+   real(ReKi)                :: alphaf_minus1
    
    
 
@@ -778,7 +790,7 @@ subroutine ComputeKelvinChain( i, j, u, p, xd, OtherState, AFInfo, Cn_prime, Cn1
       eta_e = 1.0
    end if
    
-   if (OtherState%FirstPass) then
+   if (OtherState%FirstPass(i,j)) then
       alpha_minus1 = u%alpha
       alpha_minus2 = u%alpha
    else
@@ -789,7 +801,7 @@ subroutine ComputeKelvinChain( i, j, u, p, xd, OtherState, AFInfo, Cn_prime, Cn1
    dalpha0  = u%alpha - alpha0
    q_cur    = Get_Pitchrate( p%dt, u%alpha, alpha_minus1, u%U, p%c(i,j)  )  ! Eqn 1.8
    
-   if (OtherState%FirstPass) then
+   if (OtherState%FirstPass(i,j)) then
       q_minus1 = q_cur   
       q_minus2 = q_cur 
    else
@@ -849,6 +861,8 @@ subroutine ComputeKelvinChain( i, j, u, p, xd, OtherState, AFInfo, Cn_prime, Cn1
       X4              = Get_ExpEqn( ds*beta_M_Sqrd*b2, 1.0_ReKi, xd%X4_minus1(i,j), A2*(q_cur - q_minus1), 0.0_ReKi )
       Cn_q_circ       = Get_Cn_q_circ( q_cur, C_nalpha_circ, X3, X4  )
       Cn_alpha_q_circ = Cn_alpha_q_circ + Cn_q_circ
+   else
+      Cn_q_circ       = 0.0
    end if
    
       ! Compute K3prime_q using Eqn 1.22
@@ -875,7 +889,7 @@ subroutine ComputeKelvinChain( i, j, u, p, xd, OtherState, AFInfo, Cn_prime, Cn1
    Cc_pot          = Cn_alpha_q_circ*tan(alpha_e+alpha0)
    
    
-   if (OtherState%FirstPass) then
+   if (OtherState%FirstPass(i,j)) then
       Cn_pot_minus1 = Cn_pot
    else
       Cn_pot_minus1 = xd%Cn_pot_minus1(i,j)
@@ -898,7 +912,7 @@ subroutine ComputeKelvinChain( i, j, u, p, xd, OtherState, AFInfo, Cn_prime, Cn1
       fprime        = Get_f( alpha_f, alpha0, alpha1, alpha2, S1, S2, S3, S4)
    end if
    
-   if (OtherState%FirstPass) then
+   if (OtherState%FirstPass(i,j)) then
       fprime_minus1 = fprime
    else
       fprime_minus1 = xd%fprime_minus1(i,j)
@@ -919,10 +933,12 @@ subroutine ComputeKelvinChain( i, j, u, p, xd, OtherState, AFInfo, Cn_prime, Cn1
       !end if
       
    
-      if (OtherState%FirstPass) then
+      if (OtherState%FirstPass(i,j)) then
          fprime_c_minus1 = fprime_c
+         alphaf_minus1   = alpha_f
       else
          fprime_c_minus1 = xd%fprime_c_minus1(i,j)
+         alphaf_minus1   = xd%alphaf_minus1(i,j)
       end if
    
          ! Compute Df using Eqn 1.33b   
@@ -939,7 +955,7 @@ subroutine ComputeKelvinChain( i, j, u, p, xd, OtherState, AFInfo, Cn_prime, Cn1
    
    if ( p%UAMod == 3 ) then
          ! Eqn 1.41b
-      Dalphaf    = Get_ExpEqn( ds, T_f, xd%Dalphaf_minus1(i,j), fprime, fprime_minus1 )
+      Dalphaf    = Get_ExpEqn( ds, T_f, xd%Dalphaf_minus1(i,j), alpha_f, alphaf_minus1 )
    else
       Dalphaf    = 0.0_ReKi
    end if
@@ -955,7 +971,7 @@ subroutine ComputeKelvinChain( i, j, u, p, xd, OtherState, AFInfo, Cn_prime, Cn1
       ! Compute Cn_v using either Eqn 1.45 or 1.49 depending on operating conditions
    Cn_v          = Get_Cn_v ( ds, T_V, xd%Cn_v_minus1(i,j), C_V, xd%C_V_minus1(i,j), xd%tau_V(i,j), T_VL, T_V0, Kalpha, u%alpha, alpha0 ) ! do I pass VRTX flag or tau_V?
    
-   if (OtherState%FirstPass) then
+   if (OtherState%FirstPass(i,j)) then
       Cn_v = 0.0_ReKi
    end if
    
@@ -1043,6 +1059,7 @@ subroutine UA_InitStates( p, xd, OtherState, ErrStat, ErrMsg )
    allocate(xd%Df_minus1(p%nNodesPerBlade,p%numBlades), stat = ErrStat)
    allocate(xd%Df_c_minus1(p%nNodesPerBlade,p%numBlades), stat = ErrStat)
    allocate(xd%Dalphaf_minus1(p%nNodesPerBlade,p%numBlades), stat = ErrStat)
+   allocate(xd%alphaf_minus1(p%nNodesPerBlade,p%numBlades), stat = ErrStat)
    allocate(xd%fprime_minus1(p%nNodesPerBlade,p%numBlades), stat = ErrStat)
    allocate(xd%fprime_c_minus1(p%nNodesPerBlade,p%numBlades), stat = ErrStat)
    allocate(xd%tau_V(p%nNodesPerBlade,p%numBlades), stat = ErrStat)
@@ -1053,7 +1070,7 @@ subroutine UA_InitStates( p, xd, OtherState, ErrStat, ErrMsg )
    allocate(OtherState%TESF(p%nNodesPerBlade,p%numBlades), stat = ErrStat)
    allocate(OtherState%LESF(p%nNodesPerBlade,p%numBlades), stat = ErrStat)
    allocate(OtherState%VRTX(p%nNodesPerBlade,p%numBlades), stat = ErrStat)
-   
+   allocate(OtherState%FirstPass(p%nNodesPerBlade,p%numBlades), stat = ErrStat)
    OtherState%sigma1    = 1.0_ReKi
    OtherState%sigma3    = 1.0_ReKi
    OtherState%TESF      = .FALSE.  
@@ -1080,6 +1097,7 @@ subroutine UA_InitStates( p, xd, OtherState, ErrStat, ErrMsg )
    xd%Df_minus1            = 0.0_ReKi
    xd%Df_c_minus1          = 0.0_ReKi
    xd%Dalphaf_minus1       = 0.0_ReKi
+   xd%alphaf_minus1        = 0.0_ReKi
    xd%fprime_minus1        = 0.0_ReKi
    xd%fprime_c_minus1      = 0.0_ReKi
    xd%tau_V                = 0.0_ReKi 
@@ -1143,10 +1161,10 @@ subroutine UA_Init( InitInp, u, p, xd, OtherState, y, Interval, &
    if (ErrStat >= AbortErrLev) return    
    
       ! Allocate and set the InitOut data
-   p%NumOuts = 6
+   p%NumOuts = 30
    p%Delim   = ''
-   p%OutFmt  = 'ES11.4e2'
-   p%OutSFmt = 'A11'
+   p%OutFmt  = 'ES15.4e2'
+   p%OutSFmt = 'A15'
    allocate(InitOut%WriteOutputHdr(p%NumOuts*p%numBlades*p%nNodesPerBlade))
    
    allocate(InitOut%WriteOutputUnt(p%NumOuts*p%numBlades*p%nNodesPerBlade))
@@ -1163,12 +1181,60 @@ subroutine UA_Init( InitInp, u, p, xd, OtherState, y, Interval, &
          InitOut%WriteOutputHdr(iOffset+4) =trim(chanPrefix)//'Cm' 
          InitOut%WriteOutputHdr(iOffset+5) =trim(chanPrefix)//'Cl' 
          InitOut%WriteOutputHdr(iOffset+6) =trim(chanPrefix)//'Cd' 
+         InitOut%WriteOutputHdr(iOffset+7)  =trim(chanPrefix)//'Cn_alf_circ'
+         InitOut%WriteOutputHdr(iOffset+8)  =trim(chanPrefix)//'Cn_alf_nc'
+         InitOut%WriteOutputHdr(iOffset+9)  =trim(chanPrefix)//'Cn_q_circ'
+         InitOut%WriteOutputHdr(iOffset+10) =trim(chanPrefix)//'Cn_q_nc'
+         InitOut%WriteOutputHdr(iOffset+11) =trim(chanPrefix)//'Cm_alf_circ'
+         InitOut%WriteOutputHdr(iOffset+12) =trim(chanPrefix)//'Cm_alf_nc'
+         InitOut%WriteOutputHdr(iOffset+13) =trim(chanPrefix)//'Cm_q_circ'
+         InitOut%WriteOutputHdr(iOffset+14) =trim(chanPrefix)//'Cm_q_nc'
+         InitOut%WriteOutputHdr(iOffset+15) =trim(chanPrefix)//'Alpha_e'
+         InitOut%WriteOutputHdr(iOffset+16) =trim(chanPrefix)//"f'"
+         InitOut%WriteOutputHdr(iOffset+17) =trim(chanPrefix)//"f'_c"
+         InitOut%WriteOutputHdr(iOffset+18) =trim(chanPrefix)//"f''"
+         InitOut%WriteOutputHdr(iOffset+19) =trim(chanPrefix)//"f''_c"
+         InitOut%WriteOutputHdr(iOffset+20) =trim(chanPrefix)//"f''_m"
+         InitOut%WriteOutputHdr(iOffset+21) =trim(chanPrefix)//'T_f'
+         InitOut%WriteOutputHdr(iOffset+22) =trim(chanPrefix)//'T_V'
+         InitOut%WriteOutputHdr(iOffset+23) =trim(chanPrefix)//'LESF'
+         InitOut%WriteOutputHdr(iOffset+24) =trim(chanPrefix)//'TESF'
+         InitOut%WriteOutputHdr(iOffset+25) =trim(chanPrefix)//'VRTX'
+         InitOut%WriteOutputHdr(iOffset+26) =trim(chanPrefix)//'tau_v'
+         InitOut%WriteOutputHdr(iOffset+27) = trim(chanPrefix)//'Cn_v'         
+         InitOut%WriteOutputHdr(iOffset+28) = trim(chanPrefix)//'C_V '         
+         InitOut%WriteOutputHdr(iOffset+29) = trim(chanPrefix)//'Cn_FS' 
+         InitOut%WriteOutputHdr(iOffset+30) = trim(chanPrefix)//'Cm_FS'
          InitOut%WriteOutputUnt(iOffset+1)   ='(deg)  '
          InitOut%WriteOutputUnt(iOffset+2) ='(-)   '
          InitOut%WriteOutputUnt(iOffset+3) ='(-)   '
          InitOut%WriteOutputUnt(iOffset+4) ='(-)   '
          InitOut%WriteOutputUnt(iOffset+5) ='(-)   '
          InitOut%WriteOutputUnt(iOffset+6) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+7) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+8) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+9) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+10) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+11) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+12) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+13) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+14) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+15) ='deg'
+         InitOut%WriteOutputUnt(iOffset+16) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+17) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+18) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+19) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+20) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+21) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+22) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+23) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+24) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+25) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+26) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+27) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+28) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+29) ='(-)   '
+         InitOut%WriteOutputUnt(iOffset+30) ='(-)   '
       end do
    end do
    
@@ -1240,8 +1306,10 @@ subroutine UA_UpdateDiscState( i, j, u, p, xd, OtherState, AFInfo, ErrStat, ErrM
    real(ReKi)                                   :: alpha_f
    real(ReKi)                                   :: eta_e
    real(ReKi)                                   :: Kafactor
+   real(ReKi)                                   :: Cn_q_circ
+   real(ReKi)                                   :: Cn_q_nc
    real(ReKi)                                   :: St_sh
-   real(ReKi)                                   :: T_sh
+   real(ReKi)                                   :: T_sh, T_f, T_V
             
       ! Initialize ErrStat
          
@@ -1251,7 +1319,7 @@ subroutine UA_UpdateDiscState( i, j, u, p, xd, OtherState, AFInfo, ErrStat, ErrM
       call ComputeKelvinChain(i, j, u, p, xd, OtherState, AFInfo, Cn_prime, Cn1, Cn2, Cd0, Cm0, k0, k1, k2, k3, T_VL, x_cp_bar, &
                                      St_sh, Kalpha, alpha_e, alpha0, dalpha0, alpha_f, eta_e, Kq, q_cur, X1, X2, X3, X4, &
                                      Kprime_alpha, Kprime_q, Dp, Cn_pot, Cc_pot, fprimeprime, Df, Df_c,Dalphaf, fprime, fprime_c, fprimeprime_c, fprimeprime_m, &
-                                     Cn_alpha_q_circ, Cm_q_circ, Cn_alpha_nc, Cm_q_nc, Cn_v, C_V, Cn_FS, ErrStat, ErrMsg )
+                                     Cn_alpha_q_circ, Cn_q_circ, Cn_q_nc, Cm_q_circ, Cn_alpha_nc, Cm_q_nc, Cn_v, C_V, Cn_FS, T_f, T_V, ErrStat, ErrMsg )
       
       
       T_sh = 2.0_ReKi*(1.0_ReKi-fprimeprime) / St_sh
@@ -1266,10 +1334,10 @@ subroutine UA_UpdateDiscState( i, j, u, p, xd, OtherState, AFInfo, ErrStat, ErrM
          OtherState%LESF(i,j) = .false.
       end if
                                  
-      if (fprimeprime < xd%fprimeprime_minus1(i,j)) then
-         OtherState%TESF(i,j) = .true.
+      if ( fprimeprime < xd%fprimeprime_minus1(i,j)) then
+         OtherState%TESF(i,j) = .true.  ! Separation point is moving towards the Leading Edge
       else
-         OtherState%TESF(i,j) = .false.
+         OtherState%TESF(i,j) = .false. ! Separation point is moving towards the Trailing Edge
       end if
    
       ! Process VRTX-related quantities
@@ -1290,29 +1358,29 @@ subroutine UA_UpdateDiscState( i, j, u, p, xd, OtherState, AFInfo, ErrStat, ErrM
       
       OtherState%sigma1(i,j) = 1.0_ReKi
       Kafactor             = Kalpha*dalpha0
-      
-      if ( OtherState%TESF(i,j) ) then  ! Separating flow
-         if (Kafactor < 0.0_ReKi) then
-            OtherState%sigma1(i,j) = 2.0_ReKi  ! This must be the first check
-         else if (.not. OtherState%LESF(i,j) ) then
-            OtherState%sigma1(i,j) = 1.0_ReKi !.4_ReKi    ! Leading edge separation has not occurred
-         else if (xd%fprimeprime_minus1(i,j) <= 0.7_ReKi) then ! For this else, LESF = True
-            OtherState%sigma1(i,j) = 2.0_ReKi !1.0_ReKi 
-         else
-            OtherState%sigma1(i,j) = 1.75_ReKi
-         end if
-      else ! Reattaching flow
-         if (.not. OtherState%LESF(i,j) ) then
-            OtherState%sigma1(i,j) = 0.5_ReKi
-         end if
+     ! if ( fprimeprime < 0.7 .AND.  fprimeprime > 0.3 ) then 
+         if ( OtherState%TESF(i,j) ) then  ! Separating flow
+            if (Kafactor < 0.0_ReKi) then
+               OtherState%sigma1(i,j) = 2.0_ReKi  ! This must be the first check
+            else if (.not. OtherState%LESF(i,j) ) then
+               OtherState%sigma1(i,j) = 1.0_ReKi !.4_ReKi    ! Leading edge separation has not occurred
+            else if (xd%fprimeprime_minus1(i,j) <= 0.7_ReKi) then ! For this else, LESF = True
+               OtherState%sigma1(i,j) = 2.0_ReKi !1.0_ReKi 
+            else
+               OtherState%sigma1(i,j) = 1.75_ReKi
+            end if
+         else ! Reattaching flow
+            if (.not. OtherState%LESF(i,j) ) then
+               OtherState%sigma1(i,j) = 0.5_ReKi
+            end if
          
-         if ( OtherState%VRTX(i,j) .and. (xd%tau_V(i,j) <= T_VL) ) then  ! Still shedding a vortex?
-            OtherState%sigma1(i,j) = 0.25_ReKi
+            if ( OtherState%VRTX(i,j) .and. (xd%tau_V(i,j) <= T_VL) ) then  ! Still shedding a vortex?
+               OtherState%sigma1(i,j) = 0.25_ReKi
+            end if
+            if (Kafactor > 0.0_ReKi) then
+               OtherState%sigma1(i,j) = 0.75_ReKi
+            end if
          end if
-         if (Kafactor > 0.0_ReKi) then
-            OtherState%sigma1(i,j) = 0.75_ReKi
-         end if
-      end if
       
       OtherState%sigma3(i,j) = 1.0_ReKi
       
@@ -1334,17 +1402,17 @@ subroutine UA_UpdateDiscState( i, j, u, p, xd, OtherState, AFInfo, ErrStat, ErrM
       
          ! We are testing this heirarchical logic instead of the above block 5/29/2015
       if ( (xd%tau_V(i,j) <= 2.0_ReKi*T_VL) .and. (xd%tau_V(i,j) >= T_VL) ) then
-         OtherState%sigma3(i,j) = 3.0_ReKi
+         OtherState%sigma3(i,j) =  3.0_ReKi
       else if (.not. OtherState%TESF(i,j)) then
-         OtherState%sigma3(i,j) = 4.0_ReKi
+         OtherState%sigma3(i,j) =  4.0_ReKi
       else if ( OtherState%VRTX(i,j) .and. (xd%tau_V(i,j) <= T_VL) ) then
          if (Kafactor < 0.0_ReKi) then
-            OtherState%sigma3(i,j) = 2.0_ReKi
+            OtherState%sigma3(i,j) =  2.0_ReKi
          else
             OtherState%sigma3(i,j) = 1.0_ReKi
           end if           
       else if (Kafactor < 0 ) then 
-         OtherState%sigma3(i,j) = 4.0_ReKi
+         OtherState%sigma3(i,j) =  4.0_ReKi
       end if
       
       
@@ -1357,7 +1425,7 @@ subroutine UA_UpdateDiscState( i, j, u, p, xd, OtherState, AFInfo, ErrStat, ErrM
       !---------------------------------------------------------
       ! Update the Discrete States, xd
       !---------------------------------------------------------
-      if (OtherState%FirstPass) then
+      if (OtherState%FirstPass(i,j)) then
          xd%alpha_minus2(i,j)      = u%alpha
          xd%q_minus2(i,j)          = q_cur
       else
@@ -1385,9 +1453,10 @@ subroutine UA_UpdateDiscState( i, j, u, p, xd, OtherState, AFInfo, ErrStat, ErrM
       
       xd%Dalphaf_minus1(i,j)      = Dalphaf
       xd%fprime_minus1(i,j)       = fprime
+      xd%alphaf_minus1(i,j)       = alpha_f
       xd%Cn_v_minus1(i,j)         = Cn_v
       xd%C_V_minus1(i,j)          = C_V
-      OtherState%FirstPass        = .false.
+      OtherState%FirstPass(i,j)        = .false.
    
       if ( xd%tau_V(i,j) > 0.0 .or. OtherState%LESF(i,j) ) then                !! TODO:  Verify this condition 2/20/2015 GJH
          xd%tau_V(i,j)          = xd%tau_V(i,j) + 2.0_ReKi*p%dt*u%U / p%c(i,j)  
@@ -1503,8 +1572,8 @@ subroutine UA_CalcOutput( u, p, xd, OtherState, AFInfo, y, ErrStat, ErrMsg )
    real(ReKi)                                             :: dalpha0
    real(ReKi)                                             :: alpha_f
    real(ReKi)                                             :: eta_e
-   real(ReKi)                                             :: St_sh
-   real(ReKi)                                             :: Cl_static, Cd_static, Cm_static, Cn_static
+   real(ReKi)                                             :: St_sh, Kafactor, f_c_offset
+   real(ReKi)                                             :: Cl_static, Cd_static, Cm_static, Cn_static, Cm_alpha_nc, Cn_q_circ, Cn_q_nc, T_f, T_V
    real(ReKi)                                             :: M, alpha1, alpha2, C_nalpha, C_nalpha_circ, T_f0, T_V0, T_p, b1,b2,b5,A1,A2,A5,S1,S2,S3,S4,k1_hat,f, k2_hat
    integer                                                :: iOffset
    
@@ -1516,7 +1585,7 @@ subroutine UA_CalcOutput( u, p, xd, OtherState, AFInfo, y, ErrStat, ErrMsg )
   
    iOffset = (OtherState%iBladeNode-1)*p%NumOuts + (OtherState%iBlade-1)*p%nNodesPerBlade*p%NumOuts 
    
-   if (OtherState%FirstPass) then
+   if (OtherState%FirstPass(OtherState%iBladeNode, OtherState%iBlade)) then
       
       
       call GetSteadyOutputs(AFInfo, u%alpha, y%Cl, y%Cd, y%Cm, Cd0, ErrStat, ErrMsg)
@@ -1533,27 +1602,45 @@ subroutine UA_CalcOutput( u, p, xd, OtherState, AFInfo, y, ErrStat, ErrMsg )
       call ComputeKelvinChain( OtherState%iBladeNode, OtherState%iBlade, u, p, xd, OtherState, AFInfo, Cn_prime, Cn1, Cn2, Cd0, Cm0, k0, k1, k2, k3, T_VL, x_cp_bar, &
                                  St_sh, Kalpha, alpha_e, alpha0, dalpha0, alpha_f, eta_e, Kq, q_cur, X1, X2, X3, X4, &
                                  Kprime_alpha, Kprime_q, Dp, Cn_pot, Cc_pot, fprimeprime, Df, Df_c, Dalphaf, fprime, fprime_c, fprimeprime_c, fprimeprime_m, &
-                                 Cn_alpha_q_circ, Cm_q_circ, Cn_alpha_nc, Cm_q_nc, Cn_v, C_V, Cn_FS, ErrStat, ErrMsg )
+                                 Cn_alpha_q_circ, Cn_q_circ, Cn_q_nc, Cm_q_circ, Cn_alpha_nc, Cm_q_nc, Cn_v, C_V, Cn_FS, T_f, T_V, ErrStat, ErrMsg )
       
             
          ! Eqn 1.50(a or b depending on UAMod)
-      y%Cn= Cn_FS + Cn_v
-            
-         
+      if (xd%tau_v(OtherState%iBladeNode, OtherState%iBlade) > 0.0) then
+         y%Cn= Cn_FS + Cn_v
+      else
+         y%Cn= Cn_FS
+      end if
+      
+         ! This offset is to account for a correction for negative values of f_c which we cannot return due to a squaring of the quantity when using a lookup.
+      if (p%Flookup) then
+         f_c_offset = 0.2_ReKi
+      else
+         f_c_offset = 0.0_ReKi
+      end if
+      
       if ( p%UAMod == 3 .OR. p%UAMod == 4) then
             ! Eqn 1.52a   TODO: NOTE:  This is what is used in AD v14, so we may need a way to use this when we want to match v14 as much as possible! GJH 5/21/2015
-         y%Cc = eta_e*Cc_pot*sqrt(fprimeprime_c) + Cn_v*tan(alpha_e)*(1-xd%tau_v(OtherState%iBladeNode, OtherState%iBlade))
+        ! TODO: Look at eliminating this vortex related contribution under reversing AOA and perhaps when VRTX = F
+         Kafactor             = Kalpha*dalpha0
+         if  ( Kafactor < 0.0_ReKi ) then ! .AND.  .NOT. OtherState%VRTX(OtherState%iBladeNode, OtherState%iBlade )  )then
+            y%Cc = eta_e*Cc_pot*(sqrt(fprimeprime_c) - f_c_offset)
+         else         
+            y%Cc = eta_e*Cc_pot*(sqrt(fprimeprime_c) - f_c_offset) + Cn_v*tan(alpha_e)*(1-xd%tau_v(OtherState%iBladeNode, OtherState%iBlade))
+         end if
+         
       elseif ( p%UAMod == 2 ) then
             ! Eqn 1.52b
-         y%Cc = eta_e*Cc_pot*sqrt(fprimeprime_c) 
+         y%Cc = eta_e*Cc_pot*(sqrt(fprimeprime_c) - f_c_offset)
       else
          if ( Cn_prime <= Cn1 ) then
-            y%Cc = eta_e*Cc_pot*sqrt(fprimeprime_c) !*sin(alpha_e + alpha0)
+            y%Cc = eta_e*Cc_pot*(sqrt(fprimeprime_c) - f_c_offset) !*sin(alpha_e + alpha0)
          else
             if ( p%flookup ) then 
               ! if (p%UAMod == 1) then
               !    f      = Get_f_from_Lookup( p%UAMod, u%Re, u%alpha, alpha0, C_nalpha, AFInfo, ErrStat, ErrMsg)
               ! else   
+               ! TODO: Need to understand the effect of the offset on this f in the following equations and fprimeprime_c.
                   f      = Get_f_c_from_Lookup( u%Re, u%alpha, alpha0, C_nalpha, AFInfo, ErrStat, ErrMsg)
               ! endif
                
@@ -1578,12 +1665,12 @@ subroutine UA_CalcOutput( u, p, xd, OtherState, AFInfo, y, ErrStat, ErrMsg )
          call GetSteadyOutputs(AFInfo, alpha_f, Cl_static, Cd_static, Cm_static, Cd0, ErrStat, ErrMsg)
          Cn_static = Cl_static*cos(alpha_f) + (Cd_static-Cd0)*sin(alpha_f)
          ! TODO: What about when Cn = 0  GJH 5/22/2015
-         fprimeprime_m = Cm_static / Cn_static 
+         fprimeprime_m = (Cm_static - Cm0) / Cn_static 
       else
          fprimeprime_m = 0.0
       end if
       
-      Cm_FS = Get_Cm_FS( Cm0, k0, k1, k2, k3, Cn_alpha_q_circ, fprimeprime, Cm_q_circ, Cn_alpha_nc, Cm_q_nc, Dalphaf, alpha_f, Cn_FS, fprimeprime_m, AFInfo, p%UAMod, ErrStat, ErrMsg )
+      Cm_FS = Get_Cm_FS( Cm0, k0, k1, k2, k3, Cn_alpha_q_circ, fprimeprime, Cm_q_circ, Cn_alpha_nc, Cm_q_nc, Dalphaf, alpha_f, Cn_FS, fprimeprime_m, AFInfo, p%UAMod, Cm_alpha_nc, ErrStat, ErrMsg )
       
       y%Cm = Get_Cm( Cm_FS, T_VL, x_cp_bar, Cn_v, xd%tau_v(OtherState%iBladeNode, OtherState%iBlade) )
                   
@@ -1596,6 +1683,43 @@ subroutine UA_CalcOutput( u, p, xd, OtherState, AFInfo, y, ErrStat, ErrMsg )
       y%WriteOutput(iOffset+4) = y%Cm
       y%WriteOutput(iOffset+5) = y%Cl
       y%WriteOutput(iOffset+6) = y%Cd
+      y%WriteOutput(iOffset+7) = C_nalpha_circ*alpha_e  ! = Cn_alpha_circ
+      y%WriteOutput(iOffset+8) = Cn_alpha_nc
+      y%WriteOutput(iOffset+9) = Cn_q_circ
+      y%WriteOutput(iOffset+10) = Cn_q_nc
+      y%WriteOutput(iOffset+11) = 0.0  ! = Cm_alpha_circ  NOTE: we do not use this quantity
+      y%WriteOutput(iOffset+12) = Cm_alpha_nc
+      y%WriteOutput(iOffset+13) = Cm_q_circ
+      y%WriteOutput(iOffset+14) = Cm_q_nc
+      y%WriteOutput(iOffset+15) = alpha_e*180/pi
+      y%WriteOutput(iOffset+16) = fprime
+      y%WriteOutput(iOffset+17) = fprime_c
+      y%WriteOutput(iOffset+18) = fprimeprime
+      y%WriteOutput(iOffset+19) = fprimeprime_c
+      y%WriteOutput(iOffset+20) = fprimeprime_m
+      y%WriteOutput(iOffset+21) = T_f
+      y%WriteOutput(iOffset+22) = T_V
+      if ( OtherState%LESF(OtherState%iBladeNode, OtherState%iBlade) ) then
+         y%WriteOutput(iOffset+23) = 1.0_ReKi
+      else
+         y%WriteOutput(iOffset+23) = 0.0_ReKi
+      end if
+      
+      if ( OtherState%TESF(OtherState%iBladeNode, OtherState%iBlade) ) then
+         y%WriteOutput(iOffset+24) = 1.0_ReKi
+      else
+         y%WriteOutput(iOffset+24) = 0.0_ReKi
+      end if
+      if ( OtherState%VRTX(OtherState%iBladeNode, OtherState%iBlade) ) then
+         y%WriteOutput(iOffset+25) = 1.0_ReKi
+      else
+         y%WriteOutput(iOffset+25) = 0.0_ReKi
+      end if
+      y%WriteOutput(iOffset+26) = xd%tau_v(OtherState%iBladeNode, OtherState%iBlade)
+      y%WriteOutput(iOffset+27) = Cn_v         
+      y%WriteOutput(iOffset+28) = C_V          
+      y%WriteOutput(iOffset+29) = Cn_FS 
+      y%WriteOutput(iOffset+30) = Cm_FS
    end if
    
 end subroutine UA_CalcOutput

@@ -1,9 +1,9 @@
-------- ELASTODYN V1.01.* INPUT FILE -------------------------------------------
+------- ELASTODYN v1.03.* INPUT FILE -------------------------------------------
 NREL 5.0 MW Baseline Wind Turbine for Use in Offshore Analysis. Properties from Dutch Offshore Wind Energy Converter (DOWEC) 6MW Pre-Design (10046_009.pdf) and REpower 5M 5MW (5m_uk.pdf).
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo        - Echo input data to "<RootName>.ech" (flag)
           3   Method      - Integration method: {1: RK4, 2: AB4, or 3: ABM4} (-)
-DEFAULT       DT          - Integration time step (s)
+"DEFAULT"     DT          - Integration time step (s)
 ---------------------- ENVIRONMENTAL CONDITION ---------------------------------
     9.80665   Gravity     - Gravitational acceleration (m/s^2)
 ---------------------- DEGREES OF FREEDOM --------------------------------------
@@ -32,11 +32,11 @@ True          PtfmYDOF    - Platform yaw rotation DOF (flag)
           0   BlPitch(3)  - Blade 3 initial pitch (degrees) [unused for 2 blades]
           0   TeetDefl    - Initial or fixed teeter angle (degrees) [unused for 3 blades]
           0   Azimuth     - Initial azimuth angle for blade 1 (degrees)
-        9.0   RotSpeed    - Initial or fixed rotor speed (rpm)peed (rpm)
+          9   RotSpeed    - Initial or fixed rotor speed (rpm)
           0   NacYaw      - Initial or fixed nacelle-yaw angle (degrees)
           0   TTDspFA     - Initial fore-aft tower-top displacement (meters)
           0   TTDspSS     - Initial side-to-side tower-top displacement (meters)
-        5.0   PtfmSurge   - Initial or fixed horizontal surge translational displacement of platform (meters)
+          5   PtfmSurge   - Initial or fixed horizontal surge translational displacement of platform (meters)
           0   PtfmSway    - Initial or fixed horizontal sway translational displacement of platform (meters)
           0   PtfmHeave   - Initial or fixed vertical heave translational displacement of platform (meters)
           0   PtfmRoll    - Initial or fixed roll tilt rotational displacement of platform (degrees)
@@ -64,26 +64,27 @@ True          PtfmYDOF    - Platform yaw rotation DOF (flag)
     2.23336   NcIMUzn     - Vertical distance from the tower-top to the nacelle IMU (meters)
     1.96256   Twr2Shft    - Vertical distance from the tower-top to the rotor shaft (meters)
        87.6   TowerHt     - Height of tower above ground level [onshore] or MSL [offshore] (meters)
-       10.0   TowerBsHt   - Height of tower base above ground level [onshore] or MSL [offshore] (meters)
+         10   TowerBsHt   - Height of tower base above ground level [onshore] or MSL [offshore] (meters)
           0   PtfmCMxt    - Downwind distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
           0   PtfmCMyt    - Lateral distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
-   -8.65880   PtfmCMzt    - Vertical distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters) !FW HUIMIN, no subtraction of self inertia
+    -8.6588   PtfmCMzt    - Vertical distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
           0   PtfmRefzt   - Vertical distance from the ground level [onshore] or MSL [offshore] to the platform reference point (meters)
 ---------------------- MASS AND INERTIA ----------------------------------------
           0   TipMass(1)  - Tip-brake mass, blade 1 (kg)
           0   TipMass(2)  - Tip-brake mass, blade 2 (kg)
           0   TipMass(3)  - Tip-brake mass, blade 3 (kg) [unused for 2 blades]
-    56780.0   HubMass     - Hub mass (kg)
-   115926.0   HubIner     - Hub inertia about rotor axis [3 blades] or teeter axis [2 blades] (kg m^2)
+      56780   HubMass     - Hub mass (kg)
+     115926   HubIner     - Hub inertia about rotor axis [3 blades] or teeter axis [2 blades] (kg m^2)
     534.116   GenIner     - Generator inertia about HSS (kg m^2)
-   240000.0   NacMass     - Nacelle mass (kg)
+     240000   NacMass     - Nacelle mass (kg)
 2.60789E+06   NacYIner    - Nacelle inertia about yaw axis (kg m^2)
           0   YawBrMass   - Yaw bearing mass (kg)
-3.85218E+06   PtfmMass    - Platform mass (kg) !FW HUIMIN, no subtraction of self inertia
-2.56193E+09   PtfmRIner   - Platform inertia for roll tilt rotation about the platform CM (kg m^2) !FW HUIMIN, subtraction of H^2 self inertia term only
-2.56193E+09   PtfmPIner   - Platform inertia for pitch tilt rotation about the platform CM (kg m^2) !FW HUIMIN, subtraction of H^2 self inertia term only
-4.24265E+09   PtfmYIner   - Platfrom inertia for yaw rotation about the platform CM (kg m^2) !FW HUIMIN, subtraction of H^2 self inertia term only
+3.85218E+06   PtfmMass    - Platform mass (kg)
+2.56193E+09   PtfmRIner   - Platform inertia for roll tilt rotation about the platform CM (kg m^2)
+2.56193E+09   PtfmPIner   - Platform inertia for pitch tilt rotation about the platform CM (kg m^2)
+4.24265E+09   PtfmYIner   - Platform inertia for yaw rotation about the platform CM (kg m^2)
 ---------------------- BLADE ---------------------------------------------------
+         17   BldNodes    - Number of blade nodes (per blade) used for analysis (-)
 "NRELOffshrBsline5MW_Blade.dat"    BldFile(1)  - Name of file containing properties for blade 1 (quoted string)
 "NRELOffshrBsline5MW_Blade.dat"    BldFile(2)  - Name of file containing properties for blade 2 (quoted string)
 "NRELOffshrBsline5MW_Blade.dat"    BldFile(3)  - Name of file containing properties for blade 3 (quoted string) [unused for 2 blades]
@@ -111,50 +112,50 @@ False         Furling     - Read in additional model properties for furling turb
 True          SumPrint    - Print summary data to "<RootName>.sum" (flag)
           2   OutFile     - Switch to determine where output will be placed: {1: in module output file only; 2: in glue code output file only; 3: both} (currently unused)
 True          TabDelim    - Use tab delimiters in text tabular output file? (flag) (currently unused)
-"ES10.3E2"    OutFmt      - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string)  [not checked for validity!] (currently unused)
-        0.0   TStart      - Time to begin tabular output (s) (currently unused)
+"ES10.3E2"    OutFmt      - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string) (currently unused)
+          0   TStart      - Time to begin tabular output (s) (currently unused)
           1   DecFact     - Decimation factor for tabular output {1: output every time step} (-) (currently unused)
           1   NTwGages    - Number of tower nodes that have strain gages for output [0 to 9] (-)
          10   TwrGagNd    - List of tower nodes that have strain gages [1 to TwrNodes] (-) [unused if NTwGages=0]
           1   NBlGages    - Number of blade nodes that have strain gages for output [0 to 9] (-)
           9   BldGagNd    - List of blade nodes that have strain gages [1 to BldNodes] (-) [unused if NBlGages=0]
               OutList     - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
-Azimuth                   - Blade 1 azimuth angle
-RotSpeed                  - Low-speed shaft speed
-GenSpeed                  - High-speed shaft speed
-OoPDefl1                  - Blade 1 out-of-plane deflection
-IPDefl1                   - Blade 1 in-plane     deflection
-TwstDefl1                 - Blade 1 tip twist
-BldPitch1                 - Blade 1 pitch angle
-TTDspFA                   - Tower fore-aft     deflection
-TTDspSS                   - Tower side-to-side deflection
-TTDspTwst                 - Tower top twist
-PtfmSurge                 - Platform translational surge displacement
-PtfmSway                  - Platform translational sway  displacement
-PtfmHeave                 - Platform translational heave displacement
-PtfmRoll                  - Platform rotational roll  displacement
-PtfmPitch                 - Platform rotational pitch displacement
-PtfmYaw                   - Platform rotational yaw   displacement
-RootFxc1                  - Out-of-plane shear force at the root of blade 1
-RootFyc1                  - In-plane     shear force at the root of blade 1
-RootFzc1                  - Axial              force at the root of blade 1
-RootMxc1                  - In-plane     bending moment at the root of blade 1
-RootMyc1                  - Out-of-plane bending moment at the root of blade 1
-RootMzc1                  - Pitching             moment at the root of blade 1
-RotTorq                   - Rotor torque
-LSSGagMya                 - Low-speed shaft 0- rotating bending moments at the main bearing
-LSSGagMza                 - Low-speed shaft 90-rotating bending moments at the main bearing
-YawBrFxp                  - Fore-aft     shear force at the top of the tower (not rotating with nacelle yaw)
-YawBrFyp                  - Side-to-side shear force at the top of the tower (not rotating with nacelle yaw)
-YawBrFzp                  - Vertical           force at the top of the tower (not rotating with nacelle yaw)
-YawBrMxp                  - Side-to-side bending moment at the top of the tower (not rotating with nacelle yaw)
-YawBrMyp                  - Fore-aft     bending moment at the top of the tower (not rotating with nacelle yaw)
-YawBrMzp                  - Yaw                  moment at the top of the tower (not rotating with nacelle yaw)
-TwrBsFxt                  - Fore-aft     shear force at the base of the tower (platform)
-TwrBsFyt                  - Side-to-side shear force at the base of the tower (platform)
-TwrBsFzt                  - Vertical           force at the base of the tower (platform)
-TwrBsMxt                  - Side-to-side bending moment at the base of the tower (platform)
-TwrBsMyt                  - Fore-aft     bending moment at the base of the tower (platform)
-TwrBsMzt                  - Yaw                  moment at the base of the tower (platform)
+"Azimuth"                 - Blade 1 azimuth angle
+"RotSpeed"                - Low-speed shaft speed
+"GenSpeed"                - High-speed shaft speed
+"OoPDefl1"                - Blade 1 out-of-plane deflection
+"IPDefl1"                 - Blade 1 in-plane     deflection
+"TwstDefl1"               - Blade 1 tip twist
+"BldPitch1"               - Blade 1 pitch angle
+"TTDspFA"                 - Tower fore-aft     deflection
+"TTDspSS"                 - Tower side-to-side deflection
+"TTDspTwst"               - Tower top twist
+"PtfmSurge"               - Platform translational surge displacement
+"PtfmSway"                - Platform translational sway  displacement
+"PtfmHeave"               - Platform translational heave displacement
+"PtfmRoll"                - Platform rotational roll  displacement
+"PtfmPitch"               - Platform rotational pitch displacement
+"PtfmYaw"                 - Platform rotational yaw   displacement
+"RootFxc1"                - Out-of-plane shear force at the root of blade 1
+"RootFyc1"                - In-plane     shear force at the root of blade 1
+"RootFzc1"                - Axial              force at the root of blade 1
+"RootMxc1"                - In-plane     bending moment at the root of blade 1
+"RootMyc1"                - Out-of-plane bending moment at the root of blade 1
+"RootMzc1"                - Pitching             moment at the root of blade 1
+"RotTorq"                 - Rotor torque
+"LSSGagMya"               - Low-speed shaft 0- rotating bending moments at the main bearing
+"LSSGagMza"               - Low-speed shaft 90-rotating bending moments at the main bearing
+"YawBrFxp"                - Fore-aft     shear force at the top of the tower (not rotating with nacelle yaw)
+"YawBrFyp"                - Side-to-side shear force at the top of the tower (not rotating with nacelle yaw)
+"YawBrFzp"                - Vertical           force at the top of the tower (not rotating with nacelle yaw)
+"YawBrMxp"                - Side-to-side bending moment at the top of the tower (not rotating with nacelle yaw)
+"YawBrMyp"                - Fore-aft     bending moment at the top of the tower (not rotating with nacelle yaw)
+"YawBrMzp"                - Yaw                  moment at the top of the tower (not rotating with nacelle yaw)
+"TwrBsFxt"                - Fore-aft     shear force at the base of the tower (platform)
+"TwrBsFyt"                - Side-to-side shear force at the base of the tower (platform)
+"TwrBsFzt"                - Vertical           force at the base of the tower (platform)
+"TwrBsMxt"                - Side-to-side bending moment at the base of the tower (platform)
+"TwrBsMyt"                - Fore-aft     bending moment at the base of the tower (platform)
+"TwrBsMzt"                - Yaw                  moment at the base of the tower (platform)
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------

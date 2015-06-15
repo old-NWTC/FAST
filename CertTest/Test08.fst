@@ -1,4 +1,4 @@
-------- FAST v8.11.* INPUT FILE ------------------------------------------------
+------- FAST v8.12.* INPUT FILE ------------------------------------------------
 FAST Certification Test #08: AOC 15/50 with many DOFs with fixed yaw error and steady wind. Many parameters are pure fiction.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
@@ -12,7 +12,7 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
 ---------------------- FEATURE SWITCHES AND FLAGS ------------------------------
           1   CompElast       - Compute structural dynamics (switch) {1=ElastoDyn; 2=ElastoDyn + BeamDyn for blades}
           1   CompInflow      - Compute inflow wind velocities (switch) {0=still air; 1=InflowWind}
-          1   CompAero        - Compute aerodynamic loads (switch) {0=None; 1=AeroDyn}
+          1   CompAero        - Compute aerodynamic loads (switch) {0=None; 1=AeroDyn v14; 2=AeroDyn v15}
           1   CompServo       - Compute control and electrical-drive dynamics (switch) {0=None; 1=ServoDyn}
           0   CompHydro       - Compute hydrodynamic loads (switch) {0=None; 1=HydroDyn}
           0   CompSub         - Compute sub-structural dynamics (switch) {0=None; 1=SubDyn}

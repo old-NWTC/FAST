@@ -31,17 +31,12 @@ MODULE BeamDyn
    PUBLIC :: BD_End                            ! Ending routine (includes clean up)
    PUBLIC :: BD_UpdateStates                   ! Loose coupling routine for solving for constraint states, integrating
    PUBLIC :: BD_CalcOutput                     ! Routine for computing outputs
-!   PUBLIC :: BD_CalcOutput_Coupling                     ! Routine for computing outputs
    PUBLIC :: BD_CalcConstrStateResidual        ! Tight coupling routine for returning the constraint state residual
-!   PUBLIC :: BD_CalcContStateDeriv             ! Tight coupling routine for computing derivatives of continuous states
    PUBLIC :: BD_UpdateDiscState                ! Tight coupling routine for updating discrete states
    PUBLIC :: BD_CrvMatrixR                ! Tight coupling routine for updating discrete states
    PUBLIC :: BD_CrvCompose                ! Tight coupling routine for updating discrete states
-!   PUBLIC :: CrvMatrixH                ! Tight coupling routine for updating discrete states
-!   PUBLIC :: CrvMatrixB                ! Tight coupling routine for updating discrete states
    PUBLIC :: BD_CrvExtractCrv                ! Tight coupling routine for updating discrete states
    PUBLIC :: BD_Tilde
-   PUBLIC :: BD_Norm
    PUBLIC :: ludcmp
    PUBLIC :: lubksb
    PUBLIC :: BD_MotionTensor
@@ -116,7 +111,6 @@ SUBROUTINE BD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    ErrStat = ErrID_None
    ErrMsg  = ""
 
-
    ! Initialize the NWTC Subroutine Library
 
    CALL NWTC_Init( )
@@ -125,31 +119,38 @@ SUBROUTINE BD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
 
    CALL DispNVD( BeamDyn_Ver )
 
-   CALL BD_ReadInput(InitInp%InputFile,InputFileData,InitInp%RootName,ErrStat,ErrMsg)
+   CALL BD_ReadInput(InitInp%InputFile,InputFileData,InitInp%RootName,Interval,ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      IF( ErrStat >= AbortErrLev ) RETURN
+   CALL BD_ValidateInputData( InputFileData, ErrStat2, ErrMsg2 )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      IF( ErrStat >= AbortErrLev ) RETURN
+
+
    p%analysis_type  = InputFileData%analysis_type
-   p%time_flag  = InputFileData%time_integrator
    p%damp_flag  = InputFileData%InpBl%damp_flag
    CALL AllocAry(p%beta,6,'Damping coefficient',ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    p%beta(:)  = InputFileData%InpBl%beta(:)
 
    CALL AllocAry(p%gravity,3,'Gravity vector',ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    p%gravity(:) = 0.0D0
-   p%gravity(1) = InitInp%gravity(3)
-   p%gravity(2) = InitInp%gravity(1)
-   p%gravity(3) = InitInp%gravity(2)
+   p%gravity(:) = MATMUL(TRANSPOSE(InitInp%GlbRot),InitInp%gravity(:))
 
-   CALL BD_CrvExtractCrv(InitInp%GlbRot,temp_glbrot)
+   CALL BD_CrvExtractCrv(InitInp%GlbRot,temp_glbrot,ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL AllocAry(p%GlbPos,3,'Global position vector',ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL AllocAry(p%GlbRot,3,3,'Global rotation tensor',ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    p%GlbPos(:) = 0.0D0
    p%GlbRot(:,:) = 0.0D0
    p%GlbPos(1:3) = InitInp%GlbPos(1:3)
    p%GlbRot(1:3,1:3) = InitInp%GlbRot(1:3,1:3)
-   ! Hardwire value for initial position vector
-!   temp_glbrot(:) = 0.0D0
-!   temp_glbrot(3) = 4.0D0*TAN((3.1415926D0/2.0D0)/4.0D0)
 
    CALL AllocAry(SP_Coef,InputFileData%kp_total-1,4,4,'Spline coefficient matrix',ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    SP_Coef(:,:,:) = 0.0D0
 
    temp_id = 0
@@ -419,15 +420,6 @@ SUBROUTINE BD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
                    ,ErrStat          = ErrStat            &
                    ,ErrMess          = ErrMsg             )
 
-   CALL MeshCreate( BlankMesh        = y%ReactionForce  &
-                   ,IOS              = COMPONENT_OUTPUT &
-                   ,NNodes           = 1                &
-                   ,Force            = .TRUE.           &
-                   ,Moment           = .TRUE.           &
-                   ,nScalars        = 0                 &
-                   ,ErrStat         = ErrStat           &
-                   ,ErrMess         = ErrMsg            )
-
    CALL MeshConstructElement ( Mesh = u%RootMotion            &
                              , Xelement = ELEMENT_POINT      &
                              , P1       = 1                  &
@@ -470,11 +462,6 @@ SUBROUTINE BD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
                          , ErrStat   = ErrStat      &
                          , ErrMess   = ErrMsg       )
 
-   CALL MeshPositionNode ( Mesh = y%ReactionForce   &
-                         , INode = 1                &
-                         , Pos = TmpPos             &
-                         , ErrStat   = ErrStat      &
-                         , ErrMess   = ErrMsg       )
 
    DO i=1,p%elem_total
        DO j=1,p%node_elem
@@ -524,10 +511,20 @@ SUBROUTINE BD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    CALL MeshCopy ( SrcMesh  = u%PointLoad      &
                  , DestMesh = y%BldForce       &
                  , CtrlCode = MESH_SIBLING     &
+                 , IOS      = COMPONENT_OUTPUT &
                  , Force           = .TRUE.    &
                  , Moment          = .TRUE.    &
                  , ErrStat  = ErrStat          &
                  , ErrMess  = ErrMsg           )
+   CALL MeshCopy( SrcMesh   = u%RootMotion     &
+                 , DestMesh = y%ReactionForce  &
+                 , CtrlCode = MESH_SIBLING     &
+                 , IOS      = COMPONENT_OUTPUT &
+                 , Force           = .TRUE.    &
+                 , Moment          = .TRUE.    &
+                 , ErrStat  = ErrStat          &
+                 , ErrMess  = ErrMsg           )
+   
    CALL MeshCommit ( Mesh    = y%ReactionForce &
                     ,ErrStat = ErrStat         &
                     ,ErrMess = ErrMsg          )
@@ -551,7 +548,6 @@ SUBROUTINE BD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    u%RootMotion%Orientation(1:3,1:3,1) = InitInp%RootOri(1:3,1:3)
    u%RootMotion%TranslationVel(1:3,1) = InitInp%RootVel(1:3)
    u%RootMotion%RotationVel(1:3,1)   = InitInp%RootVel(4:6)
-
 
    DO i=1,u%PointLoad%ElemTable(ELEMENT_POINT)%nelem
        j = u%PointLoad%ElemTable(ELEMENT_POINT)%Elements(i)%ElemNodes(1)
@@ -747,7 +743,7 @@ end subroutine SetInitOut
    REAL(DbKi),                   INTENT(IN   )  :: t           ! Current simulation time in seconds
    TYPE(BD_InputType),           INTENT(INOUT)  :: u           ! Inputs at t
    TYPE(BD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-   TYPE(BD_ContinuousStateType), INTENT(INOUT)  :: x           ! Continuous states at t
+   TYPE(BD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at t
    TYPE(BD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at t
    TYPE(BD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at t
    TYPE(BD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
@@ -781,7 +777,6 @@ end subroutine SetInitOut
    CALL BD_CopyOtherState(OtherState, OS_tmp, MESH_NEWCOPY, ErrStat, ErrMsg)
    CALL BD_CopyInput(u, u_tmp, MESH_NEWCOPY, ErrStat, ErrMsg)
 
-   CALL BD_MotionTensor(p%GlbRot,p%GlbPos,MoTens,0)
    DO i=1,p%elem_total
        DO j=1,p%node_elem
            temp_id = ((i-1)*(p%node_elem-1)+j-1)*p%dof_node
@@ -796,31 +791,15 @@ end subroutine SetInitOut
            y%BldMotion%Orientation(1:3,1:3,temp_id2) = temp_R(1:3,1:3)
 
            temp_id = ((i-1)*(p%node_elem-1)+j-1)*p%dof_node
-           temp6(:) = 0.0D0
-           temp6(1:3) = x%dqdt(temp_id+1:temp_id+3)
-           temp6(4:6) = x%dqdt(temp_id+4:temp_id+6)
-           temp6(:) = MATMUL(MoTens,temp6)
-           y%BldMotion%TranslationVel(1:3,temp_id2) = temp6(1:3)
-           y%BldMotion%RotationVel(1:3,temp_id2) = temp6(4:6)
+           y%BldMotion%TranslationVel(1:3,temp_id2) = MATMUL(p%GlbRot,x%dqdt(temp_id+1:temp_id+3))
+           y%BldMotion%RotationVel(1:3,temp_id2) = MATMUL(p%GlbRot,x%dqdt(temp_id+4:temp_id+6))
        ENDDO
    ENDDO
 
    CALL BD_InputGlobalLocal(p,u_tmp,0)
    CALL BD_BoundaryGA2(x_tmp,p,u_tmp,t,OS_tmp,ErrStat,ErrMsg)
    IF(p%analysis_type .EQ. 2) THEN
-!WRITE(*,*) 'u_tmp%a'
-!WRITE(*,*) u_tmp%RootMotion%TranslationDisp(:,1)
-!WRITE(*,*) u_tmp%RootMotion%Orientation(:,:,1)
-!WRITE(*,*) u_tmp%RootMotion%TranslationVel(:,1)
-!WRITE(*,*) u_tmp%RootMotion%RotationVel(:,1)
-!WRITE(*,*) u_tmp%RootMotion%TranslationAcc(:,1)
-!WRITE(*,*) u_tmp%RootMotion%RotationAcc(:,1)
-!WRITE(*,*) u_tmp%PointLoad%Force(:,:)
-!WRITE(*,*) u_tmp%PointLoad%Moment(:,:)
-!       CALL BD_CalcAcc(u_tmp,p,x_tmp,OS_tmp)
        CALL BD_CalcForceAcc(u_tmp,p,x_tmp,OS_tmp)
-!WRITE(*,*) 'OS_tmp'
-!WRITE(*,*) OS_tmp%Acc(:)
        DO i=1,p%elem_total
            DO j=1,p%node_elem
                temp_id = ((i-1)*(p%node_elem-1)+j-1)*p%dof_node
@@ -834,9 +813,8 @@ end subroutine SetInitOut
                    temp6(1:3) = OS_tmp%Acc(temp_id+1:temp_id+3)
                    temp6(4:6) = OS_tmp%Acc(temp_id+4:temp_id+6)
                ENDIF
-                   temp6(:) = MATMUL(MoTens,temp6)
-                   y%BldMotion%TranslationAcc(1:3,temp_id2) = temp6(1:3)
-                   y%BldMotion%RotationAcc(1:3,temp_id2) = temp6(4:6)
+                   y%BldMotion%TranslationAcc(1:3,temp_id2) = MATMUL(p%GlbRot,temp6(1:3))
+                   y%BldMotion%RotationAcc(1:3,temp_id2) = MATMUL(p%GlbRot,temp6(4:6))
            ENDDO
        ENDDO
        CALL BD_DynamicSolutionForce(p%uuN0,x_tmp%q,x_tmp%dqdt,OS_tmp%Acc,                              &
@@ -850,28 +828,20 @@ end subroutine SetInitOut
                                     temp_Force)
    ENDIF
 
-   CALL BD_MotionTensor(p%GlbRot,p%GlbPos,MoTens,1)
    temp6(:) = 0.0D0
    IF(p%analysis_type .EQ. 2) THEN
-!       temp6(:) = temp_ReactionForce(1:6)
        temp6(1:6) = -OS_tmp%Acc(1:6)
-       temp6(:) = MATMUL(TRANSPOSE(MoTens),temp6)
-       y%ReactionForce%Force(1:3,1) = temp6(1:3)
-       y%ReactionForce%Moment(1:3,1) = temp6(4:6)
+       y%ReactionForce%Force(1:3,1) = MATMUL(p%GlbRot,temp6(1:3))
+       y%ReactionForce%Moment(1:3,1) = MATMUL(p%GlbRot,temp6(4:6))
    ENDIF
    DO i=1,p%node_total
        temp_id = (i-1)*p%dof_node
        temp6(:) = 0.0D0
        temp6(:) = temp_Force(temp_id+1:temp_id+6)
-       temp6(:) = MATMUL(TRANSPOSE(MoTens),temp6)
-       y%BldForce%Force(1:3,i) = temp6(1:3)
-       y%BldForce%Moment(1:3,i) = temp6(4:6)
+       y%BldForce%Force(1:3,i) = MATMUL(p%GlbRot,temp6(1:3))
+       y%BldForce%Moment(1:3,i) = MATMUL(p%GlbRot,temp6(4:6))
    ENDDO
 
-!   CALL BD_CopyOtherState(OS_tmp, OtherState, MESH_NEWCOPY, ErrStat, ErrMsg)
-!   OtherState%Acc(1:3) = u_tmp%RootMotion%TranslationAcc(1:3,1)
-!   OtherState%Acc(4:6) = u_tmp%RootMotion%RotationAcc(1:3,1)
-!   OtherState%Xcc(:) = OtherState%Acc(:)
 
    CALL BD_DestroyInput(u_tmp, ErrStat, ErrMsg)
    CALL BD_DestroyContState(x_tmp, ErrStat, ErrMsg )
@@ -1712,7 +1682,7 @@ END SUBROUTINE BD_UpdateDiscState
        Wrk(i) = RR0(i,1)
    ENDDO
    Wrk33 = 0.0D0
-   Wrk33 = BD_OuterProduct(Wrk,Wrk)
+   Wrk33 = OuterProduct(Wrk,Wrk)
    C12 = C12 + cet*k1s*Wrk33
    C21 = C21 + cet*k1s*Wrk33
    C22 = C22 + cet*e1s*Wrk33
@@ -2942,12 +2912,6 @@ END SUBROUTINE ludcmp
        Stif(:,:) = 0.0D0
        Stif(1:6,1:6) = EStif0_GL(1:6,1:6,igp)
        CALL BD_GaussPointData(hhx,hpx,Nuuu,Nrrr,uu0,E10,node_elem,dof_node,uuu,uup,E1,RR0,kapa,Stif,cet)
-!WRITE(*,*) 'uuu'
-!WRITE(*,*) uuu
-!WRITE(*,*) 'E1'
-!WRITE(*,*) E1
-!WRITE(*,*) 'kapa'
-!WRITE(*,*) kapa
        mmm  = 0.0D0
        mEta = 0.0D0
        rho  = 0.0D0
@@ -2957,12 +2921,6 @@ END SUBROUTINE ludcmp
        rho(1:3,1:3) = EMass0_GL(4:6,4:6,igp)
        CALL BD_GaussPointDataMass(hhx,hpx,Nvvv,Naaa,RR0,node_elem,dof_node,vvv,aaa,vvp,mmm,mEta,rho)
        CALL BD_ElasticForce(E1,RR0,kapa,Stif,cet,Fc,Fd,Oe,Pe,Qe)
-!WRITE(*,*) 'Fc'
-!WRITE(*,*) Fc
-!WRITE(*,*) 'Fd'
-!WRITE(*,*) Fd
-!WRITE(*,*) 'aaa'
-!WRITE(*,*) aaa
        IF(damp_flag .EQ. 1) THEN
            CALL BD_DissipativeForce(beta,Stif,vvv,vvp,E1,Fc,Fd,Sd,Od,Pd,Qd,betaC,Gd,Xd,Yd)
        ENDIF
@@ -2971,12 +2929,6 @@ END SUBROUTINE ludcmp
        CALL BD_GravityForce(mmm,mEta,gravity,Fg)
        Fg(:) = Fg(:) + DistrLoad_GL(:,igp)
 
-!WRITE(*,*) 'Fi'
-!WRITE(*,*) Fi
-!WRITE(*,*) 'Fb'
-!WRITE(*,*) Fb
-!WRITE(*,*) 'Fg'
-!WRITE(*,*) Fg
        DO i=1,node_elem
            DO j=1,dof_node
                temp_id1 = (i-1) * dof_node+j
@@ -3009,11 +2961,12 @@ END SUBROUTINE ludcmp
 
    END SUBROUTINE BD_ComputeReactionForce
 
-   SUBROUTINE BD_ReadInput(InputFileName,InputFileData,OutFileRoot,ErrStat,ErrMsg)
+   SUBROUTINE BD_ReadInput(InputFileName,InputFileData,OutFileRoot, Default_DT,ErrStat,ErrMsg)
 
    ! Passed Variables:
    CHARACTER(*),                 INTENT(IN   )  :: InputFileName    ! Name of the input file
    CHARACTER(*),                 INTENT(IN   )  :: OutFileRoot     ! Name of the input file
+   REAL(DbKi),                   INTENT(IN   )    :: Default_DT      ! The default DT (from glue code)
    TYPE(BD_InputFile),           INTENT(  OUT)  :: InputFileData    ! Data stored in the module's input file
    INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat          ! The error status code
    CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg           ! The error message, if an error occurred
@@ -3026,6 +2979,7 @@ END SUBROUTINE ludcmp
    INTEGER(IntKi)                               :: UnEcho
    INTEGER(IntKi)                               :: ErrStat2
    CHARACTER(LEN(ErrMsg))                       :: ErrMsg2
+   character(*), parameter                      :: RoutineName = 'BD_ReadInput'
    CHARACTER(1024)                              :: BldFile ! File that contains the blade information (specified in the primary input file)
 
    INTEGER(IntKi)     :: i
@@ -3033,8 +2987,13 @@ END SUBROUTINE ludcmp
    ErrStat = ErrID_None
    ErrMsg = ''
 
+   InputFileData%DTBeam = Default_DT
    CALL BD_ReadPrimaryFile(InputFileName,InputFileData,OutFileRoot,UnEcho,ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
    CALL BD_ReadBladeFile(InputFileData%BldFile,InputFileData%InpBl,UnEcho,ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+
+   IF(ErrStat >= AbortErrLev) RETURN
 
    END SUBROUTINE BD_ReadInput
 
@@ -3063,9 +3022,12 @@ END SUBROUTINE ludcmp
    INTEGER(IntKi)               :: UnIn                         ! Unit number for reading file
    INTEGER(IntKi)               :: ErrStat2                     ! Temporary Error status
    LOGICAL                      :: Echo                         ! Determines if an echo file should be written
+   INTEGER(IntKi)               :: IOS                     ! Temporary Error status
    CHARACTER(LEN(ErrMsg))       :: ErrMsg2                      ! Temporary Error message
+   character(*), parameter      :: RoutineName = 'BD_ReadPrimaryFile'
    CHARACTER(1024)              :: PriPath                      ! Path name of the primary file
    CHARACTER(1024)              :: FTitle              ! "File Title": the 2nd line of the input file, which contains a description of its contents
+   CHARACTER(200)               :: Line             ! Temporary storage of a line from the input
    CHARACTER(1024)              :: BldFile
 
    INTEGER(IntKi)               :: i
@@ -3077,47 +3039,87 @@ END SUBROUTINE ludcmp
    ErrMsg  = ""
    Echo = .FALSE.
    UnEc = -1
+   CALL GetPath( InputFile, PriPath )     ! Input files will be relative to the path where the primary input file is located.
 
-   CALL GetNewUnit(UnIn,ErrStat,ErrMsg)
+   CALL GetNewUnit(UnIn,ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL OpenFInpFile(UnIn,InputFile,ErrStat2,ErrMsg2)
-
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      IF (ErrStat >= AbortErrLev) RETURN
+      
    !-------------------------- HEADER ---------------------------------------------
    CALL ReadCom(UnIn,InputFile,'File Header: Module Version (line 1)',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL ReadStr(UnIn,InputFile,FTitle,'FTitle','File Header: File Description (line 2)',ErrStat2, ErrMsg2, UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
    !---------------------- SIMULATION CONTROL --------------------------------------
    CALL ReadCom(UnIn,InputFile,'Section Header: Simulation Control',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL ReadVar(UnIn,InputFile,Echo,'Echo','Echo switch',ErrStat2,ErrMsg2,UnEc)
-   IF(Echo) THEN
-       CALL OpenEcho(UnEc,OutFileRoot//'.ech',ErrStat2,ErrMsg2)
-   ENDIF
-   IF ( UnEc > 0 )  WRITE(UnEc,*)  'test'
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+!   IF(Echo) THEN
+!       CALL OpenEcho(UnEc,OutFileRoot//'.ech',ErrStat2,ErrMsg2)
+!          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+!   ENDIF
+!   IF ( UnEc > 0 )  WRITE(UnEc,*)  'test'
    CALL ReadVar(UnIn,InputFile,InputFileData%analysis_type,"analysis_type", "Analysis type",ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL ReadVar(UnIn,InputFile,InputFileData%rhoinf,"rhoinf", "Coefficient for GA2",ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+   Line = ""
+   CALL ReadVar( UnIn, InputFile, Line, "DTBeam", "Time interval for BeamDyn  calculations {or default} (s)", ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      CALL Conv2UC( Line )
+      IF ( INDEX(Line, "DEFAULT" ) /= 1 ) THEN ! If it's not "default", read this variable; otherwise use the value already stored in InputFileData%DTBeam
+         READ( Line, *, IOSTAT=IOS) InputFileData%DTBeam
+            CALL CheckIOS ( IOS, InputFile, 'DTBeam', NumType, ErrStat2, ErrMsg2 )
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      END IF
+   Line = ""
+   CALL ReadVar( UnIn, InputFile, Line, "NRMax", "Max number of interations in Newton-Ralphson algorithm", ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      CALL Conv2UC( Line )
+      IF ( INDEX(Line, "DEFAULT" ) .EQ. 1) THEN
+          InputFileData%NRMax = 10
+      ELSE ! If it's not "default", read this variable; otherwise use the value already stored in InputFileData%DTBeam
+         READ( Line, *, IOSTAT=IOS) InputFileData%NRMax
+            CALL CheckIOS ( IOS, InputFile, 'NRMax', NumType, ErrStat2, ErrMsg2 )
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      END IF
+   Line = ""
+   CALL ReadVar( UnIn, InputFile, Line, "stop_tol", "Tolerance for stopping criterion", ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      CALL Conv2UC( Line )
+      IF ( INDEX(Line, "DEFAULT" ) .EQ. 1) THEN
+          InputFileData%stop_tol = 1.0D-05
+      ELSE ! If it's not "default", read this variable; otherwise use the value already stored in InputFileData%DTBeam
+         READ( Line, *, IOSTAT=IOS) InputFileData%stop_tol
+            CALL CheckIOS ( IOS, InputFile, 'stop_tol', NumType, ErrStat2, ErrMsg2 )
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      END IF
 
    !---------------------- GEOMETRY PARAMETER --------------------------------------
    CALL ReadCom(UnIn,InputFile,'Section Header: Geometry Parameter',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL ReadVar(UnIn,InputFile,InputFileData%member_total,"member_total", "Total number of member",ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL ReadVar(UnIn,InputFile,InputFileData%kp_total,"kp_total", "Total number of key point",ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL AllocAry(InputFileData%kp_member,InputFileData%member_total,'Number of key point in each member',ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    InputFileData%kp_member(:) = 0
    CALL AllocAry(InputFileData%kp_coordinate,InputFileData%kp_total,4,'Key point coordinates input array',ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    InputFileData%kp_coordinate(:,:) = 0.0D0
    temp_int = 0
    DO i=1,InputFileData%member_total
        READ(UnIn,*) j,InputFileData%kp_member(j)
-       IF(InputFileData%kp_member(j) .LT. 3) THEN
-!           CALL SetErrors(ErrID_Fatal,TRIM(Num2LStr(j))//'th member has less than 3 key points.')
-           STOP
-       ENDIF
-       temp_int = temp_int + InputFileData%kp_member(j)
    ENDDO
-   IF( temp_int .NE. InputFileData%kp_total+InputFileData%member_total-1) THEN
-!       CALL SetErrors(ErrID_Fatal,'Error in input file: definition of key points and members')
-       STOP
-   ENDIF
    CALL ReadCom(UnIn,InputFile,'key point x,y,z locations and initial twist angles',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL ReadCom(UnIn,InputFile,'key point and initial twist units',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    DO i=1,InputFileData%kp_total
        READ(UnIn,*) InputFileData%kp_coordinate(i,2),InputFileData%kp_coordinate(i,3),&
                     InputFileData%kp_coordinate(i,1),InputFileData%kp_coordinate(i,4)
@@ -3130,11 +3132,16 @@ END SUBROUTINE ludcmp
    InputFileData%kp_coordinate(:,4) = -InputFileData%kp_coordinate(:,4)
    !---------------------- MESH PARAMETER -----------------------------------------
    CALL ReadCom(UnIn,InputFile,'Section Header: Mesh Parameter',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL ReadVar(UnIn,InputFile,InputFileData%order_elem,"order_elem","Order of basis function",&
                 ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    !---------------------- BEAM SECTIONAL PARAMETER ----------------------------------------
    CALL ReadCom(UnIn,InputFile,'Section Header: Blade Parameter',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL ReadVar ( UnIn, InputFile, InputFileData%BldFile, 'MatFile', 'Name of the file containing properties for beam', ErrStat2, ErrMsg2, UnEc )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      IF ( PathIsRelative( InputFileData%BldFile ) ) InputFileData%BldFile = TRIM(PriPath)//TRIM(InputFileData%BldFile)
 
    END SUBROUTINE BD_ReadPrimaryFile
 
@@ -3151,60 +3158,157 @@ END SUBROUTINE ludcmp
    INTEGER(IntKi)             :: UnIn                                            ! Unit number for reading file
    INTEGER(IntKi)             :: ErrStat2                                        ! Temporary Error status
    CHARACTER(LEN(ErrMsg))     :: ErrMsg2                                         ! Temporary Err msg
-   REAL(ReKi)                 :: temp_xm2
-   REAL(ReKi)                 :: temp_xm3
-   REAL(ReKi)                 :: temp_mass(5)
-   REAL(ReKi)                 :: temp_bend(6)
-   REAL(ReKi)                 :: temp_sher(6)
-   REAL(ReKi)                 :: temp_edg
-   REAL(ReKi)                 :: temp_flp
-   REAL(ReKi)                 :: temp_crs
+   character(*), parameter    :: RoutineName = 'BD_ReadBladeFile'
+   REAL(ReKi)                 :: temp66(6,6)
    INTEGER(IntKi)             :: i
    INTEGER(IntKi)             :: j
 
-   CALL GetNewUnit(UnIn,ErrStat,ErrMsg)
+   ErrStat = ErrID_None
+   ErrMsg  = ""
 
+   CALL GetNewUnit(UnIn,ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL OpenFInpFile (UnIn,BldFile,ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
    !  -------------- HEADER -------------------------------------------------------
    ! Skip the header.
    CALL ReadCom(UnIn,BldFile,'unused beam file header line 1',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL ReadCom(UnIn,BldFile,'unused beam file header line 2',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
    !  -------------- BLADE PARAMETER-----------------------------------------------
    CALL ReadCom(UnIn,BldFile,'beam parameters',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
    CALL ReadVar(UnIn,BldFile,BladeInputFileData%station_total,'station_total','Number of blade input stations',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
    CALL AllocAry(BladeInputFileData%stiff0,6,6,BladeInputFileData%station_total,'Cross-sectional 6 by 6 stiffness matrix',ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    BladeInputFileData%stiff0(:,:,:) = 0.0D0
    CALL AllocAry(BladeInputFileData%mass0,6,6,BladeInputFileData%station_total,'Cross-sectional 6 by 6 mass matrix',ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    BladeInputFileData%mass0(:,:,:) = 0.0D0
    CALL AllocAry(BladeInputFileData%station_eta,BladeInputFileData%station_total,'Station eta array',ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    BladeInputFileData%station_eta(:) = 0.0D0
-
    CALL ReadVar(UnIn,BldFile,BladeInputFileData%damp_flag,'damp_flag','Damping flag',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    !  -------------- DAMPING PARAMETER-----------------------------------------------
    CALL ReadCom(UnIn,BldFile,'damping parameters',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL ReadCom(UnIn,BldFile,'mu1 to mu6',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL ReadCom(UnIn,BldFile,'units',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL AllocAry(BladeInputFileData%beta,6,'Number of damping coefficient',ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL ReadAry(UnIn,BldFile,BladeInputFileData%beta(:),6,'damping coefficient','damping coefficient',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 !  -------------- DISTRIBUTED PROPERTIES--------------------------------------------
    CALL ReadCom(UnIn,BldFile,'Distributed properties',ErrStat2,ErrMsg2,UnEc)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    DO i=1,BladeInputFileData%station_total
        READ(UnIn,*) BladeInputFileData%station_eta(i)
        DO j=1,6
            CALL ReadAry(UnIn,BldFile,BladeInputFileData%stiff0(j,:,i),6,'siffness_matrix',&
                    'Blade C/S stiffness matrix',ErrStat2,ErrMsg2,UnEc)
+              CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
        ENDDO
+!       temp66(:,:) = 0.0D0
+!       temp66(:,:) = BladeInputFileData%stiff0(:,:,i)
+!       DO j=1,6
+!           BladeInputFileData%stiff0(j,1,i) = temp66(j,3)
+!           BladeInputFileData%stiff0(j,2,i) = temp66(j,1)
+!           BladeInputFileData%stiff0(j,3,i) = temp66(j,2)
+!           BladeInputFileData%stiff0(j,4,i) = temp66(j,6)
+!           BladeInputFileData%stiff0(j,5,i) = temp66(j,4)
+!           BladeInputFileData%stiff0(j,6,i) = temp66(j,5)
+!       ENDDO
+!       temp66(:,:) = 0.0D0
+!       temp66(:,:) = BladeInputFileData%stiff0(:,:,i)
+!       BladeInputFileData%stiff0(1,:,i) = temp66(3,:)
+!       BladeInputFileData%stiff0(2,:,i) = temp66(1,:)
+!       BladeInputFileData%stiff0(3,:,i) = temp66(2,:)
+!       BladeInputFileData%stiff0(4,:,i) = temp66(6,:)
+!       BladeInputFileData%stiff0(5,:,i) = temp66(4,:)
+!       BladeInputFileData%stiff0(6,:,i) = temp66(5,:)
        DO j=1,6
            CALL ReadAry(UnIn,BldFile,BladeInputFileData%mass0(j,:,i),6,'mass_matrix',&
                    'Blade C/S mass matrix',ErrStat2,ErrMsg2,UnEc)
+              CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
        ENDDO
+!       temp66(:,:) = 0.0D0
+!       temp66(:,:) = BladeInputFileData%mass0(:,:,i)
+!       DO j=1,6
+!           BladeInputFileData%mass0(j,1,i) = temp66(j,3)
+!           BladeInputFileData%mass0(j,2,i) = temp66(j,1)
+!           BladeInputFileData%mass0(j,3,i) = temp66(j,2)
+!           BladeInputFileData%mass0(j,4,i) = temp66(j,6)
+!           BladeInputFileData%mass0(j,5,i) = temp66(j,4)
+!           BladeInputFileData%mass0(j,6,i) = temp66(j,5)
+!       ENDDO
+!       temp66(:,:) = 0.0D0
+!       temp66(:,:) = BladeInputFileData%mass0(:,:,i)
+!       BladeInputFileData%mass0(1,:,i) = temp66(3,:)
+!       BladeInputFileData%mass0(2,:,i) = temp66(1,:)
+!       BladeInputFileData%mass0(3,:,i) = temp66(2,:)
+!       BladeInputFileData%mass0(4,:,i) = temp66(6,:)
+!       BladeInputFileData%mass0(5,:,i) = temp66(4,:)
+!       BladeInputFileData%mass0(6,:,i) = temp66(5,:)
    ENDDO
 
    END SUBROUTINE BD_ReadBladeFile
+
+SUBROUTINE BD_ValidateInputData( InputFileData, ErrStat, ErrMsg )
+! This routine validates the inputs from the BeamDyn input files.
+!..................................................................................................................................
+      
+      ! Passed variables:
+
+   TYPE(BD_InputFile),   INTENT(IN   ):: InputFileData                       ! All the data in the BeamDyn input file
+   INTEGER(IntKi),       INTENT(  OUT):: ErrStat                             ! Error status
+   CHARACTER(*),         INTENT(  OUT):: ErrMsg                              ! Error message
+
+   
+      ! local variables
+   INTEGER(IntKi)                     :: i                                   ! Blade number
+   CHARACTER(*), PARAMETER            :: RoutineName = 'BD_ValidateInputData'
+   
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+         
+   IF(InputFileData%analysis_type .NE. 1 .AND. InputFileData%analysis_type .NE. 2) &
+       CALL SetErrStat ( ErrID_Fatal, 'Analysis type must be 1 (static) or 2 (dynamic)', ErrStat, ErrMsg, RoutineName )
+   IF(InputFileData%rhoinf .LT. 0.0 .OR. InputFileData%rhoinf .GT. 1.0) &
+       CALL SetErrStat ( ErrID_Fatal, 'Numerical damping parameter \rho_{inf} must be in the range of [0.0,1.0]', ErrStat, ErrMsg, RoutineName )
+   IF(InputFileData%member_total .LT. 1 ) &
+       CALL SetErrStat ( ErrID_Fatal, 'member_total must be greater than 0', ErrStat, ErrMsg, RoutineName )
+   IF(InputFileData%kp_total .LT. 1 ) &
+       CALL SetErrStat ( ErrID_Fatal, 'kp_total must be greater than 0', ErrStat, ErrMsg, RoutineName )
+   DO i=1,InputFileData%member_total
+       IF(InputFileData%kp_member(i) .LT. 3) THEN
+          CALL SetErrStat(ErrID_Fatal,'There must be at least three key points in '//TRIM(Num2LStr(i))//'th member.', ErrStat, ErrMsg,RoutineName)
+          EXIT
+       ENDIF
+   ENDDO
+   IF(SUM(InputFileData%kp_member) .NE. InputFileData%kp_total+InputFileData%member_total-1 ) &
+       CALL SetErrStat ( ErrID_Fatal, 'Geometric definition error: kp_total and key points in each member are inconsistent', ErrStat, ErrMsg,RoutineName)
+       
+   IF(InputFileData%order_elem .LT. 1 ) &
+       CALL SetErrStat ( ErrID_Fatal, 'order_elem must be greater than 0', ErrStat, ErrMsg, RoutineName )
+       
+   IF(InputFileData%InpBl%station_total .LT. 2 ) &
+       CALL SetErrStat ( ErrID_Fatal, 'Number of material stations along blade axis much be greater than 2', ErrStat, ErrMsg, RoutineName )
+   IF(InputFileData%InpBl%station_eta(1) .NE. 0.0 ) &
+       CALL SetErrStat ( ErrID_Fatal, 'The first station_eta must be equal to 0.0 (root)', ErrStat, ErrMsg, RoutineName )
+   IF(InputFileData%InpBl%station_eta(InputFileData%InpBl%station_total) .NE. 1.0 ) &
+       CALL SetErrStat ( ErrID_Fatal, 'The last station_eta must be equal to 1.0 (tip)', ErrStat, ErrMsg, RoutineName )
+   
+         
+END SUBROUTINE BD_ValidateInputData
 
       SUBROUTINE BD_diffmtc(np,ns,spts,npts,igp,hhx,hpx)
 !
@@ -3377,7 +3481,7 @@ END SUBROUTINE ludcmp
        e1(i) = Coef(i,2) + 2.0D0*Coef(i,3)*temp + 3.0D0*Coef(i,4)*temp*temp
    ENDDO
 !   WRITE(*,*) "e1",e1(:)
-   e1(:) = e1(:)/BD_Norm(e1)
+   e1(:) = e1(:)/TwoNorm(e1)
    Twist_Angle = 0.0D0
    Twist_Angle = Coef(4,1) + Coef(4,2)*temp + Coef(4,3)*temp*temp + Coef(4,4)*temp*temp*temp
 !   WRITE(*,*) "e1",e1(:)
@@ -3385,44 +3489,29 @@ END SUBROUTINE ludcmp
 
    END SUBROUTINE BD_ComputeIniNodalPosition
 
-   FUNCTION BD_Norm(vector)
-
-   REAL(ReKi),INTENT(IN):: vector(:)
-   REAL(ReKi)           :: BD_Norm
-
-   BD_Norm = SQRT(DOT_PRODUCT(vector,vector))
-
-   END FUNCTION BD_Norm
-
-   FUNCTION BD_CrossProduct(a,b)
-
-   REAL(ReKi),INTENT(IN):: a(3),b(3)
-   REAL(ReKi)           :: BD_CrossProduct(3)
-
-   BD_CrossProduct(1) = a(2) * b(3) - a(3) * b(2)
-   BD_CrossProduct(2) = a(3) * b(1) - a(1) * b(3)
-   BD_CrossProduct(3) = a(1) * b(2) - a(2) * b(1)
-
-   END FUNCTION BD_CrossProduct
-
-   SUBROUTINE BD_CrvExtractCrv(Rr,cc)
+   SUBROUTINE BD_CrvExtractCrv(Rr,cc,ErrStat,ErrMsg)
    !--------------------------------------------------
    ! This subroutine computes the CRV parameters given
    ! the components of the rotation matrix
    !--------------------------------------------------
 
-   REAL(ReKi), INTENT(IN   ):: Rr(:,:)       ! Rotation Matrix
-   REAL(ReKi), INTENT(  OUT):: cc(:)         ! Crv paramteres
+   REAL(ReKi),    INTENT(IN   ):: Rr(:,:)       ! Rotation Matrix
+   REAL(ReKi),    INTENT(  OUT):: cc(:)         ! Crv paramteres
+   INTEGER(IntKi),INTENT(  OUT):: ErrStat       ! Error status of the operation
+   CHARACTER(*),  INTENT(  OUT):: ErrMsg        ! Error message if ErrStat /= ErrID_None
 
    !Local variables
-   REAL(ReKi):: pivot
-   REAL(ReKi):: sm0
-   REAL(ReKi):: sm1
-   REAL(ReKi):: sm2
-   REAL(ReKi):: sm3
-   REAL(ReKi):: em
-   REAL(ReKi):: temp
-   INTEGER(IntKi):: ipivot
+   REAL(ReKi)                  :: pivot
+   REAL(ReKi)                  :: sm0
+   REAL(ReKi)                  :: sm1
+   REAL(ReKi)                  :: sm2
+   REAL(ReKi)                  :: sm3
+   REAL(ReKi)                  :: em
+   REAL(ReKi)                  :: temp
+   INTEGER(IntKi)              :: ipivot
+
+   ErrStat = ErrID_None
+   ErrMsg  = ""
 
    cc = 0.0D0
    ipivot = 0
@@ -3504,13 +3593,16 @@ END SUBROUTINE ludcmp
    REAL(ReKi),INTENT(IN   ):: phi         ! Initial twist angle
    REAL(ReKi),INTENT(  OUT):: cc(:)       ! Initial Crv Parameter
 
-   REAL(ReKi):: e2(3)                     ! Unit normal vector
-   REAL(ReKi):: e3(3)                     ! Unit e3 = e1 * e2, cross-product
-   REAL(ReKi):: Rr(3,3)                   ! Initial rotation matrix
-   REAL(ReKi):: temp
-   REAL(ReKi):: temp2
-   REAL(ReKi):: Delta
-   INTEGER(IntKi):: i
+   REAL(ReKi)              :: e2(3)                     ! Unit normal vector
+   REAL(ReKi)              :: e3(3)                     ! Unit e3 = e1 * e2, cross-product
+   REAL(ReKi)              :: Rr(3,3)                   ! Initial rotation matrix
+   REAL(ReKi)              :: temp
+   REAL(ReKi)              :: temp2
+   REAL(ReKi)              :: Delta
+   INTEGER(IntKi)          :: i
+   INTEGER(IntKi)          :: ErrStat2                     ! Temporary Error status
+   CHARACTER(ErrMsgLen)    :: ErrMsg2                      ! Temporary Error message
+   CHARACTER(*), PARAMETER :: RoutineName = 'BD_ComputeIniNodalCrv'
 
 
    Rr = 0.0D0
@@ -3531,12 +3623,12 @@ END SUBROUTINE ludcmp
    ENDDO
 
    e3 = 0.0D0
-   e3 = BD_CrossProduct(e1,e2)
+   e3 = Cross_Product(e1,e2)
    DO i=1,3
        Rr(i,3) = e3(i)
    ENDDO
 
-   CALL BD_CrvExtractCrv(Rr,cc)
+   CALL BD_CrvExtractCrv(Rr,cc,ErrStat2,ErrMsg2)
 
    END SUBROUTINE BD_ComputeIniNodalCrv
 
@@ -3598,24 +3690,6 @@ END SUBROUTINE ludcmp
 
    END SUBROUTINE BD_ComputeIniCoef
 
-   FUNCTION BD_OuterProduct(vec1,vec2)
-
-   REAL(ReKi),INTENT(IN):: vec1(:),vec2(:)
-   REAL(ReKi)::BD_OuterProduct(SIZE(vec1),SIZE(vec2))
-
-   INTEGER(IntKi)::i,j,n1,n2
-
-   n1=SIZE(vec1)
-   n2=SIZE(vec2)
-
-   DO i=1,n1
-       DO j=1,n2
-           BD_OuterProduct(i,j) = vec1(i) * vec2(j)
-       ENDDO
-   ENDDO
-
-   END FUNCTION BD_OuterProduct
-
    SUBROUTINE BD_Static(t,n,u,utimes,p,x,xd,z,OtherState,ErrStat,ErrMsg)
 
    REAL(DbKi),                      INTENT(IN   ):: t           ! Current simulation time in seconds
@@ -3648,7 +3722,7 @@ END SUBROUTINE ludcmp
 
    i = 1
    piter = 0
-   niter = 20
+   niter = 20 !bjj FIX ME: isn't this p%niter?
    DO WHILE(i .NE. 0)
        k=i
        DO j=1,k
@@ -3743,7 +3817,7 @@ END SUBROUTINE ludcmp
            ui(j+6) = ui_temp(j)
        ENDDO
 
-       temp = BD_Norm(feqv)
+       temp = TwoNorm(feqv)
        WRITE(13,*) i,temp
        piter=i !! ADDED BY NJ 3/18/14
 !       IF(i==1) Eref = SQRT(DOT_PRODUCT(ui_temp,feqv)*TOLF)
@@ -4476,6 +4550,9 @@ END SUBROUTINE ludcmp
    CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
    REAL(ReKi)                                   :: temp_cc(3)
+   INTEGER(IntKi)                               :: ErrStat2                     ! Temporary Error status
+   CHARACTER(ErrMsgLen)                         :: ErrMsg2                      ! Temporary Error message
+   CHARACTER(*), PARAMETER                      :: RoutineName = 'BD_BoundaryGA2'
 
    ErrStat = ErrID_None
    ErrMsg = ""
@@ -4483,8 +4560,8 @@ END SUBROUTINE ludcmp
    ! Root displacements
    x%q(1:3) = u%RootMotion%TranslationDisp(1:3,1)
    ! Root rotations
-   CALL BD_CrvExtractCrv(u%RootMotion%Orientation(1:3,1:3,1),x%q(4:6))
-!   CALL BD_CrvExtractCrv(p%GlbRot(1:3,1:3),temp_cc(1:3))
+   CALL BD_CrvExtractCrv(u%RootMotion%Orientation(1:3,1:3,1),x%q(4:6),ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    temp_cc(:) = MATMUL(p%GlbRot,p%uuN0(4:6,1))
    CALL BD_CrvCompose(x%q(4:6),x%q(4:6),temp_cc,2)
    x%q(4:6) = MATMUL(TRANSPOSE(p%GlbRot),x%q(4:6))
@@ -4599,7 +4676,7 @@ END SUBROUTINE ludcmp
 
        IF(i==niter) THEN
            WRITE(*,*) "Solution does not converge after the maximum number of iterations"
-           STOP
+           !STOP
        ENDIF
    ENDDO
 
@@ -4761,52 +4838,25 @@ END SUBROUTINE ludcmp
    INTEGER(IntKi),         INTENT(IN   ):: flag            ! 0: Global to Blade;
                                                            ! 1: Blade to Global
    REAL(ReKi)                           :: RotTen(3,3)
-   REAL(ReKi)                           :: Pos(3)
-   REAL(ReKi)                           :: temp66(6,6)
-   REAL(ReKi)                           :: temp6(6)
    INTEGER(IntKi)                       :: i
 
-   Pos(1:3)        = p%GlbPos(:)
    RotTen(1:3,1:3) = p%GlbRot(:,:)
    IF (flag .EQ. 0) THEN
        ! Transform Root Motion from Global to Local (Blade) frame
        u%RootMotion%TranslationDisp(:,1) = MATMUL(TRANSPOSE(RotTen),u%RootMotion%TranslationDisp(:,1))
-!       u%RootMotion%Orientation(:,:,1) = MATMUL(u%RootMotion%Orientation(:,:,1),TRANSPOSE(RotTen))
-!       u%RootMotion%Orientation(:,:,1) = MATMUL(u%RootMotion%Orientation(:,:,1),RotTen)
-!       u%RootMotion%Orientation(:,:,1) = MATMUL(TRANSPOSE(RotTen),u%RootMotion%Orientation(:,:,1))
-!       u%RootMotion%Orientation(:,:,1) = MATMUL(u%RootMotion%Orientation(:,:,1),RotTen)
-!       u%RootMotion%Orientation(:,:,1) = MATMUL(TRANSPOSE(RotTen),u%RootMotion%Orientation(:,:,1))
-       CALL BD_MotionTensor(RotTen,Pos,temp66,1)
-       temp6(:) = 0.0D0
-       temp6(1:3) = u%RootMotion%TranslationVel(1:3,1)
-       temp6(4:6) = u%RootMotion%RotationVel(1:3,1)
-       temp6(:) = MATMUL(temp66,temp6)
-       u%RootMotion%TranslationVel(1:3,1) = temp6(1:3)
-       u%RootMotion%RotationVel(1:3,1) = temp6(4:6)
-       temp6(:) = 0.0D0
-       temp6(1:3) = u%RootMotion%TranslationAcc(1:3,1)
-       temp6(4:6) = u%RootMotion%RotationAcc(1:3,1)
-       temp6(:) = MATMUL(temp66,temp6)
-       u%RootMotion%TranslationAcc(1:3,1) = temp6(1:3)
-       u%RootMotion%RotationAcc(1:3,1) = temp6(4:6)
+       u%RootMotion%TranslationVel(:,1)  = MATMUL(TRANSPOSE(RotTen),u%RootMotion%TranslationVel(:,1))
+       u%RootMotion%RotationVel(:,1)     = MATMUL(TRANSPOSE(RotTen),u%RootMotion%RotationVel(:,1))
+       u%RootMotion%TranslationAcc(:,1)  = MATMUL(TRANSPOSE(RotTen),u%RootMotion%TranslationAcc(:,1))
+       u%RootMotion%RotationAcc(:,1)     = MATMUL(TRANSPOSE(RotTen),u%RootMotion%RotationAcc(:,1))
        ! Transform Applied Forces from Global to Local (Blade) frame
-       CALL BD_MotionTensor(RotTen,Pos,temp66,0)
        DO i=1,p%node_total
-           temp6(:) = 0.0D0
-           temp6(1:3) = u%PointLoad%Force(1:3,i)
-           temp6(4:6) = u%PointLoad%Moment(1:3,i)
-           temp6(:) = MATMUL(TRANSPOSE(temp66),temp6)
-           u%PointLoad%Force(1:3,i) = temp6(1:3)
-           u%PointLoad%Moment(1:3,i) = temp6(4:6)
+           u%PointLoad%Force(1:3,i)  = MATMUL(TRANSPOSE(RotTen),u%PointLoad%Force(:,i))
+           u%PointLoad%Moment(1:3,i) = MATMUL(TRANSPOSE(RotTen),u%PointLoad%Moment(:,i))
        ENDDO
 
        DO i=1,p%ngp * p%elem_total + 2
-           temp6(:) = 0.0D0
-           temp6(1:3) = u%DistrLoad%Force(1:3,i)
-           temp6(4:6) = u%DistrLoad%Moment(1:3,i)
-           temp6(:) = MATMUL(TRANSPOSE(temp66),temp6)
-           u%DistrLoad%Force(1:3,i) = temp6(1:3)
-           u%DistrLoad%Moment(1:3,i) = temp6(4:6)
+           u%DistrLoad%Force(1:3,i)  = MATMUL(TRANSPOSE(RotTen),u%DistrLoad%Force(:,i))
+           u%DistrLoad%Moment(1:3,i) = MATMUL(TRANSPOSE(RotTen),u%DistrLoad%Moment(:,i))
        ENDDO
    ELSEIF(flag .EQ. 1) THEN
 
@@ -4834,8 +4884,9 @@ END SUBROUTINE ludcmp
    REAL(ReKi)                                 :: temp3(3)
    REAL(ReKi)                                 :: temp_p0(3)
    TYPE(BD_InputType)                         :: u_tmp
-   INTEGER(IntKi)               :: ErrStat2                     ! Temporary Error status
-   CHARACTER(36)       :: ErrMsg2                      ! Temporary Error message
+   INTEGER(IntKi)          :: ErrStat2                     ! Temporary Error status
+   CHARACTER(ErrMsgLen)    :: ErrMsg2                      ! Temporary Error message
+   CHARACTER(*), PARAMETER :: RoutineName = 'BD_CalcIC'
 
    CALL BD_CopyInput(u, u_tmp, MESH_NEWCOPY, ErrStat2, ErrMsg2)
    CALL BD_InputGlobalLocal(p,u_tmp,0)
@@ -4844,7 +4895,7 @@ END SUBROUTINE ludcmp
        temp_id = (i-1)*p%dof_node
        x%q(temp_id+1:temp_id+3) = u_tmp%RootMotion%TranslationDisp(1:3,1)
    ENDDO
-   CALL BD_CrvExtractCrv(u_tmp%RootMotion%Orientation(1:3,1:3,1),temp3)
+   CALL BD_CrvExtractCrv(u_tmp%RootMotion%Orientation(1:3,1:3,1),temp3,ErrStat2,ErrMsg2)
    DO i=1,p%elem_total
        IF( i .EQ. 1) THEN
            k = 1

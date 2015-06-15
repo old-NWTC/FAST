@@ -1,4 +1,4 @@
-------- ELASTODYN V1.01.* INPUT FILE -------------------------------------------
+------- ELASTODYN v1.03.* INPUT FILE -------------------------------------------
 FAST certification Test #11: WindPACT 1.5 MW Baseline with many DOFs undergoing a pitch failure. Model properties from "InputData1.5A08V07adm.xls" (from C. Hansen) with bugs removed.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo        - Echo input data to "<RootName>.ech" (flag)
@@ -82,8 +82,9 @@ False         PtfmYDOF    - Platform yaw rotation DOF (flag)
           0   PtfmMass    - Platform mass (kg)
           0   PtfmRIner   - Platform inertia for roll tilt rotation about the platform CM (kg m^2)
           0   PtfmPIner   - Platform inertia for pitch tilt rotation about the platform CM (kg m^2)
-          0   PtfmYIner   - Platfrom inertia for yaw rotation about the platform CM (kg m^2)
+          0   PtfmYIner   - Platform inertia for yaw rotation about the platform CM (kg m^2)
 ---------------------- BLADE ---------------------------------------------------
+         20   BldNodes    - Number of blade nodes (per blade) used for analysis (-)
 "Baseline_Blade.dat"    BldFile(1)  - Name of file containing properties for blade 1 (quoted string)
 "Baseline_Blade.dat"    BldFile(2)  - Name of file containing properties for blade 2 (quoted string)
 "Baseline_Blade.dat"    BldFile(3)  - Name of file containing properties for blade 3 (quoted string) [unused for 2 blades]
@@ -111,7 +112,7 @@ False         Furling     - Read in additional model properties for furling turb
 True          SumPrint    - Print summary data to "<RootName>.sum" (flag)
           1   OutFile     - Switch to determine where output will be placed: {1: in module output file only; 2: in glue code output file only; 3: both} (currently unused)
 True          TabDelim    - Use tab delimiters in text tabular output file? (flag) (currently unused)
-"ES10.3E2"    OutFmt      - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string)  [not checked for validity!] (currently unused)
+"ES10.3E2"    OutFmt      - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string) (currently unused)
           0   TStart      - Time to begin tabular output (s) (currently unused)
          10   DecFact     - Decimation factor for tabular output {1: output every time step} (-) (currently unused)
           2   NTwGages    - Number of tower nodes that have strain gages for output [0 to 9] (-)
@@ -142,9 +143,9 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
 "TwHt2FLxt"               - local tower forces
 "TwHt2FLyt"               - local tower forces
 "TwHt2FLzt"               - local tower forces
-"TwHt1RPxi"
-"TwHt1TPxi"
-"TwHt1RDxt"
-"TwHt1TDxt"
+"TwHt1RPxi"                
+"TwHt1TPxi"                
+"TwHt1RDxt"                
+"TwHt1TDxt"                
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------

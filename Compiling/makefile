@@ -16,9 +16,20 @@ FC      = gfortran
 BITS = 32
 #BITS = 64
 
+#================================================================================#
+# if compiling FAST as a shared library,
+#      use FAST_driver = FAST_Library
+#      add -shared to LDFLAGS
+#      and modify EXE_EXT with .dll or .so extensions
+
+FAST_driver = FAST_Prog
+#FAST_driver = FAST_Library
+#================================================================================#
+
+
 
 FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
-LDFLAGS = -O2 -m$(BITS) -fbacktrace
+LDFLAGS = -O2 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware
 
 #FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -g -pg
 #LDFLAGS = -O0 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware -g -pg
@@ -308,7 +319,7 @@ FAST_SOURCES =           \
 	FAST_Types.f90        \
 	FAST_Mods.f90         \
 	FAST_Subs.f90         \
-	FAST_Prog.f90
+	$(FAST_driver).f90
 
 vpath %.f90       $(NWTC_Lib_DIR) $(AD14_DIR) $(IfW_DIR) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(SD_DIR) $(MAP_DIR) \
                   $(FAST_DIR) $(NETLIB_DIR) $(FEAM_DIR) $(MD_DIR) $(IceF_DIR) $(IceD_DIR) $(DWM_DIR) $(AFI_DIR) $(UA_DIR) \
@@ -628,7 +639,7 @@ FAST_Subs$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Mods$(OBJ_EXT)  N
                                      InflowWind$(OBJ_EXT)  ServoDyn$(OBJ_EXT)  ElastoDyn$(OBJ_EXT) SubDyn$(OBJ_EXT)     \
                                      HydroDyn$(OBJ_EXT)  MAP$(OBJ_EXT)  FEAM$(OBJ_EXT)  MoorDyn$(OBJ_EXT)               \
                                      IceFloe$(OBJ_EXT) IceDyn$(OBJ_EXT)  AeroDyn$(OBJ_EXT)  BeamDyn$(OBJ_EXT)
-FAST_Prog$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Subs$(OBJ_EXT)
+$(FAST_driver)$(OBJ_EXT):         NWTC_Library$(OBJ_EXT)  FAST_Subs$(OBJ_EXT)
 
 
 

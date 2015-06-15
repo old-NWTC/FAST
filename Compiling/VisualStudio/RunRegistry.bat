@@ -72,7 +72,7 @@ GOTO checkError
 
 :BeamDyn
 SET CURR_LOC=%BD_Loc%
-%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
+%REGISTRY% "%CURR_LOC%\Registry_BeamDyn.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
 GOTO checkError
 
 

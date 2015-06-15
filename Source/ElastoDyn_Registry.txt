@@ -145,6 +145,7 @@ typedef	^	ED_InputFile	ReKi	PtfmMass	-	-	-	"Platform mass"	kg
 typedef	^	ED_InputFile	ReKi	PtfmRIner	-	-	-	"Platform inertia for roll tilt rotation about the platform CM"	"kg m^2"
 typedef	^	ED_InputFile	ReKi	PtfmPIner	-	-	-	"Platform inertia for pitch tilt rotation about the platform CM"	"kg m^2"
 typedef	^	ED_InputFile	ReKi	PtfmYIner	-	-	-	"Platform inertia for yaw rotation about the platform CM"	"kg m^2"
+typedef	^	ED_InputFile	ReKi	BldNodes	-	-	-	"Number of blade nodes (per blade) used for analysis"	-
 typedef	^	ED_InputFile	ED_BladeMeshInputData	InpBlMesh	{:}	-	-	"Input data for blade discretizations (could be on each blade)"	"see BladeMeshInputData"
 typedef	^	ED_InputFile	BladeInputData	InpBl	{:}	-	-	"Input data for individual blades"	"see BladeInputData type"
 typedef	^	ED_InputFile	IntKi	TeetMod	-	-	-	"Rotor-teeter spring/damper model switch"	-
@@ -807,9 +808,9 @@ typedef	^	OutputType	MeshType	HubPtMotion14	-	-	-	"For AeroDyn v14: motions of t
 typedef	^	OutputType	MeshType	HubPtMotion	-	-	-	"For AeroDyn and Lidar(InflowWind): motions of the hub"
 typedef	^	OutputType	MeshType	BladeRootMotion14	-	-	-	"For AeroDyn v14: motions of the blade roots"
 typedef	^	OutputType	MeshType	BladeRootMotion	{:}	-	-	"For AeroDyn/BeamDyn: motions at the blade roots"
-typedef	^	OutputType	MeshType	RotorFurlMotion	-	-	-	"For AeroDyn14: motions of the rotor furl point."
+typedef	^	OutputType	MeshType	RotorFurlMotion14	-	-	-	"For AeroDyn14: motions of the rotor furl point."
 typedef	^	OutputType	MeshType	NacelleMotion	-	-	-	"For AeroDyn14 & ServoDyn/TMD: motions of the nacelle."
-typedef	^	OutputType	MeshType	TowerBaseMotion	-	-	-	"For AeroDyn 14: motions of the tower base"
+typedef	^	OutputType	MeshType	TowerBaseMotion14	-	-	-	"For AeroDyn 14: motions of the tower base"
 
 # Define outputs that are not on this mesh here:
 typedef	^	OutputType	ReKi	WriteOutput	{:}	-	-	"Data to be written to an output file: see WriteOutputHdr for names of each variable"	"see WriteOutputUnt"
