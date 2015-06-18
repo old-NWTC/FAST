@@ -79,39 +79,39 @@ subroutine AD_SetInitOut(p, InitOut, errStat, errMsg)
       ! Loop over blades and nodes to populate the output channel names and units
    
    do k=1,p%numBlades
-      do j=1,p%NumBlNds
+      do j=1,1 ! p%NumBlNds
          
          chanPrefix = "B"//trim(num2lstr(k))//"N"//trim(num2lstr(j))
-         InitOut%WriteOutputHdr( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 1 ) = trim(chanPrefix)//"Theta"
-         InitOut%WriteOutputUnt( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 1 ) = '  (deg)  '
-         InitOut%WriteOutputHdr( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 2 ) = trim(chanPrefix)//"Psi"
-         InitOut%WriteOutputUnt( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 2 ) = '  (deg)  '
-         InitOut%WriteOutputHdr( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 3 ) = trim(chanPrefix)//"Vx"
-         InitOut%WriteOutputUnt( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 3 ) = '  (m/s)  '
-         InitOut%WriteOutputHdr( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 4 ) = trim(chanPrefix)//"Vy"
-         InitOut%WriteOutputUnt( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 4 ) = '  (m/s)  '
-         InitOut%WriteOutputHdr( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 5 ) = ' '//trim(chanPrefix)//"AxInd"
-         InitOut%WriteOutputUnt( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 5 ) = '  (deg)  '
-         InitOut%WriteOutputHdr( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 6 ) = ' '//trim(chanPrefix)//"TanInd"
-         InitOut%WriteOutputUnt( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 6 ) = '  (deg)  '
-         InitOut%WriteOutputHdr( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 7 ) = trim(chanPrefix)//"IndVel"
-         InitOut%WriteOutputUnt( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 7 ) = '  (m/s)  '
-         InitOut%WriteOutputHdr( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 8 ) = ' '//trim(chanPrefix)//"Phi"
-         InitOut%WriteOutputUnt( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 8 ) = '  (deg)  '
-         InitOut%WriteOutputHdr( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 9 ) = ' '//trim(chanPrefix)//"AOA"
-         InitOut%WriteOutputUnt( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 9 ) = '  (deg)  '
-         InitOut%WriteOutputHdr( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 10 ) = ' '//trim(chanPrefix)//"Cl"
-         InitOut%WriteOutputUnt( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 10 ) = '   (-)   '
-         InitOut%WriteOutputHdr( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 11 ) = ' '//trim(chanPrefix)//"Cd"
-         InitOut%WriteOutputUnt( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 11 ) = '   (-)   '
-         InitOut%WriteOutputHdr( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 12 ) = ' '//trim(chanPrefix)//"Cx"
-         InitOut%WriteOutputUnt( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 12 ) = '   (-)   '
-         InitOut%WriteOutputHdr( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 13 ) = ' '//trim(chanPrefix)//"Cy"
-         InitOut%WriteOutputUnt( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 13 ) = '   (-)   '
-         InitOut%WriteOutputHdr( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 14 ) = ' '//trim(chanPrefix)//"Fx"
-         InitOut%WriteOutputUnt( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 14 ) = '  (N/m)  '
-         InitOut%WriteOutputHdr( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 15 ) = ' '//trim(chanPrefix)//"Fy"
-         InitOut%WriteOutputUnt( (k-1)*p%NumBlNds*AD_numChanPerNode + (j-1)*AD_numChanPerNode + 15 ) = '  (N/m)  '
+         InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 1 ) = trim(chanPrefix)//"Theta"
+         InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 1 ) = '  (deg)  '
+         InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 2 ) = trim(chanPrefix)//"Psi"
+         InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 2 ) = '  (deg)  '
+         InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 3 ) = trim(chanPrefix)//"Vx"
+         InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 3 ) = '  (m/s)  '
+         InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 4 ) = trim(chanPrefix)//"Vy"
+         InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 4 ) = '  (m/s)  '
+         InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 5 ) = ' '//trim(chanPrefix)//"AxInd"
+         InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 5 ) = '  (deg)  '
+         InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 6 ) = ' '//trim(chanPrefix)//"TanInd"
+         InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 6 ) = '  (deg)  '
+         InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 7 ) = trim(chanPrefix)//"IndVel"
+         InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 7 ) = '  (m/s)  '
+         InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 8 ) = ' '//trim(chanPrefix)//"Phi"
+         InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 8 ) = '  (deg)  '
+         InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 9 ) = ' '//trim(chanPrefix)//"AOA"
+         InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 9 ) = '  (deg)  '
+         InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 10 ) = ' '//trim(chanPrefix)//"Cl"
+         InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 10 ) = '   (-)   '
+         InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 11 ) = ' '//trim(chanPrefix)//"Cd"
+         InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 11 ) = '   (-)   '
+         InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 12 ) = ' '//trim(chanPrefix)//"Cx"
+         InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 12 ) = '   (-)   '
+         InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 13 ) = ' '//trim(chanPrefix)//"Cy"
+         InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 13 ) = '   (-)   '
+         InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 14 ) = ' '//trim(chanPrefix)//"Fx"
+         InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 14 ) = '  (N/m)  '
+         InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 15 ) = ' '//trim(chanPrefix)//"Fy"
+         InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 15 ) = '  (N/m)  '
       end do
    end do
    
@@ -671,7 +671,8 @@ subroutine SetParameters( InitInp, InputFileData, p, ErrStat, ErrMsg )
   !p%BEMT    ! set in call to BEMT_Init()
 
   !p%numOuts        = p%numBladeNodes*p%numBlades*AD_numChanPerNode
-   p%numOuts        = InputFileData%BladeProps(1)%NumBlNds*InitInp%numBlades*AD_numChanPerNode
+   !p%numOuts        = InputFileData%BladeProps(1)%NumBlNds*InitInp%numBlades*AD_numChanPerNode
+   p%numOuts        = InitInp%numBlades*AD_numChanPerNode
   !p%RootName       = TRIM(InitInp%RootName)//'.AD'   ! set earlier to it could be used
   !p%OutParam STILL NEEDS TO BE SET!!! FIX ME!!!! 
    
@@ -867,28 +868,29 @@ subroutine AD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
             ! Loop over blades and nodes to populate the output channel names and units
    
    do j=1,p%numBlades
-      do i=1,p%NumBlNds
+      do i=1,1 !p%NumBlNds
          
          
          chanPrefix = "B"//trim(num2lstr(j))//"N"//trim(num2lstr(i))
-         y%WriteOutput( (j-1)*p%NumBlNds*AD_numChanPerNode + (i-1)*AD_numChanPerNode +  1 ) = OtherState%BEMT_u%theta(i,j)*R2D      
-         y%WriteOutput( (j-1)*p%NumBlNds*AD_numChanPerNode + (i-1)*AD_numChanPerNode +  2 ) = OtherState%BEMT_u%psi(j)*R2D        
-         y%WriteOutput( (j-1)*p%NumBlNds*AD_numChanPerNode + (i-1)*AD_numChanPerNode +  3 ) = OtherState%BEMT_u%Vx(i,j)         
-         y%WriteOutput( (j-1)*p%NumBlNds*AD_numChanPerNode + (i-1)*AD_numChanPerNode +  4 ) = OtherState%BEMT_u%Vy(i,j)         
-         y%WriteOutput( (j-1)*p%NumBlNds*AD_numChanPerNode + (i-1)*AD_numChanPerNode +  5 ) = OtherState%BEMT_y%AxInduction(i,j)         
-         y%WriteOutput( (j-1)*p%NumBlNds*AD_numChanPerNode + (i-1)*AD_numChanPerNode +  6 ) = OtherState%BEMT_y%TanInduction(i,j)         
-         y%WriteOutput( (j-1)*p%NumBlNds*AD_numChanPerNode + (i-1)*AD_numChanPerNode +  7 ) = OtherState%BEMT_y%inducedVel(i,j)         
-         y%WriteOutput( (j-1)*p%NumBlNds*AD_numChanPerNode + (i-1)*AD_numChanPerNode +  8 ) = OtherState%BEMT_y%phi(i,j)*R2D         
-         y%WriteOutput( (j-1)*p%NumBlNds*AD_numChanPerNode + (i-1)*AD_numChanPerNode +  9 ) = OtherState%BEMT_y%AOA(i,j)*R2D         
-         y%WriteOutput( (j-1)*p%NumBlNds*AD_numChanPerNode + (i-1)*AD_numChanPerNode + 10 ) = OtherState%BEMT_y%Cl(i,j)         
-         y%WriteOutput( (j-1)*p%NumBlNds*AD_numChanPerNode + (i-1)*AD_numChanPerNode + 11 ) = OtherState%BEMT_y%Cd(i,j)         
-         y%WriteOutput( (j-1)*p%NumBlNds*AD_numChanPerNode + (i-1)*AD_numChanPerNode + 12 ) = OtherState%BEMT_y%Cx(i,j)         
-         y%WriteOutput( (j-1)*p%NumBlNds*AD_numChanPerNode + (i-1)*AD_numChanPerNode + 13 ) = OtherState%BEMT_y%Cy(i,j)
+         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  1 ) = OtherState%BEMT_u%theta(i,j)*R2D      
+         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  2 ) = OtherState%BEMT_u%psi(j)*R2D        
+         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  3 ) = OtherState%BEMT_u%Vx(i,j)         
+         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  4 ) = OtherState%BEMT_u%Vy(i,j)         
+         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  5 ) = OtherState%BEMT_y%AxInduction(i,j)         
+         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  6 ) = OtherState%BEMT_y%TanInduction(i,j)         
+         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  7 ) = OtherState%BEMT_y%inducedVel(i,j)         
+         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  8 ) = OtherState%BEMT_y%phi(i,j)*R2D         
+         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  9 ) = OtherState%BEMT_y%AOA(i,j)*R2D         
+         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode + 10 ) = OtherState%BEMT_y%Cl(i,j)         
+         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode + 11 ) = OtherState%BEMT_y%Cd(i,j)         
+         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode + 12 ) = OtherState%BEMT_y%Cx(i,j)         
+         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode + 13 ) = OtherState%BEMT_y%Cy(i,j)
          
          q = 0.5*p%AirDens*p%BEMT%chord(i,j)*OtherState%BEMT_y%inducedVel(i,j)**2
          
-         y%WriteOutput( (j-1)*p%NumBlNds*AD_numChanPerNode + (i-1)*AD_numChanPerNode + 14 ) =  q*OtherState%BEMT_y%Cx(i,j)
-         y%WriteOutput( (j-1)*p%NumBlNds*AD_numChanPerNode + (i-1)*AD_numChanPerNode + 15 ) = -q*OtherState%BEMT_y%Cy(i,j)
+         y%WriteOutput( (j-1)* 1 
+*AD_numChanPerNode + (i-1)*AD_numChanPerNode + 14 ) =  q*OtherState%BEMT_y%Cx(i,j)
+         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode + 15 ) = -q*OtherState%BEMT_y%Cy(i,j)
          
       end do
    end do
@@ -2118,7 +2120,7 @@ SUBROUTINE Init_BEMTmodule( InputFileData, u_AD, u, p, x, xd, z, OtherState, y, 
    InitInp%aTol             = InputFileData%IndToler
    InitInp%useTipLoss       = InputFileData%TipLoss
    InitInp%useHubLoss       = InputFileData%HubLoss
-   InitInp%useInduction     = InputFileData%WakeMod == 1
+   InitInp%useInduction     = InputFileData%WakeMod == WakeMod_BEMT
    InitInp%useTanInd        = InputFileData%TanInd
    InitInp%useAIDrag        = InputFileData%AIDrag        
    InitInp%useTIDrag        = InputFileData%TIDrag  

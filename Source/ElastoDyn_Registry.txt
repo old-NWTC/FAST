@@ -431,6 +431,7 @@ typedef	^	ED_RtHndSide	ReKi	LinVelES	{:}{:}{:}	-	-	"Linear velocity of current p
 #typedef	^	ED_RtHndSide	ReKi	LinVelHS	3	-	-	"Relative linear velocity of the current point on the current blade (point S) in the hub frame (body H)"
 #typedef	^	ED_RtHndSide	ReKi	LinVelXO	3	-	-	"Relative linear velocity of the tower-top / base plate (point O) in the platform (body X)"
 #typedef	^	ED_RtHndSide	ReKi	LinVelXT	3	-	-	"Relative linear velocity of the current point on the tower (point T) in the platform (body X)"
+typedef	^	ED_RtHndSide	ReKi	LinVelEQ	3	-	-	"Linear velocity of of the apex of rotation (point Q) in the inertia frame (body E for earth)"
 typedef	^	ED_RtHndSide	ReKi	LinVelET	{:}{:}	-	-	"Linear velocity of current point on the tower (point T) in the inertia frame"
 typedef	^	ED_RtHndSide	ReKi	LinVelESm2	{:}	-	-	"The m2-component (closest to tip) of LinVelES"
 typedef	^	ED_RtHndSide	ReKi	PLinVelEIMU	{:}{:}{:}	-	-	"Partial linear velocity (and its 1st time derivative) of the nacelle IMU (point IMU) in the inertia frame (body E for earth)"
@@ -783,6 +784,7 @@ typedef	^	ParameterType	IntKi	method	-	-	-	"Identifier for integration method (1
 typedef	^	ParameterType	ReKi	PtfmCMxt	-	-	-	"Downwind distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
 typedef	^	ParameterType	ReKi	PtfmCMyt	-	-	-	"Lateral distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
 typedef	^	ParameterType	LOGICAL	BD4Blades	-	-	-	"flag to determine if BeamDyn is computing blade loads (true) or ElastoDyn is (false)"	-
+typedef	^	ParameterType	LOGICAL	UseAD14	-	-	-	"flag to determine if AeroDyn14 is being used. Will remove this later when we've replaced AD14."	-
 
 # ..... Inputs ....................................................................................................................
 # Define inputs that are contained on the mesh here:

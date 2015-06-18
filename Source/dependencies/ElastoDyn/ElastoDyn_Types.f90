@@ -427,6 +427,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(1:3)  :: LinAccEUt      ! Portion of the linear acceleration of the nacelle center of mass (point U) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
     REAL(ReKi) , DIMENSION(1:3)  :: LinAccEYt      ! Portion of the linear acceleration of the platform center of mass (point Y) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: LinVelES      ! Linear velocity of current point on the current blade (point S) in the inertia frame [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: LinVelEQ      ! Linear velocity of of the apex of rotation (point Q) in the inertia frame (body E for earth) [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: LinVelET      ! Linear velocity of current point on the tower (point T) in the inertia frame [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LinVelESm2      ! The m2-component (closest to tip) of LinVelES [-]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEIMU      ! Partial linear velocity (and its 1st time derivative) of the nacelle IMU (point IMU) in the inertia frame (body E for earth) [-]
@@ -779,6 +780,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: PtfmCMxt      ! Downwind distance from the ground [onshore] or MSL [offshore] to the platform CM [meters]
     REAL(ReKi)  :: PtfmCMyt      ! Lateral distance from the ground [onshore] or MSL [offshore] to the platform CM [meters]
     LOGICAL  :: BD4Blades      ! flag to determine if BeamDyn is computing blade loads (true) or ElastoDyn is (false) [-]
+    LOGICAL  :: UseAD14      ! flag to determine if AeroDyn14 is being used. Will remove this later when we've replaced AD14. [-]
   END TYPE ED_ParameterType
 ! =======================
 ! =========  ED_InputType  =======
@@ -8814,6 +8816,7 @@ IF (ALLOCATED(SrcRtHndSideData%LinVelES)) THEN
   END IF
     DstRtHndSideData%LinVelES = SrcRtHndSideData%LinVelES
 ENDIF
+    DstRtHndSideData%LinVelEQ = SrcRtHndSideData%LinVelEQ
 IF (ALLOCATED(SrcRtHndSideData%LinVelET)) THEN
   i1_l = LBOUND(SrcRtHndSideData%LinVelET,1)
   i1_u = UBOUND(SrcRtHndSideData%LinVelET,1)
@@ -9918,6 +9921,7 @@ ENDIF
     Int_BufSz   = Int_BufSz   + 2*3  ! LinVelES upper/lower bounds for each dimension
       Re_BufSz   = Re_BufSz   + SIZE(InData%LinVelES)  ! LinVelES
   END IF
+      Re_BufSz   = Re_BufSz   + SIZE(InData%LinVelEQ)  ! LinVelEQ
   Int_BufSz   = Int_BufSz   + 1     ! LinVelET allocated yes/no
   IF ( ALLOCATED(InData%LinVelET) ) THEN
     Int_BufSz   = Int_BufSz   + 2*2  ! LinVelET upper/lower bounds for each dimension
@@ -10704,6 +10708,8 @@ ENDIF
       IF (SIZE(InData%LinVelES)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LinVelES))-1 ) = PACK(InData%LinVelES,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%LinVelES)
   END IF
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LinVelEQ))-1 ) = PACK(InData%LinVelEQ,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%LinVelEQ)
   IF ( .NOT. ALLOCATED(InData%LinVelET) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
@@ -12717,6 +12723,17 @@ ENDIF
       Re_Xferred   = Re_Xferred   + SIZE(OutData%LinVelES)
     DEALLOCATE(mask3)
   END IF
+    i1_l = LBOUND(OutData%LinVelEQ,1)
+    i1_u = UBOUND(OutData%LinVelEQ,1)
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      OutData%LinVelEQ = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LinVelEQ))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%LinVelEQ)
+    DEALLOCATE(mask1)
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! LinVelET not allocated
     Int_Xferred = Int_Xferred + 1
   ELSE
@@ -16822,6 +16839,7 @@ ENDIF
     DstParamData%PtfmCMxt = SrcParamData%PtfmCMxt
     DstParamData%PtfmCMyt = SrcParamData%PtfmCMyt
     DstParamData%BD4Blades = SrcParamData%BD4Blades
+    DstParamData%UseAD14 = SrcParamData%UseAD14
  END SUBROUTINE ED_CopyParam
 
  SUBROUTINE ED_DestroyParam( ParamData, ErrStat, ErrMsg )
@@ -17646,6 +17664,7 @@ ENDIF
       Re_BufSz   = Re_BufSz   + 1  ! PtfmCMxt
       Re_BufSz   = Re_BufSz   + 1  ! PtfmCMyt
       Int_BufSz  = Int_BufSz  + 1  ! BD4Blades
+      Int_BufSz  = Int_BufSz  + 1  ! UseAD14
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -19162,6 +19181,8 @@ ENDIF
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%PtfmCMyt
       Re_Xferred   = Re_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%BD4Blades , IntKiBuf(1), 1)
+      Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%UseAD14 , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE ED_PackParam
 
@@ -21502,6 +21523,8 @@ ENDIF
       OutData%PtfmCMyt = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
       OutData%BD4Blades = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
+      Int_Xferred   = Int_Xferred + 1
+      OutData%UseAD14 = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
  END SUBROUTINE ED_UnPackParam
 

@@ -20,8 +20,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-06-05 15:01:42 -0600 (Fri, 05 Jun 2015) $
-! (File) Revision #: $Rev: 1022 $
+! File last committed: $Date: 2015-06-15 12:51:05 -0600 (Mon, 15 Jun 2015) $
+! (File) Revision #: $Rev: 1035 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn.f90 $
 !**********************************************************************************************************************************
 
@@ -1368,7 +1368,8 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       !............................................................................................
       ! Read the input file and validate the data
       !............................................................................................
-   p%BD4Blades = .NOT. InitInp%CompElast  ! if we're not using ElastoDyn for the blades, use BeamDyn
+   p%BD4Blades = .NOT. InitInp%CompElast           ! if we're not using ElastoDyn for the blades, use BeamDyn
+   p%UseAD14   = LEN_TRIM(InitInp%ADInputFile) > 0 ! if we're using AD14, we need to use the AD14 input files
 
    p%RootName = TRIM(InitInp%RootName)//'.'//ED_Nickname ! all of the output file names from this module will contain '.ED' before the extension
 
@@ -1428,7 +1429,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       !............................................................................................
 
          ! allocate all the arrays that store data in the input type and initialize the values:
-   CALL Init_Inputs( u, p, x, InputFileData, OtherState, ErrStat2, ErrMsg2 )      
+   CALL Init_u( u, p, x, InputFileData, OtherState, ErrStat2, ErrMsg2 )      
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN                  
    
@@ -1720,7 +1721,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
 
    INTEGER(IntKi)               :: I                                               ! Generic index
-   INTEGER(IntKi)               :: J                                               ! Loops through nodes / elements
+   INTEGER(IntKi)               :: J, J2                                           ! Loops through nodes / elements
    INTEGER(IntKi)               :: K                                               ! Loops through blades
    INTEGER(IntKi)               :: NodeNum                                         ! Mesh node number for given blade/node
    
@@ -2474,87 +2475,101 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    !...........
    IF ( ALLOCATED(y%BladeLn2Mesh) ) THEN
       DO K = 1,p%NumBl ! Loop through all blades
-         DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
-
+         DO J = 0,p%TipNode ! Loop through the blade nodes / elements
+            
+            J2 = J            
+            if (j==0) then
+                  ! blade root
+               NodeNum = p%BldNodes + 2
+               if (p%UseAD14) j2 = 1                  
+            elseif (j==p%TipNode) then
+               ! blade tip
+               NodeNum = p%BldNodes + 1
+               if (p%UseAD14) j2 = p%BldNodes
+            else
                NodeNum = J
-                       
-                  ! Translational Displacement
-               y%BladeLn2Mesh(K)%TranslationDisp(1,NodeNum) =     OtherState%RtHS%rS (1,K,J) + OtherState%RtHS%rSAerCen(1,J,K)               ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the xi ( z1) direction
-               y%BladeLn2Mesh(K)%TranslationDisp(2,NodeNum) = -1.*OtherState%RtHS%rS (3,K,J) - OtherState%RtHS%rSAerCen(3,J,K)               ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the yi (-z3) direction
-               y%BladeLn2Mesh(K)%TranslationDisp(3,NodeNum) =     OtherState%RtHS%rS (2,K,J) + OtherState%RtHS%rSAerCen(2,J,K) + p%PtfmRefzt ! = the distance from the nominal tower base position (i.e., the undeflected position of the tower base) to the current blade aerodynamic center in the zi ( z2) direction
-            
-               y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum) = y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum) - y%BladeLn2Mesh(K)%Position(:,NodeNum)
-                        
-                  ! Orientation  (use "n" system for AeroDyn 15)
-               y%BladeLn2Mesh(K)%Orientation(1,1,NodeNum) =     OtherState%CoordSys%te1(K,J,1)
-               y%BladeLn2Mesh(K)%Orientation(2,1,NodeNum) =     OtherState%CoordSys%te2(K,J,1)
-               y%BladeLn2Mesh(K)%Orientation(3,1,NodeNum) =     OtherState%CoordSys%te3(K,J,1)
-               y%BladeLn2Mesh(K)%Orientation(1,2,NodeNum) = -1.*OtherState%CoordSys%te1(K,J,3)
-               y%BladeLn2Mesh(K)%Orientation(2,2,NodeNum) = -1.*OtherState%CoordSys%te2(K,J,3)
-               y%BladeLn2Mesh(K)%Orientation(3,2,NodeNum) = -1.*OtherState%CoordSys%te3(K,J,3)
-               y%BladeLn2Mesh(K)%Orientation(1,3,NodeNum) =     OtherState%CoordSys%te1(K,J,2)
-               y%BladeLn2Mesh(K)%Orientation(2,3,NodeNum) =     OtherState%CoordSys%te2(K,J,2)
-               y%BladeLn2Mesh(K)%Orientation(3,3,NodeNum) =     OtherState%CoordSys%te3(K,J,2)
-           
-                  ! Translational Velocity
-               y%BladeLn2Mesh(K)%TranslationVel(1,NodeNum) =     OtherState%RtHS%LinVelES(1,J,K)
-               y%BladeLn2Mesh(K)%TranslationVel(2,NodeNum) = -1.*OtherState%RtHS%LinVelES(3,J,K)
-               y%BladeLn2Mesh(K)%TranslationVel(3,NodeNum) =     OtherState%RtHS%LinVelES(2,J,K)  
-            
-            
+            end if
+                                                                                                        
+            if (p%UseAD14) then                  
+                  ! Translational Displacement (first calculate absolute position)
+               y%BladeLn2Mesh(K)%TranslationDisp(1,NodeNum) =     OtherState%RtHS%rS (1,K,J2) + OtherState%RtHS%rSAerCen(1,J2,K)               ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the xi ( z1) direction
+               y%BladeLn2Mesh(K)%TranslationDisp(2,NodeNum) = -1.*OtherState%RtHS%rS (3,K,J2) - OtherState%RtHS%rSAerCen(3,J2,K)               ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the yi (-z3) direction
+               y%BladeLn2Mesh(K)%TranslationDisp(3,NodeNum) =     OtherState%RtHS%rS (2,K,J2) + OtherState%RtHS%rSAerCen(2,J2,K) + p%PtfmRefzt ! = the distance from the nominal tower base position (i.e., the undeflected position of the tower base) to the current blade aerodynamic center in the zi ( z2) direction
+               
+                  ! Orientation 
+               y%BladeLn2Mesh(K)%Orientation(1,1,NodeNum) =     OtherState%CoordSys%te1(K,J2,1)
+               y%BladeLn2Mesh(K)%Orientation(2,1,NodeNum) =     OtherState%CoordSys%te2(K,J2,1)
+               y%BladeLn2Mesh(K)%Orientation(3,1,NodeNum) =     OtherState%CoordSys%te3(K,J2,1)
+               y%BladeLn2Mesh(K)%Orientation(1,2,NodeNum) = -1.*OtherState%CoordSys%te1(K,J2,3)
+               y%BladeLn2Mesh(K)%Orientation(2,2,NodeNum) = -1.*OtherState%CoordSys%te2(K,J2,3)
+               y%BladeLn2Mesh(K)%Orientation(3,2,NodeNum) = -1.*OtherState%CoordSys%te3(K,J2,3)
+               y%BladeLn2Mesh(K)%Orientation(1,3,NodeNum) =     OtherState%CoordSys%te1(K,J2,2)
+               y%BladeLn2Mesh(K)%Orientation(2,3,NodeNum) =     OtherState%CoordSys%te2(K,J2,2)
+               y%BladeLn2Mesh(K)%Orientation(3,3,NodeNum) =     OtherState%CoordSys%te3(K,J2,2)
+               
                   ! Translational Acceleration
-               y%BladeLn2Mesh(K)%TranslationAcc(1,NodeNum) =     LinAccES(1,J,K)
-               y%BladeLn2Mesh(K)%TranslationAcc(2,NodeNum) = -1.*LinAccES(3,J,K)
-               y%BladeLn2Mesh(K)%TranslationAcc(3,NodeNum) =     LinAccES(2,J,K)  
+               y%BladeLn2Mesh(K)%TranslationAcc(1,NodeNum) =     LinAccES(1,J2,K)
+               y%BladeLn2Mesh(K)%TranslationAcc(2,NodeNum) = -1.*LinAccES(3,J2,K)
+               y%BladeLn2Mesh(K)%TranslationAcc(3,NodeNum) =     LinAccES(2,J2,K)  
+               
+            else         
+                  ! Translational Displacement (first calculate absolute position)
+               y%BladeLn2Mesh(K)%TranslationDisp(1,NodeNum) =     OtherState%RtHS%rS (1,K,J2)                ! = the distance from the undeflected tower centerline to the current blade node in the xi ( z1) direction
+               y%BladeLn2Mesh(K)%TranslationDisp(2,NodeNum) = -1.*OtherState%RtHS%rS (3,K,J2)                ! = the distance from the undeflected tower centerline to the current blade node in the yi (-z3) direction
+               y%BladeLn2Mesh(K)%TranslationDisp(3,NodeNum) =     OtherState%RtHS%rS (2,K,J2)  + p%PtfmRefzt ! = the distance from the nominal tower base position (i.e., the undeflected position of the tower base) to the current blade node in the zi ( z2) direction
+               
+                  ! Orientation
+               y%BladeLn2Mesh(K)%Orientation(1,1,NodeNum) =     OtherState%CoordSys%n1(K,J2,1)
+               y%BladeLn2Mesh(K)%Orientation(2,1,NodeNum) =     OtherState%CoordSys%n2(K,J2,1)
+               y%BladeLn2Mesh(K)%Orientation(3,1,NodeNum) =     OtherState%CoordSys%n3(K,J2,1)
+               y%BladeLn2Mesh(K)%Orientation(1,2,NodeNum) = -1.*OtherState%CoordSys%n1(K,J2,3)
+               y%BladeLn2Mesh(K)%Orientation(2,2,NodeNum) = -1.*OtherState%CoordSys%n2(K,J2,3)
+               y%BladeLn2Mesh(K)%Orientation(3,2,NodeNum) = -1.*OtherState%CoordSys%n3(K,J2,3)
+               y%BladeLn2Mesh(K)%Orientation(1,3,NodeNum) =     OtherState%CoordSys%n1(K,J2,2)
+               y%BladeLn2Mesh(K)%Orientation(2,3,NodeNum) =     OtherState%CoordSys%n2(K,J2,2)
+               y%BladeLn2Mesh(K)%Orientation(3,3,NodeNum) =     OtherState%CoordSys%n3(K,J2,2)
+            end if
             
+               ! Translational Displacement (get displacement, not absolute position):
+            y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum) = y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum) - y%BladeLn2Mesh(K)%Position(:,NodeNum)
             
+           
+               ! Translational Velocity
+            y%BladeLn2Mesh(K)%TranslationVel(1,NodeNum) =     OtherState%RtHS%LinVelES(1,J2,K)
+            y%BladeLn2Mesh(K)%TranslationVel(2,NodeNum) = -1.*OtherState%RtHS%LinVelES(3,J2,K)
+            y%BladeLn2Mesh(K)%TranslationVel(3,NodeNum) =     OtherState%RtHS%LinVelES(2,J2,K)  
+                                                
          END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
-      
-            ! blade tip: (for now, I'm setting it to the value of the previous node)
-         NodeNum = p%BldNodes + 1
-         y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum) =  y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum-1) 
-         y%BladeLn2Mesh(K)%Orientation(  :,:,NodeNum) =  y%BladeLn2Mesh(K)%Orientation(  :,:,NodeNum-1) 
-         y%BladeLn2Mesh(K)%TranslationVel( :,NodeNum) =  y%BladeLn2Mesh(K)%TranslationVel( :,NodeNum-1)
-         y%BladeLn2Mesh(K)%TranslationAcc( :,NodeNum) =  y%BladeLn2Mesh(K)%TranslationAcc( :,NodeNum-1) !TipNode?
-      
-      
-            ! hub: (for now, I'm setting it to the value of the first node)
-         NodeNum = p%BldNodes + 2
-         y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum) =  y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum-p%TipNode) 
-         y%BladeLn2Mesh(K)%Orientation(  :,:,NodeNum) =  y%BladeLn2Mesh(K)%Orientation(  :,:,NodeNum-p%TipNode) 
-         y%BladeLn2Mesh(K)%TranslationVel( :,NodeNum) =  y%BladeLn2Mesh(K)%TranslationVel( :,NodeNum-p%TipNode)
-         y%BladeLn2Mesh(K)%TranslationAcc( :,NodeNum) =  y%BladeLn2Mesh(K)%TranslationAcc( :,NodeNum-p%TipNode)
-      
-      
+                  
       END DO !K = 1,p%NumBl
    END IF
    
       
    !...........
-   ! Hub (for Lidar):
+   ! Hub (for Lidar and AeroDyn15):
    !...........   
    
          ! Translation (absolute position - starting position):
    y%HubPtMotion%TranslationDisp(1,1)  =     OtherState%RtHS%rQ(1)
    y%HubPtMotion%TranslationDisp(2,1)  = -1.*OtherState%RtHS%rQ(3)
    y%HubPtMotion%TranslationDisp(3,1)  =     OtherState%RtHS%rQ(2) + p%PtfmRefzt
-   y%HubPtMotion%TranslationDisp       = y%HubPtMotion%TranslationDisp - y%HubPtMotion%Position   
+   y%HubPtMotion%TranslationDisp       = y%HubPtMotion%TranslationDisp - y%HubPtMotion%Position   ! relative position
    
       ! Orientation:        
-   y%HubPtMotion%Orientation(1,1,1)  =     OtherState%CoordSys%g1(1) 
-   y%HubPtMotion%Orientation(2,1,1)  =     OtherState%CoordSys%g2(1)
-   y%HubPtMotion%Orientation(3,1,1)  =     OtherState%CoordSys%g3(1)   
-   y%HubPtMotion%Orientation(1,2,1)  = -1.*OtherState%CoordSys%g1(3)
-   y%HubPtMotion%Orientation(2,2,1)  = -1.*OtherState%CoordSys%g2(3) 
-   y%HubPtMotion%Orientation(3,2,1)  = -1.*OtherState%CoordSys%g3(3) 
-   y%HubPtMotion%Orientation(1,3,1)  =     OtherState%CoordSys%g1(2)
-   y%HubPtMotion%Orientation(2,3,1)  =     OtherState%CoordSys%g2(2)
-   y%HubPtMotion%Orientation(3,3,1)  =     OtherState%CoordSys%g3(2)
+   y%HubPtMotion%Orientation(1,1,1)    =     OtherState%CoordSys%g1(1) 
+   y%HubPtMotion%Orientation(2,1,1)    =     OtherState%CoordSys%g2(1)
+   y%HubPtMotion%Orientation(3,1,1)    =     OtherState%CoordSys%g3(1)   
+   y%HubPtMotion%Orientation(1,2,1)    = -1.*OtherState%CoordSys%g1(3)
+   y%HubPtMotion%Orientation(2,2,1)    = -1.*OtherState%CoordSys%g2(3) 
+   y%HubPtMotion%Orientation(3,2,1)    = -1.*OtherState%CoordSys%g3(3) 
+   y%HubPtMotion%Orientation(1,3,1)    =     OtherState%CoordSys%g1(2)
+   y%HubPtMotion%Orientation(2,3,1)    =     OtherState%CoordSys%g2(2)
+   y%HubPtMotion%Orientation(3,3,1)    =     OtherState%CoordSys%g3(2)
    
       ! Rotational velocity:
-   y%HubPtMotion%RotationVel(1,1) =     OtherState%RtHS%AngVelEH(1)
-   y%HubPtMotion%RotationVel(2,1) = -1.*OtherState%RtHS%AngVelEH(3)
-   y%HubPtMotion%RotationVel(3,1) =     OtherState%RtHS%AngVelEH(2)   
+   y%HubPtMotion%RotationVel(1,1)      =     OtherState%RtHS%AngVelEH(1)
+   y%HubPtMotion%RotationVel(2,1)      = -1.*OtherState%RtHS%AngVelEH(3)
+   y%HubPtMotion%RotationVel(3,1)      =     OtherState%RtHS%AngVelEH(2)   
    
    !...........
    ! Blade roots (BeamDyn/AeroDyn v15):
@@ -2562,12 +2577,12 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
          
    DO K=1,p%NumBl
          
-      ! Translation displacement  ! rS at the root
-      !BJJ: FIX ME!!!!
-      y%BladeRootMotion(K)%TranslationDisp(1,1) =        OtherState%RtHS%rQ(1) + p%HubRad * OtherState%CoordSys%j3(K,1) 
-      y%BladeRootMotion(K)%TranslationDisp(2,1) =  -1.*( OtherState%RtHS%rQ(3) + p%HubRad * OtherState%CoordSys%j3(K,3) )
-      y%BladeRootMotion(K)%TranslationDisp(3,1) =        OtherState%RtHS%rQ(2) + p%HubRad * OtherState%CoordSys%j3(K,2) + p%PtfmRefzt
+      ! Translation displacement  ! rS at the root      
+      y%BladeRootMotion(K)%TranslationDisp(1,1) =            OtherState%RtHS%rS (1,K,0)                ! = the distance from the undeflected tower centerline to the current blade node in the xi ( z1) direction
+      y%BladeRootMotion(K)%TranslationDisp(2,1) =        -1.*OtherState%RtHS%rS (3,K,0)                ! = the distance from the undeflected tower centerline to the current blade node in the yi (-z3) direction
+      y%BladeRootMotion(K)%TranslationDisp(3,1) =            OtherState%RtHS%rS (2,K,0)  + p%PtfmRefzt ! = the distance from the nominal tower base position (i.e., the undeflected position of the tower base) to the current blade node in the zi ( z2) direction
       y%BladeRootMotion(K)%TranslationDisp      = y%BladeRootMotion(K)%TranslationDisp - y%BladeRootMotion(K)%Position ! make it relative
+      
       
       ! Orientation 
       y%BladeRootMotion(K)%Orientation(1,1,1)   =     OtherState%CoordSys%j1(K,1)
@@ -2580,8 +2595,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       y%BladeRootMotion(K)%Orientation(2,3,1)   =     OtherState%CoordSys%j2(K,2)
       y%BladeRootMotion(K)%Orientation(3,3,1)   =     OtherState%CoordSys%j3(K,2)
 
-      ! Translation velocity ! LinVelES (at root, but it's not currently defined there)
-      !BJJ: FIX ME!!!!!!
+      ! Translation velocity 
       y%BladeRootMotion(K)%TranslationVel(1,1)  =     OtherState%RtHS%LinVelES(1,0,K)
       y%BladeRootMotion(K)%TranslationVel(2,1)  = -1.*OtherState%RtHS%LinVelES(3,0,K)
       y%BladeRootMotion(K)%TranslationVel(3,1)  =     OtherState%RtHS%LinVelES(2,0,K)
@@ -2591,11 +2605,10 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       y%BladeRootMotion(K)%RotationVel(2,1)     =  -1.*OtherState%RtHS%AngVelEH(3)
       y%BladeRootMotion(K)%RotationVel(3,1)     =      OtherState%RtHS%AngVelEH(2)
       
-      ! Translation acceleration  ! LinAccES (at root, but it's not currently defined there)
-      !BJJ: FIX ME!!!!!!
-      y%BladeRootMotion(K)%TranslationAcc(1,1)  =       LinAccES(1,0,K)
-      y%BladeRootMotion(K)%TranslationAcc(2,1)  =   -1.*LinAccES(3,0,K)
-      y%BladeRootMotion(K)%TranslationAcc(3,1)  =       LinAccES(2,0,K)
+      ! Translation acceleration
+      y%BladeRootMotion(K)%TranslationAcc(1,1)  =      LinAccES(1,0,K)
+      y%BladeRootMotion(K)%TranslationAcc(2,1)  =  -1.*LinAccES(3,0,K)
+      y%BladeRootMotion(K)%TranslationAcc(3,1)  =      LinAccES(2,0,K)
       
       ! Rotation acceleration  
       y%BladeRootMotion(K)%RotationAcc(1,1)     =      AngAccEH(1) 
@@ -3756,8 +3769,8 @@ IF ( ErrStat /= 0 )  THEN
 END IF
 
 
-ALLOCATE ( CoordSys%n1(p%NumBl,p%BldNodes,3), CoordSys%n2(p%NumBl,p%BldNodes,3), &
-           CoordSys%n3(p%NumBl,p%BldNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
+ALLOCATE ( CoordSys%n1(p%NumBl,0:p%TipNode,3), CoordSys%n2(p%NumBl,0:p%TipNode,3), &
+           CoordSys%n3(p%NumBl,0:p%TipNode,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
 IF ( ErrStat /= 0 )  THEN
    ErrStat = ErrID_Fatal
    ErrMsg  = 'Error allocating the n1, n2, and n3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
@@ -4203,6 +4216,10 @@ SUBROUTINE SetBladeParameters( p, BladeInData, BladeMeshData, ErrStat, ErrMsg )
    DO K=1,p%NumBl
       InterpInd = 1
 
+      p%ThetaS  (K,0)         = BladeInData(K)%StrcTwst(1)
+      p%ThetaS  (K,p%TipNode) = BladeInData(K)%StrcTwst(BladeInData(K)%NBlInpSt)
+      
+      
       DO J=1,p%BldNodes
 
             ! Get the index into BlFract for all of the arrays, using the NWTC Subroutine Library
@@ -4267,6 +4284,8 @@ SUBROUTINE SetBladeParameters( p, BladeInData, BladeMeshData, ErrStat, ErrMsg )
 
    END DO ! ( Blades )
 
+   
+   
    p%CThetaS = COS(p%ThetaS)
    p%SThetaS = SIN(p%ThetaS)
 
@@ -4309,38 +4328,30 @@ SUBROUTINE Alloc_BladeParameters( p, AllocAdams, ErrStat, ErrMsg )
 
 
       ! Allocate arrays to hold the blade analysis nodes.
-   CALL AllocAry  ( p%RNodes,             p%BldNodes, 'RNodes'   , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%DRNodes,            p%BldNodes, 'DRNodes'  , ErrStat, ErrMsg )
-
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%Chord,              p%BldNodes, 'Chord'    , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%AeroTwst,           p%BldNodes, 'AeroTwst' , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%CAeroTwst,          p%BldNodes, 'CAeroTwst', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%SAeroTwst,          p%BldNodes, 'SAeroTwst', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%RNodes,             p%BldNodes, 'RNodes'   , ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%DRNodes,            p%BldNodes, 'DRNodes'  , ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%Chord,              p%BldNodes, 'Chord'    , ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%AeroTwst,           p%BldNodes, 'AeroTwst' , ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%CAeroTwst,          p%BldNodes, 'CAeroTwst', ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%SAeroTwst,          p%BldNodes, 'SAeroTwst', ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
 
 
       ! Allocate arrays to hold blade data at the analysis nodes.
-   CALL AllocAry  ( p%RNodesNorm,              p%BldNodes, 'RNodesNorm' , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%PitchAxis,   p%NumBl,    p%BldNodes, 'PitchAxis'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%ThetaS,      p%NumBl,    p%BldNodes, 'ThetaS'     , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%CThetaS,     p%NumBl,    p%BldNodes, 'CThetaS'    , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%SThetaS,     p%NumBl,    p%BldNodes, 'SThetaS'    , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%MassB,       p%NumBl,    p%BldNodes, 'MassB'      , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%StiffBF,     p%NumBl,    p%BldNodes, 'StiffBF'    , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%StiffBE,     p%NumBl,    p%BldNodes, 'StiffBE'    , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%RNodesNorm,              p%BldNodes, 'RNodesNorm' , ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%PitchAxis,   p%NumBl,    p%BldNodes, 'PitchAxis'  , ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   
+   ALLOCATE( p%ThetaS( p%NumBl,0:P%TipNode) &
+           , p%CThetaS(p%NumBl,0:P%TipNode) &
+           , p%SThetaS(p%NumBl,0:P%TipNode), STAT=ErrStat ) 
+   IF (ErrStat /= 0) then
+      ErrStat = ErrID_Fatal
+      ErrMsg = 'Error allocating ThetaS, CThetaS, and SThetaS'
+   END IF
+   
+      
+   CALL AllocAry  ( p%MassB,       p%NumBl,    p%BldNodes, 'MassB'      , ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%StiffBF,     p%NumBl,    p%BldNodes, 'StiffBF'    , ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%StiffBE,     p%NumBl,    p%BldNodes, 'StiffBE'    , ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
 
 
    IF ( AllocAdams ) THEN
@@ -4702,7 +4713,7 @@ SUBROUTINE SetOtherParameters( p, InputFileData, ErrStat, ErrMsg )
       RETURN
    END IF
 
-   ALLOCATE ( p%TwistedSF(p%NumBl,2,3,p%TipNode,0:2) , STAT=ErrStat )
+   ALLOCATE ( p%TwistedSF(p%NumBl,2,3,0:p%TipNode,0:2) , STAT=ErrStat )
    IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
       ErrMsg  = 'Error allocating TwistedSF array.'
@@ -4735,10 +4746,16 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
    CALL AllocAry( RtHS%rT,        Dims, p%TwrNodes,        'rT',        ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%rT0T,      Dims, p%TwrNodes,        'rT0T',      ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%rQS,       Dims, p%NumBl,p%TipNode, 'rQS',       ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%rS,        Dims, p%NumBl,p%TipNode, 'rS',        ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+  !CALL AllocAry( RtHS%rS,        Dims, p%NumBl,p%TipNode, 'rS',        ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%rS0S,      Dims, p%NumBl,p%TipNode, 'rS0S',      ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%rPS0,      Dims, p%NumBl,           'rPS0',      ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%rSAerCen,  Dims, p%TipNode, p%NumBl,'rSAerCen',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   
+   allocate(RtHS%rS(Dims, p%NumBl,0:p%TipNode), STAT=ErrStat)
+   if (ErrStat /= 0) then
+      ErrStat = ErrID_Fatal
+      ErrMsg  = "Error allocating RtHS%rS."
+   end if
    
 
       ! angular velocities (including partial angular velocities):
@@ -9579,19 +9596,34 @@ SUBROUTINE Coeff(p,InputFileData, ErrStat, ErrMsg)
       p%CBE      (K,1,1) = ( 0.01*p%BldEDamp(K,1) )*p%KBE(K,1,1)/( Pi*p%FreqBE(K,1,1) )
 
 
+      ! Calculate the 2nd derivatives of the twisted shape functions at the blade root:
+
+      Shape  = SHP( 0.0_ReKi, p%BldFlexL, p%BldFl1Sh(:,K), 2, ErrStat, ErrMsg )
+      p%TwistedSF(K,1,1,0,2) =  Shape*p%CThetaS(K,0)        ! 2nd deriv. of Phi1(0) for blade K
+      p%TwistedSF(K,2,1,0,2) = -Shape*p%SThetaS(K,0)        ! 2nd deriv. of Psi1(0) for blade K
+
+      Shape  = SHP( 0.0_ReKi, p%BldFlexL, p%BldFl2Sh(:,K), 2, ErrStat, ErrMsg )
+      p%TwistedSF(K,1,2,0,2) =  Shape*p%CThetaS(K,0)        ! 2nd deriv. of Phi2(0) for blade K
+      p%TwistedSF(K,2,2,0,2) = -Shape*p%SThetaS(K,0)        ! 2nd deriv. of Psi2(0) for blade K
+
+      Shape  = SHP( 0.0_ReKi, p%BldFlexL, p%BldEdgSh(:,K), 2, ErrStat, ErrMsg )
+      p%TwistedSF(K,1,3,0,2) =  Shape*p%SThetaS(K,0)        ! 2nd deriv. of Phi3(0) for blade K
+      p%TwistedSF(K,2,3,0,2) =  Shape*p%CThetaS(K,0)        ! 2nd deriv. of Psi3(0) for blade K
+      
+      
       ! Calculate the 2nd derivatives of the twisted shape functions at the tip:
 
       Shape  = SHP( 1.0_ReKi, p%BldFlexL, p%BldFl1Sh(:,K), 2, ErrStat, ErrMsg )
-      p%TwistedSF(K,1,1,p%TipNode,2) =  Shape*p%CThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi1(p%TipNode) for blade K
-      p%TwistedSF(K,2,1,p%TipNode,2) = -Shape*p%SThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi1(p%TipNode) for blade K
+      p%TwistedSF(K,1,1,p%TipNode,2) =  Shape*p%CThetaS(K,p%TipNode)        ! 2nd deriv. of Phi1(p%TipNode) for blade K
+      p%TwistedSF(K,2,1,p%TipNode,2) = -Shape*p%SThetaS(K,p%TipNode)        ! 2nd deriv. of Psi1(p%TipNode) for blade K
 
       Shape  = SHP( 1.0_ReKi, p%BldFlexL, p%BldFl2Sh(:,K), 2, ErrStat, ErrMsg )
-      p%TwistedSF(K,1,2,p%TipNode,2) =  Shape*p%CThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi2(p%TipNode) for blade K
-      p%TwistedSF(K,2,2,p%TipNode,2) = -Shape*p%SThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi2(p%TipNode) for blade K
+      p%TwistedSF(K,1,2,p%TipNode,2) =  Shape*p%CThetaS(K,p%TipNode)        ! 2nd deriv. of Phi2(p%TipNode) for blade K
+      p%TwistedSF(K,2,2,p%TipNode,2) = -Shape*p%SThetaS(K,p%TipNode)        ! 2nd deriv. of Psi2(p%TipNode) for blade K
 
       Shape  = SHP( 1.0_ReKi, p%BldFlexL, p%BldEdgSh(:,K), 2, ErrStat, ErrMsg )
-      p%TwistedSF(K,1,3,p%TipNode,2) =  Shape*p%SThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi3(p%TipNode) for blade K
-      p%TwistedSF(K,2,3,p%TipNode,2) =  Shape*p%CThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi3(p%TipNode) for blade K
+      p%TwistedSF(K,1,3,p%TipNode,2) =  Shape*p%SThetaS(K,p%TipNode)        ! 2nd deriv. of Phi3(p%TipNode) for blade K
+      p%TwistedSF(K,2,3,p%TipNode,2) =  Shape*p%CThetaS(K,p%TipNode)        ! 2nd deriv. of Psi3(p%TipNode) for blade K
 
 
       ! Integrate to find the 1st and zeroeth derivatives of the twisted shape functions
@@ -9604,6 +9636,9 @@ SUBROUTINE Coeff(p,InputFileData, ErrStat, ErrMsg)
          ENDDO       ! L - All blade DOFs
       ENDDO          ! I - Phi and Psi
 
+         ! the 1st and zeroeth derivatives of the twisted shape functions at the blade root:
+      p%TwistedSF(K,:,:,0,1) = 0.0_ReKi
+      p%TwistedSF(K,:,:,0,0) = 0.0_ReKi     
 
       ! Integrate to find the blade axial reduction shape functions at the tip:
 
@@ -10749,8 +10784,7 @@ SUBROUTINE SetCoordSy( t, CoordSys, RtHSdat, BlPitch, p, x, ErrStat, ErrMsg )
       CoordSys%j3(K,:) = CoordSys%i3(K,:)                                           ! j3(K,:) = vector / direction j3 for blade K (=  zbK from the IEC coord. system).
 
 
-   !JASON: USE TipNode HERE INSTEAD OF p%BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
-      DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
+      DO J = 0,p%TipNode ! Loop through the blade nodes / elements
 
 
       ! Blade coordinate system aligned with local structural axes (not element fixed):
@@ -10780,7 +10814,11 @@ SUBROUTINE SetCoordSy( t, CoordSys, RtHSdat, BlPitch, p, x, ErrStat, ErrMsg )
          CoordSys%n2(K,J,:) = TransMat(2,1)*Lj1 + TransMat(2,2)*Lj2 + TransMat(2,3)*Lj3   ! Vector / direction n2 for node J of blade K (= LybK from the IEC coord. system).
          CoordSys%n3(K,J,:) = TransMat(3,1)*Lj1 + TransMat(3,2)*Lj2 + TransMat(3,3)*Lj3   ! Vector / direction n3 for node J of blade K (= LzbK from the IEC coord. system).
 
-
+      ! skip these next CoordSys variables at the root and the tip; they are required only for AD14:
+         
+         if (j == 0 .or. j==p%TipNode) cycle  
+      
+         
       ! Blade element-fixed coordinate system used for calculating and returning
       !    aerodynamics loads:
       ! This coordinate system is rotated about positive n3 by the angle
@@ -11239,8 +11277,8 @@ SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
 
 
 
-      ! Calculate the position vector of the tip:
 IF (.NOT. p%BD4Blades) THEN
+      ! Calculate the position vector of the tip:
       RtHSdat%rS0S(:,K,p%TipNode) = ( p%TwistedSF(K,1,1,p%TipNode,0)*x%QT( DOF_BF(K,1) ) &                                       ! Position vector from the blade root (point S(0)) to the blade tip (point S(p%BldFlexL)).
                                     + p%TwistedSF(K,1,2,p%TipNode,0)*x%QT( DOF_BF(K,2) ) &
                                     + p%TwistedSF(K,1,3,p%TipNode,0)*x%QT( DOF_BE(K,1) )                     )*CoordSys%j1(K,:) &
@@ -11255,12 +11293,17 @@ IF (.NOT. p%BD4Blades) THEN
                                     + 2.*p%AxRedBld(K,2,3,p%TipNode)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BE(K,1) ) &
                                     + 2.*p%AxRedBld(K,1,3,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BE(K,1) ) ) )*CoordSys%j3(K,:)
       RtHSdat%rQS (:,K,p%TipNode) = RtHSdat%rS0S(:,K,p%TipNode) + p%HubRad*CoordSys%j3(K,:)                                      ! Position vector from apex of rotation (point Q) to the blade tip (point S(p%BldFlexL)).
-      RtHSdat%rS  (:,K,p%TipNode) = RtHSdat%rQS (:,K,p%TipNode) + RtHSdat%rQ                                                             ! Position vector from inertial frame origin      to the blade tip (point S(p%BldFlexL)).
+      RtHSdat%rS  (:,K,p%TipNode) = RtHSdat%rQS (:,K,p%TipNode) + RtHSdat%rQ                                                     ! Position vector from inertial frame origin      to the blade tip (point S(p%BldFlexL)).
+      
+      ! position vector for blade root node:
+      RtHSdat%rS  (:,K,0) = p%HubRad*CoordSys%j3(K,:) + RtHSdat%rQ
+      
 ELSE
       RtHSdat%rS0S = 0.0
       RtHSdat%rQS  = 0.0
       RtHSdat%rS   = 0.0
 END IF
+
          ! Calculate the position vector from the teeter pin to the blade root:
    
       RtHSdat%rPS0(:,K) = RtHSdat%rPQ + p%HubRad*CoordSys%j3(K,:)   ! Position vector from teeter pin (point P) to blade root (point S(0)).
@@ -11289,7 +11332,6 @@ END IF
 
 
       END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
-
 
 
 
@@ -11832,6 +11874,7 @@ SUBROUTINE CalculateLinearVelAcc( p, x, CoordSys, RtHSdat )
 
 
    RtHSdat%PLinVelEQ(       :,:,:) = RtHSdat%PLinVelEP(:,:,:)
+    RtHSdat%LinVelEQ               =  RtHSdat%LinVelEZ
    DO I = 1,p%NPH   ! Loop through all DOFs associated with the angular motion of the hub (body H)
 
       TmpVec0 = CROSS_PRODUCT( RtHSdat%PAngVelEH(p%PH(I)   ,0,:),   RtHSdat%rPQ  )
@@ -11841,8 +11884,9 @@ SUBROUTINE CalculateLinearVelAcc( p, x, CoordSys, RtHSdat )
       RtHSdat%PLinVelEQ(p%PH(I),0,:) = TmpVec0    +                 RtHSdat%PLinVelEQ(p%PH(I)   ,0,:)
       RtHSdat%PLinVelEQ(p%PH(I),1,:) = TmpVec1    + TmpVec2 +       RtHSdat%PLinVelEQ(p%PH(I)   ,1,:)
 
-       LinAccEQt                     =  LinAccEQt + x%QDT(p%PH(I) )*RtHSdat%PLinVelEQ(p%PH(I)   ,1,:)
-
+      RtHSdat%LinVelEQ               =  RtHSdat%LinVelEQ  + x%QDT(p%PH(I) )*RtHSdat%PLinVelEQ(p%PH(I)   ,0,:)
+      LinAccEQt                      =          LinAccEQt + x%QDT(p%PH(I) )*RtHSdat%PLinVelEQ(p%PH(I)   ,1,:)
+      
    ENDDO          ! I - all DOFs associated with the angular motion of the hub (body H)
 
 
@@ -11930,7 +11974,10 @@ SUBROUTINE CalculateLinearVelAcc( p, x, CoordSys, RtHSdat )
                                             RtHSdat%PLinVelES(K,p%TipNode,p%PH(I),1,:)
 
       ENDDO          ! I - all DOFs associated with the angular motion of the hub (body H)
-
+      
+         ! value for blade root
+      RtHSdat%LinVelES(:,0,K) = RtHSdat%LinVelEQ + cross_product(RtHSdat%AngVelEH, p%HubRad*CoordSys%j3(K,:) ) !p%HubRad*CoordSys%j3(K,:) = rQS at the blade root
+      
    !JASON: USE TipNode HERE INSTEAD OF BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
       IF (.NOT. p%BD4Blades) THEN
          RtHSdat%LinVelESm2(K) = DOT_PRODUCT( RtHSdat%LinVelES(:,p%TipNode,K), CoordSys%m2(K,p%BldNodes,:) )
@@ -12197,13 +12244,24 @@ SUBROUTINE CalculateForcesMoments( p, x, CoordSys, u, RtHSdat )
    ! fill FSAero() and MMAero() with the forces resulting from inputs u%BladeLn2Mesh(K)%Force(1:2,:) and u%BladeLn2Mesh(K)%Moment(3,:):
    ! [except, we're ignoring the additional nodes we added on the mesh end points]
    
-         NodeNum = J
+         NodeNum = J ! we're ignoring the root and tip
          
-         RtHSdat%FSAero(:,K,J) = u%BladeLn2Mesh(K)%Force(1,NodeNum) * CoordSys%te1(K,J,:) &
-                               + u%BladeLn2Mesh(K)%Force(2,NodeNum) * CoordSys%te2(K,J,:)
+         if (p%UseAD14) then
+            RtHSdat%FSAero(:,K,J) = u%BladeLn2Mesh(K)%Force(1,NodeNum) * CoordSys%te1(K,J,:) &
+                                  + u%BladeLn2Mesh(K)%Force(2,NodeNum) * CoordSys%te2(K,J,:)
 
-         RtHSdat%MMAero(:,K,J) = CROSS_PRODUCT( RtHSdat%rSAerCen(:,J,K), RtHSdat%FSAero(:,K,J) )&
-                               + u%BladeLn2Mesh(K)%Moment(3,NodeNum) * CoordSys%te3(K,J,:)        
+            RtHSdat%MMAero(:,K,J) = CROSS_PRODUCT( RtHSdat%rSAerCen(:,J,K), RtHSdat%FSAero(:,K,J) )&
+                                  + u%BladeLn2Mesh(K)%Moment(3,NodeNum) * CoordSys%te3(K,J,:)        
+         else
+            RtHSdat%FSAero(1,K,J) =  u%BladeLn2Mesh(K)%Force(1,NodeNum) 
+            RtHSdat%FSAero(2,K,J) =  u%BladeLn2Mesh(K)%Force(3,NodeNum) 
+            RtHSdat%FSAero(3,K,J) = -u%BladeLn2Mesh(K)%Force(2,NodeNum) 
+
+            RtHSdat%MMAero(1,K,J) =  u%BladeLn2Mesh(K)%Moment(1,NodeNum) 
+            RtHSdat%MMAero(2,K,J) =  u%BladeLn2Mesh(K)%Moment(3,NodeNum) 
+            RtHSdat%MMAero(3,K,J) = -u%BladeLn2Mesh(K)%Moment(2,NodeNum) 
+         end if
+                     
          
       END DO !J
    END DO  ! K 
@@ -12326,11 +12384,16 @@ DO K = 1,p%NumBl ! Loop through all blades
            + p%Hubg2Iner*CoordSys%g2*DOT_PRODUCT( CoordSys%g2, RtHSdat%AngVelEH )
    TmpVec3 = CROSS_PRODUCT( -RtHSdat%AngVelEH, TmpVec )                                   ! = ( -angular velocity of hub in the inertia frame ) cross ( TmpVec )
 
-   RtHSdat%FrcPRott  = TmpVec1 + u%HubPtLoad%Force(:,1)
-   RtHSdat%MomLPRott = TmpVec2 + TmpVec3 - p%Hubg1Iner*CoordSys%g1*DOT_PRODUCT( CoordSys%g1, RtHSdat%AngAccEHt ) &
-                                         - p%Hubg2Iner*CoordSys%g2*DOT_PRODUCT( CoordSys%g2, RtHSdat%AngAccEHt ) &
-                                         + u%HubPtLoad%Moment(:,1)
+   RtHSdat%FrcPRott(1)  = TmpVec1(1) + u%HubPtLoad%Force(1,1)
+   RtHSdat%FrcPRott(2)  = TmpVec1(2) + u%HubPtLoad%Force(3,1)
+   RtHSdat%FrcPRott(3)  = TmpVec1(3) - u%HubPtLoad%Force(2,1)
+   
+   RtHSdat%MomLPRott    = TmpVec2 + TmpVec3 - p%Hubg1Iner*CoordSys%g1*DOT_PRODUCT( CoordSys%g1, RtHSdat%AngAccEHt ) &
+                                            - p%Hubg2Iner*CoordSys%g2*DOT_PRODUCT( CoordSys%g2, RtHSdat%AngAccEHt )                                          
       
+   RtHSdat%MomLPRott(1) = RtHSdat%MomLPRott(1) + u%HubPtLoad%Moment(1,1)
+   RtHSdat%MomLPRott(2) = RtHSdat%MomLPRott(2) + u%HubPtLoad%Moment(3,1)
+   RtHSdat%MomLPRott(3) = RtHSdat%MomLPRott(3) - u%HubPtLoad%Moment(2,1)
    
    DO K = 1,p%NumBl ! Loop through all blades
    
@@ -13230,7 +13293,7 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
                        , TranslationDisp = .TRUE.    &
                        , Orientation     = .TRUE.    &
                        , TranslationVel  = .TRUE.    &
-                       , TranslationAcc  = .TRUE.    &  
+                       , TranslationAcc  = p%UseAD14 &  
                        , ErrStat  = ErrStat2         &
                        , ErrMess  = ErrMsg2          )  ! automatically sets    y%BladeLn2Mesh(K)%RemapFlag = .TRUE.
    
@@ -13376,12 +13439,11 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
          CALL CheckError(ErrStat2,ErrMsg2)
          IF (ErrStat >= AbortErrLev) RETURN
                   
-         
-
-      !Position(diff indx) =  OtherState%RtHS%rQ + p%HubRad * OtherState%CoordSys%j3(K,:)       
-      Position(1) =        OtherState%RtHS%rQ(1) + p%HubRad * OtherState%CoordSys%j3(K,1) 
-      Position(2) =  -1.*( OtherState%RtHS%rQ(3) + p%HubRad * OtherState%CoordSys%j3(K,3) )
-      Position(3) =        OtherState%RtHS%rQ(2) + p%HubRad * OtherState%CoordSys%j3(K,2) + p%PtfmRefzt
+               
+      position(1) =     OtherState%RtHS%rS (1,K,0)                ! = the distance from the undeflected tower centerline to the current blade node in the xi ( z1) direction
+      position(2) = -1.*OtherState%RtHS%rS (3,K,0)                ! = the distance from the undeflected tower centerline to the current blade node in the yi (-z3) direction
+      position(3) =     OtherState%RtHS%rS (2,K,0)  + p%PtfmRefzt ! = the distance from the nominal tower base position (i.e., the undeflected position of the tower base) to the current blade node in the zi ( z2) direction
+      
       
       Orientation(1,1) =     OtherState%CoordSys%j1(K,1)
       Orientation(2,1) =     OtherState%CoordSys%j2(K,1)
@@ -13530,7 +13592,7 @@ CONTAINS
    !...............................................................................................................................
 END SUBROUTINE ED_AllocOutput
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE Init_Inputs( u, p, x, InputFileData, OtherState, ErrStat, ErrMsg )
+SUBROUTINE Init_u( u, p, x, InputFileData, OtherState, ErrStat, ErrMsg )
 ! This routine allocates the arrays stored in the ED_InputType data structure (u), based on the parameters (p). 
 ! The routine assumes that the arrays are not currently allocated (It will produce a fatal error otherwise.) It also initializes the inputs
 !..................................................................................................................................
@@ -13552,7 +13614,7 @@ SUBROUTINE Init_Inputs( u, p, x, InputFileData, OtherState, ErrStat, ErrMsg )
    INTEGER(IntKi)                               :: NodeNum           ! number of current blade node
    INTEGER(IntKi)                               :: ErrStat2          ! The error identifier (ErrStat)
    CHARACTER(ErrMsgLen)                         :: ErrMsg2           ! The error message (ErrMsg)
-   CHARACTER(*), PARAMETER                      :: RoutineName = 'Init_Inputs'
+   CHARACTER(*), PARAMETER                      :: RoutineName = 'Init_u'
    
       ! initialize variables:
       
@@ -13633,56 +13695,91 @@ SUBROUTINE Init_Inputs( u, p, x, InputFileData, OtherState, ErrStat, ErrMsg )
                RETURN
             END IF
       
+         if (p%UseAD14) then
+            ! position the nodes on the blades:
+            DO J = 1,p%BldNodes
          
-         ! position the nodes on the blades:
-         DO J = 1,p%BldNodes
+               NodeNum = J
          
-            NodeNum = J
-         
-            Orientation(1,1) =  p%CAeroTwst(J)
-            Orientation(2,1) =  p%SAeroTwst(J)
-            Orientation(3,1) =  0.0_ReKi
+               Orientation(1,1) =  p%CAeroTwst(J)
+               Orientation(2,1) =  p%SAeroTwst(J)
+               Orientation(3,1) =  0.0_ReKi
 
-            Orientation(1,2) = -p%SAeroTwst(J)
-            Orientation(2,2) =  p%CAeroTwst(J)
-            Orientation(3,2) =  0.0_ReKi
+               Orientation(1,2) = -p%SAeroTwst(J)
+               Orientation(2,2) =  p%CAeroTwst(J)
+               Orientation(3,2) =  0.0_ReKi
 
-            Orientation(1,3) =  0.0_ReKi
-            Orientation(2,3) =  0.0_ReKi
-            Orientation(3,3) =  1.0_ReKi
+               Orientation(1,3) =  0.0_ReKi
+               Orientation(2,3) =  0.0_ReKi
+               Orientation(3,3) =  1.0_ReKi
                            
-            CALL MeshPositionNode ( u%BladeLn2Mesh(K), NodeNum, (/0.0_ReKi, 0.0_ReKi, p%RNodes(J) /), ErrStat2, ErrMsg2, Orient=Orientation )
-               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
-               IF (ErrStat >= AbortErrLev) THEN
-                  CALL Cleanup()
-                  RETURN
-               END IF
-                           
-            IF ( J == p%BldNodes ) THEN ! Use orientation at p%BldNodes for the extra node at the blade tip
-
-               NodeNum = p%BldNodes + 1
-               CALL MeshPositionNode ( u%BladeLn2Mesh(K), NodeNum, (/0.0_ReKi, 0.0_ReKi, p%BldFlexL /), ErrStat2, ErrMsg2, Orient=Orientation )
+               CALL MeshPositionNode ( u%BladeLn2Mesh(K), NodeNum, (/0.0_ReKi, 0.0_ReKi, p%RNodes(J) /), ErrStat2, ErrMsg2, Orient=Orientation )
                   CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
                   IF (ErrStat >= AbortErrLev) THEN
                      CALL Cleanup()
                      RETURN
                   END IF
+                           
+               IF ( J == p%BldNodes ) THEN ! Use orientation at p%BldNodes for the extra node at the blade tip
+
+                  NodeNum = p%BldNodes + 1
+                  CALL MeshPositionNode ( u%BladeLn2Mesh(K), NodeNum, (/0.0_ReKi, 0.0_ReKi, p%BldFlexL /), ErrStat2, ErrMsg2, Orient=Orientation )
+                     CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+                     IF (ErrStat >= AbortErrLev) THEN
+                        CALL Cleanup()
+                        RETURN
+                     END IF
             
-            ELSEIF (J == 1) THEN ! Use orientation at 1 for the extra node at the hub
+               ELSEIF (J == 1) THEN ! Use orientation at 1 for the extra node at the hub
             
-               NodeNum = p%BldNodes + 2 
-               CALL MeshPositionNode ( u%BladeLn2Mesh(K), NodeNum, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat2, ErrMsg2, Orient=Orientation )
-                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
-                  IF (ErrStat >= AbortErrLev) THEN
-                     CALL Cleanup()
-                     RETURN
-                  END IF
+                  NodeNum = p%BldNodes + 2 
+                  CALL MeshPositionNode ( u%BladeLn2Mesh(K), NodeNum, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat2, ErrMsg2, Orient=Orientation )
+                     CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+                     IF (ErrStat >= AbortErrLev) THEN
+                        CALL Cleanup()
+                        RETURN
+                     END IF
   
-            END IF
+               END IF
                                     
-         END DO ! nodes  
-      
-      
+            END DO ! nodes  
+         else
+            ! position the nodes on the blades:
+            DO J = 0,p%TipNode
+               if (j==0) then ! blade root
+                  NodeNum = p%BldNodes + 2
+               elseif (j==p%TipNode) then ! blade tip
+                  NodeNum = p%BldNodes + 1
+               else
+                  NodeNum = J
+               end if
+         
+               Orientation(1,1) =     OtherState%CoordSys%n1(K,J,1)
+               Orientation(2,1) =     OtherState%CoordSys%n2(K,J,1)
+               Orientation(3,1) =     OtherState%CoordSys%n3(K,J,1)
+               Orientation(1,2) = -1.*OtherState%CoordSys%n1(K,J,3)
+               Orientation(2,2) = -1.*OtherState%CoordSys%n2(K,J,3)
+               Orientation(3,2) = -1.*OtherState%CoordSys%n3(K,J,3)
+               Orientation(1,3) =     OtherState%CoordSys%n1(K,J,2)
+               Orientation(2,3) =     OtherState%CoordSys%n2(K,J,2)
+               Orientation(3,3) =     OtherState%CoordSys%n3(K,J,2) 
+               
+                  ! Translational Displacement 
+               position(1) =     OtherState%RtHS%rS (1,K,J)                ! = the distance from the undeflected tower centerline to the current blade node in the xi ( z1) direction
+               position(2) = -1.*OtherState%RtHS%rS (3,K,J)                ! = the distance from the undeflected tower centerline to the current blade node in the yi (-z3) direction
+               position(3) =     OtherState%RtHS%rS (2,K,J)  + p%PtfmRefzt ! = the distance from the nominal tower base position (i.e., the undeflected position of the tower base) to the current blade node in the zi ( z2) direction
+               
+               
+               CALL MeshPositionNode ( u%BladeLn2Mesh(K), NodeNum, position, ErrStat2, ErrMsg2, Orient=Orientation )
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+                  IF (ErrStat >= AbortErrLev) THEN
+                     CALL Cleanup()
+                     RETURN
+                  END IF                           
+                                    
+            END DO ! nodes              
+         end if ! position/orientation of nodes for AeroDyn v14 or v15
+         
          ! create elements:      
          DO J = 2,p%TipNode !p%BldNodes + 1
             
@@ -13750,12 +13847,22 @@ SUBROUTINE Init_Inputs( u, p, x, InputFileData, OtherState, ErrStat, ErrMsg )
          RETURN
       END IF
 
-   ! place single node at platform reference point; position affects mapping/coupling with other modules      
+   ! place single node at hub; position affects mapping/coupling with other modules      
    Position(1)  =     OtherState%RtHS%rQ(1)
    Position(2)  = -1.*OtherState%RtHS%rQ(3)
    Position(3)  =     OtherState%RtHS%rQ(2) + p%PtfmRefzt
+   
+   Orientation(1,1) =     OtherState%CoordSys%g1(1)
+   Orientation(2,1) =     OtherState%CoordSys%g2(1)
+   Orientation(3,1) =     OtherState%CoordSys%g3(1)
+   Orientation(1,2) = -1.*OtherState%CoordSys%g1(3)
+   Orientation(2,2) = -1.*OtherState%CoordSys%g2(3)
+   Orientation(3,2) = -1.*OtherState%CoordSys%g3(3)
+   Orientation(1,3) =     OtherState%CoordSys%g1(2)
+   Orientation(2,3) =     OtherState%CoordSys%g2(2)
+   Orientation(3,3) =     OtherState%CoordSys%g3(2) 
       
-   CALL MeshPositionNode ( u%HubPtLoad, 1, Position, ErrStat2, ErrMsg2 )
+   CALL MeshPositionNode ( u%HubPtLoad, 1, Position, ErrStat2, ErrMsg2, orient=Orientation )
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       IF (ErrStat >= AbortErrLev) THEN
          CALL Cleanup()
@@ -13853,7 +13960,7 @@ SUBROUTINE Init_Inputs( u, p, x, InputFileData, OtherState, ErrStat, ErrMsg )
          RETURN
       END IF
 
-   CALL MeshPositionNode ( u%NacelleLoads,  1, (/0.0_ReKi, 0.0_ReKi, p%TowerHt /), ErrStat2, ErrMsg2 ) !orientation is identity by default
+   CALL MeshPositionNode ( u%NacelleLoads,  1, (/0.0_ReKi, 0.0_ReKi, p%TowerHt /), ErrStat2, ErrMsg2 ) ! orientation is identity by default
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       IF (ErrStat >= AbortErrLev) THEN
          CALL Cleanup()
@@ -13917,8 +14024,7 @@ SUBROUTINE Init_Inputs( u, p, x, InputFileData, OtherState, ErrStat, ErrMsg )
          END IF
    
       ! position the nodes on the tower:
-   DO J = 1,p%TwrNodes
-!BJJ: have jmj check these positions. may be off by p%HNodes(J)/2      
+   DO J = 1,p%TwrNodes      
       CALL MeshPositionNode ( u%TowerLn2Mesh, J, (/0.0_ReKi, 0.0_ReKi, p%HNodes(J) + p%TowerBsHt /), ErrStat2, ErrMsg2 )
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          IF (ErrStat >= AbortErrLev) THEN
@@ -14021,7 +14127,7 @@ CONTAINS
          
    END SUBROUTINE Cleanup   
             
-END SUBROUTINE Init_Inputs
+END SUBROUTINE Init_u
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 !

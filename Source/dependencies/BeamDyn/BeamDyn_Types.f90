@@ -70,17 +70,12 @@ IMPLICIT NONE
 ! =======================
 ! =========  BD_OtherStateType  =======
   TYPE, PUBLIC :: BD_OtherStateType
-    REAL(ReKi)  :: DummyOtherState      ! A variable, replace if you have Other States [-]
-    INTEGER(IntKi)  :: Rescale_counter      ! A variable, replace if you have Other States [-]
-    INTEGER(IntKi)  :: NR_counter      ! A variable, replace if you have Other States [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: acc      ! Accerleration in GA2 [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: xcc      ! Algorithm accerleration in GA2 [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: facc      ! Global Accerleration in GA2 by rotating acc directly [-]
   END TYPE BD_OtherStateType
 ! =======================
 ! =========  BD_ParameterType  =======
   TYPE, PUBLIC :: BD_ParameterType
-    REAL(DbKi)  :: alpha      ! Numerical Damping Coefficient [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: uuN0      ! Initial Postion Vector [-]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: Stif0_GL      ! Sectional Stiffness Properties at each node [-]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: Mass0_GL      ! Sectional Stiffness Properties at each node [-]
@@ -97,8 +92,10 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: analysis_type      ! analysis_type flag [-]
     INTEGER(IntKi)  :: damp_flag      ! damping flag [-]
     INTEGER(IntKi)  :: niter      ! analysis_type flag [-]
+    INTEGER(IntKi)  :: NRMax      ! Maximum number of iterations in Newton-Ralphson algorithm [-]
     REAL(DbKi)  :: dt      ! module dt [s]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: beta      ! Damping Coefficient [-]
+    REAL(ReKi)  :: tol      ! Tolerance used in stoppoing criterion [-]
     REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: coef      ! GA2 Coefficient [-]
     REAL(DbKi)  :: rhoinf      ! Numerical Damping Coefficient for GA2 [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: GlbPos      ! Initial Position Vector between origins of Global and blade frames [-]
@@ -1256,9 +1253,6 @@ ENDIF
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-    DstOtherStateData%DummyOtherState = SrcOtherStateData%DummyOtherState
-    DstOtherStateData%Rescale_counter = SrcOtherStateData%Rescale_counter
-    DstOtherStateData%NR_counter = SrcOtherStateData%NR_counter
 IF (ALLOCATED(SrcOtherStateData%acc)) THEN
   i1_l = LBOUND(SrcOtherStateData%acc,1)
   i1_u = UBOUND(SrcOtherStateData%acc,1)
@@ -1283,18 +1277,6 @@ IF (ALLOCATED(SrcOtherStateData%xcc)) THEN
   END IF
     DstOtherStateData%xcc = SrcOtherStateData%xcc
 ENDIF
-IF (ALLOCATED(SrcOtherStateData%facc)) THEN
-  i1_l = LBOUND(SrcOtherStateData%facc,1)
-  i1_u = UBOUND(SrcOtherStateData%facc,1)
-  IF (.NOT. ALLOCATED(DstOtherStateData%facc)) THEN 
-    ALLOCATE(DstOtherStateData%facc(i1_l:i1_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%facc.', ErrStat, ErrMsg,RoutineName)
-      RETURN
-    END IF
-  END IF
-    DstOtherStateData%facc = SrcOtherStateData%facc
-ENDIF
  END SUBROUTINE BD_CopyOtherState
 
  SUBROUTINE BD_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
@@ -1311,9 +1293,6 @@ IF (ALLOCATED(OtherStateData%acc)) THEN
 ENDIF
 IF (ALLOCATED(OtherStateData%xcc)) THEN
   DEALLOCATE(OtherStateData%xcc)
-ENDIF
-IF (ALLOCATED(OtherStateData%facc)) THEN
-  DEALLOCATE(OtherStateData%facc)
 ENDIF
  END SUBROUTINE BD_DestroyOtherState
 
@@ -1352,9 +1331,6 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-      Re_BufSz   = Re_BufSz   + 1  ! DummyOtherState
-      Int_BufSz  = Int_BufSz  + 1  ! Rescale_counter
-      Int_BufSz  = Int_BufSz  + 1  ! NR_counter
   Int_BufSz   = Int_BufSz   + 1     ! acc allocated yes/no
   IF ( ALLOCATED(InData%acc) ) THEN
     Int_BufSz   = Int_BufSz   + 2*1  ! acc upper/lower bounds for each dimension
@@ -1364,11 +1340,6 @@ ENDIF
   IF ( ALLOCATED(InData%xcc) ) THEN
     Int_BufSz   = Int_BufSz   + 2*1  ! xcc upper/lower bounds for each dimension
       Re_BufSz   = Re_BufSz   + SIZE(InData%xcc)  ! xcc
-  END IF
-  Int_BufSz   = Int_BufSz   + 1     ! facc allocated yes/no
-  IF ( ALLOCATED(InData%facc) ) THEN
-    Int_BufSz   = Int_BufSz   + 2*1  ! facc upper/lower bounds for each dimension
-      Re_BufSz   = Re_BufSz   + SIZE(InData%facc)  ! facc
   END IF
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
@@ -1397,12 +1368,6 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%DummyOtherState
-      Re_Xferred   = Re_Xferred   + 1
-      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%Rescale_counter
-      Int_Xferred   = Int_Xferred   + 1
-      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NR_counter
-      Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%acc) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
@@ -1428,19 +1393,6 @@ ENDIF
 
       IF (SIZE(InData%xcc)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%xcc))-1 ) = PACK(InData%xcc,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%xcc)
-  END IF
-  IF ( .NOT. ALLOCATED(InData%facc) ) THEN
-    IntKiBuf( Int_Xferred ) = 0
-    Int_Xferred = Int_Xferred + 1
-  ELSE
-    IntKiBuf( Int_Xferred ) = 1
-    Int_Xferred = Int_Xferred + 1
-    IntKiBuf( Int_Xferred    ) = LBOUND(InData%facc,1)
-    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%facc,1)
-    Int_Xferred = Int_Xferred + 2
-
-      IF (SIZE(InData%facc)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%facc))-1 ) = PACK(InData%facc,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%facc)
   END IF
  END SUBROUTINE BD_PackOtherState
 
@@ -1477,12 +1429,6 @@ ENDIF
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-      OutData%DummyOtherState = ReKiBuf( Re_Xferred )
-      Re_Xferred   = Re_Xferred + 1
-      OutData%Rescale_counter = IntKiBuf( Int_Xferred ) 
-      Int_Xferred   = Int_Xferred + 1
-      OutData%NR_counter = IntKiBuf( Int_Xferred ) 
-      Int_Xferred   = Int_Xferred + 1
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! acc not allocated
     Int_Xferred = Int_Xferred + 1
   ELSE
@@ -1529,29 +1475,6 @@ ENDIF
       Re_Xferred   = Re_Xferred   + SIZE(OutData%xcc)
     DEALLOCATE(mask1)
   END IF
-  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! facc not allocated
-    Int_Xferred = Int_Xferred + 1
-  ELSE
-    Int_Xferred = Int_Xferred + 1
-    i1_l = IntKiBuf( Int_Xferred    )
-    i1_u = IntKiBuf( Int_Xferred + 1)
-    Int_Xferred = Int_Xferred + 2
-    IF (ALLOCATED(OutData%facc)) DEALLOCATE(OutData%facc)
-    ALLOCATE(OutData%facc(i1_l:i1_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%facc.', ErrStat, ErrMsg,RoutineName)
-       RETURN
-    END IF
-    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
-       RETURN
-    END IF
-    mask1 = .TRUE. 
-      IF (SIZE(OutData%facc)>0) OutData%facc = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%facc))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%facc)
-    DEALLOCATE(mask1)
-  END IF
  END SUBROUTINE BD_UnPackOtherState
 
  SUBROUTINE BD_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )
@@ -1571,7 +1494,6 @@ ENDIF
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-    DstParamData%alpha = SrcParamData%alpha
 IF (ALLOCATED(SrcParamData%uuN0)) THEN
   i1_l = LBOUND(SrcParamData%uuN0,1)
   i1_u = UBOUND(SrcParamData%uuN0,1)
@@ -1668,6 +1590,7 @@ ENDIF
     DstParamData%analysis_type = SrcParamData%analysis_type
     DstParamData%damp_flag = SrcParamData%damp_flag
     DstParamData%niter = SrcParamData%niter
+    DstParamData%NRMax = SrcParamData%NRMax
     DstParamData%dt = SrcParamData%dt
 IF (ALLOCATED(SrcParamData%beta)) THEN
   i1_l = LBOUND(SrcParamData%beta,1)
@@ -1681,6 +1604,7 @@ IF (ALLOCATED(SrcParamData%beta)) THEN
   END IF
     DstParamData%beta = SrcParamData%beta
 ENDIF
+    DstParamData%tol = SrcParamData%tol
 IF (ALLOCATED(SrcParamData%coef)) THEN
   i1_l = LBOUND(SrcParamData%coef,1)
   i1_u = UBOUND(SrcParamData%coef,1)
@@ -1799,7 +1723,6 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-      Db_BufSz   = Db_BufSz   + 1  ! alpha
   Int_BufSz   = Int_BufSz   + 1     ! uuN0 allocated yes/no
   IF ( ALLOCATED(InData%uuN0) ) THEN
     Int_BufSz   = Int_BufSz   + 2*2  ! uuN0 upper/lower bounds for each dimension
@@ -1840,12 +1763,14 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1  ! analysis_type
       Int_BufSz  = Int_BufSz  + 1  ! damp_flag
       Int_BufSz  = Int_BufSz  + 1  ! niter
+      Int_BufSz  = Int_BufSz  + 1  ! NRMax
       Db_BufSz   = Db_BufSz   + 1  ! dt
   Int_BufSz   = Int_BufSz   + 1     ! beta allocated yes/no
   IF ( ALLOCATED(InData%beta) ) THEN
     Int_BufSz   = Int_BufSz   + 2*1  ! beta upper/lower bounds for each dimension
       Re_BufSz   = Re_BufSz   + SIZE(InData%beta)  ! beta
   END IF
+      Re_BufSz   = Re_BufSz   + 1  ! tol
   Int_BufSz   = Int_BufSz   + 1     ! coef allocated yes/no
   IF ( ALLOCATED(InData%coef) ) THEN
     Int_BufSz   = Int_BufSz   + 2*1  ! coef upper/lower bounds for each dimension
@@ -1890,8 +1815,6 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-      DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%alpha
-      Db_Xferred   = Db_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%uuN0) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
@@ -2011,6 +1934,8 @@ ENDIF
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%niter
       Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NRMax
+      Int_Xferred   = Int_Xferred   + 1
       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%dt
       Db_Xferred   = Db_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%beta) ) THEN
@@ -2026,6 +1951,8 @@ ENDIF
       IF (SIZE(InData%beta)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%beta))-1 ) = PACK(InData%beta,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%beta)
   END IF
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%tol
+      Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%coef) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
@@ -2109,8 +2036,6 @@ ENDIF
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-      OutData%alpha = DbKiBuf( Db_Xferred ) 
-      Db_Xferred   = Db_Xferred + 1
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! uuN0 not allocated
     Int_Xferred = Int_Xferred + 1
   ELSE
@@ -2290,6 +2215,8 @@ ENDIF
       Int_Xferred   = Int_Xferred + 1
       OutData%niter = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
+      OutData%NRMax = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
       OutData%dt = DbKiBuf( Db_Xferred ) 
       Db_Xferred   = Db_Xferred + 1
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! beta not allocated
@@ -2315,6 +2242,8 @@ ENDIF
       Re_Xferred   = Re_Xferred   + SIZE(OutData%beta)
     DEALLOCATE(mask1)
   END IF
+      OutData%tol = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! coef not allocated
     Int_Xferred = Int_Xferred + 1
   ELSE
