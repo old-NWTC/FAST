@@ -60,7 +60,7 @@ subroutine AD_SetInitOut(p, InitOut, errStat, errMsg)
    
    
    
-   integer(IntKi)                                :: j, k
+   integer(IntKi)                                :: j, k, n
    character(len=10) :: chanPrefix
       ! Initialize variables for this routine
 
@@ -80,8 +80,9 @@ subroutine AD_SetInitOut(p, InitOut, errStat, errMsg)
    
    do k=1,p%numBlades
       do j=1,1 ! p%NumBlNds
+         n = 9
          
-         chanPrefix = "B"//trim(num2lstr(k))//"N"//trim(num2lstr(j))
+         chanPrefix = "B"//trim(num2lstr(k))//"N"//trim(num2lstr(n))
          InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 1 ) = trim(chanPrefix)//"Theta"
          InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 1 ) = '  (deg)  '
          InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 2 ) = trim(chanPrefix)//"Psi"
@@ -228,7 +229,7 @@ subroutine AD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       ! Initialize the BEMT module (also sets other variables for sub module)
       !............................................................................................
       
-   if (p%WakeMod == WakeMod_BEMT) then
+   !if (p%WakeMod == WakeMod_BEMT) then
       ! initialize BEMT after setting parameters and inputs because we are going to use the already-
       ! calculated node positions from the input meshes
       
@@ -240,7 +241,7 @@ subroutine AD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
             return
          end if
          
-   end if      
+   !end if      
       
       
       !............................................................................................
@@ -787,13 +788,13 @@ subroutine AD_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, errStat, e
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
          
    
-   if ( p%WakeMod == WakeMod_BEMT ) then
+   !if ( p%WakeMod == WakeMod_BEMT ) then
                   
          ! Call into the BEMT update states    NOTE:  This is a non-standard framework interface!!!!!  GJH
       call BEMT_UpdateStates(t, n, OtherState%BEMT_u,  p%BEMT, x%BEMT, xd%BEMT, z%BEMT, OtherState%BEMT, p%AFI%AFInfo, errStat2, errMsg2)
          call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
          
-   end if
+   !end if
            
    call Cleanup()
    
@@ -826,8 +827,7 @@ subroutine AD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
 
-   INTEGER(IntKi)                               :: i,j
-   character(10)                                :: chanPrefix
+   INTEGER(IntKi)                               :: j,k,n
    real(ReKi)                                   :: q
    
    integer(intKi)                               :: ErrStat2
@@ -847,7 +847,7 @@ subroutine AD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 !-------------------------------------------------------
    
    
-   if (p%WakeMod == WakeMod_BEMT) then
+   !if (p%WakeMod == WakeMod_BEMT) then
          
       ! Call the BEMT module CalcOutput.  Notice that the BEMT outputs are purposely attached to AeroDyn's OtherState structure to
       ! avoid issues with the coupling code
@@ -858,46 +858,41 @@ subroutine AD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       call BEMT_CalcOutput(t, OtherState%BEMT_u, p%BEMT, x%BEMT, xd%BEMT, z%BEMT, OtherState%BEMT, p%AFI%AFInfo, OtherState%BEMT_y, ErrStat2, ErrMsg2 )
          call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
                   
-      call SetOutputsFromBEMT(p, u, OtherState%WithoutSweepPitchTwist, OtherState%BEMT_y, y, ErrStat2, ErrMsg2 )
-         call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+      call SetOutputsFromBEMT(p, u, OtherState%WithoutSweepPitchTwist, OtherState%BEMT_y, y )
 
-         
-         ! TODO Check error status
-         
+                  
          
             ! Loop over blades and nodes to populate the output channel names and units
    
-   do j=1,p%numBlades
-      do i=1,1 !p%NumBlNds
+   do k=1,p%numBlades
+      do j=1,1 !p%NumBlNds
+         n=9
+                  
+         q = 0.5*p%AirDens*p%BEMT%chord(  n,k) &
+            *OtherState%BEMT_y%inducedVel(n,k)**2
          
-         
-         chanPrefix = "B"//trim(num2lstr(j))//"N"//trim(num2lstr(i))
-         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  1 ) = OtherState%BEMT_u%theta(i,j)*R2D      
-         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  2 ) = OtherState%BEMT_u%psi(j)*R2D        
-         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  3 ) = OtherState%BEMT_u%Vx(i,j)         
-         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  4 ) = OtherState%BEMT_u%Vy(i,j)         
-         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  5 ) = OtherState%BEMT_y%AxInduction(i,j)         
-         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  6 ) = OtherState%BEMT_y%TanInduction(i,j)         
-         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  7 ) = OtherState%BEMT_y%inducedVel(i,j)         
-         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  8 ) = OtherState%BEMT_y%phi(i,j)*R2D         
-         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode +  9 ) = OtherState%BEMT_y%AOA(i,j)*R2D         
-         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode + 10 ) = OtherState%BEMT_y%Cl(i,j)         
-         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode + 11 ) = OtherState%BEMT_y%Cd(i,j)         
-         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode + 12 ) = OtherState%BEMT_y%Cx(i,j)         
-         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode + 13 ) = OtherState%BEMT_y%Cy(i,j)
-         
-         q = 0.5*p%AirDens*p%BEMT%chord(i,j)*OtherState%BEMT_y%inducedVel(i,j)**2
-         
-         y%WriteOutput( (j-1)* 1 
-*AD_numChanPerNode + (i-1)*AD_numChanPerNode + 14 ) =  q*OtherState%BEMT_y%Cx(i,j)
-         y%WriteOutput( (j-1)* 1 *AD_numChanPerNode + (i-1)*AD_numChanPerNode + 15 ) = -q*OtherState%BEMT_y%Cy(i,j)
+         y%WriteOutput( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode +  1 ) =    OtherState%BEMT_u%theta(       n,k)*R2D      
+         y%WriteOutput( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode +  2 ) =    OtherState%BEMT_u%psi(           k)*R2D        
+         y%WriteOutput( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode +  3 ) =    OtherState%BEMT_u%Vx(          n,k)         
+         y%WriteOutput( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode +  4 ) =    OtherState%BEMT_u%Vy(          n,k)         
+         y%WriteOutput( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode +  5 ) =    OtherState%BEMT_y%AxInduction( n,k)         
+         y%WriteOutput( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode +  6 ) =    OtherState%BEMT_y%TanInduction(n,k)         
+         y%WriteOutput( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode +  7 ) =    OtherState%BEMT_y%inducedVel(  n,k)         
+         y%WriteOutput( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode +  8 ) =    OtherState%BEMT_y%phi(         n,k)*R2D         
+         y%WriteOutput( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode +  9 ) =    OtherState%BEMT_y%AOA(         n,k)*R2D         
+         y%WriteOutput( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 10 ) =    OtherState%BEMT_y%Cl(          n,k)         
+         y%WriteOutput( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 11 ) =    OtherState%BEMT_y%Cd(          n,k)         
+         y%WriteOutput( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 12 ) =    OtherState%BEMT_y%Cx(          n,k)         
+         y%WriteOutput( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 13 ) =    OtherState%BEMT_y%Cy(          n,k)                  
+         y%WriteOutput( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 14 ) =  q*OtherState%BEMT_y%Cx(          n,k)
+         y%WriteOutput( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 15 ) = -q*OtherState%BEMT_y%Cy(          n,k)
          
       end do
    end do
 !   
 !-------------------------------------------------------         
          
-   end if
+   !end if
    
 !-------------------------------------------------------   
 !     End of BEMT calculations  
@@ -952,14 +947,14 @@ subroutine AD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_resid
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
    
    
-   if (p%WakeMod == WakeMod_BEMT) then
+   !if (p%WakeMod == WakeMod_BEMT) then
       
    
       call BEMT_CalcConstrStateResidual( Time, OtherState%BEMT_u, p%BEMT, x%BEMT, xd%BEMT, z%BEMT, OtherState%BEMT, &
                                          z_residual%BEMT, p%AFI%AFInfo, ErrStat2, ErrMsg2 )
          call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
          
-   end if
+   !end if
    
    
 END SUBROUTINE AD_CalcConstrStateResidual
@@ -988,13 +983,13 @@ subroutine SetInputs(p, u, OtherState, errStat, errMsg)
    end if
       
    
-   if ( p%WakeMod == WakeMod_BEMT ) then
+   !if ( p%WakeMod == WakeMod_BEMT ) then
       
          ! This needs to extract the inputs from the AD data types (mesh) and massage them for the BEMT module
       call SetInputsForBEMT(p, u, OtherState%BEMT_u, OtherState%DisturbedInflow, OtherState%WithoutSweepPitchTwist, errStat2, errMsg2)  
          call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
       
-   end if
+   !end if
    
 end subroutine SetInputs
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -1149,44 +1144,36 @@ subroutine SetInputsForBEMT(p, u, BEMT_u, DisturbedInflow, WithoutSweepPitchTwis
    
 end subroutine SetInputsForBEMT
 !----------------------------------------------------------------------------------------------------------------------------------
-subroutine SetOutputsFromBEMT(p, u, WithoutSweepPitchTwist, BEMT_y, y, ErrStat, ErrMsg )
+subroutine SetOutputsFromBEMT(p, u, WithoutSweepPitchTwist, BEMT_y, y )
 
    type(AD_ParameterType),  intent(in   )  :: p                               ! AD parameters
    type(AD_OutputType),     intent(inout)  :: y                               ! AD outputs 
    type(AD_InputType),      intent(in   )  :: u                               ! AD inputs 
    type(BEMT_OutputType),   intent(in   )  :: BEMT_y                          ! BEMT outputs
    real(ReKi),              intent(in   )  :: WithoutSweepPitchTwist(:,:,:,:) ! modified orientation matrix
-   integer(IntKi),          intent(  out)  :: ErrStat                         ! Error status of the operation
-   character(*),            intent(  out)  :: ErrMsg                          ! Error message if ErrStat /= ErrID_None
 
    integer(intKi)                          :: j                      ! loop counter for nodes
    integer(intKi)                          :: k                      ! loop counter for blades
-   real(reKi)                              :: orientation(3,3)
    real(reki)                              :: force(3)
    real(reki)                              :: moment(3)
    real(reki)                              :: q
    
-   integer(intKi)                          :: ErrStat2
-   character(ErrMsgLen)                    :: ErrMsg2
-   character(*), parameter                 :: RoutineName = 'SetOutputsFromBEMT'
-   
+  
    
    force(3)    =  0.0_ReKi          
    moment(1:2) =  0.0_ReKi          
    do k=1,p%NumBlades
       do j=1,p%NumBlNds
+                      
+         q = 0.5 * p%airDens * BEMT_y%inducedVel(j,k)**2        ! dynamic pressure of the jth node in the kth blade
+         force(1) =  BEMT_y%cx(j,k) * q * p%BEMT%chord(j,k)     ! X = normal force per unit length (normal to the plane, not chord) of the jth node in the kth blade
+         force(2) = -BEMT_y%cy(j,k) * q * p%BEMT%chord(j,k)     ! Y = tangential force per unit length (tangential to the plane, not chord) of the jth node in the kth blade
+         moment(3)= -BEMT_y%cm(j,k) * q * p%BEMT%chord(j,k)**2  ! M = pitching moment per unit length of the jth node in the kth blade
          
-         ! orientation = matmul( u%BladeMotion(k)%Orientation(:,:,j), transpose(WithoutSweepPitchTwist(:,:,j,k)) )
-         call LAPACK_gemm( 'n', 't', 1.0_ReKi, u%BladeMotion(k)%Orientation(:,:,j), WithoutSweepPitchTwist(:,:,j,k), 0.0_ReKi, orientation, errStat2, errMsg2)
-            call SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
-             
-         q = 0.5 * p%airDens * BEMT_y%inducedVel(j,k)**2    ! dynamic pressure of the jth node in the kth blade
-         force(1) =  BEMT_y%cx(j,k) * p%BEMT%chord(j,k)     ! X = normal force per unit length (normal to the plane, not chord) of the jth node in the kth blade
-         force(2) = -BEMT_y%cy(j,k) * p%BEMT%chord(j,k)     ! Y = tangential force per unit length (tangential to the plane, not chord) of the jth node in the kth blade
-         moment(3)= -BEMT_y%cm(j,k) * p%BEMT%chord(j,k)**2  ! M = pitching moment per unit length of the jth node in the kth blade
-         
-         y%BladeLoad(k)%Force(:,j)  = matmul( orientation, force )   ! force per unit length of the jth node in the kth blade
-         y%BladeLoad(k)%Moment(:,j) = matmul( orientation, moment )  ! moment per unit length of the jth node in the kth blade
+            ! note: because force and moment are 1-d arrays, I'm calculating the transpose of the force and moment outputs
+            !       so that I don't have to take the transpose of WithoutSweepPitchTwist(:,:,j,k)
+         y%BladeLoad(k)%Force(:,j)  = matmul( force,  WithoutSweepPitchTwist(:,:,j,k) )  ! force per unit length of the jth node in the kth blade
+         y%BladeLoad(k)%Moment(:,j) = matmul( moment, WithoutSweepPitchTwist(:,:,j,k) )  ! moment per unit length of the jth node in the kth blade
          
       end do !j=nodes
    end do !k=blades
@@ -2200,6 +2187,7 @@ SUBROUTINE ADTwr_CalcOutput(p, u, OtherState, y, ErrStat, ErrMsg )
    real(ReKi)                                   :: W           ! relative wind speed normal to the tower at a tower node 
    real(ReKi)                                   :: V_rel(3)    ! relative wind speed on a tower node
    real(ReKi)                                   :: VL(2)       ! relative local x- and y-components of the wind speed on a tower node
+   real(ReKi)                                   :: tmp(3)
    
    !integer(intKi)                               :: ErrStat2
    !character(ErrMsgLen)                         :: ErrMsg2
@@ -2214,16 +2202,20 @@ SUBROUTINE ADTwr_CalcOutput(p, u, OtherState, y, ErrStat, ErrMsg )
       
       V_rel = u%InflowOnTower(:,j) - u%TowerMotion%TranslationDisp(:,j) ! relative wind speed at tower node
    
-      VL(1) = dot_product( V_Rel, u%TowerMotion%Orientation(1,:,j) ) ! relative local x-component of wind speed of the jth node in the tower
-      VL(2) = dot_product( V_Rel, u%TowerMotion%Orientation(2,:,j) ) ! relative local y-component of wind speed of the jth node in the tower
+      tmp   = u%TowerMotion%Orientation(1,:,j)
+      VL(1) = dot_product( V_Rel, tmp )            ! relative local x-component of wind speed of the jth node in the tower
+      tmp   = u%TowerMotion%Orientation(2,:,j)
+      VL(2) = dot_product( V_Rel, tmp )            ! relative local y-component of wind speed of the jth node in the tower
       
-      W     =  TwoNorm( VL )  ! relative wind speed normal to the tower at node j      
+      W     =  TwoNorm( VL )                       ! relative wind speed normal to the tower at node j      
       q     = 0.5 * p%TwrCd(j) * p%AirDens * p%TwrDiam(j) * W
       
          ! force per unit length of the jth node in the tower
-      y%TowerLoad%force(1,j) = q * VL(1)
-      y%TowerLoad%force(2,j) = q * VL(2)
-      y%TowerLoad%force(3,j) = 0.0_ReKi
+      tmp(1) = q * VL(1)
+      tmp(2) = q * VL(2)
+      tmp(3) = 0.0_ReKi
+      
+      y%TowerLoad%force(:,j) = matmul( tmp, u%TowerMotion%Orientation(:,:,j) ) ! note that I'm calculating the transpose here, which is okay because we have 1-d arrays
       
          ! moment per unit length of the jth node in the tower
       y%TowerLoad%moment(:,j) = 0.0_ReKi
