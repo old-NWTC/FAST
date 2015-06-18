@@ -1,5 +1,5 @@
 ------- AERODYN v15.00.* INPUT FILE ------------------------------------------------
-NREL 5.0 MW offshore baseline aerodynamic input properties.
+NREL 5.0 MW offshore baseline aerodynamic input properties, with OC3 Monopile tower
 ======  General Options  ============================================================================
 False         Echo               - Echo the input to "<rootname>.AD.ech"?  (flag)
 "default"     DTAero             - Time interval for aerodynamic calculations {or "default"} (s)
@@ -7,7 +7,7 @@ False         Echo               - Echo the input to "<rootname>.AD.ech"?  (flag
           1   AFAeroMod          - Type of blade airfoil aerodynamics model (switch) {1=steady model, 2=Beddoes-Leishman unsteady model}
           1   TwrPotent          - Type tower influence on wind based on potential flow around the tower (switch) {0=none, 1=baseline potential flow, 2=potential flow with Bak correction}
 False         TwrShadow          – Calculate tower influence on wind based on downstream tower shadow? (flag)
-True          TwrAero            - Calculate tower aerodynamic loads? (flag)
+False         TwrAero            - Calculate tower aerodynamic loads? (flag)
 ======  Environmental Conditions  ===================================================================
       1.225   AirDens            - Air density (kg/m^3)
   1.464E-05   KinVisc            - Kinematic air viscosity (m^2/s)
@@ -45,21 +45,22 @@ True          UseBlCm            - Include aerodynamic pitching moment in calcul
 "NRELOffshrBsline5MW_AeroDyn_blade.dat"    ADBlFile(2)        - Name of file containing distributed aerodynamic properties for Blade #2 (-)
 "NRELOffshrBsline5MW_AeroDyn_blade.dat"    ADBlFile(3)        - Name of file containing distributed aerodynamic properties for Blade #3 (-) [unused if NumBl < 3]
 ======  Tower Influence and Aerodynamics ============================================================= [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
-    12        NumTwrNds          - Number of tower nodes used in the analysis  (-) [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
+     13       NumTwrNds          - Number of tower nodes used in the analysis  (-) [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
 TwrElev        TwrDiam        TwrCd
 (m)              (m)           (-)
-0.0000         6.000          1.0
-8.5261         5.787          1.0
-17.053         5.574          1.0
-25.579         5.361          1.0
-34.105         5.148          1.0
-42.633         4.935          1.0
-51.158         4.722          1.0
-59.685         4.509          1.0
-68.211         4.296          1.0
-76.738         4.083          1.0
-85.268         3.870          1.0
-87.600         3.870          1.0
+0               6.000         1.0
+8.6229120       6.000         1.0
+15.313584       5.787         1.0
+22.005032       5.574         1.0
+28.695704       5.361         1.0
+35.386376       5.148         1.0
+42.077048       4.935         1.0
+48.767720       4.722         1.0
+55.458392       4.509         1.0
+62.149064       4.296         1.0
+68.839736       4.083         1.0
+75.530408       3.870         1.0
+77.600000       3.870         1.0
 ======  Outputs  ====================================================================================
 False         SumPrint            - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
           0   NBlOuts             - Number of blade node outputs [0 - 9] (-)
