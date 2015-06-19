@@ -2316,7 +2316,7 @@ SUBROUTINE TwrInfl( p, u, OtherState, ErrStat, ErrMsg )
          
       
          ! calculate tower influence:
-         if ( abs(zbar) >= 1.0_ReKi .and. p%TwrPotent /= TwrPotent_none ) then
+         if ( abs(zbar) < 1.0_ReKi .and. p%TwrPotent /= TwrPotent_none ) then
             if ( p%TwrPotent == TwrPotent_baseline ) then
                
                denom = (xbar**2 + ybar**2)**2
@@ -2447,9 +2447,7 @@ SUBROUTINE TwrInfl_NearestLine2Element(p, u, BladeNodePosition, r_TowerBlade, th
 
    LOGICAL         :: on_element
    
-
-   
-   
+      
    found = .false.
    min_dist = HUGE(min_dist)
 

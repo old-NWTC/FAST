@@ -1837,17 +1837,15 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
    DO K = 1,p%NumBl ! Loop through all blades
 
-      LinAccES(:,p%TipNode,K) = OtherState%RtHS%LinAccESt(:,K,p%TipNode)
       FrcS0B  (:          ,K) = OtherState%RtHS%FrcS0Bt  (:,K          )
       MomH0B  (:          ,K) = OtherState%RtHS%MomH0Bt  (:,K          )
 
       DO I = 1,p%DOFs%NPSE(K)  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
-         LinAccES(:,p%TipNode,K) = LinAccES(:,p%TipNode,K) + OtherState%RtHS%PLinVelES(K,p%TipNode,p%DOFs%PSE(K,I),0,:)*OtherState%QD2T(p%DOFs%PSE(K,I))
          FrcS0B  (:          ,K) = FrcS0B  (:          ,K) + OtherState%RtHS%PFrcS0B  (:,K,          p%DOFs%PSE(K,I)  )*OtherState%QD2T(p%DOFs%PSE(K,I))
          MomH0B  (:          ,K) = MomH0B  (:          ,K) + OtherState%RtHS%PMomH0B  (:,K,          p%DOFs%PSE(K,I)  )*OtherState%QD2T(p%DOFs%PSE(K,I))
       ENDDO             ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
 
-      DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
+      DO J = 0,p%TipNode ! Loop through the blade nodes / elements
 
          LinAccES(:,J,K) = OtherState%RtHS%LinAccESt(:,K,J)
 
@@ -4664,40 +4662,31 @@ SUBROUTINE SetOtherParameters( p, InputFileData, ErrStat, ErrMsg )
 
       ! Allocate the arrays needed in the Coeff routine:
 
-   CALL AllocAry( p%AxRedTFA, 2,       2_IntKi, p%TTopNode,         'AxRedTFA',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( p%AxRedTSS, 2,       2_IntKi, p%TTopNode,         'AxRedTSS',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( p%AxRedBld, p%NumBl, 3_IntKi, 3_IntKi, p%TipNode, 'AxRedBld',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( p%BldCG,    p%NumBl,                              'BldCG',     ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( p%KBF,      p%NumBl, 2_IntKi, 2_IntKi,            'KBF',       ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( p%KBE,      p%NumBl, 1_IntKi, 1_IntKi,            'KBE',       ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( p%CBF,      p%NumBl, 2_IntKi, 2_IntKi,            'CBF',       ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( p%CBE,      p%NumBl, 1_IntKi, 1_IntKi,            'CBE',       ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( p%SecondMom,p%NumBl,                              'SecondMom', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( p%FirstMom, p%NumBl,                              'FirstMom',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( p%FreqBE,   p%NumBl, NumBE, 3_IntKi,              'FreqBE',    ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( p%FreqBF,   p%NumBl, NumBF, 3_IntKi,              'FreqBF',    ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( p%BldMass,  p%NumBl,                              'BldMass',   ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( p%rSAerCenn1,p%NumBl,p%BldNodes,  'rSAerCenn1',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( p%rSAerCenn2,p%NumBl,p%BldNodes,  'rSAerCenn2',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry(p%BElmntMass, p%BldNodes, p%NumBl, 'BElmntMass', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry(p%TElmntMass, p%TwrNodes,          'TElmntMass', ErrStat, ErrMsg )
+   CALL AllocAry( p%AxRedTFA, 2,       2_IntKi, p%TTopNode,         'AxRedTFA',  ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%AxRedTSS, 2,       2_IntKi, p%TTopNode,         'AxRedTSS',  ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   !CALL AllocAry( p%AxRedBld, p%NumBl, 3_IntKi, 3_IntKi, p%TipNode, 'AxRedBld',  ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%BldCG,    p%NumBl,                              'BldCG',     ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%KBF,      p%NumBl, 2_IntKi, 2_IntKi,            'KBF',       ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%KBE,      p%NumBl, 1_IntKi, 1_IntKi,            'KBE',       ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%CBF,      p%NumBl, 2_IntKi, 2_IntKi,            'CBF',       ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%CBE,      p%NumBl, 1_IntKi, 1_IntKi,            'CBE',       ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%SecondMom,p%NumBl,                              'SecondMom', ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%FirstMom, p%NumBl,                              'FirstMom',  ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%FreqBE,   p%NumBl, NumBE, 3_IntKi,              'FreqBE',    ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%FreqBF,   p%NumBl, NumBF, 3_IntKi,              'FreqBF',    ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%BldMass,  p%NumBl,                              'BldMass',   ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%rSAerCenn1,p%NumBl,p%BldNodes,  'rSAerCenn1',  ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%rSAerCenn2,p%NumBl,p%BldNodes,  'rSAerCenn2',  ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry(p%BElmntMass, p%BldNodes, p%NumBl, 'BElmntMass', ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry(p%TElmntMass, p%TwrNodes,          'TElmntMass', ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
 
+   !CALL AllocAry( p%AxRedBld, p%NumBl, 3_IntKi, 3_IntKi, p%TipNode, 'AxRedBld',  ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   ALLOCATE ( p%AxRedBld(p%NumBl, 3_IntKi, 3_IntKi, 0:p%TipNode) , STAT=ErrStat )
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = 'Error allocating AxRedBld array.'
+      RETURN
+   END IF
 
    ALLOCATE ( p%TwrFASF(2,p%TTopNode,0:2) , STAT=ErrStat )
    IF ( ErrStat /= 0 ) THEN
@@ -4745,16 +4734,17 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
    CALL AllocAry( RtHS%rZT,       Dims, p%TwrNodes,        'rZT',       ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%rT,        Dims, p%TwrNodes,        'rT',        ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%rT0T,      Dims, p%TwrNodes,        'rT0T',      ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%rQS,       Dims, p%NumBl,p%TipNode, 'rQS',       ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+  !CALL AllocAry( RtHS%rQS,       Dims, p%NumBl,p%TipNode, 'rQS',       ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
   !CALL AllocAry( RtHS%rS,        Dims, p%NumBl,p%TipNode, 'rS',        ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%rS0S,      Dims, p%NumBl,p%TipNode, 'rS0S',      ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%rPS0,      Dims, p%NumBl,           'rPS0',      ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%rSAerCen,  Dims, p%TipNode, p%NumBl,'rSAerCen',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    
-   allocate(RtHS%rS(Dims, p%NumBl,0:p%TipNode), STAT=ErrStat)
+   allocate(RtHS%rS(Dims,  p%NumBl,0:p%TipNode), &
+            RtHS%rQS(Dims, p%NumBl,0:p%TipNode), STAT=ErrStat)
    if (ErrStat /= 0) then
       ErrStat = ErrID_Fatal
-      ErrMsg  = "Error allocating RtHS%rS."
+      ErrMsg  = "Error allocating rS and rQS."
    end if
    
 
@@ -4835,7 +4825,7 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
 
       ! linear velocities (including partial linear velocities):
    CALL AllocAry( RtHS%LinVelET,  Dims, p%TwrNodes,         'LinVelET',  ErrStat, ErrMsg );  IF ( ErrStat /= ErrID_None ) RETURN         
-   CALL AllocAry( RtHS%LinVelESm2,                 p%NumBl, 'LinVelESm2',ErrStat, ErrMsg );  IF ( ErrStat /= ErrID_None ) RETURN ! The m2-component (closest to tip) of LinVelES
+   !CALL AllocAry( RtHS%LinVelESm2,                 p%NumBl, 'LinVelESm2',ErrStat, ErrMsg );  IF ( ErrStat /= ErrID_None ) RETURN ! The m2-component (closest to tip) of LinVelES
    ALLOCATE( RtHS%LinVelES( Dims, 0:p%TipNode, p%NumBl ), STAT=ErrStat )
    IF (ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
@@ -4859,7 +4849,7 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
       RETURN
    ENDIF
 
-   ALLOCATE ( RtHS%PLinVelES(p%NumBl,p%TipNode,p%NDOF,0:1,Dims) , STAT=ErrStat )
+   ALLOCATE ( RtHS%PLinVelES(p%NumBl,0:p%TipNode,p%NDOF,0:1,Dims) , STAT=ErrStat )
    IF ( ErrStat /= 0_IntKi )  THEN
       ErrStat = ErrID_Fatal
       ErrMsg = ' Error allocating memory for the PLinVelES array.'
@@ -4947,10 +4937,17 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
       RETURN
    ENDIF
 
+   
+   ALLOCATE( RtHS%LinAccESt( Dims, p%NumBl, 0:p%TipNode ), STAT=ErrStat )
+   IF ( ErrStat /= 0_IntKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating memory for LinAccESt.'
+      RETURN
+   ENDIF
       ! ....
 
 
-   CALL AllocAry( RtHS%LinAccESt, Dims, p%NumBl, p%TipNode,'LinAccESt', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   !CALL AllocAry( RtHS%LinAccESt, Dims, p%NumBl, p%TipNode,'LinAccESt', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%LinAccETt, Dims, p%TwrNodes,        'LinAccETt', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%PFrcS0B,   Dims, p%NumBl,p%NDOF,    'PFrcS0B',   ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%FrcS0Bt,   Dims, p%NumBl,           'FrcS0Bt',   ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
@@ -9638,7 +9635,8 @@ SUBROUTINE Coeff(p,InputFileData, ErrStat, ErrMsg)
 
          ! the 1st and zeroeth derivatives of the twisted shape functions at the blade root:
       p%TwistedSF(K,:,:,0,1) = 0.0_ReKi
-      p%TwistedSF(K,:,:,0,0) = 0.0_ReKi     
+      p%TwistedSF(K,:,:,0,0) = 0.0_ReKi 
+      p%AxRedBld( K,:,:,0  ) = 0.0_ReKi
 
       ! Integrate to find the blade axial reduction shape functions at the tip:
 
@@ -11295,7 +11293,8 @@ IF (.NOT. p%BD4Blades) THEN
       RtHSdat%rQS (:,K,p%TipNode) = RtHSdat%rS0S(:,K,p%TipNode) + p%HubRad*CoordSys%j3(K,:)                                      ! Position vector from apex of rotation (point Q) to the blade tip (point S(p%BldFlexL)).
       RtHSdat%rS  (:,K,p%TipNode) = RtHSdat%rQS (:,K,p%TipNode) + RtHSdat%rQ                                                     ! Position vector from inertial frame origin      to the blade tip (point S(p%BldFlexL)).
       
-      ! position vector for blade root node:
+      ! position vectors for blade root node:
+      RtHSdat%rQS (:,K,0) = p%HubRad*CoordSys%j3(K,:)    
       RtHSdat%rS  (:,K,0) = p%HubRad*CoordSys%j3(K,:) + RtHSdat%rQ
       
 ELSE
@@ -11909,82 +11908,7 @@ SUBROUTINE CalculateLinearVelAcc( p, x, CoordSys, RtHSdat )
 
    DO K = 1,p%NumBl ! Loop through all blades
 
-      ! Define the partial linear velocities (and their 1st derivatives) of the
-      !   blade tip (point S(p%BldFlexL)) in the inertia frame.  Also define the
-      !   overall linear velocity of the blade tip in the inertia frame.  Also,
-      !   define the portion of the linear acceleration of the blade tip in the
-      !   inertia frame associated with everything but the QD2T()'s:
-
-      EwHXrQS = CROSS_PRODUCT( RtHSdat%AngVelEH, RtHSdat%rQS(:,K,p%TipNode) )
-
-      RtHSdat%PLinVelES(K,p%TipNode,          :,:,:) = RtHSdat%PLinVelEQ(:,:,:)
-      RtHSdat%PLinVelES(K,p%TipNode,DOF_BF(K,1),0,:) = p%TwistedSF(K,1,1,p%TipNode,0)                          *CoordSys%j1(K,:) &
-                                                     + p%TwistedSF(K,2,1,p%TipNode,0)                          *CoordSys%j2(K,:) &
-                                                     - (   p%AxRedBld(K,1,1,p%TipNode)*x%QT ( DOF_BF(K,1) ) &
-                                                         + p%AxRedBld(K,1,2,p%TipNode)*x%QT ( DOF_BF(K,2) ) &
-                                                         + p%AxRedBld(K,1,3,p%TipNode)*x%QT ( DOF_BE(K,1) )   )*CoordSys%j3(K,:)
-      RtHSdat%PLinVelES(K,p%TipNode,DOF_BE(K,1),0,:) = p%TwistedSF(K,1,3,p%TipNode,0)                          *CoordSys%j1(K,:) &
-                                                     + p%TwistedSF(K,2,3,p%TipNode,0)                          *CoordSys%j2(K,:) &
-                                                     - (   p%AxRedBld(K,3,3,p%TipNode)*x%QT ( DOF_BE(K,1) ) &
-                                                         + p%AxRedBld(K,2,3,p%TipNode)*x%QT ( DOF_BF(K,2) ) &
-                                                         + p%AxRedBld(K,1,3,p%TipNode)*x%QT ( DOF_BF(K,1) )   )*CoordSys%j3(K,:)
-      RtHSdat%PLinVelES(K,p%TipNode,DOF_BF(K,2),0,:) = p%TwistedSF(K,1,2,p%TipNode,0)                          *CoordSys%j1(K,:) &
-                                                     + p%TwistedSF(K,2,2,p%TipNode,0)                          *CoordSys%j2(K,:) &
-                                                     - (   p%AxRedBld(K,2,2,p%TipNode)*x%QT ( DOF_BF(K,2) ) &
-                                                         + p%AxRedBld(K,1,2,p%TipNode)*x%QT ( DOF_BF(K,1) ) &
-                                                         + p%AxRedBld(K,2,3,p%TipNode)*x%QT ( DOF_BE(K,1) )   )*CoordSys%j3(K,:)
-
-      TmpVec1 = CROSS_PRODUCT( RtHSdat%AngVelEH, RtHSdat%PLinVelES(K,p%TipNode,DOF_BF(K,1),0,:) )
-      TmpVec2 = CROSS_PRODUCT( RtHSdat%AngVelEH, RtHSdat%PLinVelES(K,p%TipNode,DOF_BE(K,1),0,:) )
-      TmpVec3 = CROSS_PRODUCT( RtHSdat%AngVelEH, RtHSdat%PLinVelES(K,p%TipNode,DOF_BF(K,2),0,:) )
-
-      RtHSdat%PLinVelES(K,p%TipNode,DOF_BF(K,1),1,:) = TmpVec1 &
-                                                     - (   p%AxRedBld(K,1,1,p%TipNode)*x%QDT( DOF_BF(K,1) ) &
-                                                         + p%AxRedBld(K,1,2,p%TipNode)*x%QDT( DOF_BF(K,2) ) &
-                                                         + p%AxRedBld(K,1,3,p%TipNode)*x%QDT( DOF_BE(K,1) )   )*CoordSys%j3(K,:)
-      RtHSdat%PLinVelES(K,p%TipNode,DOF_BE(K,1),1,:) = TmpVec2 &
-                                                     - (   p%AxRedBld(K,3,3,p%TipNode)*x%QDT( DOF_BE(K,1) ) &
-                                                         + p%AxRedBld(K,2,3,p%TipNode)*x%QDT( DOF_BF(K,2) ) &
-                                                         + p%AxRedBld(K,1,3,p%TipNode)*x%QDT( DOF_BF(K,1) )   )*CoordSys%j3(K,:)
-      RtHSdat%PLinVelES(K,p%TipNode,DOF_BF(K,2),1,:) = TmpVec3 &
-                                                     - (   p%AxRedBld(K,2,2,p%TipNode)*x%QDT( DOF_BF(K,2) ) &
-                                                         + p%AxRedBld(K,1,2,p%TipNode)*x%QDT( DOF_BF(K,1) ) &
-                                                         + p%AxRedBld(K,2,3,p%TipNode)*x%QDT( DOF_BE(K,1) )   )*CoordSys%j3(K,:)
-
-      LinVelHS                         = x%QDT( DOF_BF(K,1) )*RtHSdat%PLinVelES(K,p%TipNode,DOF_BF(K,1),0,:) &
-                                       + x%QDT( DOF_BE(K,1) )*RtHSdat%PLinVelES(K,p%TipNode,DOF_BE(K,1),0,:) &
-                                       + x%QDT( DOF_BF(K,2) )*RtHSdat%PLinVelES(K,p%TipNode,DOF_BF(K,2),0,:)
-      RtHSdat%LinAccESt(:,K,p%TipNode) = x%QDT( DOF_BF(K,1) )*RtHSdat%PLinVelES(K,p%TipNode,DOF_BF(K,1),1,:) &
-                                       + x%QDT( DOF_BE(K,1) )*RtHSdat%PLinVelES(K,p%TipNode,DOF_BE(K,1),1,:) &
-                                       + x%QDT( DOF_BF(K,2) )*RtHSdat%PLinVelES(K,p%TipNode,DOF_BF(K,2),1,:)
-
-      RtHSdat%LinVelES(:,p%TipNode,K)    = LinVelHS + RtHSdat%LinVelEZ
-      DO I = 1,p%NPH   ! Loop through all DOFs associated with the angular motion of the hub (body H)
-
-         TmpVec0 = CROSS_PRODUCT( RtHSdat%PAngVelEH(p%PH(I),0,:), RtHSdat%rQS(:,K,p%TipNode)            )
-         TmpVec1 = CROSS_PRODUCT( RtHSdat%PAngVelEH(p%PH(I),0,:),     EwHXrQS              + LinVelHS   )
-         TmpVec2 = CROSS_PRODUCT( RtHSdat%PAngVelEH(p%PH(I),1,:), RtHSdat%rQS(:,K,p%TipNode)            )
-
-         RtHSdat%PLinVelES(K,p%TipNode,p%PH(I),0,:) = RtHSdat%PLinVelES(K,p%TipNode,p%PH(I),0,:) + TmpVec0
-         RtHSdat%PLinVelES(K,p%TipNode,p%PH(I),1,:) = RtHSdat%PLinVelES(K,p%TipNode,p%PH(I),1,:) + TmpVec1 + TmpVec2
-
-         RtHSdat%LinVelES( :,p%TipNode,K) = RtHSdat%LinVelES(:,p%TipNode,K)  + x%QDT(p%PH(I))* &
-                                            RtHSdat%PLinVelES(K,p%TipNode,p%PH(I),0,:)
-         RtHSdat%LinAccESt(:,K,p%TipNode) = RtHSdat%LinAccESt(:,K,p%TipNode) + x%QDT(p%PH(I))* &
-                                            RtHSdat%PLinVelES(K,p%TipNode,p%PH(I),1,:)
-
-      ENDDO          ! I - all DOFs associated with the angular motion of the hub (body H)
-      
-         ! value for blade root
-      RtHSdat%LinVelES(:,0,K) = RtHSdat%LinVelEQ + cross_product(RtHSdat%AngVelEH, p%HubRad*CoordSys%j3(K,:) ) !p%HubRad*CoordSys%j3(K,:) = rQS at the blade root
-      
-   !JASON: USE TipNode HERE INSTEAD OF BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
-      IF (.NOT. p%BD4Blades) THEN
-         RtHSdat%LinVelESm2(K) = DOT_PRODUCT( RtHSdat%LinVelES(:,p%TipNode,K), CoordSys%m2(K,p%BldNodes,:) )
-      END IF
-      
-
-      DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
+      DO J = 0,p%TipNode ! Loop through the blade nodes / elements
 
       ! Define the partial linear velocities (and their 1st derivatives) of the
       !   current node (point S(RNodes(J))) in the inertia frame.  Also define
@@ -12050,11 +11974,15 @@ SUBROUTINE CalculateLinearVelAcc( p, x, CoordSys, RtHSdat )
 
          END DO ! I - all DOFs associated with the angular motion of the hub (body H)
 
-      END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
-
+      END DO !J = 0,p%TipNodes ! Loop through the blade nodes / elements
+      
+      
+   !JASON: USE TipNode HERE INSTEAD OF BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
+      !IF (.NOT. p%BD4Blades) THEN
+      !   RtHSdat%LinVelESm2(K) = DOT_PRODUCT( RtHSdat%LinVelES(:,p%TipNode,K), CoordSys%m2(K,p%BldNodes,:) )
+      !END IF
+            
    END DO !K = 1,p%NumBl
-
-
 
 
    RtHSdat%PLinVelEW(       :,:,:) = RtHSdat%PLinVelEO(:,:,:)

@@ -31,11 +31,11 @@ True          FLookup            - Flag to indicate whether a lookup for f' will
           0   InCol_Cm           - The column in the airfoil tables that contains the pitching-moment coefficient; use zero if there is no Cm column (-)
           0   InCol_Cpmin        - The column in the airfoil tables that contains the drag coefficient; use zero if there is no Cpmin column (-)
           5   NumAFfiles         - Number of airfoil files used (-)
-"AeroData/S814_1.dat"    AFNames            - Airfoil file names (NumAFfiles lines) (quoted strings)
-"AeroData/S814_15.dat"
-"AeroData/S812_15.dat"
-"AeroData/S812_2.dat"
-"AeroData/S813_15.dat"
+"Airfoils/S814_1.dat"    AFNames            - Airfoil file names (NumAFfiles lines) (quoted strings)
+"Airfoils/S814_15.dat"
+"Airfoils/S812_15.dat"
+"Airfoils/S812_2.dat"
+"Airfoils/S813_15.dat"
 ======  Rotor/Blade Properties  =====================================================================
 False         UseBlCm            - Include aerodynamic pitching moment in calculations?  (flag)
 "AOC_AeroDyn_blade.dat"    ADBlFile(1)        - Name of file containing distributed aerodynamic properties for Blade #1 (-)
