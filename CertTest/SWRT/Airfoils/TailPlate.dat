@@ -1,0 +1,61 @@
+! ------------ AirfoilInfo v1.00.x Input File ----------------------------------
+! TailPlate.dat. Lift and drag on delta wing. See Hoerner Lift page 18-5, Figure 7
+! Oct. 14, 2003, Foilchecked by Windward Engineering.
+! note that this file uses Marshall Buhl's new input file processing; start all comment lines with !
+! ------------------------------------------------------------------------------
+1.0         NonDimArea        ! The non-dimensional area of the airfoil (area/chord^2) (set to 1.0 if unsure or unneeded)
+  0         NumCoords         ! The number of coordinates in the airfoil shape file.  Set to zero if coordinates not included.
+1           NumTabs           ! Number of airfoil tables in this file.  Each table must have lines for Re and Ctrl.
+! ------------------------------------------------------------------------------
+! data for table 1
+! ------------------------------------------------------------------------------
+0.3         Re                ! Reynolds numbers in millions
+0.0         Ctrl              ! Control setting (must be 0 for current AirfoilInfo)
+False       InclUAdata        ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefs below this line
+!........................................
+  42        NumAlf            ! Number of data lines in the following table
+!    Alpha      Cl      Cd
+!    (deg)      (-)     (-)
+  -180.00     0.000   0.1820
+  -170.00     0.144   0.2155
+  -160.00     0.287   0.3114
+  -150.00     0.431   0.4576
+  -140.00     0.524   0.6353
+  -130.00     0.479   0.8212
+  -120.00     0.398   0.9910
+  -110.00     0.285   1.1219
+  -100.00     0.147   1.1954
+   -90.00     0.000   1.2000
+   -80.00    -0.147   1.1954
+   -70.00    -0.285   1.1219
+   -60.00    -0.398   0.9910
+   -50.00    -0.479   0.8212
+   -40.00    -0.524   0.6353
+   -30.00    -0.404   0.4722
+   -20.00    -0.223   0.3181
+   -10.00    -0.041   0.1641
+     0.00     0.200   0.0100
+     4.00     0.390   0.0230
+     8.00     0.576   0.0630
+    12.00     0.758   0.1280
+    16.00     0.861   0.2190
+    20.00     0.963   0.3340
+    24.00     1.041   0.4730
+    35.00     1.106   0.7830
+    37.00     0.759   0.5800
+    40.00     0.748   0.6353
+    50.00     0.684   0.8212
+    60.00     0.569   0.9910
+    70.00     0.407   1.1219
+    80.00     0.210   1.1954
+    90.00     0.000   1.2000
+   100.00    -0.147   1.1954
+   110.00    -0.285   1.1219
+   120.00    -0.398   0.9910
+   130.00    -0.479   0.8212
+   140.00    -0.524   0.6353
+   150.00    -0.431   0.4577
+   160.00    -0.287   0.3114
+   170.00    -0.144   0.2155
+   180.00     0.000   0.1820
+

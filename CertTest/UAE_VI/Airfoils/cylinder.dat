@@ -1,0 +1,21 @@
+! ------------ AirfoilInfo v1.00.x Input File ----------------------------------
+! Cylinder
+! note that this file uses Marshall Buhl's new input file processing; start all comment lines with !
+! ------------------------------------------------------------------------------
+1.0         NonDimArea        ! The non-dimensional area of the airfoil (area/chord^2) (set to 1.0 if unsure or unneeded)
+  0         NumCoords         ! The number of coordinates in the airfoil shape file.  Set to zero if coordinates not included.
+1           NumTabs           ! Number of airfoil tables in this file.  Each table must have lines for Re and Ctrl.
+! ------------------------------------------------------------------------------
+! data for table 1
+! ------------------------------------------------------------------------------
+0.75        Re                ! Reynolds numbers in millions
+0.0         Ctrl              ! Control setting (must be 0 for current AirfoilInfo)
+False       InclUAdata        ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefs below this line
+!........................................
+    3       NumAlf            ! Number of data lines in the following table
+!    Alpha      Cl      Cd    Cm
+!    (deg)      (-)     (-)   (-)
+  -180.00	   .000	  .3000  0.0
+      .00	   .000	  .3000  0.0
+   180.00	   .000	  .3000  0.0
+
