@@ -28,7 +28,7 @@ True          FLookup            - Flag to indicate whether a lookup for f' will
           1   InCol_Alfa         - The column in the airfoil tables that contains the angle of attack (-)
           2   InCol_Cl           - The column in the airfoil tables that contains the lift coefficient (-)
           3   InCol_Cd           - The column in the airfoil tables that contains the drag coefficient (-)
-          4   InCol_Cm           - The column in the airfoil tables that contains the pitching-moment coefficient; use zero if there is no Cm column (-)
+          0   InCol_Cm           - The column in the airfoil tables that contains the pitching-moment coefficient; use zero if there is no Cm column (-)
           0   InCol_Cpmin        - The column in the airfoil tables that contains the drag coefficient; use zero if there is no Cpmin column (-)
          10   NumAFfiles         - Number of airfoil files used (-)
 "Airfoils/AWT27_05.dat"    AFNames            - Airfoil file names (NumAFfiles lines) (quoted strings)
