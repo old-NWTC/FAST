@@ -20,8 +20,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-06-17 22:15:31 -0600 (Wed, 17 Jun 2015) $
-! (File) Revision #: $Rev: 1037 $
+! File last committed: $Date: 2015-06-18 22:45:17 -0600 (Thu, 18 Jun 2015) $
+! (File) Revision #: $Rev: 1042 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn.f90 $
 !**********************************************************************************************************************************
 
@@ -4132,161 +4132,164 @@ SUBROUTINE SetBladeParameters( p, BladeInData, BladeMeshData, ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
 
    
-   IF (p%BD4Blades) RETURN ! we don't need the rest of this stuff....
-   
-
-   
-   DO K=1,1 ! we're going to assume the discretization is the same for all blades
-
-      IF ( allocated( BladeMeshData(K)%Chord ) ) THEN      
+   IF ( .not. p%BD4Blades) then
       
-         p%RNodes   = BladeMeshData(K)%RNodes - p%HubRad   ! Radius to blade analysis nodes relative to root ( 0 < RNodes(:) < p%BldFlexL ) (Convert RNodes to be relative to the hub)
+      DO K=1,1 ! we're going to assume the discretization is the same for all blades
 
-         p%DRNodes(1) = 2.0*p%RNodes(1)
-         DO J = 2,p%BldNodes
-            p%DRNodes(J) = 2.0*( p%RNodes(J) - p%RNodes(J-1) ) - p%DRNodes(J-1)
-         END DO
-
-         p%Chord     = BladeMeshData(K)%Chord
-         p%AeroTwst  = BladeMeshData(K)%AeroTwst
-         p%CAeroTwst = COS(p%AeroTwst)
-         p%SAeroTwst = SIN(p%AeroTwst)
-         
-      ELSE
-         
-         
-            ! DRNodes (Let's use constant-spaced nodes for now, but the rest of the code is written to handle variable-spaced nodes--
-            !          this will be a future input!):
-         p%DRNodes = p%BldFlexL/p%BldNodes !array
-
-            ! RNodes:
-         p%RNodes(1) = 0.5*p%DRNodes(1)
-         DO J=2,p%BldNodes
-            p%RNodes(J) = p%RNodes( J - 1 ) + 0.5*( p%DRNodes(J) + p%DRNodes( J - 1 ) )
-         END DO
-         
-            ! these values aren't used (at least they shouldn't be):
-         p%Chord     = 0.0_ReKi
-         p%AeroTwst  = 0.0_ReKi
-         p%CAeroTwst = 1.0_ReKi
-         p%SAeroTwst = 0.0_ReKi
-                        
-      END IF
-         
-
-   END DO
-
-
-   ! ..............................................................................................................................
-   ! Interpolate the blade properties to this discretization:
-   ! ..............................................................................................................................
-
-   ! Array definitions:
-
-   !    Input      Interp    Description
-   !    -----      ------    -----------
-   !    BlFract    RNodesNorm Fractional radius (0 at root, 1 at tip)
-   !    PitchAx    PitchAxis  Pitch axis (0 at LE, 1 at TE)
-   !    StrcTwst   ThetaS     Structural twist
-   !    BMassDen   MassB      Lineal mass density
-   !    FlpStff    StiffBF    Flapwise stiffness
-   !    EdgStff    StiffBE    Edgewise stiffness
-   !    GJStff     StiffBGJ   Blade torsional stiffness
-   !    EAStff     StiffBEA   Blade extensional stiffness
-   !    Alpha      BAlpha     Blade flap/twist coupling coefficient
-   !    FlpIner    InerBFlp   Blade flap (about local structural yb-axis) mass inertia per unit length
-   !    EdgIner    InerBEdg   Blade edge (about local structural xb-axis) mass inertia per unit length
-   !    PrecrvRef  RefAxisxb  Blade offset for defining the reference axis from the pitch axis for precurved blades (along xb-axis)
-   !    PreswpRef  RefAxisyb  Blade offset for defining the reference axis from the pitch axis for preswept  blades (along yb-axis)
-   !    FlpcgOf    cgOffBFlp  Blade flap mass cg offset
-   !    EdgcgOf    cgOffBEdg  Blade edge mass cg offset
-   !    FlpEAOf    EAOffBFlp  Blade flap elastic axis offset
-   !    EdgEAOf    EAOffBEdg  Blade edge elastic axis offset
-
-
-      ! Define RNodesNorm() which is common to all the blades:
-
-   p%RNodesNorm = p%RNodes/p%BldFlexL  ! Normalized radius to analysis nodes relative to hub ( 0 < RNodesNorm(:) < 1 )
-
-
-      ! Perform a linear interpolation of the input data to map to the meshed data for simulation:
-
-   DO K=1,p%NumBl
-      InterpInd = 1
-
-      p%ThetaS  (K,0)         = BladeInData(K)%StrcTwst(1)
-      p%ThetaS  (K,p%TipNode) = BladeInData(K)%StrcTwst(BladeInData(K)%NBlInpSt)
+         IF ( allocated( BladeMeshData(K)%Chord ) ) THEN      
       
-      
-      DO J=1,p%BldNodes
+            p%RNodes   = BladeMeshData(K)%RNodes - p%HubRad   ! Radius to blade analysis nodes relative to root ( 0 < RNodes(:) < p%BldFlexL ) (Convert RNodes to be relative to the hub)
 
-            ! Get the index into BlFract for all of the arrays, using the NWTC Subroutine Library
-         !p%ThetaS  (K,J) = InterpStp( p%RNodesNorm(J), BladeInData(K)%BlFract, BladeInData(K)%StrcTwst, &
-         !                             InterpInd, BladeInData(K)%NBlInpSt )
-         p%PitchAxis(K,J) = InterpStp( p%RNodesNorm(J), BladeInData(K)%BlFract, BladeInData(K)%PitchAx, &
-                                      InterpInd, BladeInData(K)%NBlInpSt )
+            p%DRNodes(1) = 2.0*p%RNodes(1)
+            DO J = 2,p%BldNodes
+               p%DRNodes(J) = 2.0*( p%RNodes(J) - p%RNodes(J-1) ) - p%DRNodes(J-1)
+            END DO
 
-
-            ! The remaining arrays will have the same x value for the linear interpolation,
-            ! so we'll do it manually (with a local subroutine) instead of calling the InterpStp routine again
-         IF ( BladeInData(K)%NBlInpSt < 2_IntKi ) THEN
-            x         = 1.0
-            InterpInd = 0
+            p%Chord     = BladeMeshData(K)%Chord
+            p%AeroTwst  = BladeMeshData(K)%AeroTwst
+            p%CAeroTwst = COS(p%AeroTwst)
+            p%SAeroTwst = SIN(p%AeroTwst)
+         
          ELSE
-            x = ( p%RNodesNorm(J)                     - BladeInData(K)%BlFract(InterpInd) ) / &
-                ( BladeInData(K)%BlFract(InterpInd+1) - BladeInData(K)%BlFract(InterpInd) )
-         END IF
+         
+         
+               ! DRNodes (Let's use constant-spaced nodes for now, but the rest of the code is written to handle variable-spaced nodes--
+               !          this will be a future input!):
+            p%DRNodes = p%BldFlexL/p%BldNodes !array
 
-         p%ThetaS  (K,J) = InterpAry( x, BladeInData(K)%StrcTwst, InterpInd )
-         p%MassB   (K,J) = InterpAry( x, BladeInData(K)%BMassDen, InterpInd )
-         p%StiffBF (K,J) = InterpAry( x, BladeInData(K)%FlpStff , InterpInd )
-         p%StiffBE (K,J) = InterpAry( x, BladeInData(K)%EdgStff , InterpInd )
+               ! RNodes:
+            p%RNodes(1) = 0.5*p%DRNodes(1)
+            DO J=2,p%BldNodes
+               p%RNodes(J) = p%RNodes( J - 1 ) + 0.5*( p%DRNodes(J) + p%DRNodes( J - 1 ) )
+            END DO
+         
+               ! these values aren't used (at least they shouldn't be):
+            p%Chord     = 0.0_ReKi
+            p%AeroTwst  = 0.0_ReKi
+            p%CAeroTwst = 1.0_ReKi
+            p%SAeroTwst = 0.0_ReKi
+                        
+         END IF
+         
+
+      END DO
+
+
+      ! ..............................................................................................................................
+      ! Interpolate the blade properties to this discretization:
+      ! ..............................................................................................................................
+
+      ! Array definitions:
+
+      !    Input      Interp    Description
+      !    -----      ------    -----------
+      !    BlFract    RNodesNorm Fractional radius (0 at root, 1 at tip)
+      !    PitchAx    PitchAxis  Pitch axis (0 at LE, 1 at TE)
+      !    StrcTwst   ThetaS     Structural twist
+      !    BMassDen   MassB      Lineal mass density
+      !    FlpStff    StiffBF    Flapwise stiffness
+      !    EdgStff    StiffBE    Edgewise stiffness
+      !    GJStff     StiffBGJ   Blade torsional stiffness
+      !    EAStff     StiffBEA   Blade extensional stiffness
+      !    Alpha      BAlpha     Blade flap/twist coupling coefficient
+      !    FlpIner    InerBFlp   Blade flap (about local structural yb-axis) mass inertia per unit length
+      !    EdgIner    InerBEdg   Blade edge (about local structural xb-axis) mass inertia per unit length
+      !    PrecrvRef  RefAxisxb  Blade offset for defining the reference axis from the pitch axis for precurved blades (along xb-axis)
+      !    PreswpRef  RefAxisyb  Blade offset for defining the reference axis from the pitch axis for preswept  blades (along yb-axis)
+      !    FlpcgOf    cgOffBFlp  Blade flap mass cg offset
+      !    EdgcgOf    cgOffBEdg  Blade edge mass cg offset
+      !    FlpEAOf    EAOffBFlp  Blade flap elastic axis offset
+      !    EdgEAOf    EAOffBEdg  Blade edge elastic axis offset
+
+
+         ! Define RNodesNorm() which is common to all the blades:
+
+      p%RNodesNorm = p%RNodes/p%BldFlexL  ! Normalized radius to analysis nodes relative to hub ( 0 < RNodesNorm(:) < 1 )
+      
+      
+
+         ! Perform a linear interpolation of the input data to map to the meshed data for simulation:
+
+      DO K=1,p%NumBl
+         InterpInd = 1
+
+         p%ThetaS  (K,0)         = BladeInData(K)%StrcTwst(1)
+         p%ThetaS  (K,p%TipNode) = BladeInData(K)%StrcTwst(BladeInData(K)%NBlInpSt)
+      
+      
+         DO J=1,p%BldNodes
+
+               ! Get the index into BlFract for all of the arrays, using the NWTC Subroutine Library
+            !p%ThetaS  (K,J) = InterpStp( p%RNodesNorm(J), BladeInData(K)%BlFract, BladeInData(K)%StrcTwst, &
+            !                             InterpInd, BladeInData(K)%NBlInpSt )
+            p%PitchAxis(K,J) = InterpStp( p%RNodesNorm(J), BladeInData(K)%BlFract, BladeInData(K)%PitchAx, &
+                                         InterpInd, BladeInData(K)%NBlInpSt )
+
+
+               ! The remaining arrays will have the same x value for the linear interpolation,
+               ! so we'll do it manually (with a local subroutine) instead of calling the InterpStp routine again
+            IF ( BladeInData(K)%NBlInpSt < 2_IntKi ) THEN
+               x         = 1.0
+               InterpInd = 0
+            ELSE
+               x = ( p%RNodesNorm(J)                     - BladeInData(K)%BlFract(InterpInd) ) / &
+                   ( BladeInData(K)%BlFract(InterpInd+1) - BladeInData(K)%BlFract(InterpInd) )
+            END IF
+
+            p%ThetaS  (K,J) = InterpAry( x, BladeInData(K)%StrcTwst, InterpInd )
+            p%MassB   (K,J) = InterpAry( x, BladeInData(K)%BMassDen, InterpInd )
+            p%StiffBF (K,J) = InterpAry( x, BladeInData(K)%FlpStff , InterpInd )
+            p%StiffBE (K,J) = InterpAry( x, BladeInData(K)%EdgStff , InterpInd )
+
+            IF ( SetAdmVals ) THEN
+               p%StiffBGJ (K,J) = InterpAry( x, BladeInData(K)%GJStff   , InterpInd )
+               p%StiffBEA (K,J) = InterpAry( x, BladeInData(K)%EAStff   , InterpInd )
+               p%BAlpha   (K,J) = InterpAry( x, BladeInData(K)%Alpha    , InterpInd )
+               p%InerBFlp (K,J) = InterpAry( x, BladeInData(K)%FlpIner  , InterpInd )
+               p%InerBEdg (K,J) = InterpAry( x, BladeInData(K)%EdgIner  , InterpInd )
+               p%RefAxisxb(K,J) = InterpAry( x, BladeInData(K)%PrecrvRef, InterpInd )
+               p%RefAxisyb(K,J) = InterpAry( x, BladeInData(K)%PreswpRef, InterpInd )
+               p%cgOffBFlp(K,J) = InterpAry( x, BladeInData(K)%FlpcgOf  , InterpInd )
+               p%cgOffBEdg(K,J) = InterpAry( x, BladeInData(K)%EdgcgOf  , InterpInd )
+               p%EAOffBFlp(K,J) = InterpAry( x, BladeInData(K)%FlpEAOf  , InterpInd )
+               p%EAOffBEdg(K,J) = InterpAry( x, BladeInData(K)%EdgEAOf  , InterpInd )
+            END IF
+
+
+
+         END DO ! J (Blade nodes)
 
          IF ( SetAdmVals ) THEN
-            p%StiffBGJ (K,J) = InterpAry( x, BladeInData(K)%GJStff   , InterpInd )
-            p%StiffBEA (K,J) = InterpAry( x, BladeInData(K)%EAStff   , InterpInd )
-            p%BAlpha   (K,J) = InterpAry( x, BladeInData(K)%Alpha    , InterpInd )
-            p%InerBFlp (K,J) = InterpAry( x, BladeInData(K)%FlpIner  , InterpInd )
-            p%InerBEdg (K,J) = InterpAry( x, BladeInData(K)%EdgIner  , InterpInd )
-            p%RefAxisxb(K,J) = InterpAry( x, BladeInData(K)%PrecrvRef, InterpInd )
-            p%RefAxisyb(K,J) = InterpAry( x, BladeInData(K)%PreswpRef, InterpInd )
-            p%cgOffBFlp(K,J) = InterpAry( x, BladeInData(K)%FlpcgOf  , InterpInd )
-            p%cgOffBEdg(K,J) = InterpAry( x, BladeInData(K)%EdgcgOf  , InterpInd )
-            p%EAOffBFlp(K,J) = InterpAry( x, BladeInData(K)%FlpEAOf  , InterpInd )
-            p%EAOffBEdg(K,J) = InterpAry( x, BladeInData(K)%EdgEAOf  , InterpInd )
+               ! Set the valus for the tip node
+            p%RefAxisxb(K,p%TipNode) = BladeInData(K)%PrecrvRef( BladeInData(K)%NBlInpSt )
+            p%RefAxisyb(K,p%TipNode) = BladeInData(K)%PreswpRef( BladeInData(K)%NBlInpSt )
          END IF
 
 
-
-      END DO ! J (Blade nodes)
-
-      IF ( SetAdmVals ) THEN
-            ! Set the valus for the tip node
-         p%RefAxisxb(K,p%TipNode) = BladeInData(K)%PrecrvRef( BladeInData(K)%NBlInpSt )
-         p%RefAxisyb(K,p%TipNode) = BladeInData(K)%PreswpRef( BladeInData(K)%NBlInpSt )
-      END IF
-
-
-         ! Set the blade damping and stiffness tuner
-      p%BldFDamp(K,:) = BladeInData(K)%BldFlDmp
-      p%BldEDamp(K,:) = BladeInData(K)%BldEdDmp
-      p%FStTunr (K,:) = BladeInData(K)%FlStTunr
+            ! Set the blade damping and stiffness tuner
+         p%BldFDamp(K,:) = BladeInData(K)%BldFlDmp
+         p%BldEDamp(K,:) = BladeInData(K)%BldEdDmp
+         p%FStTunr (K,:) = BladeInData(K)%FlStTunr
 
 
 
-         ! Set the mode shape arrays
-      p%BldEdgSh(:,K) = BladeInData(K)%BldEdgSh
-      p%BldFl1Sh(:,K) = BladeInData(K)%BldFl1Sh
-      p%BldFl2Sh(:,K) = BladeInData(K)%BldFl2Sh
+            ! Set the mode shape arrays
+         p%BldEdgSh(:,K) = BladeInData(K)%BldEdgSh
+         p%BldFl1Sh(:,K) = BladeInData(K)%BldFl1Sh
+         p%BldFl2Sh(:,K) = BladeInData(K)%BldFl2Sh
 
 
-   END DO ! ( Blades )
+      END DO ! ( Blades )
 
    
    
-   p%CThetaS = COS(p%ThetaS)
-   p%SThetaS = SIN(p%ThetaS)
-
+      p%CThetaS = COS(p%ThetaS)
+      p%SThetaS = SIN(p%ThetaS)
+      
+   else
+      p%ThetaS  = 0.0_ReKi
+   end if
+   
 
 RETURN
 
@@ -5540,7 +5543,8 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
    p%RefTwrHt  = p%TowerHt   - p%PtfmRefzt                                         ! Vertical distance between ElastoDyn's undisplaced tower height (variable TowerHt) and ElastoDyn's inertia frame reference point (variable PtfmRef).
    p%TwrFlexL  = p%TowerHt   - p%TowerBsHt                                         ! Height / length of the flexible portion of the tower.
    p%BldFlexL  = p%TipRad    - p%HubRad                                            ! Length of the flexible portion of the blade.
-
+   if (p%BD4Blades) p%BldFlexL = 0.0_ReKi
+   
    p%rZYzt     = InputFileData%PtfmCMzt - p%PtfmRefzt
 
    !...............................................................................................................................
@@ -9570,7 +9574,15 @@ SUBROUTINE Coeff(p,InputFileData, ErrStat, ErrMsg)
 
       ! Calculate the blade natural frequencies:
 
-   IF (.NOT. p%BD4Blades) THEN
+   IF (p%BD4Blades) THEN
+      
+         ! the 1st and zeroeth derivatives of the twisted shape functions at the blade root:
+      p%TwistedSF(K,:,:,0,1) = 0.0_ReKi
+      p%TwistedSF(K,:,:,0,0) = 0.0_ReKi 
+      p%AxRedBld( K,:,:,0  ) = 0.0_ReKi
+
+   ELSE
+            
       DO I = 1,NumBF     ! Loop through flap DOFs
          p%FreqBF(K,I,1) = Inv2Pi*SQRT(   p%KBF(K,I,I)                   /( MBF(K,I,I) - p%TipMass(K) ) )   ! Natural blade I-flap frequency w/o centrifugal stiffening nor     tip mass effects
          p%FreqBF(K,I,2) = Inv2Pi*SQRT(   p%KBF(K,I,I)                   /  MBF(K,I,I)                )     ! Natural blade I-flap frequency w/o centrifugal stiffening, but w/ tip mass effects
@@ -11273,9 +11285,6 @@ SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
 
    DO K = 1,p%NumBl ! Loop through all blades
 
-
-
-IF (.NOT. p%BD4Blades) THEN
       ! Calculate the position vector of the tip:
       RtHSdat%rS0S(:,K,p%TipNode) = ( p%TwistedSF(K,1,1,p%TipNode,0)*x%QT( DOF_BF(K,1) ) &                                       ! Position vector from the blade root (point S(0)) to the blade tip (point S(p%BldFlexL)).
                                     + p%TwistedSF(K,1,2,p%TipNode,0)*x%QT( DOF_BF(K,2) ) &
@@ -11297,12 +11306,7 @@ IF (.NOT. p%BD4Blades) THEN
       RtHSdat%rQS (:,K,0) = p%HubRad*CoordSys%j3(K,:)    
       RtHSdat%rS  (:,K,0) = p%HubRad*CoordSys%j3(K,:) + RtHSdat%rQ
       
-ELSE
-      RtHSdat%rS0S = 0.0
-      RtHSdat%rQS  = 0.0
-      RtHSdat%rS   = 0.0
-END IF
-
+      
          ! Calculate the position vector from the teeter pin to the blade root:
    
       RtHSdat%rPS0(:,K) = RtHSdat%rPQ + p%HubRad*CoordSys%j3(K,:)   ! Position vector from teeter pin (point P) to blade root (point S(0)).
