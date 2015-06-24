@@ -56,6 +56,7 @@
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMT_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\UnsteadyAero_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn_IO.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\AirfoilInfo.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMT.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMTCoupled.f90"/>
@@ -165,6 +166,10 @@
 		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn.f90"/>
 		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn_IO.f90"/></Filter></Filter>
+		<Filter Name="BeamDyn">
+		<Filter Name="RegistryFiles">
+		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn.f90"/></Filter>
 		<Filter Name="NWTC_Library">
 		<Filter Name="NetLib">
 		<Filter Name="FFTPACK">

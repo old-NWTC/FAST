@@ -4,8 +4,8 @@
 ! This code provides a wrapper for Dierckx's FitPack routines currently used at the NWTC (mainly codes in the FAST framework).
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-05-07 19:36:42 -0600 (Thu, 07 May 2015) $
-! (File) Revision #: $Rev: 305 $
+! File last committed: $Date: 2015-06-24 00:53:52 -0600 (Wed, 24 Jun 2015) $
+! (File) Revision #: $Rev: 318 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/branches/NetLib/NWTC_source/NWTC_FitPack.f90 $ 
 !**********************************************************************************************************************************
 MODULE NWTC_FitPack
@@ -441,8 +441,8 @@ CONTAINS
 
          ! Determine what degree of polynomial to use for each direction.
 
-      SplDegX = MIN( CubicSpl, NumX )
-      SplDegY = MIN( CubicSpl, NumY )
+      SplDegX = MIN( CubicSpl, NumX-1 )
+      SplDegY = MIN( CubicSpl, NumY-1 )
 
 
          ! Let's set some array limits.

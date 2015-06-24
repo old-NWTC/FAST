@@ -13,7 +13,8 @@ clear all
 ModuleName = input('Enter the module for which the output module will be generated (ElastoDyn, ServoDyn, etc.): ','s');
 
 XLS_file  = '..\..\OutListParameters.xlsx';
-XLS_file  = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\InflowWind\SVNdirectory\branches\modularization2\OutListParameters.xlsx';
+% XLS_file  = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\InflowWind\SVNdirectory\branches\modularization2\OutListParameters.xlsx';
+XLS_file  = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\WTPerf\SVNdirectory\branches\v4.x\OutListParameters.xlsx';
 OutListSheet = ModuleName;
 addErrChk = false;
 
@@ -71,7 +72,7 @@ fprintf( fout, [numFmt '%s\n\n'],   [StrNameM, repmat(' ',1,tmpLen-length(StrNam
 fprintf( fout, '\n%s\n',      '     ! Indices for computing output channels:' );
 fprintf( fout, '%s\n',        '     ! NOTES: ');
 fprintf( fout, '%s\n',        '     !    (1) These parameters are in the order stored in "OutListParameters.xlsx"' );
-fprintf( fout, '%s\n',        '     !    (2) Array y%AllOuts() must be dimensioned to the value of the largest output parameter' );
+fprintf( fout, '%s\n',        '     !    (2) Array AllOuts() must be dimensioned to the value of the largest output parameter' );
 if strcmpi(ModuleName,'FAST')
 fprintf( fout, '%s\n',        '     !    (3) If an index (MaxOutPts) ever becomes greater or equal to 1000, the logic to create ARRAY/1 in the FAST-to-ADAMS preprocessor will have to be changed.' );
 end

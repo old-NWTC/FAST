@@ -55,6 +55,7 @@
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat UA" Description="Running Registry for UnsteadyAero" Outputs="..\..\Source\dependencies\AeroDyn\UnsteadyAero_Types.f90"/></FileConfiguration></File>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\UnsteadyAero_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn_IO.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\AirfoilInfo.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMT.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMTCoupled.f90"/>
