@@ -87,6 +87,15 @@
 		<File RelativePath="..\..\Source\dependencies\AeroDyn14\AeroDyn14.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn14\AeroSubs.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn14\GenSubs.f90"/></Filter></Filter>
+		<Filter Name="BeamDyn">
+		<Filter Name="RegistryFiles">
+		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn_Types.f90"/>
+		<File RelativePath="..\..\Source\dependencies\BeamDyn\Registry_BeamDyn.txt">
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat BeamDyn" Description="Running Registry for BeamDyn" Outputs="..\..\Source\dependencies\BeamDyn\BeamDyn_Types.f90"/></FileConfiguration>
+			<FileConfiguration Name="Release|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat BeamDyn" Description="Running Registry for BeamDyn" Outputs="..\..\Source\dependencies\BeamDyn\BeamDyn_Types.f90"/></FileConfiguration></File></Filter>
+		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn.f90"/></Filter>
 		<Filter Name="ElastoDyn">
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ElastoDyn_Registry.txt">
@@ -280,15 +289,6 @@
 		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn.f90"/>
 		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn_IO.f90"/></Filter></Filter>
-		<Filter Name="BeamDyn">
-		<Filter Name="RegistryFiles">
-		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn_Types.f90"/>
-		<File RelativePath="..\..\Source\dependencies\BeamDyn\Registry_BeamDyn.txt">
-			<FileConfiguration Name="Debug|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat BeamDyn" Description="Running Registry for BeamDyn" Outputs="..\..\Source\dependencies\BeamDyn\BeamDyn_Types.f90"/></FileConfiguration>
-			<FileConfiguration Name="Release|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat BeamDyn" Description="Running Registry for BeamDyn" Outputs="..\..\Source\dependencies\BeamDyn\BeamDyn_Types.f90"/></FileConfiguration></File></Filter>
-		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn.f90"/></Filter>
 		<Filter Name="NWTC_Library">
 		<Filter Name="NetLib">
 		<Filter Name="FFTPACK">
@@ -298,7 +298,11 @@
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration></File></Filter>
 		<Filter Name="FitPACK">
-		<File RelativePath="..\..\Source\dependencies\NetLib\dierckx_fitpack.f"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\NetLib\dierckx_fitpack.f">
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
+			<FileConfiguration Name="Release|Win32">
+				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration></File></Filter>
 		<Filter Name="ScaLAPACK">
 		<File RelativePath="..\..\Source\dependencies\NetLib\dlasrt2.f">
 			<FileConfiguration Name="Debug|Win32">

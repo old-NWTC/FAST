@@ -45,22 +45,22 @@ True          UseBlCm            - Include aerodynamic pitching moment in calcul
 "NRELOffshrBsline5MW_AeroDyn_blade.dat"    ADBlFile(2)        - Name of file containing distributed aerodynamic properties for Blade #2 (-)
 "NRELOffshrBsline5MW_AeroDyn_blade.dat"    ADBlFile(3)        - Name of file containing distributed aerodynamic properties for Blade #3 (-) [unused if NumBl < 3]
 ======  Tower Influence and Aerodynamics ============================================================= [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
-    13        NumTwrNds         - Number of tower nodes used in the analysis  (-) [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
+     13       NumTwrNds          - Number of tower nodes used in the analysis  (-) [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
 TwrElev        TwrDiam        TwrCd
 (m)              (m)           (-)
-0               6.0            1.0
-8.6229120       6.0            1.0
-15.313584       5.787          1.0
-22.005032       5.574          1.0
-28.695704       5.361          1.0
-35.386376       5.148          1.0
-42.077048       4.935          1.0
-48.767720       4.722          1.0
-55.458392       4.509          1.0
-62.149064       4.296          1.0
-68.839736       4.083          1.0
-75.530408       3.870          1.0
-77.600000       3.870          1.0
+10              6.0            1.0
+18.622912       6.0            1.0
+25.313584       5.787          1.0
+32.005032       5.574          1.0
+38.695704       5.361          1.0
+45.386376       5.148          1.0
+52.077048       4.935          1.0
+58.767720       4.722          1.0
+65.458392       4.509          1.0
+72.149064       4.296          1.0
+78.839736       4.083          1.0
+85.530408       3.870          1.0
+87.600000       3.870          1.0
 ======  Outputs  ====================================================================================
 False         SumPrint            - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
           0   NBlOuts             - Number of blade node outputs [0 - 9] (-)

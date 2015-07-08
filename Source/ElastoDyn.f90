@@ -1442,6 +1442,26 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
       
+   IF (p%BD4Blades) THEN
+         ! we need the initial outputs to send BeamDyn for its states. I should probably put them in
+         ! the InitOutput type, but I'm going to use the ED_Outputs instead
+      ! OtherState%BlPitch = u%BlPitchCom
+      ! 
+      !   ! set the coordinate system variables:
+      !CALL SetCoordSy( t, OtherState%CoordSys, OtherState%RtHS, OtherState%BlPitch, p, x, ErrStat, ErrMsg )
+      !   IF (ErrStat >= AbortErrLev) RETURN
+      !
+      !CALL CalculatePositions(        p, x, OtherState%CoordSys,    OtherState%RtHS ) ! calculate positions
+      !CALL CalculateAngularPosVelPAcc(p, x, OtherState%CoordSys,    OtherState%RtHS ) ! calculate angular positions, velocities, and partial accelerations, including partial angular quantities
+      !CALL CalculateLinearVelPAcc(    p, x, OtherState%CoordSys,    OtherState%RtHS ) ! calculate linear velocities and partial accelerations
+
+      
+      
+      CALL ED_CalcOutput( 0.0_DbKi, u, p, x, xd, z, OtherState, y, ErrStat2, ErrMsg2 )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+   END IF
+      
+      
       !............................................................................................
       ! Define initialization-routine output here:
       !............................................................................................
@@ -1487,6 +1507,8 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    CALL ED_DestroyInputFile(InputFileData, ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
+      
+         
 
 CONTAINS
    !...............................................................................................................................
@@ -2958,8 +2980,8 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, 
          IF (ErrStat >= AbortErrLev) RETURN
    
       CALL CalculatePositions(        p, x, OtherState%CoordSys,    OtherState%RtHS ) ! calculate positions
-      CALL CalculateAngularPosVelAcc( p, x, OtherState%CoordSys,    OtherState%RtHS ) ! calculate angular positions, velocities, and accelerations, including partial angular quantities
-      CALL CalculateLinearVelAcc(     p, x, OtherState%CoordSys,    OtherState%RtHS ) ! calculate linear velocities and accelerations
+      CALL CalculateAngularPosVelPAcc(p, x, OtherState%CoordSys,    OtherState%RtHS ) ! calculate angular positions, velocities, and partial accelerations, including partial angular quantities
+      CALL CalculateLinearVelPAcc(    p, x, OtherState%CoordSys,    OtherState%RtHS ) ! calculate linear velocities and partial accelerations
       CALL CalculateForcesMoments(    p, x, OtherState%CoordSys, u, OtherState%RtHS ) ! calculate the forces and moments (requires AeroBladeForces and AeroBladeMoments)            
       
    END IF
@@ -11370,8 +11392,8 @@ SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
 
 END SUBROUTINE CalculatePositions
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE CalculateAngularPosVelAcc( p, x, CoordSys, RtHSdat )
-! This routine is used to calculate the angular positions, velocities, and accelerations stored in other states that are used in
+SUBROUTINE CalculateAngularPosVelPAcc( p, x, CoordSys, RtHSdat )
+! This routine is used to calculate the angular positions, velocities, and partial accelerations stored in other states that are used in
 ! both the CalcOutput and CalcContStateDeriv routines.
 !..................................................................................................................................
 
@@ -11629,9 +11651,9 @@ ENDIF
    END DO ! J
 
 
-END SUBROUTINE CalculateAngularPosVelAcc
+END SUBROUTINE CalculateAngularPosVelPAcc
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE CalculateLinearVelAcc( p, x, CoordSys, RtHSdat )
+SUBROUTINE CalculateLinearVelPAcc( p, x, CoordSys, RtHSdat )
 ! This routine is used to calculate the linear velocities and accelerations stored in other states that are used in
 ! both the CalcOutput and CalcContStateDeriv routines.
 !..................................................................................................................................
@@ -12112,7 +12134,7 @@ SUBROUTINE CalculateLinearVelAcc( p, x, CoordSys, RtHSdat )
    END DO ! J
 
 
-END SUBROUTINE CalculateLinearVelAcc
+END SUBROUTINE CalculateLinearVelPAcc
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE CalculateForcesMoments( p, x, CoordSys, u, RtHSdat )
 ! This routine is used to calculate the forces and moments stored in other states that are used in
