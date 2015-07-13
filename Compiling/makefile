@@ -29,7 +29,7 @@ FAST_driver = FAST_Prog
 
 
 FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
-LDFLAGS = -O2 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware
+LDFLAGS = -O2 -m$(BITS) -fbacktrace
 
 #FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -g -pg
 #LDFLAGS = -O0 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware -g -pg
@@ -153,26 +153,26 @@ endif
 
    # Source files (by module)
 
-LIB_SOURCES =             \
-	SingPrec.f90           \
-	NWTC_Base.f90          \
-	$(SYS_FILE).f90        \
-	NWTC_Library_Types.f90 \
-	NWTC_IO.f90            \
-	NWTC_Num.f90           \
-	ModMesh_Types.f90      \
-	ModMesh.f90            \
-	ModMesh_Mapping.f90    \
+LIB_SOURCES =                  \
+	SingPrec.f90                \
+	NWTC_Base.f90               \
+	$(SYS_FILE).f90             \
+	NWTC_Library_Types.f90      \
+	NWTC_IO.f90                 \
+	NWTC_Num.f90                \
+	ModMesh_Types.f90           \
+	ModMesh.f90                 \
+	ModMesh_Mapping.f90         \
 	NWTC_Library.f90
 
-NETLIB_SOURCES=            \
-	NWTC_ScaLAPACK.f90      \
-	NWTC_FFTPACK.f90        \
-	NWTC_LAPACK.f90         \
-	fftpack4.1.f            \
-	dlasrt2.f               \
-	slasrt2.f               \
-	NWTC_FitPack.f90        \
+NETLIB_SOURCES=                \
+	NWTC_ScaLAPACK.f90          \
+	NWTC_FFTPACK.f90            \
+	NWTC_LAPACK.f90             \
+	fftpack4.1.f                \
+	dlasrt2.f                   \
+	slasrt2.f                   \
+	NWTC_FitPack.f90            \
 	dierckx_fitpack.f
 
 
@@ -191,134 +191,135 @@ IfW_SOURCES =                  \
 	Lidar.f90                   \
 	InflowWind.f90
 
-AD14_SOURCES =           \
-	AeroDyn14_Types.f90   \
-	GenSubs.f90           \
-	AeroSubs.f90          \
+AD14_SOURCES =                 \
+	AeroDyn14_Types.f90         \
+	GenSubs.f90                 \
+	AeroSubs.f90                \
 	AeroDyn14.f90
 
-DWM_SOURCES =            \
-	DWM_Types.f90         \
-	DWM.f90               \
+DWM_SOURCES =                  \
+	DWM_Types.f90               \
+	DWM.f90                     \
 	DWM_Wake_Sub_ver2.f90
 
-AFI_SOURCES =              \
-	AirfoilInfo_Types.f90   \
+AFI_SOURCES =                  \
+	AirfoilInfo_Types.f90       \
 	AirfoilInfo.f90
 
-UA_SOURCES =               \
-	UnsteadyAero_Types.f90  \
+UA_SOURCES =                   \
+	UnsteadyAero_Types.f90      \
 	UnsteadyAero.f90
 
-BEMT_SOURCES =             \
-	BEMT_Types.f90          \
-	BladeElement.f90        \
-	BEMTCoupled.f90         \
-	BEMTUncoupled.f90       \
-	Brent.f90               \
-	fmin_fcn.f90            \
-	mod_root1dim.f90        \
-	nwtc_bemt_minpack.f90   \
+BEMT_SOURCES =                 \
+	BEMT_Types.f90              \
+	BladeElement.f90            \
+	BEMTCoupled.f90             \
+	BEMTUncoupled.f90           \
+	Brent.f90                   \
+	fmin_fcn.f90                \
+	mod_root1dim.f90            \
+	nwtc_bemt_minpack.f90       \
 	BEMT.f90
 
-AD_SOURCES =               \
-	AeroDyn_Types.f90       \
+AD_SOURCES =                   \
+	AeroDyn_Types.f90           \
+	AeroDyn_IO.f90              \
 	AeroDyn.f90
 
-BD_SOURCES =               \
-	BeamDyn_Types.f90       \
+BD_SOURCES =                   \
+	BeamDyn_Types.f90           \
 	BeamDyn.f90
 
-HD_SOURCES =                 \
-	SS_Radiation_Types.f90    \
-	SS_Radiation.f90          \
-	Waves2_Types.f90          \
-	Waves2_Output.f90         \
-	Waves2.f90                \
-	Waves_Types.f90           \
-	Waves.f90                 \
-	Current_Types.f90         \
-	Current.f90               \
-	Morison_Types.f90         \
-	Morison_Output.f90        \
-	Morison.f90               \
-	Conv_Radiation_Types.f90  \
-	Conv_Radiation.f90        \
-	WAMIT2_Types.f90          \
-	WAMIT2_Output.f90         \
-	WAMIT2.f90                \
-	WAMIT_Types.f90           \
-	WAMIT_Interp.f90          \
-	WAMIT_Output.f90          \
-	WAMIT.f90                 \
-	HydroDyn_Output.f90       \
-	HydroDyn_Types.f90        \
-	HydroDyn_Input.f90        \
+HD_SOURCES =                   \
+	SS_Radiation_Types.f90      \
+	SS_Radiation.f90            \
+	Waves2_Types.f90            \
+	Waves2_Output.f90           \
+	Waves2.f90                  \
+	Waves_Types.f90             \
+	Waves.f90                   \
+	Current_Types.f90           \
+	Current.f90                 \
+	Morison_Types.f90           \
+	Morison_Output.f90          \
+	Morison.f90                 \
+	Conv_Radiation_Types.f90    \
+	Conv_Radiation.f90          \
+	WAMIT2_Types.f90            \
+	WAMIT2_Output.f90           \
+	WAMIT2.f90                  \
+	WAMIT_Types.f90             \
+	WAMIT_Interp.f90            \
+	WAMIT_Output.f90            \
+	WAMIT.f90                   \
+	HydroDyn_Output.f90         \
+	HydroDyn_Types.f90          \
+	HydroDyn_Input.f90          \
 	HydroDyn.f90
 
-MAP_SOURCES =              \
-	MAP_Types.f90           \
+MAP_SOURCES =                  \
+	MAP_Types.f90               \
 	MAP.f90
 
-FEAM_SOURCES =              \
-	FEAMooring_Types.f90     \
+FEAM_SOURCES =                 \
+	FEAMooring_Types.f90        \
 	FEAM.f90
 
-MD_SOURCES =              \
-	MoorDyn_Types.f90      \
-	MoorDyn_IO.f90         \
+MD_SOURCES =                   \
+	MoorDyn_Types.f90           \
+	MoorDyn_IO.f90              \
 	MoorDyn.f90
 
 
-SD_SOURCES =               \
-	qsort_c_module.f90      \
-	SD_FEM.f90              \
-	SubDyn_Types.f90        \
-	SubDyn_Output.f90       \
+SD_SOURCES =                   \
+	qsort_c_module.f90          \
+	SD_FEM.f90                  \
+	SubDyn_Types.f90            \
+	SubDyn_Output.f90           \
 	SubDyn.f90
 
 
-ED_SOURCES =            \
-	ElastoDyn_Types.f90  \
+ED_SOURCES =                   \
+	ElastoDyn_Types.f90         \
 	ElastoDyn.f90
 
-SrvD_SOURCES =          \
-	TMD_Types.f90        \
-	TMD.f90              \
-	ServoDyn_Types.f90   \
-	ServoDyn.f90         \
-	PitchCntrl_ACH.f90   \
-	BladedInterface.f90  \
-	UserSubs.f90         \
+SrvD_SOURCES =                 \
+	TMD_Types.f90               \
+	TMD.f90                     \
+	ServoDyn_Types.f90          \
+	ServoDyn.f90                \
+	PitchCntrl_ACH.f90          \
+	BladedInterface.f90         \
+	UserSubs.f90                \
 	UserVSCont_KP.f90
 
 
-IceF_SOURCES =              \
-	IceFloe_Types.f90        \
-	iceLog.F90               \
-	coupledCrushing.F90      \
-	crushingIEC.F90          \
-	crushingISO.F90          \
-	IceFlexBase.F90          \
-	IceFlexIEC.f90           \
-	IceFlexISO.f90           \
-	IceFloeBase.F90          \
-	iceInput.f90             \
-	intermittentCrushing.F90 \
-	lockInISO.F90            \
-	randomCrushing.F90       \
-	RANLUX.f90               \
+IceF_SOURCES =                 \
+	IceFloe_Types.f90           \
+	iceLog.F90                  \
+	coupledCrushing.F90         \
+	crushingIEC.F90             \
+	crushingISO.F90             \
+	IceFlexBase.F90             \
+	IceFlexIEC.f90              \
+	IceFlexISO.f90              \
+	IceFloeBase.F90             \
+	iceInput.f90                \
+	intermittentCrushing.F90    \
+	lockInISO.F90               \
+	randomCrushing.F90          \
+	RANLUX.f90                  \
 	IceFloe.f90
 
-IceD_SOURCES =              \
-	IceDyn_Types.f90         \
+IceD_SOURCES =                 \
+	IceDyn_Types.f90            \
 	IceDyn.f90
 
 
-FAST_SOURCES =           \
-	FAST_Types.f90        \
-	FAST_Mods.f90         \
-	FAST_Subs.f90         \
+FAST_SOURCES =                 \
+	FAST_Types.f90              \
+	FAST_Mods.f90               \
+	FAST_Subs.f90               \
 	$(FAST_driver).f90
 
 vpath %.f90       $(NWTC_Lib_DIR) $(AD14_DIR) $(IfW_DIR) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(SD_DIR) $(MAP_DIR) \
@@ -388,6 +389,12 @@ $(BD_DIR)/BeamDyn_Types.f90: $(BD_DIR)/Registry_BeamDyn.txt
 $(AD14_DIR)/AeroDyn14_Types.f90: $(AD14_DIR)/Registry-AD14.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR)  -O $(AD14_DIR)
 
+$(DWM_DIR)/DWM_Types.f90: $(DWM_DIR)/Registry-DWM.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)  -O $(DWM_DIR)
+
+$(AD_DIR)/AeroDyn_Types.f90: $(AD_DIR)/AeroDyn_Registry.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(AFI_DIR) -I $(UA_DIR) -I $(BEMT_DIR) -O $(AD_DIR)
+
 $(AFI_DIR)/AirfoilInfo_Types.f90: $(AFI_DIR)/AirfoilInfo_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -O $(AFI_DIR) -noextrap
 
@@ -396,12 +403,6 @@ $(UA_DIR)/UnsteadyAero_Types.f90: $(UA_DIR)/UnsteadyAero_Registry.txt
 
 $(BEMT_DIR)/BEMT_Types.f90: $(BEMT_DIR)/BEMT_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(AFI_DIR) -I $(UA_DIR) -O $(BEMT_DIR)
-
-$(AD_DIR)/AeroDyn_Types.f90: $(AD_DIR)/AeroDyn_Registry.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(AFI_DIR) -I $(UA_DIR) -I $(BEMT_DIR) -O $(AD_DIR)
-
-$(DWM_DIR)/DWM_Types.f90: $(DWM_DIR)/Registry-DWM.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)  -O $(DWM_DIR)
 
 $(SD_DIR)/SubDyn_Types.f90: $(SD_DIR)/SubDyn_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(SD_DIR)
@@ -670,6 +671,10 @@ superclean:
 	$(DEL_CMD) "$(ED_DIR)$(PATH_SEP)ElastoDyn_Types.f90"
 	$(DEL_CMD) "$(AD14_DIR)$(PATH_SEP)AeroDyn14_Types.f90"
 	$(DEL_CMD) "$(DWM_DIR)$(PATH_SEP)DWM_Types.f90"
+	$(DEL_CMD) "$(AD_DIR)$(PATH_SEP)AeroDyn_Types.f90"
+	$(DEL_CMD) "$(AFI_DIR)$(PATH_SEP)UnsteadyAero_Types.f90"
+	$(DEL_CMD) "$(UA_DIR)$(PATH_SEP)AirfoilInfo_Types.f90"
+	$(DEL_CMD) "$(BEMT_DIR)$(PATH_SEP)BEMT_Types.f90"
 	$(DEL_CMD) "$(SD_DIR)$(PATH_SEP)SubDyn_Types.f90"
 	$(DEL_CMD) "$(FEAM_DIR)$(PATH_SEP)FEAMooring_Types.f90"
 	$(DEL_CMD) "$(MD_DIR)$(PATH_SEP)MoorDyn_Types.f90"

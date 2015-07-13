@@ -16,6 +16,10 @@ rem @SET MBC_SOURCE=C:\Users\bjonkman\Data\DesignCodes\MBC\Source
 @SET Editor=NotePad.EXE
 @SET CompareFile=CertTest.out
 
+SET FST_DIR=.
+:: SET FST_DIR=AD14forAD15Compare
+:: SET FST_DIR=AD15
+
 ::=======================================================================================================
 IF /I "%1"=="-X64" GOTO x64releaseVer
 IF /I "%1"=="-DEBUG" GOTO debugVer
@@ -102,35 +106,35 @@ REM  FAST test sequence definition:
 @SET  DASHES=---------------------------------------------------------------------------------------------
 @SET  POUNDS=#############################################################################################
 
-@IF EXIST CertTest.out  DEL CertTest.out
+@IF EXIST %CompareFile%  DEL %CompareFile%
 
-ECHO.                                               >> CertTest.out
-ECHO           ************************************ >> CertTest.out
-ECHO           **  FAST Acceptance Test Results  ** >> CertTest.out
-ECHO           ************************************ >> CertTest.out
+ECHO.                                               >> %CompareFile%
+ECHO           ************************************ >> %CompareFile%
+ECHO           **  FAST Acceptance Test Results  ** >> %CompareFile%
+ECHO           ************************************ >> %CompareFile%
 
-ECHO.                                                                             >> CertTest.out
-ECHO ############################################################################ >> CertTest.out
-ECHO # Inspect this file for any differences between your results and the saved # >> CertTest.out
-ECHO # results.  Any differing lines and the two lines surrounding them will be # >> CertTest.out
-ECHO # listed.  The only differences should be the time stamps at the start of  # >> CertTest.out
-ECHO # each file.                                                               # >> CertTest.out
-ECHO #                                                                          # >> CertTest.out
-ECHO # If you are running on something other than a PC, you may see differences # >> CertTest.out
-ECHO # in the last significant digit of many of the numbers.                    # >> CertTest.out
-ECHO ############################################################################ >> CertTest.out
+ECHO.                                                                             >> %CompareFile%
+ECHO ############################################################################ >> %CompareFile%
+ECHO # Inspect this file for any differences between your results and the saved # >> %CompareFile%
+ECHO # results.  Any differing lines and the two lines surrounding them will be # >> %CompareFile%
+ECHO # listed.  The only differences should be the time stamps at the start of  # >> %CompareFile%
+ECHO # each file.                                                               # >> %CompareFile%
+ECHO #                                                                          # >> %CompareFile%
+ECHO # If you are running on something other than a PC, you may see differences # >> %CompareFile%
+ECHO # in the last significant digit of many of the numbers.                    # >> %CompareFile%
+ECHO ############################################################################ >> %CompareFile%
 
-ECHO.                                            >> CertTest.out
-ECHO Date and time this acceptance test was run: >> CertTest.out
-%DateTime%                                       >> CertTest.out
-ECHO.                                            >> CertTest.out
+ECHO.                                            >> %CompareFile%
+ECHO Date and time this acceptance test was run: >> %CompareFile%
+%DateTime%                                       >> %CompareFile%
+ECHO.                                            >> %CompareFile%
 
 
-ECHO.                                            >> CertTest.out
-ECHO %EXE_VER%                                   >> CertTest.out
-ECHO FAST called with this command:              >> CertTest.out
-ECHO %FAST%                                      >> CertTest.out
-ECHO.                                            >> CertTest.out
+ECHO.                                            >> %CompareFile%
+ECHO %EXE_VER%                                   >> %CompareFile%
+ECHO FAST called with this command:              >> %CompareFile%
+ECHO %FAST%                                      >> %CompareFile%
+ECHO.                                            >> %CompareFile%
 
 
 echo %DASHES%
@@ -300,10 +304,10 @@ IF ERRORLEVEL 1  GOTO MATLABERROR
 
 @IF NOT EXIST Test%TEST%.eig  GOTO MATLABERROR
 
-echo.                                            >> CertTest.out
-echo %POUNDS%                                    >> CertTest.out
-echo.                                            >> CertTest.out
-echo %TEST14%                                    >> CertTest.out
+echo.                                            >> %CompareFile%
+echo %POUNDS%                                    >> %CompareFile%
+echo.                                            >> %CompareFile%
+echo %TEST14%                                    >> %CompareFile%
 
 @CALL :CompareFiles 14 eig
 @CALL :CompareFiles 14 sum
@@ -407,7 +411,7 @@ rem  Let's look at the comparisons.
 rem %MATLAB% /r PlotCertTestResults('.','.\TstFiles');exit;
 
 
-%Editor% CertTest.out
+%Editor% %CompareFile%
 goto END
 
 rem ******************************************************
@@ -427,10 +431,10 @@ rem ******************************************************
 :: Run FAST.
 @SET TEST=%1
 
-%FAST% Test%1.fst
+%FAST% %FST_DIR%\Test%1.fst
 
-IF ERRORLEVEL 1  GOTO ERROR
-@IF NOT EXIST Test%1.%2  GOTO ERROR
+:: IF ERRORLEVEL 1  GOTO ERROR
+:: @IF NOT EXIST Test%1.%2  GOTO ERROR
 
 echo %DASHES%
 @IF "%UseCrunch%"=="1" (
@@ -461,7 +465,7 @@ EXIT /B
 )
 
 echo %DASHES%                          >> %CompareFile%
-%Compare% Test%1.%2 TstFiles\Test%1.%2 >> %CompareFile%
+%Compare% %FST_DIR%\Test%1.%2 TstFiles\Test%1.%2 >> %CompareFile%
 
 :EndCompareFiles
 EXIT /B
@@ -524,6 +528,7 @@ EXIT /B
 @SET TEST25=
 
 SET EXE_VER=
+SET FST_DIR=
 
 type Bell.txt
 @echo Processing complete.

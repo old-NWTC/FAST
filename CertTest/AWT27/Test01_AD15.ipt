@@ -6,14 +6,14 @@ False         Echo               - Echo the input to "<rootname>.AD.ech"?  (flag
           1   WakeMod            - Type of wake/induction model (switch) {0=none, 1=BEMT}
           1   AFAeroMod          - Type of blade airfoil aerodynamics model (switch) {1=steady model, 2=Beddoes-Leishman unsteady model}
           0   TwrPotent          - Type tower influence on wind based on potential flow around the tower (switch) {0=none, 1=baseline potential flow, 2=potential flow with Bak correction}
-False         TwrShadow          – Calculate tower influence on wind based on downstream tower shadow? (flag)
+True          TwrShadow          – Calculate tower influence on wind based on downstream tower shadow? (flag)
 False         TwrAero            - Calculate tower aerodynamic loads? (flag)
 ======  Environmental Conditions  ===================================================================
       1.225   AirDens            - Air density (kg/m^3)
  1.4639E-05   KinVisc            - Kinematic air viscosity (m^2/s)
         335   SpdSound           - Speed of sound (m/s)
 ======  Blade-Element/Momentum Theory Options  ====================================================== [used only when WakeMod=1]
-          2   SkewMod            - Type of skewed-wake correction model (switch) {1=uncoupled, 2=Pitt/Peters, 3=coupled} [used only when WakeMod=1]
+1          2   SkewMod            - Type of skewed-wake correction model (switch) {1=uncoupled, 2=Pitt/Peters, 3=coupled} [used only when WakeMod=1]
 True          TipLoss            - Use the Prandtl tip-loss model? (flag) [used only when WakeMod=1]
 False         HubLoss            - Use the Prandtl hub-loss model? (flag) [used only when WakeMod=1]
 true          TanInd             - Include tangential induction in BEMT calculations? (flag) [used only when WakeMod=1]
@@ -50,8 +50,8 @@ False         UseBlCm            - Include aerodynamic pitching moment in calcul
      2               NumTwrNds         - Number of tower nodes used in the analysis  (-) [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
 TwrElev        TwrDiam        TwrCd
 (m)              (m)           (-)
- 0.0            1.2            0.0
-41.98           0.6            0.0
+ 0.0            2.4            0.0
+41.98           1.2            0.0
 ======  Outputs  ====================================================================================
 False         SumPrint            - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
           0   NBlOuts             - Number of blade node outputs [0 - 9] (-)

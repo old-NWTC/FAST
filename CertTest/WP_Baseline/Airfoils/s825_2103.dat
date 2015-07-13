@@ -13,7 +13,7 @@
 0.0         Ctrl              ! Control setting (must be 0 for current AirfoilInfo)
 False       InclUAdata        ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefs below this line
 !........................................
-  56       NumAlf            ! Number of data lines in the following table
+  57       NumAlf            ! Number of data lines in the following table
 !    Alpha      Cl      Cd
 !    (deg)      (-)     (-)
   -180.00	 -0.170	 0.0200

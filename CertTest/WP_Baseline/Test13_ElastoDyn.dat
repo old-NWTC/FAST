@@ -1,5 +1,5 @@
 ------- ELASTODYN v1.03.* INPUT FILE -------------------------------------------
-FAST certification Test #13: WindPACT 1.5 MW Baseline with many DOFs with VS and VP and FF turbulence. Model properties from "InputData1.5A08V07adm.xls" (from C. Hansen) with bugs removed.  
+FAST certification Test #13: WindPACT 1.5 MW Baseline with many DOFs with VS and VP and FF turbulence. Model properties from "InputData1.5A08V07adm.xls" (from C. Hansen) with bugs removed.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo        - Echo input data to "<RootName>.ech" (flag)
           3   Method      - Integration method: {1: RK4, 2: AB4, or 3: ABM4} (-)
@@ -84,7 +84,7 @@ False         PtfmYDOF    - Platform yaw rotation DOF (flag)
           0   PtfmPIner   - Platform inertia for pitch tilt rotation about the platform CM (kg m^2)
           0   PtfmYIner   - Platform inertia for yaw rotation about the platform CM (kg m^2)
 ---------------------- BLADE ---------------------------------------------------
-         20   BldNodes    - Number of blade nodes (per blade) used for analysis (-)
+         15   BldNodes    - Number of blade nodes (per blade) used for analysis (-)
 "Baseline_Blade.dat"    BldFile(1)  - Name of file containing properties for blade 1 (quoted string)
 "Baseline_Blade.dat"    BldFile(2)  - Name of file containing properties for blade 2 (quoted string)
 "Baseline_Blade.dat"    BldFile(3)  - Name of file containing properties for blade 3 (quoted string) [unused for 2 blades]

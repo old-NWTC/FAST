@@ -33,7 +33,7 @@ for i=1:25
     end
     
 end
-
+%%
 ConvertFAST8_10to12([oldDir filesep 'Test19_noHD.fst'],newDir, createAD15);
 ConvertFAST8_10to12([oldDir filesep 'Test19_withIce.fst'],newDir, createAD15);
 ConvertFAST8_10to12([oldDir filesep 'Test21_withIce.fst'],newDir, createAD15);

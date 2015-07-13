@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-06-23 00:30:45 -0600 (Tue, 23 Jun 2015) $
-! (File) Revision #: $Rev: 133 $
+! File last committed: $Date: 2015-07-13 11:11:31 -0600 (Mon, 13 Jul 2015) $
+! (File) Revision #: $Rev: 135 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/AeroDyn/AeroDyn.f90 $
 !**********************************************************************************************************************************
 module AeroDyn
@@ -405,7 +405,8 @@ subroutine Init_y(y, u, p, errStat, errMsg)
          
          !y%TowerLoad%force = 0.0_ReKi  ! shouldn't have to initialize this
          !y%TowerLoad%moment= 0.0_ReKi  ! shouldn't have to initialize this
-         
+   else
+      y%TowerLoad%nnodes = 0
    end if
 
    
@@ -1342,8 +1343,7 @@ SUBROUTINE ValidateInputData( InputFileData, NumBl, ErrStat, ErrMsg )
          end if
       end do ! j=nodes
       
-         ! check that the elevation starts at 0 and is increasing:
-      if ( .not. EqualRealNos(InputFileData%TwrElev(1), 0.0_ReKi) ) call SetErrStat( ErrID_Fatal, 'The first tower elevation must be 0.0 m', ErrStat, ErrMsg, RoutineName) 
+         ! check that the elevation is increasing:
       do j=2,InputFileData%NumTwrNds
          if ( InputFileData%TwrElev(j) <= InputFileData%TwrElev(j-1) )  then
             call SetErrStat( ErrID_Fatal, 'The tower nodes must be entered in increasing elevation.', ErrStat, ErrMsg, RoutineName )

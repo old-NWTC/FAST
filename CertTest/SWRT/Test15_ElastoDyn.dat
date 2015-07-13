@@ -1,5 +1,5 @@
 ------- ELASTODYN v1.03.* INPUT FILE -------------------------------------------
-FAST certification Test #15: FAST model of a SWRT 3-bladed upwind turbine.  Note- SWRT rotates in CCW direction- some inputs will be mirror image of the actual turbine. Model properties from "SWRTv1p2.adm" and SWRT "AdamsWT_MakeBladeDat_v12.xls".  JEM Jan., 2004.  Updated by J. Jonkman, NREL, Feb, 2004.  
+FAST certification Test #15: FAST model of a SWRT 3-bladed upwind turbine.  Note- SWRT rotates in CCW direction- some inputs will be mirror image of the actual turbine. Model properties from "SWRTv1p2.adm" and SWRT "AdamsWT_MakeBladeDat_v12.xls".  JEM Jan., 2004.  Updated by J. Jonkman, NREL, Feb, 2004.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo        - Echo input data to "<RootName>.ech" (flag)
           3   Method      - Integration method: {1: RK4, 2: AB4, or 3: ABM4} (-)
@@ -84,7 +84,7 @@ False         PtfmYDOF    - Platform yaw rotation DOF (flag)
           0   PtfmPIner   - Platform inertia for pitch tilt rotation about the platform CM (kg m^2)
           0   PtfmYIner   - Platform inertia for yaw rotation about the platform CM (kg m^2)
 ---------------------- BLADE ---------------------------------------------------
-         20   BldNodes    - Number of blade nodes (per blade) used for analysis (-)
+         15   BldNodes    - Number of blade nodes (per blade) used for analysis (-)
 "SWRT_Blade.dat"    BldFile(1)  - Name of file containing properties for blade 1 (quoted string)
 "SWRT_Blade.dat"    BldFile(2)  - Name of file containing properties for blade 2 (quoted string)
 "SWRT_Blade.dat"    BldFile(3)  - Name of file containing properties for blade 3 (quoted string) [unused for 2 blades]

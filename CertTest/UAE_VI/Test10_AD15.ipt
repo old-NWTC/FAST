@@ -13,7 +13,7 @@ False         TwrAero            - Calculate tower aerodynamic loads? (flag)
  1.4639E-05   KinVisc            - Kinematic air viscosity (m^2/s)
         335   SpdSound           - Speed of sound (m/s)
 ======  Blade-Element/Momentum Theory Options  ====================================================== [used only when WakeMod=1]
-          2   SkewMod            - Type of skewed-wake correction model (switch) {1=uncoupled, 2=Pitt/Peters, 3=coupled} [used only when WakeMod=1]
+1          2   SkewMod            - Type of skewed-wake correction model (switch) {1=uncoupled, 2=Pitt/Peters, 3=coupled} [used only when WakeMod=1]
 True          TipLoss            - Use the Prandtl tip-loss model? (flag) [used only when WakeMod=1]
 True          HubLoss            - Use the Prandtl hub-loss model? (flag) [used only when WakeMod=1]
 true          TanInd             - Include tangential induction in BEMT calculations? (flag) [used only when WakeMod=1]
@@ -50,8 +50,8 @@ True          UseBlCm            - Include aerodynamic pitching moment in calcul
      2               NumTwrNds         - Number of tower nodes used in the analysis  (-) [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
 TwrElev        TwrDiam        TwrCd
 (m)              (m)           (-)
- 0.0            0.3048         0.0
-34.000          0.2032         0.0
+ 0.0            0.6096         1.0
+11.5            0.4064         1.0
 ======  Outputs  ====================================================================================
 False         SumPrint            - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
           0   NBlOuts             - Number of blade node outputs [0 - 9] (-)
