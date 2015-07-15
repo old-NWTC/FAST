@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-05-18 14:44:11 -0600 (Mon, 18 May 2015) $
-! (File) Revision #: $Rev: 197 $
+! File last committed: $Date: 2015-07-08 14:15:00 -0600 (Wed, 08 Jul 2015) $
+! (File) Revision #: $Rev: 198 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/AeroDyn14.f90 $
 !**********************************************************************************************************************************
 MODULE AeroDyn14
@@ -967,7 +967,7 @@ SUBROUTINE AD14_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
 
             ! determine if MulTabLoc should be set.  
      
-         O%AirFoil%MulTabLoc = u%MulTabLoc(IElement,IBlade)
+         IF (.not. p%Reynolds) O%AirFoil%MulTabLoc = u%MulTabLoc(IElement,IBlade)
          
          !-------------------------------------------------------------------------------------------
          ! Get wind velocity components; calculate velocity normal to the rotor squared

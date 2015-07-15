@@ -1346,7 +1346,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
 
    TYPE(ED_InputFile)                           :: InputFileData           ! Data stored in the module's input file
    INTEGER(IntKi)                               :: ErrStat2                ! temporary Error status of the operation
-   INTEGER(IntKi)                               :: K                       ! loop counter
+   INTEGER(IntKi)                               :: i, K                    ! loop counters
    LOGICAL, PARAMETER                           :: GetAdamsVals = .FALSE.  ! Determines if we should read Adams values and create (update) an Adams model
    CHARACTER(ErrMsgLen)                         :: ErrMsg2                 ! temporary Error message if ErrStat /= ErrID_None
 
@@ -1472,9 +1472,11 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
 
-   InitOut%WriteOutputHdr = p%OutParam(1:p%NumOuts)%Name
-   InitOut%WriteOutputUnt = p%OutParam(1:p%NumOuts)%Units
-
+   do i=1,p%NumOuts
+      InitOut%WriteOutputHdr(i) = p%OutParam(i)%Name
+      InitOut%WriteOutputUnt(i) = p%OutParam(i)%Units
+   end do
+      
    InitOut%Ver         = ED_Ver
    InitOut%NumBl       = p%NumBl
    InitOut%Gravity     = p%Gravity

@@ -69,7 +69,7 @@ contains
       real(ReKi) :: load   ! Newtons
       real(ReKi) :: exp_n  ! per ISO
       
-      exp_n = min(-0.3, 0.2*inParams%iceThickness-0.5)
+      exp_n = min(-0.3_ReKi, 0.2_ReKi*inParams%iceThickness-0.5_ReKi)
       
       load = inParams%twr%diam*inParams%iceThickness*inParams%refIceStrength
       load = load*(inParams%iceThickness/inParams%refIceThick)**exp_n

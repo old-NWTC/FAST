@@ -206,7 +206,7 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
                   //newLine//trim(iceLog%ErrMsg)
          p%rampTime = 10.0         
       endif
-      p%rampTime = max(p%rampTime, 0.1)
+      p%rampTime = max(p%rampTime, 0.1_ReKi)
       
    ! get the number of legs on the support structure
       call getIceInput(iceInput, 'numLegs', p%numLegs, iceLog, 1, 4)

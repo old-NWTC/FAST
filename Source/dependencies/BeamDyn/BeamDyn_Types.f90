@@ -91,11 +91,10 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: ngp      ! Number of Gauss points [-]
     INTEGER(IntKi)  :: analysis_type      ! analysis_type flag [-]
     INTEGER(IntKi)  :: damp_flag      ! damping flag [-]
-    INTEGER(IntKi)  :: niter      ! analysis_type flag [-]
-    INTEGER(IntKi)  :: NRMax      ! Maximum number of iterations in Newton-Ralphson algorithm [-]
+    INTEGER(IntKi)  :: niter      ! Maximum number of iterations in Newton-Ralphson algorithm [-]
     REAL(DbKi)  :: dt      ! module dt [s]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: beta      ! Damping Coefficient [-]
-    REAL(ReKi)  :: tol      ! Tolerance used in stoppoing criterion [-]
+    REAL(ReKi)  :: tol      ! Tolerance used in stopping criterion [-]
     REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: coef      ! GA2 Coefficient [-]
     REAL(DbKi)  :: rhoinf      ! Numerical Damping Coefficient for GA2 [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: GlbPos      ! Initial Position Vector between origins of Global and blade frames [-]
@@ -1590,7 +1589,6 @@ ENDIF
     DstParamData%analysis_type = SrcParamData%analysis_type
     DstParamData%damp_flag = SrcParamData%damp_flag
     DstParamData%niter = SrcParamData%niter
-    DstParamData%NRMax = SrcParamData%NRMax
     DstParamData%dt = SrcParamData%dt
 IF (ALLOCATED(SrcParamData%beta)) THEN
   i1_l = LBOUND(SrcParamData%beta,1)
@@ -1763,7 +1761,6 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1  ! analysis_type
       Int_BufSz  = Int_BufSz  + 1  ! damp_flag
       Int_BufSz  = Int_BufSz  + 1  ! niter
-      Int_BufSz  = Int_BufSz  + 1  ! NRMax
       Db_BufSz   = Db_BufSz   + 1  ! dt
   Int_BufSz   = Int_BufSz   + 1     ! beta allocated yes/no
   IF ( ALLOCATED(InData%beta) ) THEN
@@ -1933,8 +1930,6 @@ ENDIF
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%damp_flag
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%niter
-      Int_Xferred   = Int_Xferred   + 1
-      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NRMax
       Int_Xferred   = Int_Xferred   + 1
       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%dt
       Db_Xferred   = Db_Xferred   + 1
@@ -2214,8 +2209,6 @@ ENDIF
       OutData%damp_flag = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%niter = IntKiBuf( Int_Xferred ) 
-      Int_Xferred   = Int_Xferred + 1
-      OutData%NRMax = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%dt = DbKiBuf( Db_Xferred ) 
       Db_Xferred   = Db_Xferred + 1

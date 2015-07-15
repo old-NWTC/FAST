@@ -196,7 +196,7 @@ contains
 ! the vector from the tower centroid to the specified leg
       rotX =  X*cos(iceDir) + Y*sin(iceDir)
       rotY = -X*sin(iceDir) + Y*cos(iceDir)
-      angle = mod(R2D*atan2(rotY,rotX)+360.0,360.0)
+      angle = mod(R2D*atan2(rotY,rotX)+360.0_ReKi,360.0_ReKi)
 
 ! assign angle limits dependent on number of legs
       if (nLegs < 4) then

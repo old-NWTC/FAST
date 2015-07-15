@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-06-18 10:25:00 -0600 (Thu, 18 Jun 2015) $
-! (File) Revision #: $Rev: 316 $
+! File last committed: $Date: 2015-07-14 09:41:31 -0600 (Tue, 14 Jul 2015) $
+! (File) Revision #: $Rev: 320 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Num.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_Num
@@ -2985,7 +2985,7 @@ END SUBROUTINE InterpStpReal3D
    INTEGER                      :: NumCrvs                                    ! Number of curves to be interpolated.
    INTEGER                      :: NumPts                                     ! Number of points in each curve.
 
-   CHARACTER(*), PARAMETER      :: RoutineName = 'CubicSplineInitM'
+   CHARACTER(*), PARAMETER      :: RoutineName = 'RegCubicSplineInitM'
 
       ! How big are the arrays?
 
@@ -3363,33 +3363,33 @@ END SUBROUTINE InterpStpReal3D
 
          ! Passed variables
 
-      INTEGER   , INTENT(IN)       :: StrtTime (8)                                    ! Start time of simulation (including initialization)
-      INTEGER   , INTENT(IN)       :: SimStrtTime (8)                                 ! Start time of simulation (after initialization)
-      REAL      , INTENT(IN)       :: UsrTime1                                        ! User CPU time for simulation initialization.
-      REAL,       INTENT(IN)       :: UsrTime2                                        ! User CPU time for simulation (without intialization)
-      REAL(DbKi), INTENT(IN)       :: ZTime                                           ! The final simulation time (not necessarially TMax)
-      REAL,OPTIONAL, INTENT(OUT)   :: UsrTime_out                                     ! User CPU time for entire run - optional value returned to calling routine
+      INTEGER   ,INTENT(IN)          :: StrtTime (8)                                    ! Start time of simulation (including initialization)
+      INTEGER   ,INTENT(IN)          :: SimStrtTime (8)                                 ! Start time of simulation (after initialization)
+      REAL(ReKi),INTENT(IN)          :: UsrTime1                                        ! User CPU time for simulation initialization.
+      REAL(ReKi),INTENT(IN)          :: UsrTime2                                        ! User CPU time for simulation (without intialization)
+      REAL(DbKi),INTENT(IN)          :: ZTime                                           ! The final simulation time (not necessarially TMax)
+      REAL(ReKi),INTENT(OUT),OPTIONAL:: UsrTime_out                                     ! User CPU time for entire run - optional value returned to calling routine
 
          ! Local variables
 
-      REAL                         :: ClckTime                                        ! Elapsed clock time for the entire run.
-      REAL                         :: ClckTimeSim                                     ! Elapsed clock time for the simulation phase of the run.
-      REAL                         :: Factor                                          ! Ratio of seconds to a specified time period.
-      REAL                         :: TRatio                                          ! Ratio of simulation time to elapsed clock time.
-      REAL(ReKi), PARAMETER        :: SecPerDay = 24*60*60.0_ReKi                     ! Number of seconds per day
-
-      REAL                         :: UsrTime                                         ! User CPU time for entire run.
-      REAL                         :: UsrTimeSim                                      ! User CPU time for simulation (not including initialization).
-      INTEGER                      :: EndTimes (8)                                    ! An array holding the ending clock time of the simulation.
-
-      CHARACTER( 8)                :: TimePer
-      CHARACTER(MaxWrScrLen)       :: BlankLine
+      REAL(ReKi)                      :: ClckTime                                        ! Elapsed clock time for the entire run.
+      REAL(ReKi)                      :: ClckTimeSim                                     ! Elapsed clock time for the simulation phase of the run.
+      REAL(ReKi)                      :: Factor                                          ! Ratio of seconds to a specified time period.
+      REAL(ReKi)                      :: TRatio                                          ! Ratio of simulation time to elapsed clock time.
+      REAL(ReKi), PARAMETER           :: SecPerDay = 24*60*60.0_ReKi                     ! Number of seconds per day
+                                      
+      REAL(ReKi)                      :: UsrTime                                         ! User CPU time for entire run.
+      REAL(ReKi)                      :: UsrTimeSim                                      ! User CPU time for simulation (not including initialization).
+      INTEGER                         :: EndTimes (8)                                    ! An array holding the ending clock time of the simulation.
+                                      
+      CHARACTER( 8)                   :: TimePer
+      CHARACTER(MaxWrScrLen)          :: BlankLine
 
          ! Get the end times to compare with start times.
 
       CALL DATE_AND_TIME ( VALUES=EndTimes )
       CALL CPU_TIME ( UsrTime )
-      UsrTime = MAX( 0.0, UsrTime )  ! CPU_TIME: If a meaningful time cannot be returned, a processor-dependent negative value is returned
+      UsrTime = MAX( 0.0_ReKi, UsrTime )  ! CPU_TIME: If a meaningful time cannot be returned, a processor-dependent negative value is returned
    
 
       ! Calculate the elapsed wall-clock time in seconds.
@@ -3400,25 +3400,25 @@ END SUBROUTINE InterpStpReal3D
 
          ! Calculate CPU times.
 
-      UsrTime    = MAX( 0.0, UsrTime - UsrTime1 )
-      UsrTimeSim = MAX( 0.0, UsrTime - UsrTime2 )
+      UsrTime    = MAX( 0.0_ReKi, UsrTime - UsrTime1 )
+      UsrTimeSim = MAX( 0.0_ReKi, UsrTime - UsrTime2 )
 
 
-      IF ( .NOT. EqualRealNos( UsrTimeSim, 0.0 ) .AND. ZTime > 0.0_DbKi )  THEN
+      IF ( .NOT. EqualRealNos( UsrTimeSim, 0.0_ReKi ) .AND. ZTime > 0.0_DbKi )  THEN
 
-         TRatio = REAL(ZTime) / UsrTimeSim
+         TRatio = REAL(ZTime,ReKi) / UsrTimeSim
 
          IF     ( UsrTime > SecPerDay )  THEN
-            Factor = 1.0/SecPerDay
+            Factor = 1.0_ReKi/SecPerDay
             TimePer = ' days'
-         ELSEIF ( UsrTime >  3600.0 )  THEN
-            Factor = 1.0/3600.0
+         ELSEIF ( UsrTime >  3600.0_ReKi )  THEN
+            Factor = 1.0_ReKi/3600.0_ReKi
             TimePer = ' hours'
-         ELSEIF ( UsrTime >    60.0 )  THEN
-            Factor = 1.0/60.0
+         ELSEIF ( UsrTime >    60.0_ReKi )  THEN
+            Factor = 1.0_ReKi/60.0_ReKi
             TimePer = ' minutes'
          ELSE
-            Factor = 1.0
+            Factor = 1.0_ReKi
             TimePer = ' seconds'
          ENDIF
 
@@ -3541,7 +3541,7 @@ END SUBROUTINE InterpStpReal3D
       REAL(DbKi), INTENT(  OUT)    :: PrevSimTime                                     ! Previous time message was written to screen (s > 0)
       REAL(ReKi), INTENT(  OUT)    :: PrevClockTime                                   ! Previous clock time in seconds past midnight
       INTEGER,    INTENT(  OUT)    :: SimStrtTime (8)                                 ! An array containing the elements of the start time.
-      REAL,       INTENT(  OUT)    :: UsrTimeSim                                      ! User CPU time for simulation (without intialization)
+      REAL(ReKi), INTENT(  OUT)    :: UsrTimeSim                                      ! User CPU time for simulation (without intialization)
 
          ! Local variables.
 
@@ -3552,7 +3552,7 @@ END SUBROUTINE InterpStpReal3D
 
       CALL DATE_AND_TIME ( Values=SimStrtTime )
       CALL CPU_TIME ( UsrTimeSim )                                                    ! Initial CPU time   
-      UsrTimeSim = MAX( 0.0, UsrTimeSim )  ! CPU_TIME: If a meaningful time cannot be returned, a processor-dependent negative value is returned
+      UsrTimeSim = MAX( 0.0_ReKi, UsrTimeSim )  ! CPU_TIME: If a meaningful time cannot be returned, a processor-dependent negative value is returned
 
       CurrClockTime = TimeValues2Seconds( SimStrtTime )
 

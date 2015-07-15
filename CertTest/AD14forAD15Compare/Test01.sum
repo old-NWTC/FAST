@@ -1,9 +1,9 @@
 
 FAST Summary File
 
-Predictions were generated on 10-Jul-2015 at 10:41:39 using FAST (v8.12.00a-bjj, 15-Jun-2015), compiled as a 32-bit application using single precision
+Predictions were generated on 14-Jul-2015 at 15:07:12 using FAST (v8.12.00a-bjj, 14-Jul-2015), compiled as a 32-bit application using single precision
   compiled with
-    NWTC Subroutine Library (v2.06.02a-bjj, 8-Jul-2015)
+    NWTC Subroutine Library (v2.06.02a-bjj, 14-Jul-2015)
     ElastoDyn (v1.03.00a-bjj, 9-Jul-2015)
     BeamDyn (unknown version, unknown date) [not called]
     InflowWind (v3.00.01a-adp, 27-Apr-2015)
@@ -36,7 +36,7 @@ Number of correction iterations:  0
   ElastoDyn           4.000E-03              1
   AeroDyn14           4.000E-03              1
   ServoDyn            4.000E-03              1
-  FAST output files   2.000E-02              5^-1
+  FAST output files   4.000E-03              1
 
 
    Requested Channels in FAST Output File(s)  

@@ -471,8 +471,10 @@ INTEGER(IntKi), PARAMETER         :: AnchT(10) = (/ AnchT1, AnchT2, AnchT3, Anch
     CALL CheckError( ErrStat2, ErrMsg2 )
     IF (ErrStat >= AbortErrLev) RETURN
 
-    InitOut%WriteOutputHdr = p%OutParam(1:p%NumOuts)%Name
-    InitOut%WriteOutputUnt = p%OutParam(1:p%NumOuts)%Units     
+    do i=1,p%NumOuts    
+       InitOut%WriteOutputHdr(i) = p%OutParam(i)%Name
+       InitOut%WriteOutputUnt(i) = p%OutParam(i)%Units     
+    end do
     InitOut%Ver = FEAM_Ver  
 
     !............................................................................................

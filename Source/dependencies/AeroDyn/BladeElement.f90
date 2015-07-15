@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-06-23 00:30:45 -0600 (Tue, 23 Jun 2015) $
-! (File) Revision #: $Rev: 133 $
+! File last committed: $Date: 2015-07-14 09:39:08 -0600 (Tue, 14 Jul 2015) $
+! (File) Revision #: $Rev: 137 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/BEMT/BladeElement.f90 $
 !**********************************************************************************************************************************
 module BladeElement
@@ -109,7 +109,7 @@ module BladeElement
             !
          s1 = size(AFInfo%Table(1)%Coefs,2)
    
-         IntAFCoefs(1:s1) = CubicSplineInterpM( 1.0*real( AOA*R2D ) &
+         IntAFCoefs(1:s1) = CubicSplineInterpM( 1.0_ReKi*real( AOA*R2D, ReKi ) &
                                               , AFInfo%Table(1)%Alpha &
                                               , AFInfo%Table(1)%Coefs &
                                               , AFInfo%Table(1)%SplineCoefs &

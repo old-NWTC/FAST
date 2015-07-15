@@ -262,22 +262,22 @@ subroutine BEMTC_ElementalInduction(a, ap, r, chord, Rtip, Wnorm, phi, cn, ct, B
 
     saz = sin(azimuth)
     caz = cos(azimuth)
-    
-    if ( EqualRealNos(azimuth, 3.141593) ) then
+    !bjj: why aren't we using the "pi" variable?
+    if ( EqualRealNos(azimuth, 3.141593_ReKi) ) then
        saz = 0.0_ReKi
-    else if ( EqualRealNos(azimuth, 1.570796) ) then
+    else if ( EqualRealNos(azimuth, 1.570796_ReKi) ) then
        saz = 1.0_ReKi
-    else if ( EqualRealNos(azimuth, 3*1.570796 )) then
+    else if ( EqualRealNos(azimuth, 3*1.570796_ReKi )) then
        saz = -1.0_ReKi
     else     
        saz = sin(azimuth)
     end if
     
-    if ( EqualRealNos(azimuth, 3.141593) ) then
+    if ( EqualRealNos(azimuth, 3.141593_ReKi) ) then
        caz = -1.0_ReKi
-    else if ( EqualRealNos(azimuth, 1.570796) ) then
+    else if ( EqualRealNos(azimuth, 1.570796_ReKi) ) then
        caz = 0.0_ReKi
-    else if ( EqualRealNos(azimuth, 3*1.570796 )) then
+    else if ( EqualRealNos(azimuth, 3*1.570796_ReKi )) then
        caz = 0.0_ReKi
     else     
        caz = cos(azimuth)

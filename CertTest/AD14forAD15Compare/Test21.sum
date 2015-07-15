@@ -1,9 +1,9 @@
 
 FAST Summary File
 
-Predictions were generated on 10-Jul-2015 at 10:52:45 using FAST (v8.12.00a-bjj, 15-Jun-2015), compiled as a 32-bit application using single precision
+Predictions were generated on 14-Jul-2015 at 15:18:30 using FAST (v8.12.00a-bjj, 14-Jul-2015), compiled as a 32-bit application using single precision
   compiled with
-    NWTC Subroutine Library (v2.06.02a-bjj, 8-Jul-2015)
+    NWTC Subroutine Library (v2.06.02a-bjj, 14-Jul-2015)
     ElastoDyn (v1.03.00a-bjj, 9-Jul-2015)
     BeamDyn (unknown version, unknown date) [not called]
     InflowWind (v3.00.01a-adp, 27-Apr-2015)
@@ -39,7 +39,7 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, HydroDyn,
   ServoDyn            1.000E-02              1
   HydroDyn            1.000E-02              1
   SubDyn              1.000E-02              1
-  FAST output files   5.000E-02              5^-1
+  FAST output files   1.000E-02              1
 
 
    Requested Channels in FAST Output File(s)  

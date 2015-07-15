@@ -78,6 +78,8 @@ IMPLICIT NONE
     REAL(ReKi)  :: conFX      !  [-]
     REAL(ReKi)  :: conFY      !  [-]
     REAL(ReKi)  :: conFZ      !  [-]
+    REAL(ReKi)  :: conCa      ! added mass coefficient of connection point [-]
+    REAL(ReKi)  :: conCdA      ! product of drag force and frontal area of connection point [[m^2]]
     REAL(ReKi) , DIMENSION(1:3)  :: Ftot      ! total force on node [-]
     REAL(ReKi) , DIMENSION(1:3,1:3)  :: Mtot      ! node mass matrix, from attached lines [-]
     REAL(ReKi) , DIMENSION(1:3,1:3)  :: S      ! inverse mass matrix [[kg]]
@@ -89,12 +91,13 @@ IMPLICIT NONE
   TYPE, PUBLIC :: MD_Line
     INTEGER(IntKi)  :: IdNum      ! integer identifier of this Line [-]
     CHARACTER(10)  :: type      ! type of line.  should match one of LineProp names [-]
-    CHARACTER(20)  :: OutFlags      ! string specifying output options and other flags [-]
+    INTEGER(IntKi) , DIMENSION(1:20)  :: OutFlagList      ! array specifying what line quantities should be output (1 vs 0) [-]
     INTEGER(IntKi)  :: FairConnect      ! IdNum of Connection at fairlead [-]
     INTEGER(IntKi)  :: AnchConnect      ! IdNum of Connection at anchor [-]
     INTEGER(IntKi)  :: PropsIdNum      ! the IdNum of the associated line properties [-]
     INTEGER(IntKi)  :: N      ! The number of elements in the line [-]
     REAL(ReKi)  :: UnstrLen      ! unstretched length of the line [-]
+    REAL(ReKi)  :: BA      ! internal damping coefficient times area for this line only [[N-s]]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: r      ! node positions [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rd      ! node velocities [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: q      ! node tangent vectors [-]
@@ -712,6 +715,8 @@ ENDIF
     DstConnectData%conFX = SrcConnectData%conFX
     DstConnectData%conFY = SrcConnectData%conFY
     DstConnectData%conFZ = SrcConnectData%conFZ
+    DstConnectData%conCa = SrcConnectData%conCa
+    DstConnectData%conCdA = SrcConnectData%conCdA
     DstConnectData%Ftot = SrcConnectData%Ftot
     DstConnectData%Mtot = SrcConnectData%Mtot
     DstConnectData%S = SrcConnectData%S
@@ -792,6 +797,8 @@ ENDIF
       Re_BufSz   = Re_BufSz   + 1  ! conFX
       Re_BufSz   = Re_BufSz   + 1  ! conFY
       Re_BufSz   = Re_BufSz   + 1  ! conFZ
+      Re_BufSz   = Re_BufSz   + 1  ! conCa
+      Re_BufSz   = Re_BufSz   + 1  ! conCdA
       Re_BufSz   = Re_BufSz   + SIZE(InData%Ftot)  ! Ftot
       Re_BufSz   = Re_BufSz   + SIZE(InData%Mtot)  ! Mtot
       Re_BufSz   = Re_BufSz   + SIZE(InData%S)  ! S
@@ -873,6 +880,10 @@ ENDIF
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%conFY
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%conFZ
+      Re_Xferred   = Re_Xferred   + 1
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%conCa
+      Re_Xferred   = Re_Xferred   + 1
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%conCdA
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Ftot))-1 ) = PACK(InData%Ftot,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%Ftot)
@@ -990,6 +1001,10 @@ ENDIF
       Re_Xferred   = Re_Xferred + 1
       OutData%conFZ = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
+      OutData%conCa = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+      OutData%conCdA = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
     i1_l = LBOUND(OutData%Ftot,1)
     i1_u = UBOUND(OutData%Ftot,1)
     ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
@@ -1070,12 +1085,13 @@ ENDIF
    ErrMsg  = ""
     DstLineData%IdNum = SrcLineData%IdNum
     DstLineData%type = SrcLineData%type
-    DstLineData%OutFlags = SrcLineData%OutFlags
+    DstLineData%OutFlagList = SrcLineData%OutFlagList
     DstLineData%FairConnect = SrcLineData%FairConnect
     DstLineData%AnchConnect = SrcLineData%AnchConnect
     DstLineData%PropsIdNum = SrcLineData%PropsIdNum
     DstLineData%N = SrcLineData%N
     DstLineData%UnstrLen = SrcLineData%UnstrLen
+    DstLineData%BA = SrcLineData%BA
 IF (ALLOCATED(SrcLineData%r)) THEN
   i1_l = LBOUND(SrcLineData%r,1)
   i1_u = UBOUND(SrcLineData%r,1)
@@ -1444,12 +1460,13 @@ ENDIF
   Int_BufSz  = 0
       Int_BufSz  = Int_BufSz  + 1  ! IdNum
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%type)  ! type
-      Int_BufSz  = Int_BufSz  + 1*LEN(InData%OutFlags)  ! OutFlags
+      Int_BufSz  = Int_BufSz  + SIZE(InData%OutFlagList)  ! OutFlagList
       Int_BufSz  = Int_BufSz  + 1  ! FairConnect
       Int_BufSz  = Int_BufSz  + 1  ! AnchConnect
       Int_BufSz  = Int_BufSz  + 1  ! PropsIdNum
       Int_BufSz  = Int_BufSz  + 1  ! N
       Re_BufSz   = Re_BufSz   + 1  ! UnstrLen
+      Re_BufSz   = Re_BufSz   + 1  ! BA
   Int_BufSz   = Int_BufSz   + 1     ! r allocated yes/no
   IF ( ALLOCATED(InData%r) ) THEN
     Int_BufSz   = Int_BufSz   + 2*2  ! r upper/lower bounds for each dimension
@@ -1579,10 +1596,8 @@ ENDIF
           IntKiBuf(Int_Xferred) = ICHAR(InData%type(I:I), IntKi)
           Int_Xferred = Int_Xferred   + 1
         END DO ! I
-        DO I = 1, LEN(InData%OutFlags)
-          IntKiBuf(Int_Xferred) = ICHAR(InData%OutFlags(I:I), IntKi)
-          Int_Xferred = Int_Xferred   + 1
-        END DO ! I
+      IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%OutFlagList))-1 ) = PACK(InData%OutFlagList,.TRUE.)
+      Int_Xferred   = Int_Xferred   + SIZE(InData%OutFlagList)
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%FairConnect
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%AnchConnect
@@ -1592,6 +1607,8 @@ ENDIF
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%N
       Int_Xferred   = Int_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%UnstrLen
+      Re_Xferred   = Re_Xferred   + 1
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%BA
       Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%r) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -1933,10 +1950,17 @@ ENDIF
         OutData%type(I:I) = CHAR(IntKiBuf(Int_Xferred))
         Int_Xferred = Int_Xferred   + 1
       END DO ! I
-      DO I = 1, LEN(OutData%OutFlags)
-        OutData%OutFlags(I:I) = CHAR(IntKiBuf(Int_Xferred))
-        Int_Xferred = Int_Xferred   + 1
-      END DO ! I
+    i1_l = LBOUND(OutData%OutFlagList,1)
+    i1_u = UBOUND(OutData%OutFlagList,1)
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      OutData%OutFlagList = UNPACK( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%OutFlagList))-1 ), mask1, 0_IntKi )
+      Int_Xferred   = Int_Xferred   + SIZE(OutData%OutFlagList)
+    DEALLOCATE(mask1)
       OutData%FairConnect = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%AnchConnect = IntKiBuf( Int_Xferred ) 
@@ -1946,6 +1970,8 @@ ENDIF
       OutData%N = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%UnstrLen = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+      OutData%BA = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! r not allocated
     Int_Xferred = Int_Xferred + 1

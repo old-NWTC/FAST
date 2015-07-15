@@ -1,9 +1,9 @@
 
 FAST Summary File
 
-Predictions were generated on 10-Jul-2015 at 11:03:45 using FAST (v8.12.00a-bjj, 15-Jun-2015), compiled as a 32-bit application using single precision
+Predictions were generated on 14-Jul-2015 at 15:29:37 using FAST (v8.12.00a-bjj, 14-Jul-2015), compiled as a 32-bit application using single precision
   compiled with
-    NWTC Subroutine Library (v2.06.02a-bjj, 8-Jul-2015)
+    NWTC Subroutine Library (v2.06.02a-bjj, 14-Jul-2015)
     ElastoDyn (v1.03.00a-bjj, 9-Jul-2015)
     BeamDyn (unknown version, unknown date) [not called]
     InflowWind (v3.00.01a-adp, 27-Apr-2015)
@@ -12,7 +12,7 @@ Predictions were generated on 10-Jul-2015 at 11:03:45 using FAST (v8.12.00a-bjj,
     ServoDyn (v1.02.02a-bjj, 11-May-2015)
     HydroDyn (v2.02.02a-gjh, 25-Mar-2015)
     SubDyn (unknown version, unknown date) [not called]
-    MAP++ (<1.10.0rc>, <Jun-17-2015>)
+    MAP++ (<1.10.0rc>, <Jul-13-2015>)
     FEAMooring (unknown version, unknown date) [not called]
     MoorDyn (unknown version, unknown date) [not called]
     IceFloe (unknown version, unknown date) [not called]

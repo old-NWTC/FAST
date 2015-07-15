@@ -391,12 +391,12 @@ CONTAINS
       INTEGER,      INTENT(IN)                  :: NumY                ! The length of the Y array.
       INTEGER,      INTENT(IN)                  :: SCsize              ! The length of the SplCoef array.
                                                 
-      REAL(SiKi),   INTENT(IN)                  :: Elev   (ElSize)     ! The "elevations" for the x and y coordinates for which spline coefficients will be computed.
-      REAL(SiKi),   INTENT(OUT)                 :: SplCoef(SCsize)     ! The resulting spline coefficients.
-      REAL(SiKi),   INTENT(IN)                  :: X      (NumX)       ! X coordinates for the Elev array.
-      REAL(SiKi),   INTENT(IN)                  :: Y      (NumY)       ! Y coordinates for the Elev array.
-      REAL(SiKi),   INTENT(OUT), ALLOCATABLE    :: Xknots (:)          ! The computed knots in the X direction.
-      REAL(SiKi),   INTENT(OUT), ALLOCATABLE    :: Yknots (:)          ! The computed knots in the Y direction.
+      REAL(ReKi),   INTENT(IN)                  :: Elev   (ElSize)     ! The "elevations" for the x and y coordinates for which spline coefficients will be computed.
+      REAL(ReKi),   INTENT(OUT)                 :: SplCoef(SCsize)     ! The resulting spline coefficients.
+      REAL(ReKi),   INTENT(IN)                  :: X      (NumX)       ! X coordinates for the Elev array.
+      REAL(ReKi),   INTENT(IN)                  :: Y      (NumY)       ! Y coordinates for the Elev array.
+      REAL(ReKi),   INTENT(OUT), ALLOCATABLE    :: Xknots (:)          ! The computed knots in the X direction.
+      REAL(ReKi),   INTENT(OUT), ALLOCATABLE    :: Yknots (:)          ! The computed knots in the Y direction.
                                    
       INTEGER,      INTENT(OUT)                 :: ErrStat             ! The error status to be returned to the calling program.
       INTEGER,      INTENT(OUT)                 :: NumXknots           ! The number of knots in the X direction.
@@ -409,11 +409,11 @@ CONTAINS
 
 !NOTE:  For the surface elevation, regrid() needs a rank-1 array with the Y values varying most rapidly.  It would be best to make that for AoA and use X for Control, which there will most often be only one value.
 
-      REAL(SiKi)                              :: ResidSq                   ! The sum of squared residuals of the spline approximation
-      REAL(SiKi), ALLOCATABLE                 :: ReWorkAry  (:)            ! A working array of type REAL.
+      REAL(ReKi)                              :: ResidSq                   ! The sum of squared residuals of the spline approximation
+      REAL(ReKi), ALLOCATABLE                 :: ReWorkAry  (:)            ! A working array of type REAL.
 !MLB: Should SmthFact be a user-specified parameter?  It almost seems like it would be dependent on airfoils.  Andrew used 0.1 for lift and 0.2 for drag because of the relative sizes of the curves.
 !     We decided that for the first cut, force it to zero (no smoothing), but maybe eventually making it user-specified.
-      REAL(SiKi), PARAMETER                   :: SmthFact   = 0.0_SiKi     ! The non-negative smoothing factor.  Hard-coded to 0 for no smoothing.
+      REAL(ReKi), PARAMETER                   :: SmthFact   = 0.0_ReKi     ! The non-negative smoothing factor.  Hard-coded to 0 for no smoothing.
 
       INTEGER, PARAMETER                      :: CubicSpl   = 3            ! The degree of the cubic-spline polynomials.
       INTEGER(IntKi)                          :: ErrStatLcl                ! The local version of the error status.
@@ -433,10 +433,10 @@ CONTAINS
          ! Check to see if this program was compiled with non-standard REALs (not four bytes).
          ! We do this because the FitPack routines *may* require the word length of REALs and INTEGERs to be the same.
                                   
-      IF ( KIND( 1.0 ) /= SiKi )  THEN
-         CALL ExitThisRoutine( ErrID_SEVERE, ' The FitPack routines have not been tested with REALs that are not four bytes.' )
-         RETURN
-      END IF         
+      !IF ( KIND( 1.0 ) /= SiKi )  THEN
+      !   CALL ExitThisRoutine( ErrID_SEVERE, ' The FitPack routines have not been tested with REALs that are not four bytes.' )
+      !   RETURN
+      !END IF         
 
 
          ! Determine what degree of polynomial to use for each direction.

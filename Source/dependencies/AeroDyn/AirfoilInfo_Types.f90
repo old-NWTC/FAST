@@ -69,7 +69,7 @@ IMPLICIT NONE
 ! =======================
 ! =========  AFI_Table_Type  =======
   TYPE, PUBLIC :: AFI_Table_Type
-    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: Alpha      ! Angle-of-attack vector that matches the Coefs matrix [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Alpha      ! Angle-of-attack vector that matches the Coefs matrix [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Coefs      ! Airfoil coefficients for Cd, Cl,  and maybe Cm and/or Cpmin [-]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: SplineCoefs      ! Spline coefficients for Cd, Cl,  and maybe Cm and/or Cpmin [-]
     REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: BEMT_Spline      ! Spline coefficients for Cd, Cl for the two bounding Re when doing BEM [-]
@@ -84,20 +84,20 @@ IMPLICIT NONE
 ! =========  AFInfoType  =======
   TYPE, PUBLIC :: AFInfoType
     REAL(ReKi)  :: NonDimArea      ! The non-dimensional area of the airfoil (area/chord^2) [-]
-    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: CdAoAknots      ! Spline knots for the angle of attack for Cd [-]
-    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: CdReKnots      ! Spline knots for the Re for Cd [-]
-    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: ClAoAknots      ! Spline knots for the angle of attack for Cl [-]
-    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: ClReKnots      ! Spline knots for the Re for Cl [-]
-    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: CmAoAknots      ! Spline knots for the angle of attack for Cm [-]
-    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: CmReKnots      ! Spline knots for the Re for Cm [-]
-    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: CpminAoAknots      ! Spline knots for the angle of attack for Cpmin [-]
-    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: CpminReKnots      ! Spline knots for the Re for Cpmin [-]
-    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: LogRe      ! An array storing the LN(Re) for all the tables in a file [-]
-    REAL(SiKi) , DIMENSION(:,:), ALLOCATABLE  :: ReKnots      ! Spline knots for the logs of the Reynolds numbers [-]
-    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: CdSpCoef2D      ! The spline coefficients for bicubic-spline interpolation of Cd data [-]
-    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: ClSpCoef2D      ! The spline coefficients for bicubic-spline interpolation of Cl data [-]
-    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: CmSpCoef2D      ! The spline coefficients for bicubic-spline interpolation of Cm data [-]
-    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: CpminSpCoef2D      ! The spline coefficients for bicubic-spline interpolation of Cpmin data [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CdAoAknots      ! Spline knots for the angle of attack for Cd [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CdReKnots      ! Spline knots for the Re for Cd [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: ClAoAknots      ! Spline knots for the angle of attack for Cl [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: ClReKnots      ! Spline knots for the Re for Cl [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CmAoAknots      ! Spline knots for the angle of attack for Cm [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CmReKnots      ! Spline knots for the Re for Cm [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CpminAoAknots      ! Spline knots for the angle of attack for Cpmin [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CpminReKnots      ! Spline knots for the Re for Cpmin [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LogRe      ! An array storing the LN(Re) for all the tables in a file [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: ReKnots      ! Spline knots for the logs of the Reynolds numbers [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CdSpCoef2D      ! The spline coefficients for bicubic-spline interpolation of Cd data [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: ClSpCoef2D      ! The spline coefficients for bicubic-spline interpolation of Cl data [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CmSpCoef2D      ! The spline coefficients for bicubic-spline interpolation of Cm data [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CpminSpCoef2D      ! The spline coefficients for bicubic-spline interpolation of Cpmin data [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: X_Coord      ! X-coordinate for the airfoil shape [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Y_Coord      ! Y-coordinate for the airfoil shape [-]
     INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: MaxAoAknots      ! The maximum number of angle-of-attack knots for 2D splines; essentially the dimension of the array [-]
@@ -851,7 +851,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%Alpha)>0) OutData%Alpha = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Alpha))-1 ), mask1, 0.0_ReKi ), SiKi)
+      IF (SIZE(OutData%Alpha)>0) OutData%Alpha = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Alpha))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%Alpha)
     DEALLOCATE(mask1)
   END IF
@@ -1872,7 +1872,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%CdAoAknots)>0) OutData%CdAoAknots = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CdAoAknots))-1 ), mask1, 0.0_ReKi ), SiKi)
+      IF (SIZE(OutData%CdAoAknots)>0) OutData%CdAoAknots = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CdAoAknots))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%CdAoAknots)
     DEALLOCATE(mask1)
   END IF
@@ -1895,7 +1895,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%CdReKnots)>0) OutData%CdReKnots = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CdReKnots))-1 ), mask1, 0.0_ReKi ), SiKi)
+      IF (SIZE(OutData%CdReKnots)>0) OutData%CdReKnots = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CdReKnots))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%CdReKnots)
     DEALLOCATE(mask1)
   END IF
@@ -1918,7 +1918,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%ClAoAknots)>0) OutData%ClAoAknots = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ClAoAknots))-1 ), mask1, 0.0_ReKi ), SiKi)
+      IF (SIZE(OutData%ClAoAknots)>0) OutData%ClAoAknots = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ClAoAknots))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%ClAoAknots)
     DEALLOCATE(mask1)
   END IF
@@ -1941,7 +1941,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%ClReKnots)>0) OutData%ClReKnots = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ClReKnots))-1 ), mask1, 0.0_ReKi ), SiKi)
+      IF (SIZE(OutData%ClReKnots)>0) OutData%ClReKnots = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ClReKnots))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%ClReKnots)
     DEALLOCATE(mask1)
   END IF
@@ -1964,7 +1964,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%CmAoAknots)>0) OutData%CmAoAknots = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CmAoAknots))-1 ), mask1, 0.0_ReKi ), SiKi)
+      IF (SIZE(OutData%CmAoAknots)>0) OutData%CmAoAknots = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CmAoAknots))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%CmAoAknots)
     DEALLOCATE(mask1)
   END IF
@@ -1987,7 +1987,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%CmReKnots)>0) OutData%CmReKnots = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CmReKnots))-1 ), mask1, 0.0_ReKi ), SiKi)
+      IF (SIZE(OutData%CmReKnots)>0) OutData%CmReKnots = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CmReKnots))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%CmReKnots)
     DEALLOCATE(mask1)
   END IF
@@ -2010,7 +2010,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%CpminAoAknots)>0) OutData%CpminAoAknots = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CpminAoAknots))-1 ), mask1, 0.0_ReKi ), SiKi)
+      IF (SIZE(OutData%CpminAoAknots)>0) OutData%CpminAoAknots = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CpminAoAknots))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%CpminAoAknots)
     DEALLOCATE(mask1)
   END IF
@@ -2033,7 +2033,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%CpminReKnots)>0) OutData%CpminReKnots = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CpminReKnots))-1 ), mask1, 0.0_ReKi ), SiKi)
+      IF (SIZE(OutData%CpminReKnots)>0) OutData%CpminReKnots = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CpminReKnots))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%CpminReKnots)
     DEALLOCATE(mask1)
   END IF
@@ -2056,7 +2056,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%LogRe)>0) OutData%LogRe = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LogRe))-1 ), mask1, 0.0_ReKi ), SiKi)
+      IF (SIZE(OutData%LogRe)>0) OutData%LogRe = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LogRe))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%LogRe)
     DEALLOCATE(mask1)
   END IF
@@ -2082,7 +2082,7 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-      IF (SIZE(OutData%ReKnots)>0) OutData%ReKnots = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ReKnots))-1 ), mask2, 0.0_ReKi ), SiKi)
+      IF (SIZE(OutData%ReKnots)>0) OutData%ReKnots = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ReKnots))-1 ), mask2, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%ReKnots)
     DEALLOCATE(mask2)
   END IF
@@ -2105,7 +2105,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%CdSpCoef2D)>0) OutData%CdSpCoef2D = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CdSpCoef2D))-1 ), mask1, 0.0_ReKi ), SiKi)
+      IF (SIZE(OutData%CdSpCoef2D)>0) OutData%CdSpCoef2D = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CdSpCoef2D))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%CdSpCoef2D)
     DEALLOCATE(mask1)
   END IF
@@ -2128,7 +2128,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%ClSpCoef2D)>0) OutData%ClSpCoef2D = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ClSpCoef2D))-1 ), mask1, 0.0_ReKi ), SiKi)
+      IF (SIZE(OutData%ClSpCoef2D)>0) OutData%ClSpCoef2D = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ClSpCoef2D))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%ClSpCoef2D)
     DEALLOCATE(mask1)
   END IF
@@ -2151,7 +2151,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%CmSpCoef2D)>0) OutData%CmSpCoef2D = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CmSpCoef2D))-1 ), mask1, 0.0_ReKi ), SiKi)
+      IF (SIZE(OutData%CmSpCoef2D)>0) OutData%CmSpCoef2D = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CmSpCoef2D))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%CmSpCoef2D)
     DEALLOCATE(mask1)
   END IF
@@ -2174,7 +2174,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%CpminSpCoef2D)>0) OutData%CpminSpCoef2D = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CpminSpCoef2D))-1 ), mask1, 0.0_ReKi ), SiKi)
+      IF (SIZE(OutData%CpminSpCoef2D)>0) OutData%CpminSpCoef2D = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CpminSpCoef2D))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%CpminSpCoef2D)
     DEALLOCATE(mask1)
   END IF

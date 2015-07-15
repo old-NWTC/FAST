@@ -180,6 +180,7 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
    TYPE(SrvD_InputFile)                           :: InputFileData  ! Data stored in the module's input file
    TYPE(TMD_InitInputType)                        :: TMD_InitInp    ! data to initialize TMD module
    TYPE(TMD_InitOutputType)                       :: TMD_InitOut    ! data from TMD module initialization (not used)
+   INTEGER(IntKi)                                 :: i              ! loop counter
    INTEGER(IntKi)                                 :: ErrStat2       ! temporary Error status of the operation
    CHARACTER(ErrMsgLen)                           :: ErrMsg2        ! temporary Error message if ErrStat /= ErrID_None
    
@@ -359,8 +360,12 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
    
-   InitOut%WriteOutputHdr = p%OutParam(1:p%NumOuts)%Name
-   InitOut%WriteOutputUnt = p%OutParam(1:p%NumOuts)%Units     
+   do i=1,p%NumOuts
+      InitOut%WriteOutputHdr(i) = p%OutParam(i)%Name
+      InitOut%WriteOutputUnt(i) = p%OutParam(i)%Units
+   end do
+   
+   
    InitOut%Ver = SrvD_Ver
                
    InitOut%UseHSSBrake = p%HSSBrMode /= ControlMode_None .AND. p%THSSBrDp < InitInp%TMax
