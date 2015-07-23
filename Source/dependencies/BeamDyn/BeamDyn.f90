@@ -152,6 +152,8 @@ SUBROUTINE BD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    p%gravity(2) = temp_POS(1)
    p%gravity(3) = temp_POS(2)
 
+!WRITE(*,*) 'p%gravity'
+!WRITE(*,*) p%gravity
    ! Analysis type: 1 Static 2 Dynamic
    p%analysis_type  = InputFileData%analysis_type
    ! Numerical damping coefficient: [0,1].
@@ -1144,8 +1146,6 @@ SUBROUTINE BD_GenerateGLL(N, x, w, ErrStat, ErrMsg)
    x(1) = -1.0D+00
    x(N1) = 1.0D+00
 
-   pi = ACOS(-1.0D+00)  ! perhaps use NWTC library value, but does not matter here; just used to guess at solution
-
    DO i = 1, N1
       x_it = -COS(pi * FLOAT(i-1) / N) ! initial guess - chebyshev points
       DO j = 1, maxit
@@ -1577,8 +1577,8 @@ SUBROUTINE BD_ElementMatrixGA2(Nuu0,Nuuu,Nrr0,Nrrr,Nvvv,Naaa,           &
 !WRITE(*,*) Fc
 !WRITE(*,*) 'Fd'
 !WRITE(*,*) Fd
-!WRITE(*,*) 'Fi'
-!WRITE(*,*) Fi
+!WRITE(*,*) 'Fg'
+!WRITE(*,*) Fg
 
        DO i=1,node_elem
            DO j=1,node_elem
@@ -4115,6 +4115,7 @@ SUBROUTINE BD_Static(t,n,u,utimes,p,x,xd,z,OtherState,ErrStat,ErrMsg)
                                   p%node_elem,p%dof_node,p%elem_total,&
                                   p%dof_total,p%node_total,p%ngp,p%niter,p%tol,piter, ErrStat2, ErrMsg2)
                call SetErrStat(ErrStat2,ErrMsg2,ErrStat, ErrMsg, RoutineName)
+!WRITE(*,*) 'piter',piter
            IF(p%niter .EQ. piter) EXIT
        ENDDO
        IF(piter .LT. p%niter) THEN
@@ -4635,11 +4636,6 @@ SUBROUTINE BD_StaticSolutionForce(uuN0,uuN,vvN,Stif0,Mass0,gravity,u,&
                                       Force,ErrStat2,ErrMsg2)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    IF(ErrStat >= AbortErrLev) RETURN
-   DO j=1,node_total
-       temp_id = (j-1)*dof_node
-       Force(temp_id+1:temp_id+3) = u%PointLoad%Force(1:3,j)
-       Force(temp_id+4:temp_id+6) = u%PointLoad%Moment(1:3,j)
-   ENDDO
 
 END SUBROUTINE BD_StaticSolutionForce
 
@@ -4723,6 +4719,7 @@ SUBROUTINE BD_GenerateStaticElementForce(uuN0,uuN,vvN,Stif0,Mass0,gravity,u,&
    EStif0_GL(:,:,:)  = 0.0D0
    EMass0_GL(:,:,:)  = 0.0D0
    DistrLoad_GL(:,:) = 0.0D0
+
 
    DO nelem=1,elem_total
        Nuu0(:) = uuN0(:,nelem)
@@ -5336,8 +5333,6 @@ SUBROUTINE BD_DynamicSolutionGA2( uuN0,uuNf,vvNf,aaNf,xxNf,               &
        ENDDO
 !WRITE(*,*) 'inc'
 !WRITE(*,*) ai
-       CALL BD_UpdateDynamicGA2(ai,uuNf,vvNf,aaNf,xxNf,coef,node_total,dof_node,ErrStat2,ErrMsg2)
-          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
           
           
        Enorm = SQRT(abs(DOT_PRODUCT(RHS_LU,RHS(7:dof_total))))
@@ -5358,6 +5353,9 @@ SUBROUTINE BD_DynamicSolutionGA2( uuN0,uuNf,vvNf,aaNf,xxNf,               &
                RETURN
            ENDIF
        ENDIF
+
+       CALL BD_UpdateDynamicGA2(ai,uuNf,vvNf,aaNf,xxNf,coef,node_total,dof_node,ErrStat2,ErrMsg2)
+          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
    ENDDO
    
@@ -5739,8 +5737,12 @@ SUBROUTINE BD_CalcIC( u, p, x, OtherState, ErrStat, ErrMsg)
        DO j=k,p%node_elem
            temp_id = (j-1)*p%dof_node
            temp3(:) = p%GlbPos(:) + MATMUL(p%GlbRot,p%uuN0(temp_id+1:temp_id+3,i))
-           temp3(:) = MATMUL(p%GlbRot,u%RootMotion%TranslationVel(:,1)) + &
-                        MATMUL(BD_Tilde(MATMUL(p%GlbRot,u%RootMotion%RotationVel(:,1))),temp3)
+           IF(i .EQ. 1 .AND. j .EQ. 1) THEN
+               temp3(:) = MATMUL(BD_Tilde(MATMUL(p%GlbRot,u%RootMotion%RotationVel(:,1))),temp3)
+           ELSE
+               temp3(:) = MATMUL(p%GlbRot,u%RootMotion%TranslationVel(:,1)) + &
+                            MATMUL(BD_Tilde(MATMUL(p%GlbRot,u%RootMotion%RotationVel(:,1))),temp3)
+           ENDIF
            temp_id = ((i-1)*(p%node_elem-1)+j-1)*p%dof_node
            x%dqdt(temp_id+1:temp_id+3) = MATMUL(TRANSPOSE(p%GlbRot),temp3(:))
            x%dqdt(temp_id+4:temp_id+6) = u%RootMotion%RotationVel(1:3,1)

@@ -40,6 +40,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(1:3)  :: gravity      ! Gravitational acceleration [m/s^2]
     REAL(ReKi) , DIMENSION(1:3)  :: GlbPos      ! Initial Position Vector of the local blade coordinate system [-]
     REAL(ReKi) , DIMENSION(1:3,1:3)  :: GlbRot      ! Initial direction cosine matrix of the loacl blade coordinate system [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: GlbPosHub      ! Initial Position Vector of the hub (center of rotation) [-]
     REAL(ReKi) , DIMENSION(1:3)  :: RootDisp      ! Initial root displacement [-]
     REAL(ReKi) , DIMENSION(1:3,1:3)  :: RootOri      ! Initial root orientation [-]
     REAL(ReKi) , DIMENSION(1:6)  :: RootVel      ! Initial root velocities and angular veolcities [-]
@@ -168,6 +169,7 @@ CONTAINS
     DstInitInputData%gravity = SrcInitInputData%gravity
     DstInitInputData%GlbPos = SrcInitInputData%GlbPos
     DstInitInputData%GlbRot = SrcInitInputData%GlbRot
+    DstInitInputData%GlbPosHub = SrcInitInputData%GlbPosHub
     DstInitInputData%RootDisp = SrcInitInputData%RootDisp
     DstInitInputData%RootOri = SrcInitInputData%RootOri
     DstInitInputData%RootVel = SrcInitInputData%RootVel
@@ -224,6 +226,7 @@ CONTAINS
       Re_BufSz   = Re_BufSz   + SIZE(InData%gravity)  ! gravity
       Re_BufSz   = Re_BufSz   + SIZE(InData%GlbPos)  ! GlbPos
       Re_BufSz   = Re_BufSz   + SIZE(InData%GlbRot)  ! GlbRot
+      Re_BufSz   = Re_BufSz   + SIZE(InData%GlbPosHub)  ! GlbPosHub
       Re_BufSz   = Re_BufSz   + SIZE(InData%RootDisp)  ! RootDisp
       Re_BufSz   = Re_BufSz   + SIZE(InData%RootOri)  ! RootOri
       Re_BufSz   = Re_BufSz   + SIZE(InData%RootVel)  ! RootVel
@@ -268,6 +271,8 @@ CONTAINS
       Re_Xferred   = Re_Xferred   + SIZE(InData%GlbPos)
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%GlbRot))-1 ) = PACK(InData%GlbRot,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%GlbRot)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%GlbPosHub))-1 ) = PACK(InData%GlbPosHub,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%GlbPosHub)
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%RootDisp))-1 ) = PACK(InData%RootDisp,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%RootDisp)
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%RootOri))-1 ) = PACK(InData%RootOri,.TRUE.)
@@ -354,6 +359,17 @@ CONTAINS
       OutData%GlbRot = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%GlbRot))-1 ), mask2, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%GlbRot)
     DEALLOCATE(mask2)
+    i1_l = LBOUND(OutData%GlbPosHub,1)
+    i1_u = UBOUND(OutData%GlbPosHub,1)
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      OutData%GlbPosHub = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%GlbPosHub))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%GlbPosHub)
+    DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%RootDisp,1)
     i1_u = UBOUND(OutData%RootDisp,1)
     ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
