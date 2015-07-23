@@ -19,7 +19,7 @@ True          HubLoss            - Use the Prandtl hub-loss model? (flag) [used 
 true          TanInd             - Include tangential induction in BEMT calculations? (flag) [used only when WakeMod=1]
 False         AIDrag             - Include the drag term in the axial-induction calculation? (flag) [used only when WakeMod=1]
 False         TIDrag             - Include the drag term in the tangential-induction calculation? (flag) [used only when WakeMod=1 and TanInd=TRUE]
-      0.005   IndToler           - Convergence tolerance for BEM induction factors (-) [used only when WakeMod=1]
+     0.0001   IndToler           - Convergence tolerance for BEM induction factors (radians) [used only when WakeMod=1]
         100   MaxIter            - Maximum number of iteration steps (-) [used only when WakeMod=1]
 ======  Beddoes-Leishman Unsteady Airfoil Aerodynamics Options  ===================================== [used only when AFAeroMod=2]
           3   UAMod              - Unsteady Aero Model Switch (switch) {1=Baseline model (Original), 2=Gonzalez’s variant (changes in Cn,Cc,Cm), 3=Minemma/Pierce variant (changes in Cc and Cm)} [used only when AFAeroMod=2]
@@ -53,7 +53,7 @@ False         SumPrint            - Generate a summary file listing input option
           0   NTwOuts             - Number of tower node outputs [0 - 9]  (-)
  1, 2, 3, 4, 5     TwOutNd             - Tower nodes whose values will be output  (-)
                    OutList             - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
-"RtSpeed, RtSkew, B1Azimuth"                   
+"RtSpeed, RtSkew, B1Azimuth"
 "B1N1Theta, B1N2Theta, B1N3Theta"
 "B1N1VDisx, B1N1VDisy, B1N1VDisz"   ! disturbed wind velocity at Blade 1, Node 1
 "B1N2VDisx, B1N2VDisy, B1N2VDisz"   ! disturbed wind velocity at Blade 1, Node 2
