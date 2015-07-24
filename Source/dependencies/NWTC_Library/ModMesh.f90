@@ -2291,26 +2291,35 @@ CONTAINS
 
       IF ( ALLOCATED(u1%Orientation) ) THEN
                   
-         DO node=1,u_out%Nnodes
+         if ( EqualRealNos(t_out, t(1)) ) then
+            u_out%Orientation = u1%Orientation
+         elseif ( EqualRealNos(t_out, t(2)) ) then
+            u_out%Orientation = u2%Orientation
+         else
+                                 
+            DO node=1,u_out%Nnodes
             
-            CALL DCM_logmap ( u1%Orientation(:,:,node), tensor(:,1), ErrStat, ErrMsg )
-               IF (ErrStat >= AbortErrLev ) THEN 
-                  ErrMsg = 'MeshExtrapInterp1:'//TRIM(ErrMsg)
-                  RETURN
-               END IF
-            CALL DCM_logmap ( u2%Orientation(:,:,node), tensor(:,2), ErrStat, ErrMsg )
-               IF (ErrStat >= AbortErrLev ) THEN 
-                  ErrMsg = 'MeshExtrapInterp1:'//TRIM(ErrMsg)
-                  RETURN
-               END IF
+               CALL DCM_logmap ( u1%Orientation(:,:,node), tensor(:,1), ErrStat, ErrMsg )
+                  IF (ErrStat >= AbortErrLev ) THEN 
+                     ErrMsg = 'MeshExtrapInterp1:'//TRIM(ErrMsg)
+                     RETURN
+                  END IF
+               CALL DCM_logmap ( u2%Orientation(:,:,node), tensor(:,2), ErrStat, ErrMsg )
+                  IF (ErrStat >= AbortErrLev ) THEN 
+                     ErrMsg = 'MeshExtrapInterp1:'//TRIM(ErrMsg)
+                     RETURN
+                  END IF
                                     
-            CALL DCM_SetLogMapForInterp( tensor )            
+               CALL DCM_SetLogMapForInterp( tensor )            
                       
-            tensor_interp  = tensor(:,1) + (tensor(:,2) - tensor(:,1)) * scaleFactor            
+               tensor_interp  = tensor(:,1) + (tensor(:,2) - tensor(:,1)) * scaleFactor            
                                                 
-            u_out%Orientation(:,:,node) = DCM_exp( tensor_interp )                              
-         END DO                     
-         
+               u_out%Orientation(:,:,node) = DCM_exp( tensor_interp ) 
+               
+            END DO
+            
+         end if
+                  
       END IF
 
    END SUBROUTINE MeshExtrapInterp1
@@ -2440,38 +2449,40 @@ CONTAINS
 
       IF ( ALLOCATED(u1%Orientation) ) THEN
                      
-         DO node=1,u_out%Nnodes
-            CALL DCM_logmap ( u1%Orientation(:,:,node), tensor(:,1), ErrStat, ErrMsg )
-               IF (ErrStat >= AbortErrLev ) THEN 
-                  ErrMsg = 'MeshExtrapInterp2:'//TRIM(ErrMsg)
-                  RETURN
-               END IF
-            CALL DCM_logmap ( u2%Orientation(:,:,node), tensor(:,2), ErrStat, ErrMsg )
-               IF (ErrStat >= AbortErrLev ) THEN 
-                  ErrMsg = 'MeshExtrapInterp2:'//TRIM(ErrMsg)
-                  RETURN
-               END IF
-            CALL DCM_logmap ( u3%Orientation(:,:,node), tensor(:,3), ErrStat, ErrMsg )
-               IF (ErrStat >= AbortErrLev ) THEN 
-                  ErrMsg = 'MeshExtrapInterp2:'//TRIM(ErrMsg)
-                  RETURN
-               END IF
-! call WrReAryFileNR ( DEBUG_UNIT, (/ REAL(tin,ReKi), REAL(tin_out,ReKi) /), 'F15.5,1x', ErrStat, ErrMsg  )
-! call WrReAryFileNR ( DEBUG_UNIT, tensor(:,1), 'F15.5,1x', ErrStat, ErrMsg  )
-! call WrReAryFileNR ( DEBUG_UNIT, tensor(:,2), 'F15.5,1x', ErrStat, ErrMsg  )
-! call WrReAryFileNR ( DEBUG_UNIT, tensor(:,3), 'F15.5,1x', ErrStat, ErrMsg  )
-            
-!            CALL SetAnglesForInterp( tensor )
-            CALL DCM_SetLogMapForInterp( tensor )
+         if ( EqualRealNos(t_out, t(1)) ) then
+            u_out%Orientation = u1%Orientation
+         elseif ( EqualRealNos(t_out, t(2)) ) then
+            u_out%Orientation = u2%Orientation
+         elseif ( EqualRealNos(t_out, t(3)) ) then
+            u_out%Orientation = u3%Orientation
+         else                  
+            DO node=1,u_out%Nnodes
+               CALL DCM_logmap ( u1%Orientation(:,:,node), tensor(:,1), ErrStat, ErrMsg )
+                  IF (ErrStat >= AbortErrLev ) THEN 
+                     ErrMsg = 'MeshExtrapInterp2:'//TRIM(ErrMsg)
+                     RETURN
+                  END IF
+               CALL DCM_logmap ( u2%Orientation(:,:,node), tensor(:,2), ErrStat, ErrMsg )
+                  IF (ErrStat >= AbortErrLev ) THEN 
+                     ErrMsg = 'MeshExtrapInterp2:'//TRIM(ErrMsg)
+                     RETURN
+                  END IF
+               CALL DCM_logmap ( u3%Orientation(:,:,node), tensor(:,3), ErrStat, ErrMsg )
+                  IF (ErrStat >= AbortErrLev ) THEN 
+                     ErrMsg = 'MeshExtrapInterp2:'//TRIM(ErrMsg)
+                     RETURN
+                  END IF
+               
+               CALL DCM_SetLogMapForInterp( tensor )
                                               
-            tensor_interp =   tensor(:,1) &
-                              + ( t(3)**2 * (tensor(:,1) - tensor(:,2)) + t(2)**2*(-tensor(:,1) + tensor(:,3)) )*scaleFactor &
-                              + ( (t(2)-t(3))*tensor(:,1) + t(3)*tensor(:,2) - t(2)*tensor(:,3) )*scaleFactor * t_out
-            u_out%Orientation(:,:,node) = DCM_exp( tensor_interp )  
-! write(DEBUG_UNIT,'(50(F15.5,1x))') tensor_interp ,  tensor, tensor_interp, u3%Orientation(:,:,node),  u_out%Orientation(:,:,node) !bjj: adding the "small rot angles" columns so I don't have to redo Matlab debugging code         
+               tensor_interp =   tensor(:,1) &
+                                 + ( t(3)**2 * (tensor(:,1) - tensor(:,2)) + t(2)**2*(-tensor(:,1) + tensor(:,3)) )*scaleFactor &
+                                 + ( (t(2)-t(3))*tensor(:,1) + t(3)*tensor(:,2) - t(2)*tensor(:,3) )*scaleFactor * t_out
+               u_out%Orientation(:,:,node) = DCM_exp( tensor_interp )  
 
-         END DO
- 
+            END DO
+         end if
+         
                                                 
       END IF
 

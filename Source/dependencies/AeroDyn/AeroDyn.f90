@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-07-13 12:51:44 -0600 (Mon, 13 Jul 2015) $
-! (File) Revision #: $Rev: 136 $
+! File last committed: $Date: 2015-07-23 14:59:07 -0600 (Thu, 23 Jul 2015) $
+! (File) Revision #: $Rev: 142 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/AeroDyn/AeroDyn.f90 $
 !**********************************************************************************************************************************
 module AeroDyn
@@ -31,11 +31,12 @@ module AeroDyn
    use BladeElement, only : SkewMod_Uncoupled, SkewMod_PittPeters, SkewMod_Coupled
    use NWTC_LAPACK
    
+   
    implicit none
 
    private
          
-   
+
    ! ..... Public Subroutines ...................................................................................................
 
    public :: AD_Init                           ! Initialization routine
@@ -65,7 +66,11 @@ subroutine AD_SetInitOut(p, InitOut, errStat, errMsg)
    
    
    
-   integer(IntKi)                                :: i, j, k, n
+   integer(IntKi)                               :: i
+#ifdef DBG_OUTS
+   integer(IntKi)                               :: j, k, m
+   character(5)                                 ::chanPrefix
+#endif   
       ! Initialize variables for this routine
 
    errStat = ErrID_None
@@ -77,53 +82,77 @@ subroutine AD_SetInitOut(p, InitOut, errStat, errMsg)
    call AllocAry( InitOut%WriteOutputUnt, p%numOuts, 'WriteOutputUnt', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
 
+   
+#ifdef DBG_OUTS
+   ! Loop over blades and nodes to populate the output channel names and units
+   
+   do k=1,p%numBlades
+      do j=1, p%NumBlNds
+         
+         m = (k-1)*p%NumBlNds*23 + (j-1)*23 
+         
+         chanPrefix = "B"//trim(num2lstr(k))//"N"//trim(num2lstr(j))
+         InitOut%WriteOutputHdr( m + 1 ) = trim(chanPrefix)//"Theta"
+         InitOut%WriteOutputUnt( m + 1 ) = '  (deg)  '
+         InitOut%WriteOutputHdr( m + 2 ) = trim(chanPrefix)//"Psi"
+         InitOut%WriteOutputUnt( m + 2 ) = '  (deg)  '
+         InitOut%WriteOutputHdr( m + 3 ) = trim(chanPrefix)//"Vx"
+         InitOut%WriteOutputUnt( m + 3 ) = '  (m/s)  '
+         InitOut%WriteOutputHdr( m + 4 ) = trim(chanPrefix)//"Vy"
+         InitOut%WriteOutputUnt( m + 4 ) = '  (m/s)  '
+         InitOut%WriteOutputHdr( m + 5 ) = ' '//trim(chanPrefix)//"AxInd"
+         InitOut%WriteOutputUnt( m + 5 ) = '  (deg)  '
+         InitOut%WriteOutputHdr( m + 6 ) = ' '//trim(chanPrefix)//"TanInd"
+         InitOut%WriteOutputUnt( m + 6 ) = '  (deg)  '
+         InitOut%WriteOutputHdr( m + 7 ) = trim(chanPrefix)//"IndVel"
+         InitOut%WriteOutputUnt( m + 7 ) = '  (m/s)  '
+         InitOut%WriteOutputHdr( m + 8 ) = ' '//trim(chanPrefix)//"Phi"
+         InitOut%WriteOutputUnt( m + 8 ) = '  (deg)  '
+         InitOut%WriteOutputHdr( m + 9 ) = ' '//trim(chanPrefix)//"AOA"
+         InitOut%WriteOutputUnt( m + 9 ) = '  (deg)  '
+         InitOut%WriteOutputHdr( m + 10 ) = ' '//trim(chanPrefix)//"Cl"
+         InitOut%WriteOutputUnt( m + 10 ) = '   (-)   '
+         InitOut%WriteOutputHdr( m + 11 ) = ' '//trim(chanPrefix)//"Cd"
+         InitOut%WriteOutputUnt( m + 11 ) = '   (-)   '
+         InitOut%WriteOutputHdr( m + 12 ) = ' '//trim(chanPrefix)//"Cm"
+         InitOut%WriteOutputUnt( m + 12 ) = '   (-)   '
+         InitOut%WriteOutputHdr( m + 13 ) = ' '//trim(chanPrefix)//"Cx"
+         InitOut%WriteOutputUnt( m + 13 ) = '   (-)   '
+         InitOut%WriteOutputHdr( m + 14 ) = ' '//trim(chanPrefix)//"Cy"
+         InitOut%WriteOutputUnt( m + 14 ) = '   (-)   '
+         InitOut%WriteOutputHdr( m + 15 ) = ' '//trim(chanPrefix)//"Cn"
+         InitOut%WriteOutputUnt( m + 15 ) = '   (-)   '
+         InitOut%WriteOutputHdr( m + 16 ) = ' '//trim(chanPrefix)//"Ct"
+         InitOut%WriteOutputUnt( m + 16 ) = '   (-)   '
+         InitOut%WriteOutputHdr( m + 17 ) = ' '//trim(chanPrefix)//"Fl"
+         InitOut%WriteOutputUnt( m + 17 ) = '  (N/m)  '
+         InitOut%WriteOutputHdr( m + 18 ) = ' '//trim(chanPrefix)//"Fd"
+         InitOut%WriteOutputUnt( m + 18 ) = '  (N/m)  '
+         InitOut%WriteOutputHdr( m + 19 ) = ' '//trim(chanPrefix)//"M"
+         InitOut%WriteOutputUnt( m + 19 ) = ' (N/m^2) '
+         InitOut%WriteOutputHdr( m + 20 ) = ' '//trim(chanPrefix)//"Fx"
+         InitOut%WriteOutputUnt( m + 20 ) = '  (N/m)  '
+         InitOut%WriteOutputHdr( m + 21 ) = ' '//trim(chanPrefix)//"Fy"
+         InitOut%WriteOutputUnt( m + 21 ) = '  (N/m)  '
+         InitOut%WriteOutputHdr( m + 22 ) = ' '//trim(chanPrefix)//"Fn"
+         InitOut%WriteOutputUnt( m + 22 ) = '  (N/m)  '
+         InitOut%WriteOutputHdr( m + 23 ) = ' '//trim(chanPrefix)//"Ft"
+         InitOut%WriteOutputUnt( m + 23 ) = '  (N/m)  '
+         
+      end do
+   end do
+#else
    do i=1,p%NumOuts
       InitOut%WriteOutputHdr(i) = p%OutParam(i)%Name
       InitOut%WriteOutputUnt(i) = p%OutParam(i)%Units
    end do
+#endif
+  
         
       
    if (ErrStat >= AbortErrLev) return
    
-      ! Loop over blades and nodes to populate the output channel names and units
    
-   do k=1,p%numBlades
-      do j=1,1 ! p%NumBlNds
-         n = 9
-         
-         !chanPrefix = "B"//trim(num2lstr(k))//"N"//trim(num2lstr(n))
-         !InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 1 ) = trim(chanPrefix)//"Theta"
-         !InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 1 ) = '  (deg)  '
-         !InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 2 ) = trim(chanPrefix)//"Psi"
-         !InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 2 ) = '  (deg)  '
-         !InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 3 ) = trim(chanPrefix)//"Vx"
-         !InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 3 ) = '  (m/s)  '
-         !InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 4 ) = trim(chanPrefix)//"Vy"
-         !InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 4 ) = '  (m/s)  '
-         !InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 5 ) = ' '//trim(chanPrefix)//"AxInd"
-         !InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 5 ) = '  (deg)  '
-         !InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 6 ) = ' '//trim(chanPrefix)//"TanInd"
-         !InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 6 ) = '  (deg)  '
-         !InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 7 ) = trim(chanPrefix)//"IndVel"
-         !InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 7 ) = '  (m/s)  '
-         !InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 8 ) = ' '//trim(chanPrefix)//"Phi"
-         !InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 8 ) = '  (deg)  '
-         !InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 9 ) = ' '//trim(chanPrefix)//"AOA"
-         !InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 9 ) = '  (deg)  '
-         !InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 10 ) = ' '//trim(chanPrefix)//"Cl"
-         !InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 10 ) = '   (-)   '
-         !InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 11 ) = ' '//trim(chanPrefix)//"Cd"
-         !InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 11 ) = '   (-)   '
-         !InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 12 ) = ' '//trim(chanPrefix)//"Cx"
-         !InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 12 ) = '   (-)   '
-         !InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 13 ) = ' '//trim(chanPrefix)//"Cy"
-         !InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 13 ) = '   (-)   '
-         !InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 14 ) = ' '//trim(chanPrefix)//"Fx"
-         !InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 14 ) = '  (N/m)  '
-         !InitOut%WriteOutputHdr( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 15 ) = ' '//trim(chanPrefix)//"Fy"
-         !InitOut%WriteOutputUnt( (k-1)* 1 *AD_numChanPerNode + (j-1)*AD_numChanPerNode + 15 ) = '  (N/m)  '
-      end do
-   end do
    
    InitOut%Ver = AD_Ver
    
@@ -314,7 +343,11 @@ subroutine Init_OtherStates(OtherState, p, u, y, errStat, errMsg)
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
       
          ! arrays for output
+#ifdef DBG_OUTS
+   allocate( OtherState%AllOuts(0:p%NumOuts), STAT=ErrStat2 ) ! allocate starting at zero to account for invalid output channels
+#else
    allocate( OtherState%AllOuts(0:MaxOutPts), STAT=ErrStat2 ) ! allocate starting at zero to account for invalid output channels
+#endif
       if (ErrStat2 /= 0) then
          call SetErrStat( ErrID_Fatal, "Error allocating AllOuts.", errStat, errMsg, RoutineName )
          return
@@ -740,11 +773,17 @@ subroutine SetParameters( InitInp, InputFileData, p, ErrStat, ErrMsg )
   !p%AFI     ! set in call to AFI_Init() [called early because it wants to use the same echo file as AD]
   !p%BEMT    ! set in call to BEMT_Init()
       
-   p%numOuts          = InputFileData%NumOuts      
   !p%RootName       = TRIM(InitInp%RootName)//'.AD'   ! set earlier to it could be used   
    
-   p%NBlOuts = InputFileData%NBlOuts      
-   p%BlOutNd = InputFileData%BlOutNd
+#ifdef DBG_OUTS
+   p%NBlOuts          = 23  
+   p%numOuts          = p%NumBlNds*p%NumBlades*p%NBlOuts
+   p%NTwOuts          = 0
+      
+#else
+   p%numOuts          = InputFileData%NumOuts  
+   p%NBlOuts          = InputFileData%NBlOuts      
+   p%BlOutNd          = InputFileData%BlOutNd
    
    if (p%NumTwrNds > 0) then
       p%NTwOuts = InputFileData%NTwOuts
@@ -753,10 +792,12 @@ subroutine SetParameters( InitInp, InputFileData, p, ErrStat, ErrMsg )
       p%NTwOuts = 0
    end if
    
-   call SetOutParam(InputFileData%OutList, p, ErrStat2, ErrMsg2 ) ! requires: p%NumOuts, p%numBlades, p%NBlOuts, p%NTwOuts; sets: p%OutParam.
+   call SetOutParam(InputFileData%OutList, p, ErrStat2, ErrMsg2 ) ! requires: p%NumOuts, p%numBlades, p%NumBlNds, p%NumTwrNds; sets: p%OutParam.
       call setErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
       if (ErrStat >= AbortErrLev) return  
-         
+   
+#endif  
+   
 end subroutine SetParameters
 !----------------------------------------------------------------------------------------------------------------------------------
 subroutine AD_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
@@ -856,7 +897,6 @@ subroutine AD_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, errStat, e
    call AD_Input_ExtrapInterp(u,utimes,uInterp,t, errStat2, errMsg2)
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
 
-         
    call SetInputs(p, uInterp, OtherState, errStat2, errMsg2)      
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
          
@@ -930,16 +970,22 @@ subroutine AD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    !     get values to output to file:  
    !-------------------------------------------------------   
    if (p%NumOuts > 0) then
+#ifdef DBG_OUTS
+      call Calc_WriteDbgOutput( p, u, OtherState, y, ErrStat, ErrMsg ) 
+#else
       call Calc_WriteOutput( p, u, OtherState, y, ErrStat, ErrMsg )   
-   
+#endif   
    
       !...............................................................................................................................   
       ! Place the selected output channels into the WriteOutput(:) array with the proper sign:
       !...............................................................................................................................   
 
       do i = 1,p%NumOuts  ! Loop through all selected output channels
-
+#ifdef DBG_OUTS
+         y%WriteOutput(i) = OtherState%AllOuts( i )
+#else
          y%WriteOutput(i) = p%OutParam(i)%SignM * OtherState%AllOuts( p%OutParam(i)%Indx )
+#endif
 
       end do             ! i - All selected output channels
       
@@ -1095,7 +1141,11 @@ subroutine SetInputsForBEMT(p, u, OtherState, errStat, errMsg)
    if ( EqualRealNos( tmp_sz, 0.0_ReKi ) ) then
       OtherState%BEMT_u%chi0 = 0.0_ReKi
    else
-      OtherState%BEMT_u%chi0 = acos( OtherState%V_dot_x / tmp_sz)      
+         ! make sure we don't have numerical issues that make the ratio outside +/-1
+      tmp_sz_y = min(  1.0_ReKi, OtherState%V_dot_x / tmp_sz )
+      tmp_sz_y = max( -1.0_ReKi, tmp_sz_y )
+      
+      OtherState%BEMT_u%chi0 = acos( tmp_sz_y )      
    end if
    
       ! "Azimuth angle" rad
@@ -1117,15 +1167,17 @@ subroutine SetInputsForBEMT(p, u, OtherState, errStat, errMsg)
       
          ! construct system equivalent to u%BladeRootMotion(k)%Orientation, but without the blade-pitch angle:
       
-      ! orientation = matmul( u%BladeRootMotion(k)%Orientation, transpose(u%HubMotion%Orientation(:,:,1)) )
+      !orientation = matmul( u%BladeRootMotion(k)%Orientation(:,:,1), transpose(u%HubMotion%Orientation(:,:,1)) )
       call LAPACK_gemm( 'n', 't', 1.0_ReKi, u%BladeRootMotion(k)%Orientation(:,:,1), u%HubMotion%Orientation(:,:,1), 0.0_ReKi, orientation, errStat2, errMsg2)
          call SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
       theta = EulerExtract( orientation ) !hub_theta_root(k)
+#ifndef DBG_OUTS
       OtherState%AllOuts( BPitch(  k) ) = -theta(3)*R2D ! save this value of pitch for potential output
-      theta(3) = 0.0_ReKi         
-      orientation_nopitch = matmul( EulerConstruct( theta ), u%HubMotion%Orientation(:,:,1) ) ! withoutPitch_theta_Root(k)
-      
-      
+#endif
+      theta(3) = 0.0_ReKi  
+      orientation = EulerConstruct( theta )
+      orientation_nopitch = matmul( orientation, u%HubMotion%Orientation(:,:,1) ) ! withoutPitch_theta_Root(k)
+            
       do j=1,p%NumBlNds         
          
             ! form coordinate system equivalent to u%BladeMotion(k)%Orientation(:,:,j) but without live sweep (due to in-plane
@@ -1137,6 +1189,7 @@ subroutine SetInputsForBEMT(p, u, OtherState, errStat, errMsg)
          theta = EulerExtract( orientation ) !root(k)WithoutPitch_theta(j)_blade(k)
          
          OtherState%BEMT_u%theta(j,k) = -theta(3) ! local pitch + twist (aerodyanmic + elastic) angle of the jth node in the kth blade
+         
          
          theta(1) = 0.0_ReKi
          theta(3) = 0.0_ReKi
