@@ -98,7 +98,7 @@ ifeq ($(OS),Windows_NT)
 
 else
 
-   Registry     = $(FAST_DIR)/dependencies/Registry/registry.exe
+   Registry     = $(FAST_DIR)/dependencies/registry.exe
    MAP_lib      = $(MAP_DIR)/MAP.so
 
    UNAME := $(shell uname -s)
@@ -228,6 +228,7 @@ AD_SOURCES =                   \
 
 BD_SOURCES =                   \
 	BeamDyn_Types.f90           \
+	BeamDyn_IO.f90              \
 	BeamDyn.f90
 
 HD_SOURCES =                   \
@@ -517,8 +518,9 @@ AeroDyn$(OBJ_EXT):                NWTC_Library$(OBJ_EXT)  AeroDyn_IO$(OBJ_EXT)  
 
 
 #BeamDyn dependency rules:
-BeamDyn_Types.obj:                NWTC_Library.obj  $(BD_DIR)/BeamDyn_Types.f90
-BeamDyn.obj:                      BeamDyn_Types.obj
+BeamDyn_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  $(BD_DIR)/BeamDyn_Types.f90
+BeamDyn_IO$(OBJ_EXT):             BeamDyn_Types$(OBJ_EXT)
+BeamDyn$(OBJ_EXT):                BeamDyn_IO$(OBJ_EXT)
 
 
 #HydroDyn dependency rules:

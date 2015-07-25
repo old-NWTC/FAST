@@ -169,6 +169,7 @@
 		<Filter Name="BeamDyn">
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn_IO.f90"/>
 		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn.f90"/></Filter>
 		<Filter Name="NWTC_Library">
 		<Filter Name="NetLib">

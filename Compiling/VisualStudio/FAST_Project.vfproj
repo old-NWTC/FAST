@@ -5,7 +5,7 @@
 	<Configurations>
 		<Configuration Name="Debug|Win32" OutputDirectory="..\..\bin\">
 				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" StandardWarnings="standardWarningsF03" DisableSpecificDiagnostics="5268,5199" WarnInterfaces="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" UseMkl="mklSequential"/>
-				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\FAST_dev_$(ConfigurationName)_$(PlatformName).exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole" StackReserveSize="999999999" LargeAddressAware="addrAwareLarge" AdditionalDependencies="..\..\Source\dependencies\MAP\MAP_$(PlatformName).lib"/>
+				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\FAST_dev_$(ConfigurationName)_$(PlatformName).exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateManifest="false" GenerateDebugInformation="true" SubSystem="subSystemConsole" StackReserveSize="999999999" LargeAddressAware="addrAwareLarge" AdditionalDependencies="..\..\Source\dependencies\MAP\MAP_$(PlatformName).lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
@@ -15,7 +15,7 @@
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|Win32" OutputDirectory="..\..\bin\" WholeProgramOptimization="true">
 				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Preprocess="preprocessYes" PreprocessorDefinitions="FPE_TRAP_ENABLED" StandardWarnings="standardWarningsF03" DisableSpecificDiagnostics="5268,5199" UseMkl="mklSequential"/>
-				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\FAST_dev_$(PlatformName).exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole" StackReserveSize="999999999" LargeAddressAware="addrAwareLarge" AdditionalDependencies="..\..\Source\dependencies\MAP\MAP_$(PlatformName).lib"/>
+				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\FAST_dev_$(PlatformName).exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateManifest="false" SubSystem="subSystemConsole" StackReserveSize="999999999" LargeAddressAware="addrAwareLarge" AdditionalDependencies="..\..\Source\dependencies\MAP\MAP_$(PlatformName).lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
@@ -95,6 +95,7 @@
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat BeamDyn" Description="Running Registry for BeamDyn" Outputs="..\..\Source\dependencies\BeamDyn\BeamDyn_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat BeamDyn" Description="Running Registry for BeamDyn" Outputs="..\..\Source\dependencies\BeamDyn\BeamDyn_Types.f90"/></FileConfiguration></File></Filter>
+		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn_IO.f90"/>
 		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn.f90"/></Filter>
 		<Filter Name="ElastoDyn">
 		<Filter Name="RegistryFiles">

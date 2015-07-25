@@ -14,7 +14,7 @@ ModuleName = input('Enter the module for which the output module will be generat
 
 XLS_file  = '..\..\OutListParameters.xlsx';
 % XLS_file  = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\InflowWind\SVNdirectory\branches\modularization2\OutListParameters.xlsx';
-XLS_file  = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\WTPerf\SVNdirectory\branches\v4.x\OutListParameters.xlsx';
+% XLS_file  = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\WTPerf\SVNdirectory\branches\v4.x\OutListParameters.xlsx';
 OutListSheet = ModuleName;
 addErrChk = false;
 
@@ -28,6 +28,8 @@ switch ModuleName
         ModName = 'InflowWind';
     case 'AeroDyn'
         ModName = 'AD';
+    case 'BeamDyn'
+        ModName = 'BD';
     case default
         error( 'Invalid module name.');        
 end
