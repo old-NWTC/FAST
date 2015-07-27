@@ -229,6 +229,7 @@ AD_SOURCES =                   \
 BD_SOURCES =                   \
 	BeamDyn_Types.f90           \
 	BeamDyn_IO.f90              \
+	BeamDyn_Subs.f90            \
 	BeamDyn.f90
 
 HD_SOURCES =                   \
@@ -520,7 +521,8 @@ AeroDyn$(OBJ_EXT):                NWTC_Library$(OBJ_EXT)  AeroDyn_IO$(OBJ_EXT)  
 #BeamDyn dependency rules:
 BeamDyn_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  $(BD_DIR)/BeamDyn_Types.f90
 BeamDyn_IO$(OBJ_EXT):             BeamDyn_Types$(OBJ_EXT)
-BeamDyn$(OBJ_EXT):                BeamDyn_IO$(OBJ_EXT)
+BeamDyn_Subs$(OBJ_EXT):           BeamDyn_Types$(OBJ_EXT)
+BeamDyn$(OBJ_EXT):                BeamDyn_IO$(OBJ_EXT)  BeamDyn_Subs$(OBJ_EXT)
 
 
 #HydroDyn dependency rules:

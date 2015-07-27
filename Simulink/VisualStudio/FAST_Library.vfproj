@@ -78,6 +78,12 @@
 		<File RelativePath="..\..\Source\dependencies\AeroDyn14\AeroDyn14.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn14\AeroSubs.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn14\GenSubs.f90"/></Filter></Filter>
+		<Filter Name="BeamDyn">
+		<Filter Name="RegistryFiles">
+		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn.f90"/>
+		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn_IO.f90"/>
+		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn_Subs.f90"/></Filter>
 		<Filter Name="ElastoDyn">
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ElastoDyn_Types.f90"/></Filter>
@@ -166,11 +172,6 @@
 		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn.f90"/>
 		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn_IO.f90"/></Filter></Filter>
-		<Filter Name="BeamDyn">
-		<Filter Name="RegistryFiles">
-		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn_Types.f90"/></Filter>
-		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn_IO.f90"/>
-		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn.f90"/></Filter>
 		<Filter Name="NWTC_Library">
 		<Filter Name="NetLib">
 		<Filter Name="FFTPACK">

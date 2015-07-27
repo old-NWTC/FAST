@@ -95,8 +95,9 @@
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat BeamDyn" Description="Running Registry for BeamDyn" Outputs="..\..\Source\dependencies\BeamDyn\BeamDyn_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat BeamDyn" Description="Running Registry for BeamDyn" Outputs="..\..\Source\dependencies\BeamDyn\BeamDyn_Types.f90"/></FileConfiguration></File></Filter>
+		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn.f90"/>
 		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn_IO.f90"/>
-		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\BeamDyn\BeamDyn_Subs.f90"/></Filter>
 		<Filter Name="ElastoDyn">
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ElastoDyn_Registry.txt">
