@@ -4305,14 +4305,25 @@ SUBROUTINE SetBladeParameters( p, BladeInData, BladeMeshData, ErrStat, ErrMsg )
 
       END DO ! ( Blades )
 
-   
-   
-      p%CThetaS = COS(p%ThetaS)
-      p%SThetaS = SIN(p%ThetaS)
-      
+            
    else
+      
       p%ThetaS  = 0.0_ReKi
+      
+         ! Set the blade damping and stiffness tuner
+      p%BldFDamp = 0.0_ReKi
+      p%BldEDamp = 0.0_ReKi
+      p%FStTunr  = 0.0_ReKi
+
+         ! Set the mode shape arrays
+      p%BldEdgSh = 0.0_ReKi
+      p%BldFl1Sh = 0.0_ReKi
+      p%BldFl2Sh = 0.0_ReKi      
+      
    end if
+   
+   p%CThetaS = COS(p%ThetaS)
+   p%SThetaS = SIN(p%ThetaS)
    
 
 RETURN
@@ -9587,6 +9598,18 @@ SUBROUTINE Coeff(p,InputFileData, ErrStat, ErrMsg)
       ENDDO ! J - Blade nodes / elements
 
 
+
+
+   IF (p%BD4Blades) THEN
+
+      !p%KBF     ( K,:,:    ) = 0.0_ReKi
+      
+         ! the 1st and zeroeth derivatives of the twisted shape functions at the blade root:
+      p%TwistedSF(K,:,:,:,1) = 0.0_ReKi
+      p%TwistedSF(K,:,:,:,0) = 0.0_ReKi 
+      p%AxRedBld( K,:,:,:  ) = 0.0_ReKi
+   ELSE
+            
       ! Apply the flapwise modal stiffness tuners of the blades to KBF():
 
       DO I = 1,2     ! Loop through flap DOFs
@@ -9594,19 +9617,9 @@ SUBROUTINE Coeff(p,InputFileData, ErrStat, ErrMsg)
             p%KBF(K,I,L) = SQRT( p%FStTunr(K,I)*p%FStTunr(K,L) )*p%KBF(K,I,L)
          ENDDO       ! L - Flap DOFs
       ENDDO          ! I - Flap DOFs
-
-
-      ! Calculate the blade natural frequencies:
-
-   IF (p%BD4Blades) THEN
       
-         ! the 1st and zeroeth derivatives of the twisted shape functions at the blade root:
-      p%TwistedSF(K,:,:,0,1) = 0.0_ReKi
-      p%TwistedSF(K,:,:,0,0) = 0.0_ReKi 
-      p%AxRedBld( K,:,:,0  ) = 0.0_ReKi
-
-   ELSE
-            
+      ! Calculate the blade natural frequencies:
+      
       DO I = 1,NumBF     ! Loop through flap DOFs
          p%FreqBF(K,I,1) = Inv2Pi*SQRT(   p%KBF(K,I,I)                   /( MBF(K,I,I) - p%TipMass(K) ) )   ! Natural blade I-flap frequency w/o centrifugal stiffening nor     tip mass effects
          p%FreqBF(K,I,2) = Inv2Pi*SQRT(   p%KBF(K,I,I)                   /  MBF(K,I,I)                )     ! Natural blade I-flap frequency w/o centrifugal stiffening, but w/ tip mass effects

@@ -105,6 +105,7 @@ IMPLICIT NONE
     TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam      ! Names and units (and other characteristics) of all requested output parameters [-]
     INTEGER(IntKi)  :: NNodeOuts      ! Number of nodes to output data to a file[0 - 9] [-]
     INTEGER(IntKi) , DIMENSION(1:9)  :: OutNd      ! Nodes whose values will be output [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NdIndx      ! Index into BldMotion mesh (to number the nodes for output without using collocated nodes) [-]
   END TYPE BD_ParameterType
 ! =======================
 ! =========  BD_InputType  =======
@@ -152,6 +153,7 @@ IMPLICIT NONE
     INTEGER(IntKi) , DIMENSION(1:9)  :: OutNd      ! Nodes whose values will be output [-]
     INTEGER(IntKi)  :: NumOuts      ! Number of parameters in the output list (number of outputs requested) [-]
     CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: OutList      ! List of user-requested output channels [-]
+    LOGICAL  :: SumPrint      ! Print summary data to file? (.sum) [-]
   END TYPE BD_InputFile
 ! =======================
 CONTAINS
@@ -1620,6 +1622,18 @@ IF (ALLOCATED(SrcParamData%OutParam)) THEN
 ENDIF
     DstParamData%NNodeOuts = SrcParamData%NNodeOuts
     DstParamData%OutNd = SrcParamData%OutNd
+IF (ALLOCATED(SrcParamData%NdIndx)) THEN
+  i1_l = LBOUND(SrcParamData%NdIndx,1)
+  i1_u = UBOUND(SrcParamData%NdIndx,1)
+  IF (.NOT. ALLOCATED(DstParamData%NdIndx)) THEN 
+    ALLOCATE(DstParamData%NdIndx(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%NdIndx.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstParamData%NdIndx = SrcParamData%NdIndx
+ENDIF
  END SUBROUTINE BD_CopyParam
 
  SUBROUTINE BD_DestroyParam( ParamData, ErrStat, ErrMsg )
@@ -1651,6 +1665,9 @@ DO i1 = LBOUND(ParamData%OutParam,1), UBOUND(ParamData%OutParam,1)
   CALL NWTC_Library_Destroyoutparmtype( ParamData%OutParam(i1), ErrStat, ErrMsg )
 ENDDO
   DEALLOCATE(ParamData%OutParam)
+ENDIF
+IF (ALLOCATED(ParamData%NdIndx)) THEN
+  DEALLOCATE(ParamData%NdIndx)
 ENDIF
  END SUBROUTINE BD_DestroyParam
 
@@ -1760,6 +1777,11 @@ ENDIF
   END IF
       Int_BufSz  = Int_BufSz  + 1  ! NNodeOuts
       Int_BufSz  = Int_BufSz  + SIZE(InData%OutNd)  ! OutNd
+  Int_BufSz   = Int_BufSz   + 1     ! NdIndx allocated yes/no
+  IF ( ALLOCATED(InData%NdIndx) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! NdIndx upper/lower bounds for each dimension
+      Int_BufSz  = Int_BufSz  + SIZE(InData%NdIndx)  ! NdIndx
+  END IF
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -1958,6 +1980,19 @@ ENDIF
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%OutNd))-1 ) = PACK(InData%OutNd,.TRUE.)
       Int_Xferred   = Int_Xferred   + SIZE(InData%OutNd)
+  IF ( .NOT. ALLOCATED(InData%NdIndx) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%NdIndx,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%NdIndx,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%NdIndx)>0) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%NdIndx))-1 ) = PACK(InData%NdIndx,.TRUE.)
+      Int_Xferred   = Int_Xferred   + SIZE(InData%NdIndx)
+  END IF
  END SUBROUTINE BD_PackParam
 
  SUBROUTINE BD_UnPackParam( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -2287,6 +2322,29 @@ ENDIF
       OutData%OutNd = UNPACK( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%OutNd))-1 ), mask1, 0_IntKi )
       Int_Xferred   = Int_Xferred   + SIZE(OutData%OutNd)
     DEALLOCATE(mask1)
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! NdIndx not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%NdIndx)) DEALLOCATE(OutData%NdIndx)
+    ALLOCATE(OutData%NdIndx(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%NdIndx.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%NdIndx)>0) OutData%NdIndx = UNPACK( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%NdIndx))-1 ), mask1, 0_IntKi )
+      Int_Xferred   = Int_Xferred   + SIZE(OutData%NdIndx)
+    DEALLOCATE(mask1)
+  END IF
  END SUBROUTINE BD_UnPackParam
 
  SUBROUTINE BD_CopyInput( SrcInputData, DstInputData, CtrlCode, ErrStat, ErrMsg )
@@ -3608,6 +3666,7 @@ IF (ALLOCATED(SrcInputFileData%OutList)) THEN
   END IF
     DstInputFileData%OutList = SrcInputFileData%OutList
 ENDIF
+    DstInputFileData%SumPrint = SrcInputFileData%SumPrint
  END SUBROUTINE BD_CopyInputFile
 
  SUBROUTINE BD_DestroyInputFile( InputFileData, ErrStat, ErrMsg )
@@ -3712,6 +3771,7 @@ ENDIF
     Int_BufSz   = Int_BufSz   + 2*1  ! OutList upper/lower bounds for each dimension
       Int_BufSz  = Int_BufSz  + SIZE(InData%OutList)*LEN(InData%OutList)  ! OutList
   END IF
+      Int_BufSz  = Int_BufSz  + 1  ! SumPrint
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -3841,6 +3901,8 @@ ENDIF
         END DO ! I
     END DO !i1
   END IF
+      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%SumPrint , IntKiBuf(1), 1)
+      Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE BD_PackInputFile
 
  SUBROUTINE BD_UnPackInputFile( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -4030,6 +4092,8 @@ ENDIF
     END DO !i1
     DEALLOCATE(mask1)
   END IF
+      OutData%SumPrint = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
+      Int_Xferred   = Int_Xferred + 1
  END SUBROUTINE BD_UnPackInputFile
 
 
