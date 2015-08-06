@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-07-23 14:54:19 -0600 (Thu, 23 Jul 2015) $
-! (File) Revision #: $Rev: 321 $
+! File last committed: $Date: 2015-08-06 14:51:22 -0600 (Thu, 06 Aug 2015) $
+! (File) Revision #: $Rev: 324 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Num.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_Num
