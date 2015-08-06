@@ -44,10 +44,7 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: UAMod      ! Model for the dynamic stall equations [1 = Leishman/Beddoes, 2 = Gonzalez, 3 = Minnema] [-]
     REAL(ReKi)  :: a_s      ! speed of sound [m/s]
     LOGICAL  :: Flookup      ! Use table lookup for f' and f''  [-]
-    CHARACTER(20)  :: OutFmt      ! Output format for numerical results [-]
-    CHARACTER(20)  :: OutSFmt      ! Output format for header strings [-]
     INTEGER(IntKi)  :: NumOuts      ! The number of outputs for this module as requested in the input file [-]
-    CHARACTER(10) , DIMENSION(1:199)  :: OutList      ! The user-requested output channel labels for this module. This should really be dimensioned with MaxOutPts [-]
   END TYPE UA_InitInputType
 ! =======================
 ! =========  UA_InitOutputType  =======
@@ -181,10 +178,7 @@ ENDIF
     DstInitInputData%UAMod = SrcInitInputData%UAMod
     DstInitInputData%a_s = SrcInitInputData%a_s
     DstInitInputData%Flookup = SrcInitInputData%Flookup
-    DstInitInputData%OutFmt = SrcInitInputData%OutFmt
-    DstInitInputData%OutSFmt = SrcInitInputData%OutSFmt
     DstInitInputData%NumOuts = SrcInitInputData%NumOuts
-    DstInitInputData%OutList = SrcInitInputData%OutList
  END SUBROUTINE UA_CopyInitInput
 
  SUBROUTINE UA_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
@@ -248,10 +242,7 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1  ! UAMod
       Re_BufSz   = Re_BufSz   + 1  ! a_s
       Int_BufSz  = Int_BufSz  + 1  ! Flookup
-      Int_BufSz  = Int_BufSz  + 1*LEN(InData%OutFmt)  ! OutFmt
-      Int_BufSz  = Int_BufSz  + 1*LEN(InData%OutSFmt)  ! OutSFmt
       Int_BufSz  = Int_BufSz  + 1  ! NumOuts
-      Int_BufSz  = Int_BufSz  + SIZE(InData%OutList)*LEN(InData%OutList)  ! OutList
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -311,22 +302,8 @@ ENDIF
       Re_Xferred   = Re_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%Flookup , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
-        DO I = 1, LEN(InData%OutFmt)
-          IntKiBuf(Int_Xferred) = ICHAR(InData%OutFmt(I:I), IntKi)
-          Int_Xferred = Int_Xferred   + 1
-        END DO ! I
-        DO I = 1, LEN(InData%OutSFmt)
-          IntKiBuf(Int_Xferred) = ICHAR(InData%OutSFmt(I:I), IntKi)
-          Int_Xferred = Int_Xferred   + 1
-        END DO ! I
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumOuts
       Int_Xferred   = Int_Xferred   + 1
-    DO i1 = LBOUND(InData%OutList,1), UBOUND(InData%OutList,1)
-        DO I = 1, LEN(InData%OutList)
-          IntKiBuf(Int_Xferred) = ICHAR(InData%OutList(i1)(I:I), IntKi)
-          Int_Xferred = Int_Xferred   + 1
-        END DO ! I
-    END DO !i1
  END SUBROUTINE UA_PackInitInput
 
  SUBROUTINE UA_UnPackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -405,31 +382,8 @@ ENDIF
       Re_Xferred   = Re_Xferred + 1
       OutData%Flookup = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
-      DO I = 1, LEN(OutData%OutFmt)
-        OutData%OutFmt(I:I) = CHAR(IntKiBuf(Int_Xferred))
-        Int_Xferred = Int_Xferred   + 1
-      END DO ! I
-      DO I = 1, LEN(OutData%OutSFmt)
-        OutData%OutSFmt(I:I) = CHAR(IntKiBuf(Int_Xferred))
-        Int_Xferred = Int_Xferred   + 1
-      END DO ! I
       OutData%NumOuts = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
-    i1_l = LBOUND(OutData%OutList,1)
-    i1_u = UBOUND(OutData%OutList,1)
-    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
-       RETURN
-    END IF
-    mask1 = .TRUE. 
-    DO i1 = LBOUND(OutData%OutList,1), UBOUND(OutData%OutList,1)
-        DO I = 1, LEN(OutData%OutList)
-          OutData%OutList(i1)(I:I) = CHAR(IntKiBuf(Int_Xferred))
-          Int_Xferred = Int_Xferred   + 1
-        END DO ! I
-    END DO !i1
-    DEALLOCATE(mask1)
  END SUBROUTINE UA_UnPackInitInput
 
  SUBROUTINE UA_CopyInitOutput( SrcInitOutputData, DstInitOutputData, CtrlCode, ErrStat, ErrMsg )

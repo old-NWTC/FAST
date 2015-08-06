@@ -2226,8 +2226,9 @@ CONTAINS
     REAL(DbKi)                          :: t_out                     ! Time to which to be extrap/interpd
                                                                      
     REAL(DbKi)                          :: scaleFactor               ! temporary for extrapolation/interpolation
-    REAL(ReKi)                          :: tensor(3, order+1)        ! for extrapolation of orientations 
-    REAL(ReKi)                          :: tensor_interp(3)          ! for extrapolation of orientations    
+    REAL(DbKi)                          :: tensor(3, order+1)        ! for extrapolation of orientations 
+    REAL(DbKi)                          :: tensor_interp(3)          ! for extrapolation of orientations    
+    REAL(DbKi)                          :: Orient(3,3)               ! for extrapolation of orientations    
     
     INTEGER(IntKi)                      :: node                      ! node counter
 
@@ -2299,12 +2300,15 @@ CONTAINS
                                  
             DO node=1,u_out%Nnodes
             
-               CALL DCM_logmap ( u1%Orientation(:,:,node), tensor(:,1), ErrStat, ErrMsg )
+               Orient = u1%Orientation(:,:,node)
+               CALL DCM_logmap ( Orient, tensor(:,1), ErrStat, ErrMsg )
                   IF (ErrStat >= AbortErrLev ) THEN 
                      ErrMsg = 'MeshExtrapInterp1:'//TRIM(ErrMsg)
                      RETURN
                   END IF
-               CALL DCM_logmap ( u2%Orientation(:,:,node), tensor(:,2), ErrStat, ErrMsg )
+                  
+               Orient = u2%Orientation(:,:,node)
+               CALL DCM_logmap ( Orient, tensor(:,2), ErrStat, ErrMsg )
                   IF (ErrStat >= AbortErrLev ) THEN 
                      ErrMsg = 'MeshExtrapInterp1:'//TRIM(ErrMsg)
                      RETURN
@@ -2346,8 +2350,9 @@ CONTAINS
     REAL(DbKi)                          :: t(SIZE(tin))              ! Times associated with the inputs
     REAL(DbKi)                          :: t_out                     ! Time to which to be extrap/interpd                                                                     
     REAL(DbKi)                          :: scaleFactor               ! temporary for extrapolation/interpolation    
-    REAL(ReKi)                          :: tensor(3, order+1)        ! for extrapolation of orientations 
-    REAL(ReKi)                          :: tensor_interp(3)          ! for extrapolation of orientations 
+    REAL(DbKi)                          :: tensor(3, order+1)        ! for extrapolation of orientations 
+    REAL(DbKi)                          :: tensor_interp(3)          ! for extrapolation of orientations 
+    REAL(DbKi)                          :: Orient(3,3)               ! for extrapolation of orientations    
     
     INTEGER(IntKi)                      :: node                      ! node counter
     
@@ -2457,17 +2462,23 @@ CONTAINS
             u_out%Orientation = u3%Orientation
          else                  
             DO node=1,u_out%Nnodes
-               CALL DCM_logmap ( u1%Orientation(:,:,node), tensor(:,1), ErrStat, ErrMsg )
+               
+               Orient = u1%Orientation(:,:,node)
+               CALL DCM_logmap ( Orient, tensor(:,1), ErrStat, ErrMsg )
                   IF (ErrStat >= AbortErrLev ) THEN 
                      ErrMsg = 'MeshExtrapInterp2:'//TRIM(ErrMsg)
                      RETURN
                   END IF
-               CALL DCM_logmap ( u2%Orientation(:,:,node), tensor(:,2), ErrStat, ErrMsg )
+                  
+               Orient = u2%Orientation(:,:,node)
+               CALL DCM_logmap ( Orient, tensor(:,2), ErrStat, ErrMsg )
                   IF (ErrStat >= AbortErrLev ) THEN 
                      ErrMsg = 'MeshExtrapInterp2:'//TRIM(ErrMsg)
                      RETURN
                   END IF
-               CALL DCM_logmap ( u3%Orientation(:,:,node), tensor(:,3), ErrStat, ErrMsg )
+                  
+               Orient = u3%Orientation(:,:,node)
+               CALL DCM_logmap ( Orient, tensor(:,3), ErrStat, ErrMsg )
                   IF (ErrStat >= AbortErrLev ) THEN 
                      ErrMsg = 'MeshExtrapInterp2:'//TRIM(ErrMsg)
                      RETURN

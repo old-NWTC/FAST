@@ -2145,6 +2145,7 @@ SUBROUTINE WAMIT2_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOu
 
                ! Now we multiply the result by 2 and save it to the DiffQTFForce array and add the MnDrift term
             DO K=0,InitInp%NStepWave
+!bjj: todo: Inspector flags this as uninitialized for CertTest 25               
                DiffQTFForce(K,I) = 2.0_ReKi * TmpDiffQTFForce(K) + MnDriftForce(I)
             ENDDO
 
@@ -2648,6 +2649,7 @@ SUBROUTINE WAMIT2_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOu
 
                ! Now we add the two terms together.  The 0.5 multiplier on is because the double sided FFT was used.
             DO J=0,InitInp%NStepWave
+!bjj: TODO: Inspector flags this with uninitialized memory access               
                SumQTFForce(J,I) = 0.5_ReKi*(REAL(Term1Array(J) + 2*Term2Array(J)))
             ENDDO
 

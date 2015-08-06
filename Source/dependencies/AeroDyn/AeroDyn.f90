@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-07-23 14:59:07 -0600 (Thu, 23 Jul 2015) $
-! (File) Revision #: $Rev: 142 $
+! File last committed: $Date: 2015-08-04 21:34:23 -0600 (Tue, 04 Aug 2015) $
+! (File) Revision #: $Rev: 144 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/AeroDyn/AeroDyn.f90 $
 !**********************************************************************************************************************************
 module AeroDyn
@@ -1145,7 +1145,7 @@ subroutine SetInputsForBEMT(p, u, OtherState, errStat, errMsg)
       tmp_sz_y = min(  1.0_ReKi, OtherState%V_dot_x / tmp_sz )
       tmp_sz_y = max( -1.0_ReKi, tmp_sz_y )
       
-      OtherState%BEMT_u%chi0 = acos( tmp_sz_y )      
+      OtherState%BEMT_u%chi0 = acos( tmp_sz_y )
    end if
    
       ! "Azimuth angle" rad
@@ -1262,7 +1262,7 @@ subroutine SetOutputsFromBEMT(p, OtherState, y )
          q = 0.5 * p%airDens * OtherState%BEMT_y%inducedVel(j,k)**2        ! dynamic pressure of the jth node in the kth blade
          force(1) =  OtherState%BEMT_y%cx(j,k) * q * p%BEMT%chord(j,k)     ! X = normal force per unit length (normal to the plane, not chord) of the jth node in the kth blade
          force(2) = -OtherState%BEMT_y%cy(j,k) * q * p%BEMT%chord(j,k)     ! Y = tangential force per unit length (tangential to the plane, not chord) of the jth node in the kth blade
-         moment(3)= -OtherState%BEMT_y%cm(j,k) * q * p%BEMT%chord(j,k)**2  ! M = pitching moment per unit length of the jth node in the kth blade
+         moment(3)=  OtherState%BEMT_y%cm(j,k) * q * p%BEMT%chord(j,k)**2  ! M = pitching moment per unit length of the jth node in the kth blade
          
             ! save these values for possible output later:
          OtherState%X(j,k) = force(1)
@@ -1324,17 +1324,18 @@ SUBROUTINE ValidateInputData( InputFileData, NumBl, ErrStat, ErrMsg )
       if ( InputFileData%IndToler < 0.0 .or. EqualRealNos(InputFileData%IndToler, 0.0_ReKi) ) &
          call SetErrStat( ErrID_Fatal, 'IndToler must be greater than 0.', ErrStat, ErrMsg, RoutineName )
    
-      if ( InputFileData%SkewMod /= SkewMod_Uncoupled .and. InputFileData%SkewMod /= SkewMod_PittPeters .and. &
-           InputFileData%SkewMod /= SkewMod_Coupled ) call SetErrStat( ErrID_Fatal, 'SkewMod must be 1, 2, or 3.', ErrStat, ErrMsg, RoutineName )      
+      if ( InputFileData%SkewMod /= SkewMod_Uncoupled .and. InputFileData%SkewMod /= SkewMod_PittPeters) &  !  .and. InputFileData%SkewMod /= SkewMod_Coupled )
+           call SetErrStat( ErrID_Fatal, 'SkewMod must be 1, or 2.  Option 3 will be implemented in a future version.', ErrStat, ErrMsg, RoutineName )      
       
    end if !BEMT checks
    
       ! UA inputs
    if (InputFileData%AFAeroMod == AFAeroMod_BL_unsteady ) then
-      if (InputFileData%UAMod < 1 .or. InputFileData%UAMod > 3 ) call SetErrStat( ErrID_Fatal, &
-         "UAMod must be 1 (baseline/original), 2 (Gonzalez's variant), or 3 (Minemma/Pierce variant).", ErrStat, ErrMsg, RoutineName )
+      if (InputFileData%UAMod < 2 .or. InputFileData%UAMod > 3 ) call SetErrStat( ErrID_Fatal, &
+         "In this version, UAMod must be 2 (Gonzalez's variant) or 3 (Minemma/Pierce variant).", ErrStat, ErrMsg, RoutineName )  ! NOTE: for later-  1 (baseline/original) 
    end if
    
+   if (InputFileData%FLookUp /= .TRUE.) call SetErrStat( ErrID_Fatal, 'FLookUp must be TRUE for this version.', ErrStat, ErrMsg, RoutineName )
    
          ! validate the AFI input data because it doesn't appear to be done in AFI
    if (InputFileData%NumAFfiles < 1) call SetErrStat( ErrID_Fatal, 'The number of unique airfoil tables (NumAFfiles) must be greater than zero.', ErrStat, ErrMsg, RoutineName )   

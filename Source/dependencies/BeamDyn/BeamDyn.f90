@@ -67,11 +67,12 @@ SUBROUTINE BD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
 
    ! local variables
    TYPE(BD_InputFile)      :: InputFileData    ! Data stored in the module's input file
-   TYPE(BD_InputType)      :: u_tmp           ! An initial guess for the input; input mesh must be defined
+   TYPE(BD_InputType)      :: u_tmp            ! An initial guess for the input; input mesh must be defined
    INTEGER(IntKi)          :: i                ! do-loop counter
    INTEGER(IntKi)          :: j                ! do-loop counter
    INTEGER(IntKi)          :: k                ! do-loop counter
    INTEGER(IntKi)          :: m                ! do-loop counter
+   INTEGER(IntKi)          :: indx             ! do-loop counter
    INTEGER(IntKi)          :: temp_int
    INTEGER(IntKi)          :: temp_id
    INTEGER(IntKi)          :: temp_id2
@@ -591,15 +592,19 @@ WRITE(*,*) p%gravity
    ENDDO
    
    temp_int = p%node_elem*p%elem_total
+   p%NdIndx(1) = 1
+   indx = 2
    DO i=1,temp_int-1
       
       if (.not. equalRealNos( TwoNorm( y%BldMotion%Position(:,i)-y%BldMotion%Position(:,i+1) ), 0.0_ReKi ) ) then
+         p%NdIndx(indx) = i + 1
+         indx = indx + 1;
          ! do not connect nodes that are collocated
           CALL MeshConstructElement( Mesh     = y%BldMotion      &
                                     ,Xelement = ELEMENT_LINE2    &
                                     ,P1       = i                &
                                     ,P2       = i+1              &
-                                    ,ErrStat  = ErrStat2          &
+                                    ,ErrStat  = ErrStat2         &
                                     ,ErrMess  = ErrMsg2           )
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       end if
@@ -714,10 +719,11 @@ WRITE(*,*) p%gravity
    CALL BD_ComputeBladeMassNew(p%uuN0,p%Mass0_GL,p%elem_total,p%node_elem,p%dof_total,&
                                p%dof_node,p%ngp,p%blade_mass,ErrStat2,ErrMsg2)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
-!WRITE(*,*) 'blade mass'
-!WRITE(*,*) p%blade_mass
-WRITE(*,*) 'blade length'
-WRITE(*,*) p%blade_length
+WRITE(*,*) 'blade mass'
+WRITE(*,*) p%blade_mass
+!WRITE(*,*) 'blade length'
+!
+      WRITE(*,*) p%blade_length
 !WRITE(*,*) 'u_Inic'
 !DO k=1,3
 !WRITE(*,*) u%RootMotion%Orientation(k,:,1)
@@ -4193,7 +4199,7 @@ SUBROUTINE BD_GA2(t,n,u,utimes,p,x,xd,z,OtherState,ErrStat,ErrMsg)
    CHARACTER(ErrMsgLen)                               :: ErrMsg2    ! Temporary Error message
    CHARACTER(*), PARAMETER                            :: RoutineName = 'BD_GA2'
    REAL(ReKi):: temp_3(3)
-!   INTEGER(IntKi)                                     :: i
+   INTEGER(IntKi)                                     :: i
 
    ! Initialize ErrStat
 

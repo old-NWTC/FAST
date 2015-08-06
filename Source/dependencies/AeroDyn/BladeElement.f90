@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-07-14 09:39:08 -0600 (Tue, 14 Jul 2015) $
-! (File) Revision #: $Rev: 137 $
+! File last committed: $Date: 2015-07-27 09:34:37 -0600 (Mon, 27 Jul 2015) $
+! (File) Revision #: $Rev: 143 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/BEMT/BladeElement.f90 $
 !**********************************************************************************************************************************
 module BladeElement
@@ -92,13 +92,12 @@ module BladeElement
       ErrStat = ErrID_None
       ErrMsg  = ''
    
-      ! TODO: Extend this to use the UnsteadyAero module to determine the Cl, Cd, Cm info, as needed.  We may need to be tracking whether this call is
-      ! part of an UpdateStates action or a CalcOutput action, because the calculation chain differs for the two.
+      
       if (UA_Flag) then
          u_UA%alpha = AOA   
          u_UA%Re    = Re
          u_UA%U     = W
-         !bjj: this gets called element-by-element (not all at once). Are OtherState%iBladeNode and OtherState%iBlade set properly?
+         !bjj: TODO: this gets called element-by-element (not all at once). Are OtherState%iBladeNode and OtherState%iBlade set properly?
          call UA_CalcOutput(u_UA, p_UA, xd_UA, OtherState_UA, AFInfo, y_UA, errStat, errMsg )
          Cl         = y_UA%Cl
          Cd         = y_UA%Cd

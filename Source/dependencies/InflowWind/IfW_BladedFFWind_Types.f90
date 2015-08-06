@@ -59,8 +59,8 @@ IMPLICIT NONE
     LOGICAL  :: Linearize = .FALSE.      ! If this is true, we are linearizing [-]
     LOGICAL  :: TowerDataExist = .FALSE.      ! If true, we specified a tower file [-]
     REAL(DbKi)  :: DT      ! Time step for cont. state integration & disc. state update [seconds]
-    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: FFData      ! Array of FF data [-]
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: FFTower      ! Array of data along tower, below FF array [-]
+    REAL(SiKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: FFData      ! Array of FF data [-]
+    REAL(SiKi) , DIMENSION(:,:,:), ALLOCATABLE  :: FFTower      ! Array of data along tower, below FF array [-]
     REAL(ReKi)  :: FFDTime = 0      ! Delta time [seconds]
     REAL(ReKi)  :: FFRate = 0      ! Data rate (1/FFTime) [Hertz]
     REAL(ReKi)  :: FFYHWid = 0      ! Half the grid width [meters]
@@ -968,7 +968,7 @@ ENDIF
        RETURN
     END IF
     mask4 = .TRUE. 
-      IF (SIZE(OutData%FFData)>0) OutData%FFData = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FFData))-1 ), mask4, 0.0_ReKi )
+      IF (SIZE(OutData%FFData)>0) OutData%FFData = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FFData))-1 ), mask4, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%FFData)
     DEALLOCATE(mask4)
   END IF
@@ -997,7 +997,7 @@ ENDIF
        RETURN
     END IF
     mask3 = .TRUE. 
-      IF (SIZE(OutData%FFTower)>0) OutData%FFTower = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FFTower))-1 ), mask3, 0.0_ReKi )
+      IF (SIZE(OutData%FFTower)>0) OutData%FFTower = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FFTower))-1 ), mask3, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%FFTower)
     DEALLOCATE(mask3)
   END IF

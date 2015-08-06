@@ -136,6 +136,7 @@ c  ..array arguments..
       real tx(nx),ty(ny),c((nx-kx-1)*(ny-ky-1)),x(mx),y(my),z(mx*my),
      * wx(mx,kx+1),wy(my,ky+1)
 c  ..local scalars..
+      integer i, j, i1, j1
       integer kx1,ky1,l,l1,l2,m,nkx1,nky1
       real arg,sp,tb,te
 c  ..local arrays..
@@ -1427,6 +1428,7 @@ c  creation date : may 1979
 c  latest update : march 1989
 c
 c  ..
+      implicit none
 c  ..scalar arguments..
       real xb,xe,yb,ye,s,fp
       integer iopt,mx,my,kx,ky,nxest,nyest,nx,ny,lwrk,kwrk,ier

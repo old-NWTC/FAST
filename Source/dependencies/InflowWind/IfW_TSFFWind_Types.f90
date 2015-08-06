@@ -56,9 +56,8 @@ IMPLICIT NONE
     REAL(DbKi)  :: DT      ! Time step for cont. state integration & disc. state update [seconds]
     LOGICAL  :: TowerDataExist = .FALSE.      ! Data exists for the tower [-]
     LOGICAL  :: Periodic = .FALSE.      ! Flag to indicate if the wind file is periodic [-]
-    LOGICAL  :: Linearize = .FALSE.      ! If this is true, we are linearizing [-]
-    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: FFData      ! Array of FF data [-]
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: FFTower      ! Array of data along tower, below FF array [-]
+    REAL(SiKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: FFData      ! Array of FF data [-]
+    REAL(SiKi) , DIMENSION(:,:,:), ALLOCATABLE  :: FFTower      ! Array of data along tower, below FF array [-]
     REAL(ReKi)  :: FFDTime = 0      ! Delta time [seconds]
     REAL(ReKi)  :: FFRate = 0      ! Data rate (1/FFTime) [Hertz]
     REAL(ReKi)  :: FFYHWid = 0      ! Half the grid width [meters]
@@ -609,7 +608,6 @@ CONTAINS
     DstParamData%DT = SrcParamData%DT
     DstParamData%TowerDataExist = SrcParamData%TowerDataExist
     DstParamData%Periodic = SrcParamData%Periodic
-    DstParamData%Linearize = SrcParamData%Linearize
 IF (ALLOCATED(SrcParamData%FFData)) THEN
   i1_l = LBOUND(SrcParamData%FFData,1)
   i1_u = UBOUND(SrcParamData%FFData,1)
@@ -720,7 +718,6 @@ ENDIF
       Db_BufSz   = Db_BufSz   + 1  ! DT
       Int_BufSz  = Int_BufSz  + 1  ! TowerDataExist
       Int_BufSz  = Int_BufSz  + 1  ! Periodic
-      Int_BufSz  = Int_BufSz  + 1  ! Linearize
   Int_BufSz   = Int_BufSz   + 1     ! FFData allocated yes/no
   IF ( ALLOCATED(InData%FFData) ) THEN
     Int_BufSz   = Int_BufSz   + 2*4  ! FFData upper/lower bounds for each dimension
@@ -785,8 +782,6 @@ ENDIF
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%TowerDataExist , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%Periodic , IntKiBuf(1), 1)
-      Int_Xferred   = Int_Xferred   + 1
-      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%Linearize , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%FFData) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -913,8 +908,6 @@ ENDIF
       Int_Xferred   = Int_Xferred + 1
       OutData%Periodic = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
-      OutData%Linearize = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
-      Int_Xferred   = Int_Xferred + 1
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! FFData not allocated
     Int_Xferred = Int_Xferred + 1
   ELSE
@@ -943,7 +936,7 @@ ENDIF
        RETURN
     END IF
     mask4 = .TRUE. 
-      IF (SIZE(OutData%FFData)>0) OutData%FFData = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FFData))-1 ), mask4, 0.0_ReKi )
+      IF (SIZE(OutData%FFData)>0) OutData%FFData = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FFData))-1 ), mask4, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%FFData)
     DEALLOCATE(mask4)
   END IF
@@ -972,7 +965,7 @@ ENDIF
        RETURN
     END IF
     mask3 = .TRUE. 
-      IF (SIZE(OutData%FFTower)>0) OutData%FFTower = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FFTower))-1 ), mask3, 0.0_ReKi )
+      IF (SIZE(OutData%FFTower)>0) OutData%FFTower = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FFTower))-1 ), mask3, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%FFTower)
     DEALLOCATE(mask3)
   END IF

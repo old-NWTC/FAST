@@ -35,7 +35,7 @@ MODULE NWTC_IO
 !=======================================================================
 
    TYPE(ProgDesc), PARAMETER    :: NWTC_Ver = &                               ! The name, version, and date of the NWTC Subroutine Library.
-                                    ProgDesc( 'NWTC Subroutine Library', 'v2.06.02a-bjj', '24-Jul-2015')
+                                    ProgDesc( 'NWTC Subroutine Library', 'v2.06.03a-bjj', '6-Aug-2015')
 
    TYPE, PUBLIC                 :: FNlist_Type                                ! This type stores a linked list of file names.
       CHARACTER(1024)                        :: FileName                      ! A file name.
@@ -203,6 +203,12 @@ MODULE NWTC_IO
       MODULE PROCEDURE WrMatrix2R8     ! Two dimension matrix of R8Ki
    END INTERFACE
 
+      ! Create interface for writing matrix and array values (useful for debugging)
+   INTERFACE WrNumAryFileNR
+      MODULE PROCEDURE WrReAryFileNR
+      MODULE PROCEDURE WrDbAryFileNR
+   END INTERFACE
+   
 
 CONTAINS
 
@@ -6616,6 +6622,49 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, IOStat )
 
    RETURN
    END SUBROUTINE WrReAryFileNR
+!=======================================================================
+   SUBROUTINE WrDbAryFileNR ( Unit, Ary, Fmt, ErrStat, ErrMsg  )
+
+
+      ! This routine writes out a real array to the file connected to Unit without following it with a new line.
+
+
+      ! Argument declarations.
+
+   INTEGER,      INTENT(IN)     :: Unit                                         ! I/O unit for input file.
+   REAL(DbKi),   INTENT(IN)     :: Ary (:)                                      ! Array to be written without a newline at the end.
+   CHARACTER(*), INTENT(IN)     :: Fmt                                          ! Fmt of one element to be written.
+
+   INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                      ! Error status
+   CHARACTER(*),   INTENT(OUT)  :: ErrMsg                                       ! Error message associated with ErrStat
+
+      ! Local variables:
+   CHARACTER(50)                :: Fmt2                                         ! Fmt of entire array to be written (will be copied).
+
+
+
+   IF ( SIZE(Ary) == 0 ) THEN
+      ErrStat = ErrID_None
+      ErrMsg  = ''
+      RETURN
+   END IF
+   
+
+   WRITE(Fmt2,*) SIZE(Ary)
+   Fmt2 = '('//TRIM(Fmt2)//'('//TRIM(Fmt)//'))'
+
+   WRITE (Unit,Fmt2,ADVANCE='NO',IOSTAT=ErrStat)  Ary
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = 'WrDbAryFileNR:Error '//TRIM(Num2LStr(ErrStat))//' occurred while writing to file using this format: '//TRIM(Fmt2)
+   ELSE
+      ErrStat = ErrID_None
+      ErrMsg  = ''
+   END IF
+
+
+   RETURN
+   END SUBROUTINE WrDbAryFileNR
 !=======================================================================
    RECURSIVE SUBROUTINE WrScr ( InStr )
 
