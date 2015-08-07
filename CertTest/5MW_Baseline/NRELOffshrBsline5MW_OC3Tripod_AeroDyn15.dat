@@ -64,7 +64,7 @@ TwrElev        TwrDiam        TwrCd
 ======  Outputs  ====================================================================================
 False         SumPrint            - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
           3   NBlOuts             - Number of blade node outputs [0 - 9] (-)
- 1, 9, 19     BlOutNd             - Blade nodes whose values will be output  (-)
+ 1, 8, 19     BlOutNd             - Blade nodes whose values will be output  (-)
           0   NTwOuts             - Number of tower node outputs [0 - 9]  (-)
  1, 2, 3, 4, 5     TwOutNd             - Tower nodes whose values will be output  (-)
                    OutList             - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
@@ -76,7 +76,22 @@ False         SumPrint            - Generate a summary file listing input option
 "B1N1STVx,  B1N1STVy,  B1N1STVz"    ! structural translational velocity at Blade 1, Node 1
 "B1N2STVx,  B1N2STVy,  B1N2STVz"    ! structural translational velocity at Blade 1, Node 2
 "B1N3STVx,  B1N3STVy,  B1N3STVz"    ! structural translational velocity at Blade 1, Node 2
-"B1N1AxInd, B1N2AxInd, B1N3AxInd"
-"B1N1Alpha, B1N2Alpha, B1N3Alpha"
+"B1N1AxInd, B1N3AxInd"
+"B1N1Alpha, B1N3Alpha"
+B1N2Alpha
+B1N2DynP
+B1N2Cl
+B1N2Cd
+B1N2Cn
+B1N2Ct
+B1N2Cm
+B1N2Theta
+B1N2AxInd
+B1N2TnInd
+B1N2Fx
+B1N2Fy
+B1N2Mm
+B1N2Re
+B1N2Phi
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------
