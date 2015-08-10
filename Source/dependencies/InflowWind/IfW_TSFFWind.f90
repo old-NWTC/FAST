@@ -921,7 +921,7 @@ CONTAINS
       ELSE
 
          OnGrid = .FALSE.  ! this is on the tower
-         
+
          IF ( ParamData%NTGrids < 1 ) THEN
             ErrMsg   = ' FF wind array boundaries violated. Grid too small in Z direction '// &
                        '(height (Z='//TRIM(Num2LStr(Position(3)))//' m) is below the grid and no tower points are defined).'

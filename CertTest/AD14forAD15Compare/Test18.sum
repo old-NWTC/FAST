@@ -1,9 +1,9 @@
 
 FAST Summary File
 
-Predictions were generated on 14-Jul-2015 at 15:10:21 using FAST (v8.12.00a-bjj, 14-Jul-2015), compiled as a 32-bit application using single precision
+Predictions were generated on 07-Aug-2015 at 13:20:40 using FAST (v8.12.00a-bjj-prerelease, 4-Aug-2015), compiled as a 32-bit application using single precision
   compiled with
-    NWTC Subroutine Library (v2.06.02a-bjj, 14-Jul-2015)
+    NWTC Subroutine Library (v2.06.03a-bjj, 6-Aug-2015)
     ElastoDyn (v1.03.00a-bjj, 9-Jul-2015)
     BeamDyn (unknown version, unknown date) [not called]
     InflowWind (v3.00.01a-adp, 27-Apr-2015)
@@ -80,9 +80,45 @@ Number of correction iterations:  0
       35  TwrBsMxt    (kN·m)      ElastoDyn
       36  TwrBsMyt    (kN·m)      ElastoDyn
       37  TwrBsMzt    (kN·m)      ElastoDyn
-      38  GenPwr      (kW)        ServoDyn
-      39  GenTq       (kN·m)      ServoDyn
-      40  NTMD_XQ     INVALID     ServoDyn
-      41  NTMD_XQD    INVALID     ServoDyn
-      42  NTMD_YQ     INVALID     ServoDyn
-      43  NTMD_YQD    INVALID     ServoDyn
+      38  RootFxb1    (kN)        ElastoDyn
+      39  RootFxb2    (kN)        ElastoDyn
+      40  RootFxb3    (kN)        ElastoDyn
+      41  RootFyb1    (kN)        ElastoDyn
+      42  RootFyb2    (kN)        ElastoDyn
+      43  RootFyb3    (kN)        ElastoDyn
+      44  RootFzb1    (kN)        ElastoDyn
+      45  RootFzb2    (kN)        ElastoDyn
+      46  RootFzb3    (kN)        ElastoDyn
+      47  RootMxb1    (kN·m)      ElastoDyn
+      48  RootMxb2    (kN·m)      ElastoDyn
+      49  RootMxb3    (kN·m)      ElastoDyn
+      50  RootMyb1    (kN·m)      ElastoDyn
+      51  RootMyb2    (kN·m)      ElastoDyn
+      52  RootMyb3    (kN·m)      ElastoDyn
+      53  RootMzb1    (kN·m)      ElastoDyn
+      54  RootMzb2    (kN·m)      ElastoDyn
+      55  RootMzb3    (kN·m)      ElastoDyn
+      56  TipDxb1     (m)         ElastoDyn
+      57  TipDxb2     (m)         ElastoDyn
+      58  TipDxb3     (m)         ElastoDyn
+      59  TipDyb1     (m)         ElastoDyn
+      60  TipDyb2     (m)         ElastoDyn
+      61  TipDyb3     (m)         ElastoDyn
+      62  TipDzb1     (m)         ElastoDyn
+      63  TipDzb2     (m)         ElastoDyn
+      64  TipDzb3     (m)         ElastoDyn
+      65  TipALxb1    (m/s^2)     ElastoDyn
+      66  TipALxb2    (m/s^2)     ElastoDyn
+      67  TipALxb3    (m/s^2)     ElastoDyn
+      68  TipALyb1    (m/s^2)     ElastoDyn
+      69  TipALyb2    (m/s^2)     ElastoDyn
+      70  TipALyb3    (m/s^2)     ElastoDyn
+      71  TipALzb1    (m/s^2)     ElastoDyn
+      72  TipALzb2    (m/s^2)     ElastoDyn
+      73  TipALzb3    (m/s^2)     ElastoDyn
+      74  GenPwr      (kW)        ServoDyn
+      75  GenTq       (kN·m)      ServoDyn
+      76  NTMD_XQ     INVALID     ServoDyn
+      77  NTMD_XQD    INVALID     ServoDyn
+      78  NTMD_YQ     INVALID     ServoDyn
+      79  NTMD_YQD    INVALID     ServoDyn

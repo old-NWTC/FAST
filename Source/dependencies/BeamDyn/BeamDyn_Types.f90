@@ -86,6 +86,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: member_length      ! Array stored length of each member [-]
     REAL(ReKi)  :: blade_length      ! Blade Length [-]
     REAL(ReKi)  :: blade_mass      ! Blade Length [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: blade_CG      ! Blade Length [-]
     INTEGER(IntKi)  :: node_elem      ! Node per element [-]
     INTEGER(IntKi)  :: dof_node      ! dof per node [-]
     INTEGER(IntKi)  :: elem_total      ! Total number of elements [-]
@@ -1602,6 +1603,7 @@ IF (ALLOCATED(SrcParamData%member_length)) THEN
 ENDIF
     DstParamData%blade_length = SrcParamData%blade_length
     DstParamData%blade_mass = SrcParamData%blade_mass
+    DstParamData%blade_CG = SrcParamData%blade_CG
     DstParamData%node_elem = SrcParamData%node_elem
     DstParamData%dof_node = SrcParamData%dof_node
     DstParamData%elem_total = SrcParamData%elem_total
@@ -1757,6 +1759,7 @@ ENDIF
   END IF
       Re_BufSz   = Re_BufSz   + 1  ! blade_length
       Re_BufSz   = Re_BufSz   + 1  ! blade_mass
+      Re_BufSz   = Re_BufSz   + SIZE(InData%blade_CG)  ! blade_CG
       Int_BufSz  = Int_BufSz  + 1  ! node_elem
       Int_BufSz  = Int_BufSz  + 1  ! dof_node
       Int_BufSz  = Int_BufSz  + 1  ! elem_total
@@ -1940,6 +1943,8 @@ ENDIF
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%blade_mass
       Re_Xferred   = Re_Xferred   + 1
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%blade_CG))-1 ) = PACK(InData%blade_CG,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%blade_CG)
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%node_elem
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%dof_node
@@ -2246,6 +2251,17 @@ ENDIF
       Re_Xferred   = Re_Xferred + 1
       OutData%blade_mass = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
+    i1_l = LBOUND(OutData%blade_CG,1)
+    i1_u = UBOUND(OutData%blade_CG,1)
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      OutData%blade_CG = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%blade_CG))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%blade_CG)
+    DEALLOCATE(mask1)
       OutData%node_elem = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%dof_node = IntKiBuf( Int_Xferred ) 

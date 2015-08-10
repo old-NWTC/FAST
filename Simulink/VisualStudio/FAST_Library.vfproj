@@ -147,12 +147,14 @@
 		<Filter Name="InflowWind">
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_BladedFFWind_Types.f90"/>
+		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_HAWCWind_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_TSFFWind_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_UniformWind_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_UserWind_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\InflowWind_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\Lidar_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_BladedFFWind.f90"/>
+		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_HAWCWind.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_TSFFWind.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_UniformWind.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_UserWind.f90"/>

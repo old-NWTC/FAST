@@ -231,6 +231,12 @@
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IfW_BladedFFWind" Description="Running Registry for IfW_BladedFFWind" Outputs="..\..\Source\dependencies\InflowWind\IfW_BladedFFWind_Types.f90"/></FileConfiguration></File>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_BladedFFWind_Types.f90"/>
+		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_HAWCWind.txt">
+					<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IfW_HAWCWind" Description="Running Registry for IfW_HAWCWindWind" Outputs="..\..\Source\dependencies\InflowWind\IfW_HAWCWindWind_Types.f90"/></FileConfiguration>
+			<FileConfiguration Name="Release|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IfW_HAWCWind" Description="Running Registry for IfW_HAWCWindWind" Outputs="..\..\Source\dependencies\InflowWind\IfW_HAWCWindWind_Types.f90"/></FileConfiguration></File>
+<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_HAWCWind_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_TSFFWind.txt">
 			<FileConfiguration Name="Debug|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IfW_TSFFWind" Description="Running Registry for IfW_TSFFWind" Outputs="..\..\Source\dependencies\InflowWind\IfW_TSFFWind_Types.f90"/></FileConfiguration>
@@ -262,6 +268,7 @@
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat Lidar" Description="Running Registry for Lidar" Outputs="..\..\Source\dependencies\InflowWind\Lidar_Types.f90"/></FileConfiguration></File>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\Lidar_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_BladedFFWind.f90"/>
+		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_HAWCWind.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_TSFFWind.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_UniformWind.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_UserWind.f90"/>

@@ -101,6 +101,7 @@ GOTO checkError
 
 
 :IfW_TSFFWind
+:IfW_HAWCWind
 :IfW_BladedFFWind
 :IfW_UniformWind
 :IfW_UserWind

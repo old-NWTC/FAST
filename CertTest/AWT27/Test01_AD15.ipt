@@ -85,5 +85,6 @@ B1N2Fx
 B1N2Fy
 B1N2Mm
 B1N2Re
+B1N2Phi
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------

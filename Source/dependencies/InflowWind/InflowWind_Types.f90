@@ -34,6 +34,7 @@ MODULE InflowWind_Types
 USE IfW_UniformWind_Types
 USE IfW_TSFFWind_Types
 USE IfW_BladedFFWind_Types
+USE IfW_HAWCWind_Types
 USE IfW_UserWind_Types
 USE Lidar_Types
 USE NWTC_Library
@@ -109,7 +110,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: HAWC_TStart      ! HAWC -- start time for turbulence scaling [seconds]
     REAL(ReKi)  :: HAWC_TEnd      ! HAWC -- end time for turbulence scaling [seconds]
     REAL(ReKi)  :: HAWC_URef      ! HAWC -- Mean u-component wind speed at the reference height [meters]
-    CHARACTER(1024)  :: HAWC_ProfileType      ! HAWC -- Wind profile type ('LOG'=logarithmic, 'PL'=power law, or 'UD'=user defined) [-]
+    INTEGER(IntKi)  :: HAWC_ProfileType      ! HAWC -- Wind profile type (0=constant;1=logarithmic;2=power law) [-]
     REAL(ReKi)  :: HAWC_PLExp      ! HAWC -- Power law exponent (used for PL wind profile type only) [-]
     REAL(ReKi)  :: HAWC_Z0      ! HAWC -- Surface roughness length (used for LOG wind profile type only) [-]
     LOGICAL  :: SumPrint      ! Write summary info to a file <ROOTNAME>.IfW.Sum [-]
@@ -144,6 +145,7 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: TimeIndex = 0      ! An Index into the TData array [-]
     TYPE(IfW_UniformWind_OtherStateType)  :: UniformWind      ! OtherStates from UniformWind [-]
     TYPE(IfW_TSFFWind_OtherStateType)  :: TSFFWind      ! OtherStates from TSFFWind [-]
+    TYPE(IfW_HAWCWind_OtherStateType)  :: HAWCWind      ! OtherStates from HAWCWind [-]
     TYPE(IfW_BladedFFWind_OtherStateType)  :: BladedFFWind      ! OtherStates from BladedFFWind [-]
     TYPE(IfW_UserWind_OtherStateType)  :: UserWind      ! OtherStates from UserWind [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: AllOuts      ! An array holding the value of all of the calculated (not only selected) output channels [see OutListParameters.xlsx spreadsheet]
@@ -173,6 +175,7 @@ IMPLICIT NONE
     TYPE(IfW_UniformWind_ParameterType)  :: UniformWind      ! Parameters from UniformWind [-]
     TYPE(IfW_TSFFWind_ParameterType)  :: TSFFWind      ! Parameters from TSFFWind -- TurbSim full-field format [-]
     TYPE(IfW_BladedFFWind_ParameterType)  :: BladedFFWind      ! Parameters from BladedFFWind -- Bladed-style full-field format [-]
+    TYPE(IfW_HAWCWind_ParameterType)  :: HAWCWind      ! Parameters from HAWCWind [-]
     TYPE(IfW_UserWind_ParameterType)  :: UserWind      ! Parameters from UserWind [-]
     INTEGER(IntKi)  :: NumOuts = 0      ! Number of parameters in the output list (number of outputs requested) [-]
     TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam      ! Names and units (and other characteristics) of all requested output parameters [-]
@@ -705,7 +708,7 @@ ENDIF
       Re_BufSz   = Re_BufSz   + 1  ! HAWC_TStart
       Re_BufSz   = Re_BufSz   + 1  ! HAWC_TEnd
       Re_BufSz   = Re_BufSz   + 1  ! HAWC_URef
-      Int_BufSz  = Int_BufSz  + 1*LEN(InData%HAWC_ProfileType)  ! HAWC_ProfileType
+      Int_BufSz  = Int_BufSz  + 1  ! HAWC_ProfileType
       Re_BufSz   = Re_BufSz   + 1  ! HAWC_PLExp
       Re_BufSz   = Re_BufSz   + 1  ! HAWC_Z0
       Int_BufSz  = Int_BufSz  + 1  ! SumPrint
@@ -873,10 +876,8 @@ ENDIF
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%HAWC_URef
       Re_Xferred   = Re_Xferred   + 1
-        DO I = 1, LEN(InData%HAWC_ProfileType)
-          IntKiBuf(Int_Xferred) = ICHAR(InData%HAWC_ProfileType(I:I), IntKi)
-          Int_Xferred = Int_Xferred   + 1
-        END DO ! I
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%HAWC_ProfileType
+      Int_Xferred   = Int_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%HAWC_PLExp
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%HAWC_Z0
@@ -1102,10 +1103,8 @@ ENDIF
       Re_Xferred   = Re_Xferred + 1
       OutData%HAWC_URef = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
-      DO I = 1, LEN(OutData%HAWC_ProfileType)
-        OutData%HAWC_ProfileType(I:I) = CHAR(IntKiBuf(Int_Xferred))
-        Int_Xferred = Int_Xferred   + 1
-      END DO ! I
+      OutData%HAWC_ProfileType = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
       OutData%HAWC_PLExp = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
       OutData%HAWC_Z0 = ReKiBuf( Re_Xferred )
@@ -1953,6 +1952,9 @@ ENDIF
       CALL IfW_TSFFWind_CopyOtherState( SrcOtherStateData%TSFFWind, DstOtherStateData%TSFFWind, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
+      CALL IfW_HAWCWind_CopyOtherState( SrcOtherStateData%HAWCWind, DstOtherStateData%HAWCWind, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
       CALL IfW_BladedFFWind_CopyOtherState( SrcOtherStateData%BladedFFWind, DstOtherStateData%BladedFFWind, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
@@ -1998,6 +2000,7 @@ ENDIF
   ErrMsg  = ""
   CALL IfW_UniformWind_DestroyOtherState( OtherStateData%UniformWind, ErrStat, ErrMsg )
   CALL IfW_TSFFWind_DestroyOtherState( OtherStateData%TSFFWind, ErrStat, ErrMsg )
+  CALL IfW_HAWCWind_DestroyOtherState( OtherStateData%HAWCWind, ErrStat, ErrMsg )
   CALL IfW_BladedFFWind_DestroyOtherState( OtherStateData%BladedFFWind, ErrStat, ErrMsg )
   CALL IfW_UserWind_DestroyOtherState( OtherStateData%UserWind, ErrStat, ErrMsg )
 IF (ALLOCATED(OtherStateData%AllOuts)) THEN
@@ -2076,6 +2079,23 @@ ENDIF
          DEALLOCATE(Db_Buf)
       END IF
       IF(ALLOCATED(Int_Buf)) THEN ! TSFFWind
+         Int_BufSz = Int_BufSz + SIZE( Int_Buf )
+         DEALLOCATE(Int_Buf)
+      END IF
+      Int_BufSz   = Int_BufSz + 3  ! HAWCWind: size of buffers for each call to pack subtype
+      CALL IfW_HAWCWind_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%HAWCWind, ErrStat2, ErrMsg2, .TRUE. ) ! HAWCWind 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN ! HAWCWind
+         Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
+         DEALLOCATE(Re_Buf)
+      END IF
+      IF(ALLOCATED(Db_Buf)) THEN ! HAWCWind
+         Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
+         DEALLOCATE(Db_Buf)
+      END IF
+      IF(ALLOCATED(Int_Buf)) THEN ! HAWCWind
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
@@ -2181,6 +2201,34 @@ ENDIF
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
       CALL IfW_TSFFWind_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%TSFFWind, ErrStat2, ErrMsg2, OnlySize ) ! TSFFWind 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Re_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Re_Buf) > 0) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Buf)-1 ) = Re_Buf
+        Re_Xferred = Re_Xferred + SIZE(Re_Buf)
+        DEALLOCATE(Re_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Db_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Db_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Db_Buf) > 0) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Buf)-1 ) = Db_Buf
+        Db_Xferred = Db_Xferred + SIZE(Db_Buf)
+        DEALLOCATE(Db_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Int_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Int_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Int_Buf) > 0) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Buf)-1 ) = Int_Buf
+        Int_Xferred = Int_Xferred + SIZE(Int_Buf)
+        DEALLOCATE(Int_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      CALL IfW_HAWCWind_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%HAWCWind, ErrStat2, ErrMsg2, OnlySize ) ! HAWCWind 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -2444,6 +2492,46 @@ ENDIF
         Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
         Int_Xferred = Int_Xferred + Buf_size
       END IF
+      CALL IfW_HAWCWind_UnpackOtherState( Re_Buf, Db_Buf, Int_Buf, OutData%HAWCWind, ErrStat2, ErrMsg2 ) ! HAWCWind 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
+      IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
+      IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Re_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Re_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Re_Buf = ReKiBuf( Re_Xferred:Re_Xferred+Buf_size-1 )
+        Re_Xferred = Re_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Db_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Db_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Db_Buf = DbKiBuf( Db_Xferred:Db_Xferred+Buf_size-1 )
+        Db_Xferred = Db_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Int_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Int_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
+        Int_Xferred = Int_Xferred + Buf_size
+      END IF
       CALL IfW_BladedFFWind_UnpackOtherState( Re_Buf, Db_Buf, Int_Buf, OutData%BladedFFWind, ErrStat2, ErrMsg2 ) ! BladedFFWind 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
@@ -2611,6 +2699,9 @@ ENDIF
       CALL IfW_BladedFFWind_CopyParam( SrcParamData%BladedFFWind, DstParamData%BladedFFWind, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
+      CALL IfW_HAWCWind_CopyParam( SrcParamData%HAWCWind, DstParamData%HAWCWind, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
       CALL IfW_UserWind_CopyParam( SrcParamData%UserWind, DstParamData%UserWind, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
@@ -2654,6 +2745,7 @@ ENDIF
   CALL IfW_UniformWind_DestroyParam( ParamData%UniformWind, ErrStat, ErrMsg )
   CALL IfW_TSFFWind_DestroyParam( ParamData%TSFFWind, ErrStat, ErrMsg )
   CALL IfW_BladedFFWind_DestroyParam( ParamData%BladedFFWind, ErrStat, ErrMsg )
+  CALL IfW_HAWCWind_DestroyParam( ParamData%HAWCWind, ErrStat, ErrMsg )
   CALL IfW_UserWind_DestroyParam( ParamData%UserWind, ErrStat, ErrMsg )
 IF (ALLOCATED(ParamData%OutParam)) THEN
 DO i1 = LBOUND(ParamData%OutParam,1), UBOUND(ParamData%OutParam,1)
@@ -2774,6 +2866,23 @@ ENDIF
          DEALLOCATE(Db_Buf)
       END IF
       IF(ALLOCATED(Int_Buf)) THEN ! BladedFFWind
+         Int_BufSz = Int_BufSz + SIZE( Int_Buf )
+         DEALLOCATE(Int_Buf)
+      END IF
+      Int_BufSz   = Int_BufSz + 3  ! HAWCWind: size of buffers for each call to pack subtype
+      CALL IfW_HAWCWind_PackParam( Re_Buf, Db_Buf, Int_Buf, InData%HAWCWind, ErrStat2, ErrMsg2, .TRUE. ) ! HAWCWind 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN ! HAWCWind
+         Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
+         DEALLOCATE(Re_Buf)
+      END IF
+      IF(ALLOCATED(Db_Buf)) THEN ! HAWCWind
+         Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
+         DEALLOCATE(Db_Buf)
+      END IF
+      IF(ALLOCATED(Int_Buf)) THEN ! HAWCWind
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
@@ -2993,6 +3102,34 @@ ENDIF
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
       CALL IfW_BladedFFWind_PackParam( Re_Buf, Db_Buf, Int_Buf, InData%BladedFFWind, ErrStat2, ErrMsg2, OnlySize ) ! BladedFFWind 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Re_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Re_Buf) > 0) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Buf)-1 ) = Re_Buf
+        Re_Xferred = Re_Xferred + SIZE(Re_Buf)
+        DEALLOCATE(Re_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Db_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Db_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Db_Buf) > 0) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Buf)-1 ) = Db_Buf
+        Db_Xferred = Db_Xferred + SIZE(Db_Buf)
+        DEALLOCATE(Db_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Int_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Int_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Int_Buf) > 0) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Buf)-1 ) = Int_Buf
+        Int_Xferred = Int_Xferred + SIZE(Int_Buf)
+        DEALLOCATE(Int_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      CALL IfW_HAWCWind_PackParam( Re_Buf, Db_Buf, Int_Buf, InData%HAWCWind, ErrStat2, ErrMsg2, OnlySize ) ! HAWCWind 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -3385,6 +3522,46 @@ ENDIF
         Int_Xferred = Int_Xferred + Buf_size
       END IF
       CALL IfW_BladedFFWind_UnpackParam( Re_Buf, Db_Buf, Int_Buf, OutData%BladedFFWind, ErrStat2, ErrMsg2 ) ! BladedFFWind 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
+      IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
+      IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Re_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Re_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Re_Buf = ReKiBuf( Re_Xferred:Re_Xferred+Buf_size-1 )
+        Re_Xferred = Re_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Db_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Db_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Db_Buf = DbKiBuf( Db_Xferred:Db_Xferred+Buf_size-1 )
+        Db_Xferred = Db_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Int_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Int_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
+        Int_Xferred = Int_Xferred + Buf_size
+      END IF
+      CALL IfW_HAWCWind_UnpackParam( Re_Buf, Db_Buf, Int_Buf, OutData%HAWCWind, ErrStat2, ErrMsg2 ) ! HAWCWind 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 

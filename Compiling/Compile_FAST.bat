@@ -66,6 +66,7 @@ SET FAST_Loc=..\Source
 SET NWTC_Lib_Loc=%FAST_Loc%\dependencies\NWTC_Library
 SET NETLIB_Loc=%FAST_Loc%\dependencies\NetLib
 SET ED_Loc=%FAST_Loc%\dependencies\ElastoDyn
+SET BD_Loc=%FAST_Loc%\dependencies\BeamDyn
 SET SrvD_Loc=%FAST_Loc%\dependencies\ServoDyn
 SET TMD_Loc=%SrvD_Loc%
 SET AD14_Loc=%FAST_Loc%\dependencies\AeroDyn14
@@ -149,6 +150,8 @@ SET IfW_SOURCES=^
  "%IfW_Loc%\IFW_BladedFFWind.f90" ^
  "%IfW_Loc%\IFW_TSFFWind_Types.f90" ^
  "%IfW_Loc%\IFW_TSFFWind.f90" ^
+ "%IfW_Loc%\IFW_HAWCWind_Types.f90" ^
+ "%IfW_Loc%\IFW_HAWCWind.f90" ^
  "%IfW_Loc%\IFW_UniformWind_Types.f90"^
  "%IfW_Loc%\IFW_UniformWind.f90" ^
  "%IfW_Loc%\IFW_UserWind_Types.f90"^
@@ -193,7 +196,14 @@ SET BEMT_SOURCES=^
 
 SET AD_SOURCES=^
  "%AD_Loc%\AeroDyn_Types.f90"^
+ "%AD_Loc%\AeroDyn_IO.f90"^
  "%AD_Loc%\AeroDyn.f90"
+
+SET BD_SOURCES=^
+ "%BD_Loc%\BeamDyn_Types.f90"^
+ "%BD_Loc%\BeamDyn_Subs.f90"^
+ "%BD_Loc%\BeamDyn_IO.f90"^
+ "%BD_Loc%\BeamDyn.f90"
 
 
 SET ED_SOURCES=^
@@ -306,7 +316,7 @@ ECHO.
 SET CURR_LOC=%FAST_Loc%
 
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
- "%AD_Loc%" -I "%BEMT_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -I^
+ "%AD_Loc%" -I "%BEMT_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -I "%BD_Loc%" -I^
  "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Reg_Loc%"  -I^
  "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -noextrap -O "%CURR_LOC%"
 
@@ -314,6 +324,10 @@ SET CURR_LOC=%FAST_Loc%
 ECHO %Lines%
 SET CURR_LOC=%ED_Loc%
 CALL ::RunRegistry_fmt1 ElastoDyn
+
+ECHO %Lines%
+SET CURR_LOC=%BD_Loc%
+%REGISTRY% "%CURR_LOC%\Registry_BeamDyn.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
 
 
 ECHO %Lines%
@@ -468,6 +482,11 @@ ECHO Compiling ElastoDyn:
 ifort %COMPOPTS% %ED_SOURCES%   /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
+ECHO %Lines%
+ECHO Compiling BeamDyn:
+ifort %COMPOPTS% %BD_SOURCES%   /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
 
 ECHO %Lines%
 ECHO Compiling ServoDyn:
@@ -571,6 +590,7 @@ SET REGISTRY=
 SET NWTC_Lib_Loc=
 SET NETLIB_Loc=
 SET ED_Loc=
+SET BD_Loc=
 SET SrvD_Loc=
 SET TMD_Loc=
 SET AD_Loc=
@@ -593,6 +613,7 @@ SET IfW_SOURCES=
 SET AD_SOURCES=
 SET DWM_SOURCES=
 SET ED_SOURCES=
+SET BD_SOURCES=
 SET HD_SOURCES=
 SET SrvD_SOURCES=
 SET SD_SOURCES=

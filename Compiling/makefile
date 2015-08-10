@@ -43,7 +43,8 @@ LDFLAGS = -O2 -m$(BITS) -fbacktrace
 #  -Wl,--large-address-aware   # not necessary when $(BITS) is 64 (64-bit target)
 #  -Wl,--stack=999999999       # not necessary when $(BITS) is 64
 #  -Wconversion-extra -Wconversion
-#  -fdefault-real-8 -fcheck=bounds,do,mem,pointer -std=f2003 -O0 -v -Wall
+#  -fdefault-real-8 # note this also promotes doubles to 16-bytes if possible
+#  -fcheck=bounds,do,mem,pointer -std=f2003 -O0 -v -Wall
 #  -pg                          # generate debugging info for debugger
 # http://gcc.gnu.org/onlinedocs/gfortran/Option-Index.html#Option-Index
 #
@@ -181,6 +182,8 @@ IfW_SOURCES =                  \
 	IfW_BladedFFWind.f90        \
 	IfW_TSFFWind_Types.f90      \
 	IfW_TSFFWind.f90            \
+	IfW_HAWCWind_Types.f90      \
+	IfW_HAWCWind.f90            \
 	IfW_UniformWind_Types.f90   \
 	IfW_UniformWind.f90         \
 	IfW_UserWind_Types.f90      \
@@ -465,6 +468,8 @@ IfW_UniformWind_Types$(OBJ_EXT):    NWTC_Library$(OBJ_EXT) $(IfW_DIR)/IfW_Unifor
 IfW_IniformWind$(OBJ_EXT):          NWTC_Library$(OBJ_EXT) IfW_UniformWind_Types$(OBJ_EXT)
 IfW_TSFFWind_Types$(OBJ_EXT):       NWTC_Library$(OBJ_EXT) $(IfW_DIR)/IfW_TSFFWind_Types.f90
 IfW_TSFFWind$(OBJ_EXT):             NWTC_Library$(OBJ_EXT) IfW_TSFFWind_Types$(OBJ_EXT)
+IfW_HAWCWind_Types$(OBJ_EXT):       NWTC_Library$(OBJ_EXT) $(IfW_DIR)/IfW_HAWCWind_Types.f90
+IfW_HAWCWind$(OBJ_EXT):             NWTC_Library$(OBJ_EXT) IfW_HAWCWind_Types$(OBJ_EXT)
 IfW_BladedFFWind_Types$(OBJ_EXT):   NWTC_Library$(OBJ_EXT) $(IfW_DIR)/IfW_BladedFFWind_Types.f90
 IfW_BladedFFWind$(OBJ_EXT):         NWTC_Library$(OBJ_EXT) IfW_BladedFFWind_Types$(OBJ_EXT)
 IfW_UserWind_Types$(OBJ_EXT):       NWTC_Library$(OBJ_EXT) $(IfW_DIR)/IfW_UserWind_Types.f90
@@ -473,9 +478,9 @@ Lidar_Types$(OBJ_EXT):              NWTC_Library$(OBJ_EXT) $(IfW_DIR)/Lidar_Type
 Lidar$(OBJ_EXT):                    NWTC_Library$(OBJ_EXT) Lidar_Types$(OBJ_EXT) InflowWind_Subs$(OBJ_EXT)
 InflowWind_Types$(OBJ_EXT):         NWTC_Library$(OBJ_EXT)  IfW_UniformWind_Types$(OBJ_EXT) Lidar_Types$(OBJ_EXT) \
                                       IfW_TSFFWind_Types$(OBJ_EXT) IfW_BladedFFWind_Types$(OBJ_EXT) IfW_UserWind_Types$(OBJ_EXT) \
-                                      $(IfW_DIR)/InflowWind_Types.f90
+                                      IfW_HAWCWind_Types$(OBJ_EXT) $(IfW_DIR)/InflowWind_Types.f90
 InflowWind_Subs$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  InflowWind_Types$(OBJ_EXT) IfW_UniformWind$(OBJ_EXT) \
-                                      IfW_TSFFWind$(OBJ_EXT) IfW_BladedFFWind$(OBJ_EXT) IfW_UserWind$(OBJ_EXT)
+                                      IfW_TSFFWind$(OBJ_EXT) IfW_BladedFFWind$(OBJ_EXT) IfW_UserWind$(OBJ_EXT) IfW_HAWCWind$(OBJ_EXT)
 InflowWind$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  InflowWind_Subs$(OBJ_EXT) Lidar$(OBJ_EXT)
 
 

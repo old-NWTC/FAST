@@ -3,8 +3,8 @@
 # Module IfW_BladedFFWind_Types contains all of the user-defined types needed in IfW_BladedFFWind. It also contains copy, destroy, pack, and
 # unpack routines associated with each defined data types.
 ###################################################################################################################################
-# File last committed: $Date: 2015-04-20 18:50:53 -0600 (Mon, 20 Apr 2015) $
-# (File) Revision #: $Rev: 163 $
+# File last committed: $Date: 2015-08-06 11:56:09 -0600 (Thu, 06 Aug 2015) $
+# (File) Revision #: $Rev: 176 $
 # URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization2/Source/Registry/IfW_BladedFFWind.txt $
 ###################################################################################################################################
 # Entries are of the form
