@@ -648,10 +648,10 @@ SUBROUTINE InflowWind_Init( InitData,   InputGuess,    ParamData,               
             InitOutData%WindFileInfo%WindType            =  HAWC_WindNumber
             InitOutData%WindFileInfo%RefHt               =  ParamData%HAWCWind%RefHt
             InitOutData%WindFileInfo%RefHt_Set           =  .TRUE.
-            InitOutData%WindFileInfo%DT                  =  1.0_ReKi / (ParamData%HAWCWind%URef * ParamData%HAWCWind%deltaXInv) 
+            InitOutData%WindFileInfo%DT                  =  ParamData%HAWCWind%deltaXInv / ParamData%HAWCWind%URef
             InitOutData%WindFileInfo%NumTSteps           =  ParamData%HAWCWind%nx
             InitOutData%WindFileInfo%ConstantDT          =  .TRUE.
-            InitOutData%WindFileInfo%TRange              =  1.0_ReKi / (ParamData%HAWCWind%URef * ParamData%HAWCWind%LengthX) 
+            InitOutData%WindFileInfo%TRange              =  ParamData%HAWCWind%LengthX / ParamData%HAWCWind%URef
             InitOutData%WindFileInfo%TRange_Limited      =  .FALSE.
             InitOutData%WindFileInfo%YRange              =  (/ -ParamData%HAWCWind%LengthYHalf, ParamData%HAWCWind%LengthYHalf /)
             InitOutData%WindFileInfo%YRange_Limited      =  .TRUE.      ! Hard boundaries enforced in y-direction

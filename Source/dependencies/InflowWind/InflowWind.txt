@@ -3,8 +3,8 @@
 # Module InflowWind_Types contains all of the user-defined types needed in InflowWind. It also contains copy, destroy, pack, and
 # unpack routines associated with each defined data types.
 ###################################################################################################################################
-# File last committed: $Date: 2015-04-27 14:06:24 -0600 (Mon, 27 Apr 2015) $
-# (File) Revision #: $Rev: 171 $
+# File last committed: $Date: 2015-08-11 13:38:01 -0600 (Tue, 11 Aug 2015) $
+# (File) Revision #: $Rev: 177 $
 # URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization2/Source/Registry/InflowWind.txt $
 ###################################################################################################################################
 # Entries are of the form

@@ -32,7 +32,7 @@ MODULE IfW_HAWCWind
 !**********************************************************************************************************************************
 ! File last committed: $Date: 2014-07-29 13:30:04 -0600 (Tue, 29 Jul 2014) $
 ! (File) Revision #: $Rev: 125 $
-! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization2/Source/HAWCWind.f90 $
+! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization2/Source/IfW_HAWCWind.f90 $
 !**********************************************************************************************************************************
 
    USE                                          NWTC_Library
@@ -174,11 +174,13 @@ SUBROUTINE IfW_HAWCWind_Init(InitInp, PositionXYZ, p, OtherStates, &
       WRITE(InitInp%SumFileUnit,'(A)', IOSTAT=TmpErrStat)    'HAWC wind type.  Read by InflowWind sub-module '//TRIM(GetNVD(IfW_HAWCWind_Ver))      
       
       WRITE(InitInp%SumFileUnit,'(A34,G12.4)',IOSTAT=TmpErrStat)    '     Reference height (m):        ',p%RefHt
-      WRITE(InitInp%SumFileUnit,'(A34,G12.4)',IOSTAT=TmpErrStat)    '     Timestep (s):                ',1.0_ReKi / (p%URef * p%deltaXInv)
+      WRITE(InitInp%SumFileUnit,'(A34,G12.4)',IOSTAT=TmpErrStat)    '     Timestep (s):                ',p%deltaXInv / p%URef
       WRITE(InitInp%SumFileUnit,'(A34,I12)',  IOSTAT=TmpErrStat)    '     Number of timesteps:         ',p%nx
       WRITE(InitInp%SumFileUnit,'(A34,G12.4)',IOSTAT=TmpErrStat)    '     Mean windspeed (m/s):        ',p%URef
       WRITE(InitInp%SumFileUnit,'(A)',        IOSTAT=TmpErrStat)    '     Time range (s):              [ '// &
-                     TRIM(Num2LStr(0.0_ReKi))//' : '//TRIM(Num2LStr( 1.0_ReKi / (p%URef * p%LengthX) ))//' ]'
+                     TRIM(Num2LStr(0.0_ReKi))//' : '//TRIM(Num2LStr( p%LengthX / p%URef ))//' ]'
+      WRITE(InitInp%SumFileUnit,'(A)',        IOSTAT=TmpErrStat)    '     X range (m):                 [ '// &
+                     TRIM(Num2LStr(0.0_ReKi))//' : '//TRIM(Num2LStr( p%LengthX ))//' ]'
       WRITE(InitInp%SumFileUnit,'(A)',        IOSTAT=TmpErrStat)    '     Y range (m):                 [ '// &
                      TRIM(Num2LStr(-p%LengthYHalf))//' : '//TRIM(Num2LStr(p%LengthYHalf))//' ]'
       WRITE(InitInp%SumFileUnit,'(A)',        IOSTAT=TmpErrStat)    '     Z range (m):                 [ '// &
@@ -296,13 +298,19 @@ SUBROUTINE ReadTurbulenceData(p, InitInp, ErrStat, ErrMsg)
 !     OC3/Kenneth Thompson documentation.
 
       
+      ! this could take a while, so we'll write a message indicating what's going on:
+         
+   CALL WrScr( NewLine//'   Reading HAWC wind files with grids of '//&
+      TRIM( Num2LStr(p%nx) )//' x '//TRIM( Num2LStr(p%ny) )//' x '//TRIM( Num2LStr(p%nz) )//' points.' )
+            
+      
    CALL GetNewUnit( UnWind, TmpErrStat, TmpErrMsg )    
       CALL SetErrStat(TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, RoutineName) 
       IF (ErrStat >= AbortErrLev) RETURN
-         
+                     
       ! The array must be filled so that x(i) < x(i+1), y(i) < y(i+1), and z(i) < z(i+1)
-      ! Also, note that the time axis is the negative x axis.
-
+      ! Also, note that the time axis is the negative x axis.      
+      
    DO IC = 1,NC
 
       CALL OpenBInpFile ( UnWind, InitInp%WindFileName(IC), TmpErrStat, TmpErrMsg )
@@ -311,20 +319,19 @@ SUBROUTINE ReadTurbulenceData(p, InitInp, ErrStat, ErrMsg)
 
       DO IX = p%nx,1,-1                  ! Time is the opposite of X ....
          DO IY = p%ny,1,-1
-            DO IZ = 1,p%nz
+            !DO IZ = 1,p%nz
 
-               READ( UnWind, IOSTAT=ErrStat ) p%HAWCData(iz,iy,ix,ic)  ! note that HAWCData is SiKi (4-byte reals, not default kinds)
+               READ( UnWind, IOSTAT=ErrStat ) p%HAWCData(:,iy,ix,ic)  ! note that HAWCData is SiKi (4-byte reals, not default kinds)
 
                IF (ErrStat /= 0) THEN
                   TmpErrMsg = ' Error reading binary data from "'//TRIM(InitInp%WindFileName(IC))//'". I/O error ' &
-                                       //TRIM(Num2LStr(ErrStat))//' occurred at IZ='//TRIM(Num2LStr(IZ))//&
-                                       ', IY='//TRIM(Num2LStr(IY))//', IX='//TRIM(Num2LStr(IX))//'.'
+                                       //TRIM(Num2LStr(ErrStat))//' occurred at IY='//TRIM(Num2LStr(IY))//', IX='//TRIM(Num2LStr(IX))//'.'
                   CLOSE ( UnWind )
                   CALL SetErrStat(ErrID_Fatal, TmpErrMsg, ErrStat, ErrMsg, RoutineName) 
                   RETURN
                END IF
 
-            END DO
+            !END DO
          END DO
       END DO
 
@@ -418,8 +425,8 @@ SUBROUTINE ScaleTurbulence(p, InitInp, Interval, InitOut, OtherStates, ErrStat, 
 #else
 
             ! roughly the point in the center of the grid
-         iz = p%nz / 2 ! integer division
-         iy = p%ny / 2 ! integer division
+         iz = (p%nz + 1) / 2 ! integer division
+         iy = (p%ny + 1) / 2 ! integer division
          
          DO ix=1,p%nx 
             v = p%HAWCData(iz,iy,ix,:)
@@ -428,8 +435,8 @@ SUBROUTINE ScaleTurbulence(p, InitInp, Interval, InitOut, OtherStates, ErrStat, 
             vSum2 = vSum2 + v**2
          ENDDO ! IT
                
-         vMean = vSum/n 
-         ActualSigma = SQRT( ABS( (vSum2/n) - vMean**2 ) )
+         vMean = vSum/p%nx 
+         ActualSigma = SQRT( ABS( (vSum2/p%nx) - vMean**2 ) )
                      
          !InitOut%sf = InitInp%SigmaF / ActualSigma  ! factor = Target / actual        
          do ic=1,nc

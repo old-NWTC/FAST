@@ -1262,27 +1262,27 @@ CONTAINS
          ! Start and end times of the scaling, but only if ScaleMethod is set.
       IF ( ( InputFileData%HAWC_ScaleMethod == 1_IntKi ) .OR. (InputFileData%HAWC_ScaleMethod == 2_IntKi ) ) THEN
             ! Check that the start time is >= 0.  NOTE: this may be an invalid test.
-         IF ( InputFileData%HAWC_TStart < 0.0_ReKi ) THEN
-            CALL SetErrStat( ErrID_Fatal,' HAWC wind scaling TStart must be zero or positive.',  &
-                  ErrStat,ErrMsg,RoutineName)
-         ENDIF
+         !IF ( InputFileData%HAWC_TStart < 0.0_ReKi ) THEN
+         !   CALL SetErrStat( ErrID_Fatal,' HAWC wind scaling TStart must be zero or positive.',  &
+         !         ErrStat,ErrMsg,RoutineName)
+         !ENDIF
 
-         IF ( InputFileData%HAWC_TStart < 0.0_ReKi ) THEN
-            CALL SetErrStat( ErrID_Fatal,' HAWC wind scaling TStart must be zero or positive.',  &
-                  ErrStat,ErrMsg,RoutineName)
-         ENDIF
+         !IF ( InputFileData%HAWC_TStart < 0.0_ReKi ) THEN
+         !   CALL SetErrStat( ErrID_Fatal,' HAWC wind scaling TStart must be zero or positive.',  &
+         !         ErrStat,ErrMsg,RoutineName)
+         !ENDIF
 
-         IF ( InputFileData%HAWC_TStart > InputFileData%HAWC_TEnd ) THEN
-            CALL SetErrStat( ErrID_Fatal,' HAWC wind scaling start time must occur before the end time.',   &
-                  ErrStat,ErrMsg,RoutineName)
-         ENDIF
+         !IF ( InputFileData%HAWC_TStart > InputFileData%HAWC_TEnd ) THEN
+         !   CALL SetErrStat( ErrID_Fatal,' HAWC wind scaling start time must occur before the end time.',   &
+         !         ErrStat,ErrMsg,RoutineName)
+         !ENDIF
 
 !FIXME:  How do we want to handle having the start and end times both being exactly zero?  Is that a do not apply, or apply for all time?
 !FIXME:  What about TStart == TEnd ?
-         IF ( EqualRealNos( InputFileData%HAWC_TStart, InputFileData%HAWC_TEnd ) ) THEN
-            CALL SetErrStat( ErrID_Severe,' Start and end time for HAWC wind scaling are identical.  No time elapses.', &
-                  ErrStat,ErrMsg,RoutineName)
-         ENDIF
+         !IF ( EqualRealNos( InputFileData%HAWC_TStart, InputFileData%HAWC_TEnd ) ) THEN
+         !   CALL SetErrStat( ErrID_Severe,' Start and end time for HAWC wind scaling are identical.  No time elapses.', &
+         !         ErrStat,ErrMsg,RoutineName)
+         !ENDIF
 
       ENDIF
 

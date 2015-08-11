@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-08-06 15:01:21 -0600 (Thu, 06 Aug 2015) $
-! (File) Revision #: $Rev: 146 $
+! File last committed: $Date: 2015-08-11 14:00:11 -0600 (Tue, 11 Aug 2015) $
+! (File) Revision #: $Rev: 147 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/AeroDyn/AeroDyn.f90 $
 !**********************************************************************************************************************************
 module AeroDyn
@@ -1635,7 +1635,7 @@ SUBROUTINE Init_BEMTmodule( InputFileData, u_AD, u, p, x, xd, z, OtherState, y, 
    InitInp%a_s     = InputFileData%SpdSound
    
    
-   call BEMT_Init(InitInp, u, p%BEMT,  x, xd, z, OtherState, y, Interval, InitOut, ErrStat2, ErrMsg2 )
+   call BEMT_Init(InitInp, u, p%BEMT,  x, xd, z, OtherState, p%AFI%AFInfo, y, Interval, InitOut, ErrStat2, ErrMsg2 )
       call SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)   
          
    if (.not. equalRealNos(Interval, p%DT) ) &
