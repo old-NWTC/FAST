@@ -11,7 +11,37 @@
 ! ------------------------------------------------------------------------------
 0.75        Re                ! Reynolds numbers in millions
 0.0         Ctrl              ! Control setting (must be 0 for current AirfoilInfo)
-False       InclUAdata        ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefs below this line
+true       InclUAdata        ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefs below this line
+alpha0         -0.38
+alpha1          30
+alpha2         -30
+eta_e           1.00               ! Recovery factor in the range [0.85 - 0.95]
+C_nalpha        7.12499
+T_f0            2.0                ! seconds
+T_V0            7.0
+T_p             1.6
+T_VL            9.0
+b1              "Default" 
+b2              "Default" 
+b5              0.5
+A1              "Default" 
+A2              "Default" 
+A5              "Default" 
+S1              18.269  
+S2              -11.324   
+S3              18.269  
+S4              -11.324
+Cn1             3.5
+Cn2            -0.8
+St_sh           "Default" 
+Cd0             0.001600
+Cm0             -0.032800
+k0              0.0
+k1              0.0
+k2              0.0
+k3              0.0
+k1_hat          0.0
+x_cp_bar        "Default" 
 !........................................
   61       NumAlf            ! Number of data lines in the following table
 !    Alpha      Cl      Cd    Cm
