@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.08.01, 21-May-2015)
+! FAST Registry (v2.08.02, 12-Aug-2015)
 !*********************************************************************************************************************************
 ! AeroDyn14_Types
 !.................................................................................................................................
@@ -34,6 +34,7 @@ MODULE AeroDyn14_Types
 USE IfW_UniformWind_Types
 USE IfW_TSFFWind_Types
 USE IfW_BladedFFWind_Types
+USE IfW_HAWCWind_Types
 USE IfW_UserWind_Types
 USE Lidar_Types
 USE InflowWind_Types
@@ -327,7 +328,7 @@ IMPLICIT NONE
 ! =======================
 ! =========  WindParms  =======
   TYPE, PUBLIC :: WindParms
-    REAL(ReKi)  :: Rho      ! Air density [kg/m&3]
+    REAL(ReKi)  :: Rho      ! Air density [kg/m^3]
     REAL(ReKi)  :: KinVisc      ! Kinematic air viscosity [(m^2/sec)]
   END TYPE WindParms
 ! =======================
@@ -362,6 +363,7 @@ IMPLICIT NONE
   TYPE, PUBLIC :: AD14_InitOutputType
     TYPE(ProgDesc)  :: Ver      ! version information [-]
     TYPE(DWM_InitOutputType)  :: DWM_InitOutput 
+    REAL(ReKi)  :: AirDens      ! Air density [kg/m^3]
   END TYPE AD14_InitOutputType
 ! =======================
 ! =========  AD14_ContinuousStateType  =======
@@ -11571,6 +11573,7 @@ ENDIF
       CALL DWM_CopyInitOutput( SrcInitOutputData%DWM_InitOutput, DstInitOutputData%DWM_InitOutput, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
+    DstInitOutputData%AirDens = SrcInitOutputData%AirDens
  END SUBROUTINE AD14_CopyInitOutput
 
  SUBROUTINE AD14_DestroyInitOutput( InitOutputData, ErrStat, ErrMsg )
@@ -11656,6 +11659,7 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+      Re_BufSz   = Re_BufSz   + 1  ! AirDens
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -11739,6 +11743,8 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%AirDens
+      Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE AD14_PackInitOutput
 
  SUBROUTINE AD14_UnPackInitOutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -11853,6 +11859,8 @@ ENDIF
       IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+      OutData%AirDens = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE AD14_UnPackInitOutput
 
  SUBROUTINE AD14_CopyContState( SrcContStateData, DstContStateData, CtrlCode, ErrStat, ErrMsg )

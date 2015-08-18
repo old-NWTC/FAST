@@ -22,6 +22,7 @@
     <ClCompile Include="..\Source\Test_FAST_Library.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\dependencies\OpenFOAM\OpenFOAM_Types.h" />
     <ClInclude Include="..\Source\FAST_Library.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -76,19 +77,23 @@
     <TargetExt>.exe</TargetExt>
     <OutDir>..\..\bin\</OutDir>
     <TargetName>$(ProjectName)_$(PlatformName)</TargetName>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\Source;..\..\Source\dependencies\OpenFOAM;</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt>.exe</TargetExt>
     <OutDir>..\..\bin\</OutDir>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\Source;..\..\Source\dependencies\OpenFOAM;</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetExt>.exe</TargetExt>
     <OutDir>..\..\bin\</OutDir>
     <TargetName>$(ProjectName)_$(PlatformName)</TargetName>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\Source;..\..\Source\dependencies\OpenFOAM;</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetExt>.exe</TargetExt>
     <OutDir>..\..\bin\</OutDir>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\Source;..\..\Source\dependencies\OpenFOAM;</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

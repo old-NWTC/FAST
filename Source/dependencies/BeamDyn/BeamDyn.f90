@@ -704,18 +704,30 @@ SUBROUTINE BD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    CALL BD_InputGlobalLocal(p,u_tmp,ErrStat2,ErrMsg2)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
-   CALL BD_ComputeBladeMass(p%uuN0,x%q,x%dqdt,p%Stif0_GL,p%Mass0_GL,p%gravity,u_tmp,&
-                            p%damp_flag,p%beta,                                     &
-                            p%node_elem,p%dof_node,p%elem_total,                    &
-                            p%dof_total,p%node_total,p%ngp,                         &
-                            p%blade_mass,ErrStat2,ErrMsg2)
-      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+!   CALL BD_ComputeBladeMass(p%uuN0,x%q,x%dqdt,p%Stif0_GL,p%Mass0_GL,p%gravity,u_tmp,&
+!                            p%damp_flag,p%beta,                                     &
+!                            p%node_elem,p%dof_node,p%elem_total,                    &
+!                            p%dof_total,p%node_total,p%ngp,                         &
+!                            p%blade_mass,ErrStat2,ErrMsg2)
+!      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL BD_ComputeBladeMassNew(p%uuN0,p%Mass0_GL,p%Gauss,p%elem_total,p%node_elem,p%dof_total,&
                                p%dof_node,p%ngp,p%blade_mass,p%blade_CG,ErrStat2,ErrMsg2)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL BD_CalcIC(u_tmp,p,x,OtherState,ErrStat2,ErrMsg2)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
+   CALL AllocAry(p%IniDisp,p%dof_total,'p%IniDisp',ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+   CALL AllocAry(p%IniVelo,p%dof_total,'p%IniVelo',ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      if (ErrStat >= AbortErrLev) then
+         call cleanup()
+         return
+      end if
+   p%IniDisp(:) = 0.0D0
+   p%IniVelo(:) = 0.0D0
+   p%IniDisp(:) = x%q(:)
+   p%IniVelo(:) = x%dqdt(:)
    ! Define initial guess for the system outputs here:
 
    y%BldForce%Force(:,:)    = 0.0D0
@@ -4150,15 +4162,13 @@ SUBROUTINE BD_GA2(t,n,u,utimes,p,x,xd,z,OtherState,ErrStat,ErrMsg)
    CALL BD_CopyContState(x, x_tmp, MESH_NEWCOPY, ErrStat2, ErrMsg2)
       call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName) 
       
-   CALL BD_CopyOtherState(OtherState, OS_tmp, MESH_NEWCOPY, ErrStat2, ErrMsg2)
-      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
       if (ErrStat >= AbortErrLev) then
          call cleanup()
          return
       end if
-
    ! initialize accelerations here:
-   if ( .not. OtherState%InitAcc) then
+!   if ( .not. OtherState%InitAcc) then
+   if ( n .EQ. 0 .or. .not. OtherState%InitAcc) then
       !Qi, call something to initialize
       call BD_Input_extrapinterp( u, utimes, u_interp, t, ErrStat2, ErrMsg2 )
           call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
@@ -4166,6 +4176,13 @@ SUBROUTINE BD_GA2(t,n,u,utimes,p,x,xd,z,OtherState,ErrStat,ErrMsg)
           call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
       OtherState%InitAcc = .true. 
    end if
+
+   CALL BD_CopyOtherState(OtherState, OS_tmp, MESH_NEWCOPY, ErrStat2, ErrMsg2)
+      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+      if (ErrStat >= AbortErrLev) then
+         call cleanup()
+         return
+      end if
 
    call BD_Input_extrapinterp( u, utimes, u_interp, t+p%dt, ErrStat2, ErrMsg2 )
       call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
@@ -5054,7 +5071,9 @@ SUBROUTINE BD_InitAcc( t, u, p, x, OtherState, ErrStat, ErrMsg )
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
        
    OtherState%Acc(:) =  OS_tmp%Acc(:)
-   OtherState%Xcc(:) =  OS_tmp%Acc(:)
+   OtherState%Acc(1:3) = u_tmp%RootMotion%TranslationAcc(1:3,1)
+   OtherState%Acc(4:6) = u_tmp%RootMotion%RotationAcc(1:3,1)
+   OtherState%Xcc(:) =  OtherState%Acc(:)
 
    call cleanup()
    return

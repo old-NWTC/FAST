@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-08-11 14:00:11 -0600 (Tue, 11 Aug 2015) $
-! (File) Revision #: $Rev: 147 $
+! File last committed: $Date: 2015-08-14 11:48:51 -0600 (Fri, 14 Aug 2015) $
+! (File) Revision #: $Rev: 149 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/AeroDyn/AeroDyn.f90 $
 !**********************************************************************************************************************************
 module AeroDyn
@@ -75,6 +75,8 @@ subroutine AD_SetInitOut(p, InitOut, errStat, errMsg)
 
    errStat = ErrID_None
    errMsg  = ""
+   
+   InitOut%AirDens = p%AirDens
    
    call AllocAry( InitOut%WriteOutputHdr, p%numOuts, 'WriteOutputHdr', errStat2, errMsg2 )
       call SetErrStat( errStat2, errMsg2, errStat, errMsg, RoutineName )
@@ -1335,7 +1337,7 @@ SUBROUTINE ValidateInputData( InputFileData, NumBl, ErrStat, ErrMsg )
          "In this version, UAMod must be 2 (Gonzalez's variant) or 3 (Minemma/Pierce variant).", ErrStat, ErrMsg, RoutineName )  ! NOTE: for later-  1 (baseline/original) 
    end if
    
-   if (.not. InputFileData%FLookUp) call SetErrStat( ErrID_Fatal, 'FLookUp must be TRUE for this version.', ErrStat, ErrMsg, RoutineName )
+   if (.not. InputFileData%FLookUp ) call SetErrStat( ErrID_Fatal, 'FLookUp must be TRUE for this version.', ErrStat, ErrMsg, RoutineName )
    
          ! validate the AFI input data because it doesn't appear to be done in AFI
    if (InputFileData%NumAFfiles < 1) call SetErrStat( ErrID_Fatal, 'The number of unique airfoil tables (NumAFfiles) must be greater than zero.', ErrStat, ErrMsg, RoutineName )   
@@ -1884,7 +1886,7 @@ SUBROUTINE getLocalTowerProps(p, u, BladeNodePosition, theta_tower_trans, W_towe
    end if
    
    if ( TwoNorm(r_TowerBlade) < 0.5_ReKi*TwrDiam ) then
-      call SetErrStat(ErrID_Severe, "Tower strike.", ErrStat, ErrMsg, RoutineName) ! bjj: fatal error? FIX ME? TODO
+      call SetErrStat(ErrID_Severe, "Tower strike.", ErrStat, ErrMsg, RoutineName)
    end if
    
    

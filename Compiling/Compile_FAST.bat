@@ -73,6 +73,7 @@ SET AD14_Loc=%FAST_Loc%\dependencies\AeroDyn14
 SET AD_Loc=%FAST_Loc%\dependencies\AeroDyn
 SET DWM_Loc=%AD14_Loc%
 SET IfW_Loc=%FAST_Loc%\dependencies\InflowWind
+SET OpFM_Loc=%FAST_Loc%\dependencies\OpenFOAM
 SET HD_Loc=%FAST_Loc%\dependencies\HydroDyn
 SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
 SET MAP_Loc=%FAST_Loc%\dependencies\MAP
@@ -161,6 +162,10 @@ SET IfW_SOURCES=^
  "%IfW_Loc%\InflowWind_Subs.f90"^
  "%IfW_Loc%\Lidar.f90"^
  "%IfW_Loc%\InflowWind.f90"
+
+SET OpFM_SOURCES=^
+ "%OpFM_Loc%\OpenFOAM_Types.f90" ^
+ "%OpFM_Loc%\OpenFOAM.f90"
 
 
 SET AD14_SOURCES=^
@@ -318,7 +323,7 @@ SET CURR_LOC=%FAST_Loc%
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
  "%AD_Loc%" -I "%BEMT_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -I "%BD_Loc%" -I^
  "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Reg_Loc%"  -I^
- "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -noextrap -O "%CURR_LOC%"
+ "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -noextrap -O "%CURR_LOC%"
 
 
 ECHO %Lines%
@@ -396,6 +401,10 @@ SET CURR_LOC=%IceF_Loc%
 ECHO %Lines%
 SET CURR_LOC=%IceD_Loc%
 %REGISTRY% "%CURR_LOC%\Registry_IceDyn.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
+
+ECHO %Lines%
+SET CURR_LOC=%OpFM_Loc%
+%REGISTRY% "%CURR_LOC%\OpenFOAM_Registry.txt" -I "%NWTC_Lib_Loc%" -ccode -O "%CURR_LOC%"
 
 
 ECHO %Lines%
@@ -535,6 +544,11 @@ IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 
 ECHO %Lines%
+ECHO Compiling OpenFOAM integrations:
+ifort %COMPOPTS% %OpFM_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
+ECHO %Lines%
 ECHO Compiling FAST glue code:
 ifort %COMPOPTS% %FAST_SOURCES% /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
@@ -597,6 +611,7 @@ SET AD_Loc=
 SET DWM_Loc=
 SET IfW_Loc=
 SET IfW_Reg_Loc=
+SET OpFM_Loc=
 SET HD_Loc=
 SET HD_Reg_Loc=
 SET SD_Loc=
@@ -610,6 +625,7 @@ SET IceF_RanLux_Loc=
 
 SET NWTC_SOURCES=
 SET IfW_SOURCES=
+SET OpFM_SOURCES=
 SET AD_SOURCES=
 SET DWM_SOURCES=
 SET ED_SOURCES=

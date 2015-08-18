@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-08-06 14:51:22 -0600 (Thu, 06 Aug 2015) $
-! (File) Revision #: $Rev: 324 $
+! File last committed: $Date: 2015-08-14 09:44:38 -0600 (Fri, 14 Aug 2015) $
+! (File) Revision #: $Rev: 325 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Num.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_Num
@@ -4029,6 +4029,7 @@ END SUBROUTINE InterpStpReal3D
       INTEGER(4)                   :: EndSec                               ! The second when the simulations is expected to complete.
       INTEGER(4)                   :: TimeAry  (8)                         ! An array containing the elements of the start time.
 
+      CHARACTER(MaxWrScrLen)       :: BlankLine
       CHARACTER( 8)                :: ETimeStr                             ! String containing the end time.
 
 
@@ -4063,8 +4064,10 @@ END SUBROUTINE InterpStpReal3D
 
       WRITE (ETimeStr,"(I2.2,2(':',I2.2))")  EndHour, EndMin, EndSec
 
+      BlankLine = ""
+      CALL WrOver( BlankLine )  ! BlankLine contains MaxWrScrLen spaces
       CALL WrOver ( ' Timestep: '//TRIM( Num2LStr( NINT( ZTime ) ) )//' of '//TRIM( Num2LStr( TMax ) )// &
-                    ' seconds.  Estimated final completion at '//ETimeStr//'.'                             )
+                    ' seconds. Estimated final completion at '//ETimeStr//'.'                             )
 
          ! Let's save this time as the previous time for the next call to the routine
       PrevClockTime = CurrClockTime

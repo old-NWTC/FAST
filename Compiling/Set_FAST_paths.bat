@@ -36,6 +36,8 @@ SET DWM_Loc=%AD14_Loc%\DWM
 SET IfW_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\InflowWind\SVNdirectory\branches\modularization2\Source
 SET IfW_Reg_Loc=%IfW_Loc%\Registry
 
+SET OpFM_Loc=%FAST_Loc%\dependencies\OpenFOAM
+
 SET SD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\SubDyn\SVNdirectory\trunk\Source
 
 SET HD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\HydroDyn\SVNdirectory\trunk\Source

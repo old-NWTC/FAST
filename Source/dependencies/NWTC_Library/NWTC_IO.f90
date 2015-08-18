@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-08-06 14:51:22 -0600 (Thu, 06 Aug 2015) $
-! (File) Revision #: $Rev: 324 $
+! File last committed: $Date: 2015-08-14 09:44:38 -0600 (Fri, 14 Aug 2015) $
+! (File) Revision #: $Rev: 325 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_IO.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_IO
@@ -35,7 +35,7 @@ MODULE NWTC_IO
 !=======================================================================
 
    TYPE(ProgDesc), PARAMETER    :: NWTC_Ver = &                               ! The name, version, and date of the NWTC Subroutine Library.
-                                    ProgDesc( 'NWTC Subroutine Library', 'v2.06.03a-bjj', '6-Aug-2015')
+                                    ProgDesc( 'NWTC Subroutine Library', 'v2.06.03a-bjj', '14-Aug-2015')
 
    TYPE, PUBLIC                 :: FNlist_Type                                ! This type stores a linked list of file names.
       CHARACTER(1024)                        :: FileName                      ! A file name.
@@ -122,6 +122,7 @@ MODULE NWTC_IO
    INTERFACE AllocPAry
       MODULE PROCEDURE AllIPAry1
       MODULE PROCEDURE AllIPAry2
+      MODULE PROCEDURE AllFPAry1
       MODULE PROCEDURE AllRPAry2
       MODULE PROCEDURE AllRPAry3
 !      MODULE PROCEDURE AllRPAry4   !not yet coded
@@ -737,6 +738,38 @@ CONTAINS
    Ary = 0
    RETURN
    END SUBROUTINE AllIPAry2 
+!=======================================================================
+   SUBROUTINE AllFPAry1 (  Ary, AryDim1, Descr, ErrStat, ErrMsg )
+
+      ! This routine allocates a 1-D REAL array.
+      ! Argument declarations.
+
+   REAL(C_FLOAT), POINTER            :: Ary    (:)                                 ! Array to be allocated
+   INTEGER,      INTENT(IN)          :: AryDim1                                    ! The size of the first dimension of the array.
+   INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status
+   CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
+   CHARACTER(*), INTENT(IN)          :: Descr                                      ! Brief array description.
+
+
+   IF ( ASSOCIATED(Ary) ) THEN
+      DEALLOCATE(Ary)
+      !ErrStat = ErrID_Warn
+      !ErrMsg = " AllRPAry2: Ary already allocated."
+   END IF
+
+   ALLOCATE ( Ary(AryDim1) , STAT=ErrStat )
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = 'Error allocating '//TRIM(Num2LStr(AryDim1*BYTES_IN_REAL))//&
+                  ' bytes of memory for the '//TRIM( Descr )//' array.'
+   ELSE
+      ErrStat = ErrID_None
+      ErrMsg  = ''
+   END IF
+   
+   Ary = 0
+   RETURN
+   END SUBROUTINE AllFPAry1
 !=======================================================================
    SUBROUTINE AllRPAry2 (  Ary, AryDim1, AryDim2, Descr, ErrStat, ErrMsg )
 

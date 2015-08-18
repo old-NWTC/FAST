@@ -232,11 +232,11 @@
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IfW_BladedFFWind" Description="Running Registry for IfW_BladedFFWind" Outputs="..\..\Source\dependencies\InflowWind\IfW_BladedFFWind_Types.f90"/></FileConfiguration></File>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_BladedFFWind_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_HAWCWind.txt">
-					<FileConfiguration Name="Debug|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IfW_HAWCWind" Description="Running Registry for IfW_HAWCWindWind" Outputs="..\..\Source\dependencies\InflowWind\IfW_HAWCWindWind_Types.f90"/></FileConfiguration>
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IfW_HAWCWind" Description="Running Registry for IfW_HAWCWindWind" Outputs="..\..\Source\dependencies\InflowWind\IfW_HAWCWind_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IfW_HAWCWind" Description="Running Registry for IfW_HAWCWindWind" Outputs="..\..\Source\dependencies\InflowWind\IfW_HAWCWindWind_Types.f90"/></FileConfiguration></File>
-<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_HAWCWind_Types.f90"/>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IfW_HAWCWind" Description="Running Registry for IfW_HAWCWindWind" Outputs="..\..\Source\dependencies\InflowWind\IfW_HAWCWind_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_HAWCWind_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_TSFFWind.txt">
 			<FileConfiguration Name="Debug|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IfW_TSFFWind" Description="Running Registry for IfW_TSFFWind" Outputs="..\..\Source\dependencies\InflowWind\IfW_TSFFWind_Types.f90"/></FileConfiguration>
@@ -298,6 +298,15 @@
 		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn.f90"/>
 		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn_IO.f90"/></Filter></Filter>
+		<Filter Name="OpenFOAM Integration">
+		<Filter Name="RegistryFiles">
+		<File RelativePath="..\..\Source\dependencies\OpenFOAM\OpenFOAM_Registry.txt">
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat OpenFOAM" Description="Running Registry for OpenFOAM" Outputs="..\..\Source\dependencies\OpenFOAM\OpenFOAM_Types.f90"/></FileConfiguration>
+			<FileConfiguration Name="Release|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat OpenFOAM" Description="Running Registry for OpenFOAM" Outputs="..\..\Source\dependencies\OpenFOAM\OpenFOAM_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\Source\dependencies\OpenFOAM\OpenFOAM_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\OpenFOAM\OpenFOAM.f90"/></Filter>
 		<Filter Name="NWTC_Library">
 		<Filter Name="NetLib">
 		<Filter Name="FFTPACK">

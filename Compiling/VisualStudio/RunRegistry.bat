@@ -41,6 +41,7 @@ SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
 SET IceF_Loc=%FAST_Loc%\dependencies\IceFloe
 SET IceD_Loc=%FAST_Loc%\dependencies\IceDyn
 SET MD_Loc=%FAST_Loc%\dependencies\MoorDyn
+SET OpFM_Loc=%FAST_Loc%\dependencies\OpenFOAM
 
 SET HD_Reg_Loc=%HD_Loc%
 SET IfW_Reg_Loc=%IfW_Loc%
@@ -64,7 +65,7 @@ SET CURR_LOC=%FAST_Loc%
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
  "%AD_Loc%" -I "%BEMT_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -I "%BD_Loc%" -I^
  "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Reg_Loc%"  -I^
- "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -noextrap -O "%CURR_LOC%"
+ "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -noextrap -O "%CURR_LOC%"
 
 echo off
 GOTO checkError
@@ -107,6 +108,12 @@ GOTO checkError
 :IfW_UserWind
 SET CURR_LOC=%IfW_Loc%
 %REGISTRY% "%IfW_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -noextrap  -O "%CURR_LOC%"
+GOTO checkError
+
+
+:OpenFOAM
+SET CURR_LOC=%OpFM_Loc%
+%REGISTRY% "%CURR_LOC%\OpenFOAM_Registry.txt" -I "%NWTC_Lib_Loc%" -ccode -O "%CURR_LOC%"
 GOTO checkError
 
 
@@ -234,6 +241,7 @@ SET HD_Reg_Loc=
 SET IfW_Reg_Loc=
 SET FEAM_Reg_Loc=
 SET MD_Loc=
+SET OpFM_Loc=
 
 SET ModuleName=
 SET CURR_LOC=

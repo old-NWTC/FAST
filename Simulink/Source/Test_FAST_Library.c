@@ -120,7 +120,7 @@ checkError(const int ErrStat, const char * ErrMsg){
    if (ErrStat != ErrID_None){
       fprintf(stderr, "%s\n", ErrMsg);
 
-      if (ErrStat > AbortErrLev){
+      if (ErrStat >= AbortErrLev){
          FAST_End();
          return 1;
       }
