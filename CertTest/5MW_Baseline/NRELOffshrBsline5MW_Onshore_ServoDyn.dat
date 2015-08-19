@@ -63,7 +63,7 @@ False         CompNTMD     - Compute nacelle tuned mass damper {true/false} (fla
 ---------------------- BLADED INTERFACE ----------------------------------------
 "ServoData\DISCON_win32.dll"    DLL_FileName - Name/location of the dynamic library {.dll [Windows] or .so [Linux]} in the Bladed-DLL format (-) [used only with Bladed Interface]
 "DISCON.IN"   DLL_InFile   - Name of input file sent to the DLL [used only with Bladed Interface] (-)
-0.0375 default       DLL_DT       - Communication interval for dynamic library [used only with Bladed Interface] (s) (or "default")
+default       DLL_DT       - Communication interval for dynamic library [used only with Bladed Interface] (s) (or "default")
           0   NacYaw_North - Reference yaw angle of the nacelle when the upwind end points due North (deg) [used only with Bladed Interface]
           0   Ptch_Cntrl   - Record 28: Use individual pitch control {0: collective pitch; 1: individual pitch control} (switch) [used only with Bladed Interface]
           0   Ptch_SetPnt  - Record  5: Below-rated pitch angle set-point (deg) [used only with Bladed Interface]
