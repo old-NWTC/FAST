@@ -247,7 +247,7 @@
 			<FileConfiguration Name="Debug|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IfW_UniformWind" Description="Running Registry for IfW_UniformWind" Outputs="..\..\Source\dependencies\InflowWind\IfW_UniformWind_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IfW_UniformWind" Description="Running Registry for IfW_UniformHHWind" Outputs="..\..\Source\dependencies\InflowWind\IfW_UniformWind_Types.f90"/></FileConfiguration></File>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IfW_UniformWind" Description="Running Registry for IfW_UniformWind" Outputs="..\..\Source\dependencies\InflowWind\IfW_UniformWind_Types.f90"/></FileConfiguration></File>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_UniformWind_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_UserWind.txt">
 			<FileConfiguration Name="Debug|Win32">
