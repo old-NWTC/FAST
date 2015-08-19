@@ -146,7 +146,7 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
 !   InputFileData%DLL_FileName      = 'DISCON.dll'                ! The name of the DLL file including the path (if necessary).
    
    InputFileData%DLL_ProcName      = 'DISCON'                    ! The name of the procedure in the DLL that will be called.
-   InputFileData%DLL_InFile        = 'DISCON.IN'                 ! The name of the extra parameter file from Bladed
+   !InputFileData%DLL_InFile        = 'DISCON.IN'                 ! The name of the extra parameter file from Bladed
    
    ErrStat = ErrID_None
    ErrMsg= ''
@@ -170,7 +170,11 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
    p%DLL_NumTrq        = InputFileData%DLL_NumTrq                ! No. of points in torque-speed look-up table: 0 = none and use the optimal mode PARAMETERs instead, nonzero = ignore the optimal mode PARAMETERs by setting Record 16 to 0.0 (-)
    p%DLL_InFile        = InputFileData%DLL_InFile
 
-
+   p%DLL_DT            = InputFileData%DLL_DT
+   IF ( .NOT. EqualRealNos( NINT( p%DLL_DT / p%DT ) * p%DT, p%DLL_DT ) ) THEN
+      CALL CheckError( ErrID_Fatal, 'DLL_DT must be an integer multiple of DT.' )
+   END IF
+   
    
    IF ( p%Ptch_Cntrl /= 1_IntKi .AND. p%Ptch_Cntrl /= 0_IntKi ) THEN
       CALL CheckError( ErrID_Fatal, 'Ptch_Cntrl must be 0 or 1.') 

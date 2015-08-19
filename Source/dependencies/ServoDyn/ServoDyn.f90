@@ -32,7 +32,7 @@ MODULE ServoDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.02.02a-bjj', '11-May-2015' )
+   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.03.00a-bjj', '18-Aug-2015' )
    CHARACTER(*),   PARAMETER            :: SrvD_Nickname = 'SrvD'
    
 #ifdef COMPILE_SIMULINK
@@ -419,7 +419,7 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
          
-      OtherState%LastTimeCalled = - p%DT  ! we'll initialize the last time the DLL was called as -1 DT.
+      OtherState%LastTimeCalled = - p%DLL_DT  ! we'll initialize the last time the DLL was called as -1 DLL_DT.
       OtherState%FirstWarn      = .TRUE.
    
    ELSE
@@ -680,12 +680,13 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    !...............................................................................................................................   
    IF ( p%UseBladedInterface ) THEN
       
-      IF ( .NOT. EqualRealNos( t - p%DT, OtherState%LastTimeCalled ) ) THEN
+      IF ( .NOT. EqualRealNos( t - p%DLL_DT, OtherState%LastTimeCalled ) ) THEN
          IF (OtherState%FirstWarn) CALL CheckError ( ErrID_Warn, 'BladedInterface option was designed for an explicit-loose '//&
             'coupling scheme. Using last calculated values from DLL on all subsequent calls until time is advanced. '//&
             'Warning will not be displayed again.' )
          OtherState%FirstWarn = .FALSE.
       ELSE      
+         
          OtherState%LastTimeCalled = t
          CALL BladedInterface_CalcOutput( t, u, p, OtherState, ErrStat2, ErrMsg2 )
             CALL CheckError( ErrStat2, ErrMsg2 )
@@ -1376,7 +1377,25 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       IF ( ErrStat >= AbortErrLev ) RETURN
    IF ( PathIsRelative( InputFileData%DLL_FileName ) ) InputFileData%DLL_FileName = TRIM(PriPath)//TRIM(InputFileData%DLL_FileName)
       
-      
+      ! DLL_InFile - Name of input file used in DLL [used only with DLL Interface] (-):
+   CALL ReadVar( UnIn, InputFile, InputFileData%DLL_InFile, "DLL_InFile", "Name of input file used in DLL [used only with DLL Interface] (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   IF ( PathIsRelative( InputFileData%DLL_InFile ) ) InputFileData%DLL_InFile = TRIM(PriPath)//TRIM(InputFileData%DLL_InFile)   
+   
+      ! DLL_DT - Communication interval for dynamic library (s):
+   InputFileData%DLL_DT = InputFileData%DT
+   CALL ReadVar( UnIn, InputFile, Line, "DLL_DT", "Communication interval for dynamic library (s)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL Conv2UC( Line )
+      IF ( INDEX(Line, "DEFAULT" ) /= 1 ) THEN ! If it's not "default", read this variable; otherwise use the value already stored in InputFileData%DLL_DT
+         READ( Line, *, IOSTAT=IOS) InputFileData%DLL_DT
+            CALL CheckIOS ( IOS, InputFile, 'DLL_DT', NumType, ErrStat2, ErrMsg2 )
+            CALL CheckError(ErrStat2, ErrMsg2)
+            IF ( ErrStat >= AbortErrLev ) RETURN
+      END IF   
+   
       ! NacYaw_North - Reference yaw angle of the nacelle when the upwind end points due North (deg) (read from file in degrees and converted to radians here):
    CALL ReadVar( UnIn, InputFile, InputFileData%NacYaw_North, "NacYaw_North", "Reference yaw angle of the nacelle when the upwind end points due North (deg)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
