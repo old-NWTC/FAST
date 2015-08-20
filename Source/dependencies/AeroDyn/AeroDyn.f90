@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-08-14 11:48:51 -0600 (Fri, 14 Aug 2015) $
-! (File) Revision #: $Rev: 149 $
+! File last committed: $Date: 2015-08-19 10:47:46 -0600 (Wed, 19 Aug 2015) $
+! (File) Revision #: $Rev: 150 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/AeroDyn/AeroDyn.f90 $
 !**********************************************************************************************************************************
 module AeroDyn

@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-07-15 10:39:04 -0600 (Wed, 15 Jul 2015) $
-! (File) Revision #: $Rev: 1054 $
+! File last committed: $Date: 2015-08-19 11:02:27 -0600 (Wed, 19 Aug 2015) $
+! (File) Revision #: $Rev: 1080 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ServoDyn.f90 $
 !**********************************************************************************************************************************
 MODULE ServoDyn
@@ -32,7 +32,7 @@ MODULE ServoDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.03.00a-bjj', '18-Aug-2015' )
+   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.03.00a-bjj', '20-Aug-2015' )
    CHARACTER(*),   PARAMETER            :: SrvD_Nickname = 'SrvD'
    
 #ifdef COMPILE_SIMULINK
@@ -223,7 +223,6 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN      
    !p%DT  = Interval
-   
 
       ! Set and verify BlPitchInit, which comes from InitInputData (not the inputfiledata)
    CALL AllocAry( p%BlPitchInit, p%NumBl, 'BlPitchInit', ErrStat2, ErrMsg2 )
@@ -308,6 +307,7 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
    u%YawBrTAyp = 0.
    u%LSSTipPxa = 0.
    u%RootMxc   = 0.
+   u%LSSTipMxa = 0.
    u%LSSTipMya = 0.
    u%LSSTipMza = 0.
    u%LSSTipMys = 0.
@@ -415,6 +415,9 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       
    IF ( p%UseBladedInterface ) THEN
 
+      p%AirDens      = InitInp%AirDens     
+      p%AvgWindSpeed = InitInp%AvgWindSpeed
+      
       CALL BladedInterface_Init(u, p, OtherState, y, InputFileData, ErrStat2, ErrMsg2 )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN

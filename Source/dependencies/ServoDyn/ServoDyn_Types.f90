@@ -43,6 +43,8 @@ IMPLICIT NONE
     REAL(ReKi)  :: Gravity      ! Gravitational acceleration [m/s^2]
     REAL(ReKi) , DIMENSION(1:3)  :: r_N_O_G      ! nacelle origin for setting up mesh [m]
     REAL(DbKi)  :: Tmax      ! max time from glue code [s]
+    REAL(ReKi)  :: AvgWindSpeed      ! average wind speed for the simulation [m/s]
+    REAL(ReKi)  :: AirDens      ! air density [kg/m^3]
   END TYPE SrvD_InitInputType
 ! =======================
 ! =========  SrvD_InitOutputType  =======
@@ -265,6 +267,8 @@ IMPLICIT NONE
     CHARACTER(1024)  :: DLL_InFile      ! Name of input file used in DLL [-]
     TYPE(DLL_Type)  :: DLL_Trgt      ! The addresses and names of the Bladed DLL and its procedure [-]
     TYPE(TMD_ParameterType)  :: NTMD      ! TMD module parameters [-]
+    REAL(ReKi)  :: AvgWindSpeed      ! average wind speed for the simulation [m/s]
+    REAL(ReKi)  :: AirDens      ! air density [kg/m^3]
   END TYPE SrvD_ParameterType
 ! =======================
 ! =========  SrvD_InputType  =======
@@ -289,6 +293,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: YawBrTAyp      ! Tower-top / yaw bearing side-to-side (translational) acceleration (absolute) [m/s^2]
     REAL(ReKi)  :: LSSTipPxa      ! Rotor azimuth angle (position) [radians]
     REAL(ReKi) , DIMENSION(1:3)  :: RootMxc      ! In-plane moment (i.e., the moment caused by in-plane forces) at the blade root [N-m]
+    REAL(ReKi)  :: LSSTipMxa      ! Rotating low-speed shaft bending moment at the shaft tip (teeter pin for 2-blader, apex of rotation for 3-blader) [N-m]
     REAL(ReKi)  :: LSSTipMya      ! Rotating low-speed shaft bending moment at the shaft tip (teeter pin for 2-blader, apex of rotation for 3-blader) [N-m]
     REAL(ReKi)  :: LSSTipMza      ! Rotating low-speed shaft bending moment at the shaft tip (teeter pin for 2-blader, apex of rotation for 3-blader) [N-m]
     REAL(ReKi)  :: LSSTipMys      ! Nonrotating low-speed shaft bending moment at the shaft tip (teeter pin for 2-blader, apex of rotation for 3-blader) [N-m]
@@ -352,6 +357,8 @@ ENDIF
     DstInitInputData%Gravity = SrcInitInputData%Gravity
     DstInitInputData%r_N_O_G = SrcInitInputData%r_N_O_G
     DstInitInputData%Tmax = SrcInitInputData%Tmax
+    DstInitInputData%AvgWindSpeed = SrcInitInputData%AvgWindSpeed
+    DstInitInputData%AirDens = SrcInitInputData%AirDens
  END SUBROUTINE SrvD_CopyInitInput
 
  SUBROUTINE SrvD_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
@@ -414,6 +421,8 @@ ENDIF
       Re_BufSz   = Re_BufSz   + 1  ! Gravity
       Re_BufSz   = Re_BufSz   + SIZE(InData%r_N_O_G)  ! r_N_O_G
       Db_BufSz   = Db_BufSz   + 1  ! Tmax
+      Re_BufSz   = Re_BufSz   + 1  ! AvgWindSpeed
+      Re_BufSz   = Re_BufSz   + 1  ! AirDens
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -470,6 +479,10 @@ ENDIF
       Re_Xferred   = Re_Xferred   + SIZE(InData%r_N_O_G)
       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%Tmax
       Db_Xferred   = Db_Xferred   + 1
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%AvgWindSpeed
+      Re_Xferred   = Re_Xferred   + 1
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%AirDens
+      Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE SrvD_PackInitInput
 
  SUBROUTINE SrvD_UnPackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -553,6 +566,10 @@ ENDIF
     DEALLOCATE(mask1)
       OutData%Tmax = DbKiBuf( Db_Xferred ) 
       Db_Xferred   = Db_Xferred + 1
+      OutData%AvgWindSpeed = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+      OutData%AirDens = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE SrvD_UnPackInitInput
 
  SUBROUTINE SrvD_CopyInitOutput( SrcInitOutputData, DstInitOutputData, CtrlCode, ErrStat, ErrMsg )
@@ -3429,6 +3446,8 @@ ENDIF
       CALL TMD_CopyParam( SrcParamData%NTMD, DstParamData%NTMD, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
+    DstParamData%AvgWindSpeed = SrcParamData%AvgWindSpeed
+    DstParamData%AirDens = SrcParamData%AirDens
  END SUBROUTINE SrvD_CopyParam
 
  SUBROUTINE SrvD_DestroyParam( ParamData, ErrStat, ErrMsg )
@@ -3668,6 +3687,8 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+      Re_BufSz   = Re_BufSz   + 1  ! AvgWindSpeed
+      Re_BufSz   = Re_BufSz   + 1  ! AirDens
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -4030,6 +4051,10 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%AvgWindSpeed
+      Re_Xferred   = Re_Xferred   + 1
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%AirDens
+      Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE SrvD_PackParam
 
  SUBROUTINE SrvD_UnPackParam( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -4499,6 +4524,10 @@ ENDIF
       IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+      OutData%AvgWindSpeed = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+      OutData%AirDens = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE SrvD_UnPackParam
 
  SUBROUTINE SrvD_CopyInput( SrcInputData, DstInputData, CtrlCode, ErrStat, ErrMsg )
@@ -4558,6 +4587,7 @@ ENDIF
     DstInputData%YawBrTAyp = SrcInputData%YawBrTAyp
     DstInputData%LSSTipPxa = SrcInputData%LSSTipPxa
     DstInputData%RootMxc = SrcInputData%RootMxc
+    DstInputData%LSSTipMxa = SrcInputData%LSSTipMxa
     DstInputData%LSSTipMya = SrcInputData%LSSTipMya
     DstInputData%LSSTipMza = SrcInputData%LSSTipMza
     DstInputData%LSSTipMys = SrcInputData%LSSTipMys
@@ -4658,6 +4688,7 @@ ENDIF
       Re_BufSz   = Re_BufSz   + 1  ! YawBrTAyp
       Re_BufSz   = Re_BufSz   + 1  ! LSSTipPxa
       Re_BufSz   = Re_BufSz   + SIZE(InData%RootMxc)  ! RootMxc
+      Re_BufSz   = Re_BufSz   + 1  ! LSSTipMxa
       Re_BufSz   = Re_BufSz   + 1  ! LSSTipMya
       Re_BufSz   = Re_BufSz   + 1  ! LSSTipMza
       Re_BufSz   = Re_BufSz   + 1  ! LSSTipMys
@@ -4779,6 +4810,8 @@ ENDIF
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%RootMxc))-1 ) = PACK(InData%RootMxc,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%RootMxc)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%LSSTipMxa
+      Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%LSSTipMya
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%LSSTipMza
@@ -4970,6 +5003,8 @@ ENDIF
       OutData%RootMxc = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%RootMxc))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%RootMxc)
     DEALLOCATE(mask1)
+      OutData%LSSTipMxa = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
       OutData%LSSTipMya = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
       OutData%LSSTipMza = ReKiBuf( Re_Xferred )
@@ -5602,6 +5637,8 @@ END IF ! check if allocated
   u_out%RootMxc = u1%RootMxc + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
+  b0 = -(u1%LSSTipMxa - u2%LSSTipMxa)/t(2)
+  u_out%LSSTipMxa = u1%LSSTipMxa + b0 * t_out
   b0 = -(u1%LSSTipMya - u2%LSSTipMya)/t(2)
   u_out%LSSTipMya = u1%LSSTipMya + b0 * t_out
   b0 = -(u1%LSSTipMza - u2%LSSTipMza)/t(2)
@@ -5766,6 +5803,9 @@ END IF ! check if allocated
   u_out%RootMxc = u1%RootMxc + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
+  b0 = (t(3)**2*(u1%LSSTipMxa - u2%LSSTipMxa) + t(2)**2*(-u1%LSSTipMxa + u3%LSSTipMxa))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*u1%LSSTipMxa + t(3)*u2%LSSTipMxa - t(2)*u3%LSSTipMxa ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%LSSTipMxa = u1%LSSTipMxa + b0 * t_out + c0 * t_out**2
   b0 = (t(3)**2*(u1%LSSTipMya - u2%LSSTipMya) + t(2)**2*(-u1%LSSTipMya + u3%LSSTipMya))/(t(2)*t(3)*(t(2) - t(3)))
   c0 = ( (t(2)-t(3))*u1%LSSTipMya + t(3)*u2%LSSTipMya - t(2)*u3%LSSTipMya ) / (t(2)*t(3)*(t(2) - t(3)))
   u_out%LSSTipMya = u1%LSSTipMya + b0 * t_out + c0 * t_out**2

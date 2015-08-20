@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.08.01, 21-May-2015)
+! FAST Registry (v2.08.02, 12-Aug-2015)
 !*********************************************************************************************************************************
 ! ElastoDyn_Types
 !.................................................................................................................................
@@ -824,6 +824,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: YawBrTAyp      ! Tower-top / yaw bearing side-to-side (translational) acceleration (absolute) [m/s^2]
     REAL(ReKi)  :: LSSTipPxa      ! Rotor azimuth angle (position) [radians]
     REAL(ReKi) , DIMENSION(1:3)  :: RootMxc      ! In-plane moment (i.e., the moment caused by in-plane forces) at the blade root [N-m]
+    REAL(ReKi)  :: LSSTipMxa      ! Rotating low-speed shaft bending moment at the shaft tip (teeter pin for 2-blader, apex of rotation for 3-blader) [N-m]
     REAL(ReKi)  :: LSSTipMya      ! Rotating low-speed shaft bending moment at the shaft tip (teeter pin for 2-blader, apex of rotation for 3-blader) [N-m]
     REAL(ReKi)  :: LSSTipMza      ! Rotating low-speed shaft bending moment at the shaft tip (teeter pin for 2-blader, apex of rotation for 3-blader) [N-m]
     REAL(ReKi)  :: LSSTipMys      ! Nonrotating low-speed shaft bending moment at the shaft tip (teeter pin for 2-blader, apex of rotation for 3-blader) [N-m]
@@ -22428,6 +22429,7 @@ ENDIF
     DstOutputData%YawBrTAyp = SrcOutputData%YawBrTAyp
     DstOutputData%LSSTipPxa = SrcOutputData%LSSTipPxa
     DstOutputData%RootMxc = SrcOutputData%RootMxc
+    DstOutputData%LSSTipMxa = SrcOutputData%LSSTipMxa
     DstOutputData%LSSTipMya = SrcOutputData%LSSTipMya
     DstOutputData%LSSTipMza = SrcOutputData%LSSTipMza
     DstOutputData%LSSTipMys = SrcOutputData%LSSTipMys
@@ -22717,6 +22719,7 @@ ENDIF
       Re_BufSz   = Re_BufSz   + 1  ! YawBrTAyp
       Re_BufSz   = Re_BufSz   + 1  ! LSSTipPxa
       Re_BufSz   = Re_BufSz   + SIZE(InData%RootMxc)  ! RootMxc
+      Re_BufSz   = Re_BufSz   + 1  ! LSSTipMxa
       Re_BufSz   = Re_BufSz   + 1  ! LSSTipMya
       Re_BufSz   = Re_BufSz   + 1  ! LSSTipMza
       Re_BufSz   = Re_BufSz   + 1  ! LSSTipMys
@@ -23110,6 +23113,8 @@ ENDIF
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%RootMxc))-1 ) = PACK(InData%RootMxc,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%RootMxc)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%LSSTipMxa
+      Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%LSSTipMya
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%LSSTipMza
@@ -23685,6 +23690,8 @@ ENDIF
       OutData%RootMxc = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%RootMxc))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%RootMxc)
     DEALLOCATE(mask1)
+      OutData%LSSTipMxa = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
       OutData%LSSTipMya = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
       OutData%LSSTipMza = ReKiBuf( Re_Xferred )
@@ -24130,6 +24137,8 @@ END IF ! check if allocated
   y_out%RootMxc = y1%RootMxc + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
+  b0 = -(y1%LSSTipMxa - y2%LSSTipMxa)/t(2)
+  y_out%LSSTipMxa = y1%LSSTipMxa + b0 * t_out
   b0 = -(y1%LSSTipMya - y2%LSSTipMya)/t(2)
   y_out%LSSTipMya = y1%LSSTipMya + b0 * t_out
   b0 = -(y1%LSSTipMza - y2%LSSTipMza)/t(2)
@@ -24295,6 +24304,9 @@ END IF ! check if allocated
   y_out%RootMxc = y1%RootMxc + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
+  b0 = (t(3)**2*(y1%LSSTipMxa - y2%LSSTipMxa) + t(2)**2*(-y1%LSSTipMxa + y3%LSSTipMxa))/(t(2)*t(3)*(t(2) - t(3)))
+  c0 = ( (t(2)-t(3))*y1%LSSTipMxa + t(3)*y2%LSSTipMxa - t(2)*y3%LSSTipMxa ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%LSSTipMxa = y1%LSSTipMxa + b0 * t_out + c0 * t_out**2
   b0 = (t(3)**2*(y1%LSSTipMya - y2%LSSTipMya) + t(2)**2*(-y1%LSSTipMya + y3%LSSTipMya))/(t(2)*t(3)*(t(2) - t(3)))
   c0 = ( (t(2)-t(3))*y1%LSSTipMya + t(3)*y2%LSSTipMya - t(2)*y3%LSSTipMya ) / (t(2)*t(3)*(t(2) - t(3)))
   y_out%LSSTipMya = y1%LSSTipMya + b0 * t_out + c0 * t_out**2

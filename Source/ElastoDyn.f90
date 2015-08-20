@@ -2924,6 +2924,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    y%YawBrTAyp = OtherState%AllOuts( YawBrTAyp)
    !y%LSSTipPxa = OtherState%AllOuts( LSSTipPxa)*D2R ! bjj: did this above already
 
+   y%LSSTipMxa = OtherState%AllOuts(LSShftMxa)*1000.
    y%LSSTipMya = OtherState%AllOuts(LSSTipMya)*1000.                ! Rotating hub My (GL co-ords) (Nm)
    y%LSSTipMza = OtherState%AllOuts(LSSTipMza)*1000.                ! Rotating hub Mz (GL co-ords) (Nm)
    y%LSSTipMys = OtherState%AllOuts(LSSTipMys)*1000.                ! Fixed hub My (GL co-ords) (Nm)

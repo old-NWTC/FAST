@@ -33,7 +33,7 @@ MODULE BladedInterface
    IMPLICIT                        NONE
 
 
-   TYPE(ProgDesc), PARAMETER    :: BladedInterface_Ver = ProgDesc( 'ServoDyn Interface for Bladed Controllers', 'using '//TRIM(OS_Desc), '1-May-2013' )
+   TYPE(ProgDesc), PARAMETER    :: BladedInterface_Ver = ProgDesc( 'ServoDyn Interface for Bladed Controllers', 'using '//TRIM(OS_Desc), '20-Aug-2015' )
    
    
       ! Definition of the DLL Interface (from Bladed):
@@ -56,7 +56,7 @@ MODULE BladedInterface
    INTEGER(IntKi), PARAMETER    :: R_v36 = 85                                      ! Start of below-rated torque-speed look-up table (record no.) for Bladed version 3.6
    INTEGER(IntKi), PARAMETER    :: R_v4  = 145                                     ! Start of below-rated torque-speed look-up table (record no.) for Bladed version 3.8 and later
 
-   INTEGER(IntKi), PARAMETER    :: R = R_v36   ! start of the generator speed look-up table  
+   INTEGER(IntKi), PARAMETER    :: R = R_v4   ! start of the generator speed look-up table  
             
 
 CONTAINS
@@ -361,7 +361,7 @@ SUBROUTINE Fill_avrSWAP( t, u, p, ErrMsgSz, dll_data )
    
    !dll_data%avrSWAP( 1) = REAL(StatFlag, SiKi)              ! Status flag set as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation (-) 
    dll_data%avrSWAP( 2) = REAL(t, SiKi)                     ! Current time (sec)
-   dll_data%avrSWAP( 3) = p%DT                              ! Communication interval (sec)   ! WAS y_StrD%AllOuts(     Time) - LastTime 
+   dll_data%avrSWAP( 3) = p%DLL_DT                          ! Communication interval (sec)   ! WAS y_StrD%AllOuts(     Time) - LastTime 
    dll_data%avrSWAP( 4) = u%BlPitch(1)                      ! Blade 1 pitch angle (rad)
    dll_data%avrSWAP( 5) = p%Ptch_SetPnt                     ! Below-rated pitch angle set-point (rad)
    dll_data%avrSWAP( 6) = p%Ptch_Min                        ! Minimum pitch angle (rad)
@@ -445,12 +445,19 @@ END IF
    
    
 ! Records 92-94 are outputs [see Retrieve_avrSWAP()]
+   
+      ! these two "inputs" are actually customizations for a particular DLL
+   dll_data%avrSWAP(95) = p%AirDens                         ! Reserved
+   dll_data%avrSWAP(96) = p%AvgWindSpeed                    ! Reserved
+   
 ! Record 98 is output [see Retrieve_avrSWAP()]
-
+   dll_data%avrSWAP(98) = 0
+   
 ! Records 102-104 are outputs [see Retrieve_avrSWAP()]
 ! Records 107-108 are outputs [see Retrieve_avrSWAP()]
 
-
+   dll_data%avrSWAP(109) = u%LSSTipMxa ! or u%LSShftMxs     ! Shaft torque (=hub Mx for clockwise rotor) (Nm)
+   dll_data%avrSWAP(117) = 0                                ! Controller state
    
    
    DO I = 1,p%DLL_NumTrq  ! Loop through all torque-speed look-up table elements
