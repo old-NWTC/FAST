@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.08.01, 21-May-2015)
+! FAST Registry (v2.08.02, 12-Aug-2015)
 !*********************************************************************************************************************************
 ! FAST_Types
 !.................................................................................................................................
@@ -421,6 +421,10 @@ IMPLICIT NONE
     REAL(DbKi)  :: Tmax = -1      ! External code specified Tmax [s]
     INTEGER(IntKi)  :: SensorType = SensorType_None      ! lidar sensor type, which should not be pulsed at the moment; this input should be replaced with a section in the InflowWind input file [-]
     LOGICAL  :: LidRadialVel      ! TRUE => return radial component, FALSE => return 'x' direction estimate [-]
+    INTEGER(IntKi)  :: TurbineID      ! ID number for turbine (used to create output file naming convention) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: TurbinePos      ! Initial position of turbine base (origin used in future for graphics) [m]
+    INTEGER(IntKi)  :: NumSCin      ! number of controller inputs [from supercontroller] [-]
+    INTEGER(IntKi)  :: NumSCout      ! number of controller outputs [to supercontroller] [-]
   END TYPE FAST_ExternInitType
 ! =======================
 ! =========  FAST_TurbineType  =======
@@ -21974,6 +21978,7 @@ ENDIF
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(ErrMsgLen)           :: ErrMsg2
    CHARACTER(*), PARAMETER        :: RoutineName = 'FAST_CopyExternInitType'
@@ -21983,6 +21988,10 @@ ENDIF
     DstExternInitTypeData%Tmax = SrcExternInitTypeData%Tmax
     DstExternInitTypeData%SensorType = SrcExternInitTypeData%SensorType
     DstExternInitTypeData%LidRadialVel = SrcExternInitTypeData%LidRadialVel
+    DstExternInitTypeData%TurbineID = SrcExternInitTypeData%TurbineID
+    DstExternInitTypeData%TurbinePos = SrcExternInitTypeData%TurbinePos
+    DstExternInitTypeData%NumSCin = SrcExternInitTypeData%NumSCin
+    DstExternInitTypeData%NumSCout = SrcExternInitTypeData%NumSCout
  END SUBROUTINE FAST_CopyExternInitType
 
  SUBROUTINE FAST_DestroyExternInitType( ExternInitTypeData, ErrStat, ErrMsg )
@@ -22034,6 +22043,10 @@ ENDIF
       Db_BufSz   = Db_BufSz   + 1  ! Tmax
       Int_BufSz  = Int_BufSz  + 1  ! SensorType
       Int_BufSz  = Int_BufSz  + 1  ! LidRadialVel
+      Int_BufSz  = Int_BufSz  + 1  ! TurbineID
+      Re_BufSz   = Re_BufSz   + SIZE(InData%TurbinePos)  ! TurbinePos
+      Int_BufSz  = Int_BufSz  + 1  ! NumSCin
+      Int_BufSz  = Int_BufSz  + 1  ! NumSCout
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -22067,6 +22080,14 @@ ENDIF
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%LidRadialVel , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%TurbineID
+      Int_Xferred   = Int_Xferred   + 1
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TurbinePos))-1 ) = PACK(InData%TurbinePos,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%TurbinePos)
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumSCin
+      Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumSCout
+      Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE FAST_PackExternInitType
 
  SUBROUTINE FAST_UnPackExternInitType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -22088,6 +22109,7 @@ ENDIF
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'FAST_UnPackExternInitType'
@@ -22106,6 +22128,23 @@ ENDIF
       OutData%SensorType = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%LidRadialVel = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
+      Int_Xferred   = Int_Xferred + 1
+      OutData%TurbineID = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+    i1_l = LBOUND(OutData%TurbinePos,1)
+    i1_u = UBOUND(OutData%TurbinePos,1)
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      OutData%TurbinePos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TurbinePos))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%TurbinePos)
+    DEALLOCATE(mask1)
+      OutData%NumSCin = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%NumSCout = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
  END SUBROUTINE FAST_UnPackExternInitType
 

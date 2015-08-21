@@ -163,9 +163,8 @@ SET IfW_SOURCES=^
  "%IfW_Loc%\Lidar.f90"^
  "%IfW_Loc%\InflowWind.f90"
 
-SET OpFM_SOURCES=^
- "%OpFM_Loc%\OpenFOAM_Types.f90" ^
- "%OpFM_Loc%\OpenFOAM.f90"
+rem SET OpFM_SOURCES=^
+
 
 
 SET AD14_SOURCES=^
@@ -302,7 +301,9 @@ SET IceD_SOURCES=^
 
 
 SET FAST_SOURCES=^
+ "%OpFM_Loc%\OpenFOAM_Types.f90" ^
  "%FAST_LOC%\FAST_Types.f90" ^
+ "%OpFM_Loc%\OpenFOAM.f90" ^
  "%FAST_LOC%\FAST_Mods.f90" ^
  "%FAST_LOC%\FAST_Subs.f90" ^
  "%FAST_LOC%\FAST_Prog.f90"
@@ -543,10 +544,10 @@ ifort %COMPOPTS% %IceD_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 
-ECHO %Lines%
-ECHO Compiling OpenFOAM integrations:
-ifort %COMPOPTS% %OpFM_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
-IF %ERRORLEVEL% NEQ 0 GOTO checkError
+rem ECHO %Lines%
+rem ECHO Compiling OpenFOAM integrations:
+rem ifort %COMPOPTS% %OpFM_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+rem IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 ECHO %Lines%
 ECHO Compiling FAST glue code:
@@ -625,7 +626,6 @@ SET IceF_RanLux_Loc=
 
 SET NWTC_SOURCES=
 SET IfW_SOURCES=
-SET OpFM_SOURCES=
 SET AD_SOURCES=
 SET DWM_SOURCES=
 SET ED_SOURCES=

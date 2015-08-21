@@ -45,6 +45,8 @@ IMPLICIT NONE
     REAL(DbKi)  :: Tmax      ! max time from glue code [s]
     REAL(ReKi)  :: AvgWindSpeed      ! average wind speed for the simulation [m/s]
     REAL(ReKi)  :: AirDens      ! air density [kg/m^3]
+    INTEGER(IntKi)  :: NumSCin      ! number of controller inputs [from supercontroller] [-]
+    INTEGER(IntKi)  :: NumSCout      ! number of controller outputs [to supercontroller] [-]
   END TYPE SrvD_InitInputType
 ! =======================
 ! =========  SrvD_InitOutputType  =======
@@ -139,6 +141,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: GenTrq      ! Electrical generator torque from Bladed DLL [N-m]
     INTEGER(IntKi)  :: GenState      ! Generator state from Bladed DLL [N-m]
     REAL(ReKi) , DIMENSION(1:3)  :: BlPitchCom      ! Commanded blade pitch angles [radians]
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: SCoutput      ! controller output to supercontroller [-]
   END TYPE BladedDLLType
 ! =======================
 ! =========  SrvD_ContinuousStateType  =======
@@ -309,6 +312,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: ElecPwr_prev      ! Electrical power (from previous step), sent to Bladed DLL [W]
     REAL(ReKi)  :: GenTrq_prev      ! Electrical generator torque (from previous step), sent to Bladed DLL [N-m]
     TYPE(TMD_InputType)  :: NTMD      ! TMD module inputs [-]
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: SuperController      ! A swap array: used to pass input data to the DLL controller from the supercontroller [-]
   END TYPE SrvD_InputType
 ! =======================
 ! =========  SrvD_OutputType  =======
@@ -321,6 +325,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: ElecPwr      ! Electrical power [W]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TBDrCon      ! Instantaneous tip-brake drag constant, Cd*Area [-]
     TYPE(TMD_OutputType)  :: NTMD      ! TMD module outputs [-]
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: SuperController      ! A swap array: used to pass output data from the DLL controller to the supercontroller [-]
   END TYPE SrvD_OutputType
 ! =======================
 CONTAINS
@@ -359,6 +364,8 @@ ENDIF
     DstInitInputData%Tmax = SrcInitInputData%Tmax
     DstInitInputData%AvgWindSpeed = SrcInitInputData%AvgWindSpeed
     DstInitInputData%AirDens = SrcInitInputData%AirDens
+    DstInitInputData%NumSCin = SrcInitInputData%NumSCin
+    DstInitInputData%NumSCout = SrcInitInputData%NumSCout
  END SUBROUTINE SrvD_CopyInitInput
 
  SUBROUTINE SrvD_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
@@ -423,6 +430,8 @@ ENDIF
       Db_BufSz   = Db_BufSz   + 1  ! Tmax
       Re_BufSz   = Re_BufSz   + 1  ! AvgWindSpeed
       Re_BufSz   = Re_BufSz   + 1  ! AirDens
+      Int_BufSz  = Int_BufSz  + 1  ! NumSCin
+      Int_BufSz  = Int_BufSz  + 1  ! NumSCout
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -483,6 +492,10 @@ ENDIF
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%AirDens
       Re_Xferred   = Re_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumSCin
+      Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumSCout
+      Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE SrvD_PackInitInput
 
  SUBROUTINE SrvD_UnPackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -570,6 +583,10 @@ ENDIF
       Re_Xferred   = Re_Xferred + 1
       OutData%AirDens = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
+      OutData%NumSCin = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%NumSCout = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
  END SUBROUTINE SrvD_UnPackInitInput
 
  SUBROUTINE SrvD_CopyInitOutput( SrcInitOutputData, DstInitOutputData, CtrlCode, ErrStat, ErrMsg )
@@ -1719,6 +1736,18 @@ ENDIF
     DstBladedDLLTypeData%GenTrq = SrcBladedDLLTypeData%GenTrq
     DstBladedDLLTypeData%GenState = SrcBladedDLLTypeData%GenState
     DstBladedDLLTypeData%BlPitchCom = SrcBladedDLLTypeData%BlPitchCom
+IF (ALLOCATED(SrcBladedDLLTypeData%SCoutput)) THEN
+  i1_l = LBOUND(SrcBladedDLLTypeData%SCoutput,1)
+  i1_u = UBOUND(SrcBladedDLLTypeData%SCoutput,1)
+  IF (.NOT. ALLOCATED(DstBladedDLLTypeData%SCoutput)) THEN 
+    ALLOCATE(DstBladedDLLTypeData%SCoutput(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstBladedDLLTypeData%SCoutput.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstBladedDLLTypeData%SCoutput = SrcBladedDLLTypeData%SCoutput
+ENDIF
  END SUBROUTINE SrvD_CopyBladedDLLType
 
  SUBROUTINE SrvD_DestroyBladedDLLType( BladedDLLTypeData, ErrStat, ErrMsg )
@@ -1732,6 +1761,9 @@ ENDIF
   ErrMsg  = ""
 IF (ALLOCATED(BladedDLLTypeData%avrSWAP)) THEN
   DEALLOCATE(BladedDLLTypeData%avrSWAP)
+ENDIF
+IF (ALLOCATED(BladedDLLTypeData%SCoutput)) THEN
+  DEALLOCATE(BladedDLLTypeData%SCoutput)
 ENDIF
  END SUBROUTINE SrvD_DestroyBladedDLLType
 
@@ -1780,6 +1812,11 @@ ENDIF
       Re_BufSz   = Re_BufSz   + 1  ! GenTrq
       Int_BufSz  = Int_BufSz  + 1  ! GenState
       Re_BufSz   = Re_BufSz   + SIZE(InData%BlPitchCom)  ! BlPitchCom
+  Int_BufSz   = Int_BufSz   + 1     ! SCoutput allocated yes/no
+  IF ( ALLOCATED(InData%SCoutput) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! SCoutput upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%SCoutput)  ! SCoutput
+  END IF
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -1830,6 +1867,19 @@ ENDIF
       Int_Xferred   = Int_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%BlPitchCom))-1 ) = PACK(InData%BlPitchCom,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%BlPitchCom)
+  IF ( .NOT. ALLOCATED(InData%SCoutput) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%SCoutput,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%SCoutput,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%SCoutput)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%SCoutput))-1 ) = PACK(InData%SCoutput,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%SCoutput)
+  END IF
  END SUBROUTINE SrvD_PackBladedDLLType
 
  SUBROUTINE SrvD_UnPackBladedDLLType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1907,6 +1957,29 @@ ENDIF
       OutData%BlPitchCom = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%BlPitchCom))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%BlPitchCom)
     DEALLOCATE(mask1)
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! SCoutput not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%SCoutput)) DEALLOCATE(OutData%SCoutput)
+    ALLOCATE(OutData%SCoutput(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%SCoutput.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%SCoutput)>0) OutData%SCoutput = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%SCoutput))-1 ), mask1, 0.0_ReKi ), SiKi)
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%SCoutput)
+    DEALLOCATE(mask1)
+  END IF
  END SUBROUTINE SrvD_UnPackBladedDLLType
 
  SUBROUTINE SrvD_CopyContState( SrcContStateData, DstContStateData, CtrlCode, ErrStat, ErrMsg )
@@ -4605,6 +4678,18 @@ ENDIF
       CALL TMD_CopyInput( SrcInputData%NTMD, DstInputData%NTMD, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
+IF (ALLOCATED(SrcInputData%SuperController)) THEN
+  i1_l = LBOUND(SrcInputData%SuperController,1)
+  i1_u = UBOUND(SrcInputData%SuperController,1)
+  IF (.NOT. ALLOCATED(DstInputData%SuperController)) THEN 
+    ALLOCATE(DstInputData%SuperController(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInputData%SuperController.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInputData%SuperController = SrcInputData%SuperController
+ENDIF
  END SUBROUTINE SrvD_CopyInput
 
  SUBROUTINE SrvD_DestroyInput( InputData, ErrStat, ErrMsg )
@@ -4623,6 +4708,9 @@ IF (ALLOCATED(InputData%ExternalBlPitchCom)) THEN
   DEALLOCATE(InputData%ExternalBlPitchCom)
 ENDIF
   CALL TMD_DestroyInput( InputData%NTMD, ErrStat, ErrMsg )
+IF (ALLOCATED(InputData%SuperController)) THEN
+  DEALLOCATE(InputData%SuperController)
+ENDIF
  END SUBROUTINE SrvD_DestroyInput
 
  SUBROUTINE SrvD_PackInput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -4721,6 +4809,11 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+  Int_BufSz   = Int_BufSz   + 1     ! SuperController allocated yes/no
+  IF ( ALLOCATED(InData%SuperController) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! SuperController upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%SuperController)  ! SuperController
+  END IF
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -4868,6 +4961,19 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
+  IF ( .NOT. ALLOCATED(InData%SuperController) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%SuperController,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%SuperController,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%SuperController)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%SuperController))-1 ) = PACK(InData%SuperController,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%SuperController)
+  END IF
  END SUBROUTINE SrvD_PackInput
 
  SUBROUTINE SrvD_UnPackInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -5073,6 +5179,29 @@ ENDIF
       IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! SuperController not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%SuperController)) DEALLOCATE(OutData%SuperController)
+    ALLOCATE(OutData%SuperController(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%SuperController.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%SuperController)>0) OutData%SuperController = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%SuperController))-1 ), mask1, 0.0_ReKi ), SiKi)
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%SuperController)
+    DEALLOCATE(mask1)
+  END IF
  END SUBROUTINE SrvD_UnPackInput
 
  SUBROUTINE SrvD_CopyOutput( SrcOutputData, DstOutputData, CtrlCode, ErrStat, ErrMsg )
@@ -5133,6 +5262,18 @@ ENDIF
       CALL TMD_CopyOutput( SrcOutputData%NTMD, DstOutputData%NTMD, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
+IF (ALLOCATED(SrcOutputData%SuperController)) THEN
+  i1_l = LBOUND(SrcOutputData%SuperController,1)
+  i1_u = UBOUND(SrcOutputData%SuperController,1)
+  IF (.NOT. ALLOCATED(DstOutputData%SuperController)) THEN 
+    ALLOCATE(DstOutputData%SuperController(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%SuperController.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstOutputData%SuperController = SrcOutputData%SuperController
+ENDIF
  END SUBROUTINE SrvD_CopyOutput
 
  SUBROUTINE SrvD_DestroyOutput( OutputData, ErrStat, ErrMsg )
@@ -5154,6 +5295,9 @@ IF (ALLOCATED(OutputData%TBDrCon)) THEN
   DEALLOCATE(OutputData%TBDrCon)
 ENDIF
   CALL TMD_DestroyOutput( OutputData%NTMD, ErrStat, ErrMsg )
+IF (ALLOCATED(OutputData%SuperController)) THEN
+  DEALLOCATE(OutputData%SuperController)
+ENDIF
  END SUBROUTINE SrvD_DestroyOutput
 
  SUBROUTINE SrvD_PackOutput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -5228,6 +5372,11 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+  Int_BufSz   = Int_BufSz   + 1     ! SuperController allocated yes/no
+  IF ( ALLOCATED(InData%SuperController) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! SuperController upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%SuperController)  ! SuperController
+  END IF
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -5330,6 +5479,19 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
+  IF ( .NOT. ALLOCATED(InData%SuperController) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%SuperController,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%SuperController,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%SuperController)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%SuperController))-1 ) = PACK(InData%SuperController,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%SuperController)
+  END IF
  END SUBROUTINE SrvD_PackOutput
 
  SUBROUTINE SrvD_UnPackOutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -5482,6 +5644,29 @@ ENDIF
       IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! SuperController not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%SuperController)) DEALLOCATE(OutData%SuperController)
+    ALLOCATE(OutData%SuperController(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%SuperController.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%SuperController)>0) OutData%SuperController = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%SuperController))-1 ), mask1, 0.0_ReKi ), SiKi)
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%SuperController)
+    DEALLOCATE(mask1)
+  END IF
  END SUBROUTINE SrvD_UnPackOutput
 
 
@@ -5669,6 +5854,14 @@ END IF ! check if allocated
   u_out%GenTrq_prev = u1%GenTrq_prev + b0 * t_out
       CALL TMD_Input_ExtrapInterp1( u1%NTMD, u2%NTMD, tin, u_out%NTMD, tin_out, ErrStat2, ErrMsg2 )
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+IF (ALLOCATED(u_out%SuperController) .AND. ALLOCATED(u1%SuperController)) THEN
+  ALLOCATE(b1(SIZE(u_out%SuperController,1)))
+  ALLOCATE(c1(SIZE(u_out%SuperController,1)))
+  b1 = -(u1%SuperController - u2%SuperController)/t(2)
+  u_out%SuperController = u1%SuperController + b1 * t_out
+  DEALLOCATE(b1)
+  DEALLOCATE(c1)
+END IF ! check if allocated
  END SUBROUTINE SrvD_Input_ExtrapInterp1
 
 
@@ -5850,6 +6043,15 @@ END IF ! check if allocated
   u_out%GenTrq_prev = u1%GenTrq_prev + b0 * t_out + c0 * t_out**2
       CALL TMD_Input_ExtrapInterp2( u1%NTMD, u2%NTMD, u3%NTMD, tin, u_out%NTMD, tin_out, ErrStat2, ErrMsg2 )
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+IF (ALLOCATED(u_out%SuperController) .AND. ALLOCATED(u1%SuperController)) THEN
+  ALLOCATE(b1(SIZE(u_out%SuperController,1)))
+  ALLOCATE(c1(SIZE(u_out%SuperController,1)))
+  b1 = (t(3)**2*(u1%SuperController - u2%SuperController) + t(2)**2*(-u1%SuperController + u3%SuperController))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u1%SuperController + t(3)*u2%SuperController - t(2)*u3%SuperController ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%SuperController = u1%SuperController + b1 * t_out + c1 * t_out**2
+  DEALLOCATE(b1)
+  DEALLOCATE(c1)
+END IF ! check if allocated
  END SUBROUTINE SrvD_Input_ExtrapInterp2
 
 
@@ -5979,6 +6181,14 @@ IF (ALLOCATED(y_out%TBDrCon) .AND. ALLOCATED(y1%TBDrCon)) THEN
 END IF ! check if allocated
       CALL TMD_Output_ExtrapInterp1( y1%NTMD, y2%NTMD, tin, y_out%NTMD, tin_out, ErrStat2, ErrMsg2 )
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+IF (ALLOCATED(y_out%SuperController) .AND. ALLOCATED(y1%SuperController)) THEN
+  ALLOCATE(b1(SIZE(y_out%SuperController,1)))
+  ALLOCATE(c1(SIZE(y_out%SuperController,1)))
+  b1 = -(y1%SuperController - y2%SuperController)/t(2)
+  y_out%SuperController = y1%SuperController + b1 * t_out
+  DEALLOCATE(b1)
+  DEALLOCATE(c1)
+END IF ! check if allocated
  END SUBROUTINE SrvD_Output_ExtrapInterp1
 
 
@@ -6074,6 +6284,15 @@ IF (ALLOCATED(y_out%TBDrCon) .AND. ALLOCATED(y1%TBDrCon)) THEN
 END IF ! check if allocated
       CALL TMD_Output_ExtrapInterp2( y1%NTMD, y2%NTMD, y3%NTMD, tin, y_out%NTMD, tin_out, ErrStat2, ErrMsg2 )
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+IF (ALLOCATED(y_out%SuperController) .AND. ALLOCATED(y1%SuperController)) THEN
+  ALLOCATE(b1(SIZE(y_out%SuperController,1)))
+  ALLOCATE(c1(SIZE(y_out%SuperController,1)))
+  b1 = (t(3)**2*(y1%SuperController - y2%SuperController) + t(2)**2*(-y1%SuperController + y3%SuperController))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*y1%SuperController + t(3)*y2%SuperController - t(2)*y3%SuperController ) / (t(2)*t(3)*(t(2) - t(3)))
+  y_out%SuperController = y1%SuperController + b1 * t_out + c1 * t_out**2
+  DEALLOCATE(b1)
+  DEALLOCATE(c1)
+END IF ! check if allocated
  END SUBROUTINE SrvD_Output_ExtrapInterp2
 
 END MODULE ServoDyn_Types

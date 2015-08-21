@@ -215,7 +215,13 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
       
+   if ( (InitInp%NumSCin > 0 .and. InitInp%NumSCout <= 0) .or. &
+        (InitInp%NumSCin <= 0 .and. InitInp%NumSCout > 0) ) then
       
+      call CheckError( ErrID_Fatal, "If supercontroller is used, there must be at least one supercontroller input and one supercontroller output." )
+      return
+   end if
+        
       !............................................................................................
       ! Define parameters here:
       !............................................................................................
@@ -280,11 +286,19 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
    CALL AllocAry( u%ExternalBlPitchCom, p%NumBl, 'ExternalBlPitchCom', ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
+        
+   IF (InitInp%NumSCin > 0 .and. p%UseBladedInterface) THEN
+      CALL AllocAry( u%SuperController, InitInp%NumSCin, 'u%SuperController', ErrStat2, ErrMsg2 )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF (ErrStat >= AbortErrLev) RETURN
+      u%SuperController = 0.0_SiKi
+   END IF
+                  
       
    u%BlPitch = p%BlPitchInit
    
    u%Yaw = p%YawNeut
-   u%YawRate   = 0.
+   u%YawRate   = 0.0
    
    u%LSS_Spd   = 0.0
    u%HSS_Spd   = 0.0
@@ -338,8 +352,6 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       IF (ErrStat >= AbortErrLev) RETURN
    y%WriteOutput = 0
    
-   
-      
    CALL AllocAry( y%BlPitchCom, p%NumBl, 'BlPitchCom', ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
@@ -349,6 +361,14 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
 
+   
+   IF (InitInp%NumSCout > 0 .and. p%UseBladedInterface) THEN
+      CALL AllocAry( y%SuperController, InitInp%NumSCout, 'y%SuperController', ErrStat2, ErrMsg2 )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF (ErrStat >= AbortErrLev) RETURN
+      y%SuperController = 0.0_SiKi
+   END IF
+      
       
       !............................................................................................
       ! Define initialization-routine output here:
@@ -694,6 +714,10 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
          CALL BladedInterface_CalcOutput( t, u, p, OtherState, ErrStat2, ErrMsg2 )
             CALL CheckError( ErrStat2, ErrMsg2 )
             IF (ErrStat >= AbortErrLev) RETURN
+      END IF
+      
+      IF (ALLOCATED(y%SuperController)) THEN
+         y%SuperController = OtherState%dll_data%SCoutput
       END IF
       
    END IF      

@@ -20,6 +20,11 @@
 #endif
 
 
+  typedef struct OpFM_InitInputType {
+    void * object ;
+    int NumSCin ;
+    int NumSCout ;
+  } OpFM_InitInputType_t ;
   typedef struct OpFM_InitOutputType {
     void * object ;
     char * WriteOutputHdr ;     int WriteOutputHdr_Len ;
@@ -46,15 +51,18 @@
     float * fx ;     int fx_Len ;
     float * fy ;     int fy_Len ;
     float * fz ;     int fz_Len ;
+    float * SuperController ;     int SuperController_Len ;
   } OpFM_InputType_t ;
   typedef struct OpFM_OutputType {
     void * object ;
     float * u ;     int u_Len ;
     float * v ;     int v_Len ;
     float * w ;     int w_Len ;
+    float * SuperController ;     int SuperController_Len ;
     float * WriteOutput ;     int WriteOutput_Len ;
   } OpFM_OutputType_t ;
   typedef struct OpFM_UserData {
+    OpFM_InitInputType_t           OpFM_InitInput ;
     OpFM_InitOutputType_t          OpFM_InitOutput ;
     OpFM_ParameterType_t           OpFM_Param ;
     OpFM_InputType_t               OpFM_Input ;

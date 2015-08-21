@@ -1,10 +1,9 @@
 #================================================================================#
-# This makefile created by B. Jonkman,                                           #
-# adapted from Crunch (M. Buhl).                                                 #
+# This makefile created by B. Jonkman.                                           #
 # (c) 2013-2015 National Renewable Energy Laboratory                             #
 #                                                                                #
-# This makefile has been tested on Windows 7 with gfortran.                      #
-# This makefile works with mingw32-make.exe.                                     #
+# It has been tested on                                                          #
+#     Windows 7 with gfortran using mingw32-make.exe.                            #
 #                                                                                #
 #================================================================================#
 
@@ -17,13 +16,10 @@ BITS = 32
 #BITS = 64
 
 #================================================================================#
-# if compiling FAST as a shared library,
-#      use FAST_driver = FAST_Library
-#      add -shared to LDFLAGS
-#      and modify EXE_EXT with .dll or .so extensions
-
-FAST_driver = FAST_Prog
+# if compiling FAST as a shared library, use
 #FAST_driver = FAST_Library
+# to generate a stand-alone version of FAST, use
+FAST_driver = FAST_Prog
 #================================================================================#
 
 
@@ -115,14 +111,25 @@ else
       LAPACK_LINK  = -llapack -lblas
    endif
 
-endif
+  # some options to dynamically load .so libraries (loaded when called in ServoDyn) for DLL control
+  # the dl library (-ldl) is used for dynamic libraries; needs to be used in conjunction with preprocessor directive USE_DLL_INTERFACE
+  FFLAGS := $(FFLAGS) -DUSE_DLL_INTERFACE
+  LAPACK_LINK := $(LAPACK_LINK) -ldl
 
+endif
 
 
    # Destination and RootName for executable
 
-OUTPUT_NAME = FAST
 DEST_DIR    = $(BIN_DIR)
+
+ifeq ($(FAST_Driver),FAST_Library)
+   LDFLAGS := $(LDFLAGS) -shared
+   OUTPUT_NAME = FAST_Library
+else
+   OUTPUT_NAME = FAST
+endif
+
 
    #==========================================================#
    # You should not need to change anything beyond this point #
@@ -133,23 +140,36 @@ DEST_DIR    = $(BIN_DIR)
 ifeq ($(OS),Windows_NT)
       # Windows
    DEL_CMD   = del
-   EXE_EXT   = _gwin$(BITS).exe
    INTER_DIR = Obj_win$(BITS)
    MD_CMD    = @mkdir
    CP_CMD    = copy
    OBJ_EXT   = .obj
    PATH_SEP  = \\
    SYS_FILE  = SysGnuWin
+
+   ifeq ($(FAST_Driver),FAST_Library)
+      EXE_EXT   = _gwin$(BITS).dll
+   else
+      EXE_EXT   = _gwin$(BITS).exe
+   endif
+
+
 else
       # Linux/Mac
    DEL_CMD   = rm -f
-   EXE_EXT   = _glin$(BITS)
    INTER_DIR = Obj_lin$(BITS)
    MD_CMD    = @mkdir -p
    CP_CMD    = cp
    OBJ_EXT   = .o
    PATH_SEP  = /
    SYS_FILE  = SysGnuLinux
+
+   ifeq ($(FAST_Driver),FAST_Library)
+      EXE_EXT   = _glin$(BITS).so
+   else
+      EXE_EXT   = _glin$(BITS)
+   endif
+
 endif
 
 

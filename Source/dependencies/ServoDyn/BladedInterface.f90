@@ -49,6 +49,20 @@ MODULE BladedInterface
          CHARACTER(KIND=C_CHAR), INTENT(IN)    :: avcOUTNAME(*)  ! OUTNAME (Simulation RootName)
          CHARACTER(KIND=C_CHAR), INTENT(INOUT) :: avcMSG    (*)  ! MESSAGE (Message from DLL to simulation code [ErrMsg])         
       END SUBROUTINE BladedDLL_Procedure
+      
+      SUBROUTINE BladedDLL_SC_Procedure ( avrSWAP, SCinput, SCoutput, aviFAIL, accINFILE, avcOUTNAME, avcMSG )  BIND(C)
+         USE, INTRINSIC :: ISO_C_Binding
+         
+         REAL(C_FLOAT),          INTENT(INOUT) :: avrSWAP   (*)  ! DATA 
+         REAL(C_FLOAT),          INTENT(IN   ) :: SCinput   (*)  ! DATA from the supercontroller
+         REAL(C_FLOAT),          INTENT(INOUT) :: SCoutput  (*)  ! DATA to the supercontroller
+         INTEGER(C_INT),         INTENT(INOUT) :: aviFAIL        ! FLAG  (Status set in DLL and returned to simulation code)
+         CHARACTER(KIND=C_CHAR), INTENT(IN)    :: accINFILE (*)  ! INFILE
+         CHARACTER(KIND=C_CHAR), INTENT(IN)    :: avcOUTNAME(*)  ! OUTNAME (Simulation RootName)
+         CHARACTER(KIND=C_CHAR), INTENT(INOUT) :: avcMSG    (*)  ! MESSAGE (Message from DLL to simulation code [ErrMsg])         
+      END SUBROUTINE BladedDLL_SC_Procedure
+      
+      
    END INTERFACE   
   
       ! Some constants for the Interface:
@@ -61,11 +75,12 @@ MODULE BladedInterface
 
 CONTAINS
 !==================================================================================================================================
-SUBROUTINE CallBladedDLL ( DLL, dll_data, p, ErrStat, ErrMsg )
+SUBROUTINE CallBladedDLL ( u, DLL, dll_data, p, ErrStat, ErrMsg )
 
       ! This SUBROUTINE is used to call the Bladed-style DLL.
 
       ! Passed Variables:
+   TYPE(SrvD_InputType),      INTENT(IN   )  :: u              ! System inputs
    TYPE(DLL_Type),            INTENT(IN   )  :: DLL            ! The DLL to be called.
    TYPE(BladedDLLType),       INTENT(INOUT)  :: dll_data       ! data type containing the avrSWAP, accINFILE, and avcOUTNAME arrays 
    TYPE(SrvD_ParameterType),  INTENT(IN   )  :: p              ! Parameters
@@ -86,6 +101,7 @@ SUBROUTINE CallBladedDLL ( DLL, dll_data, p, ErrStat, ErrMsg )
    
       
    PROCEDURE(BladedDLL_Procedure), POINTER   :: DLL_Subroutine                 ! The address of the procedure in the Bladed DLL
+   PROCEDURE(BladedDLL_SC_Procedure),POINTER :: DLL_SC_Subroutine              ! The address of the supercontroller procedure in the Bladed DLL
 
       
       ! initialize aviFAIL
@@ -97,13 +113,22 @@ SUBROUTINE CallBladedDLL ( DLL, dll_data, p, ErrStat, ErrMsg )
    accINFILE  = TRANSFER( TRIM(p%DLL_InFile)//C_NULL_CHAR, accINFILE  )
    avcMSG     = TRANSFER( C_NULL_CHAR,                     avcMSG     ) !bjj this is intent(out), so we shouldn't have to do this, but, to be safe...
    
-   
-      ! Call the DLL (first associate the address from the DLL with the subroutine):
-   CALL C_F_PROCPOINTER( DLL%ProcAddr, DLL_Subroutine) 
-   !bjj: because DLL%ProcAddr is already TYPE(C_FUNPTR), we don't need to use this for the first argument of C_F_PROCPOINTER: TRANSFER(DLL%ProcAddr,C_NULL_FUNPTR)
+   IF ( ALLOCATED(dll_data%SCoutput) ) THEN
+         ! Call the DLL (first associate the address from the DLL with the subroutine):
+      CALL C_F_PROCPOINTER( DLL%ProcAddr, DLL_Subroutine) 
+      !bjj: because DLL%ProcAddr is already TYPE(C_FUNPTR), we don't need to use this for the first argument of C_F_PROCPOINTER: TRANSFER(DLL%ProcAddr,C_NULL_FUNPTR)
 
-   CALL DLL_Subroutine ( dll_data%avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) 
-     
+      CALL DLL_SC_Subroutine ( dll_data%avrSWAP, u%SuperController, dll_data%SCoutput, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) 
+            
+   ELSE
+      
+         ! Call the DLL (first associate the address from the DLL with the subroutine):
+      CALL C_F_PROCPOINTER( DLL%ProcAddr, DLL_Subroutine) 
+      !bjj: because DLL%ProcAddr is already TYPE(C_FUNPTR), we don't need to use this for the first argument of C_F_PROCPOINTER: TRANSFER(DLL%ProcAddr,C_NULL_FUNPTR)
+
+      CALL DLL_Subroutine ( dll_data%avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) 
+   END IF
+   
    
    IF ( aviFAIL /= 0 ) THEN
 
@@ -201,6 +226,13 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
       CALL CheckError(ErrStat2,ErrMsg2)
       IF ( ErrStat >= AbortErrLev ) RETURN
 
+   IF (ALLOCATED(y%SuperController)) THEN
+      CALL AllocAry( OtherState%dll_data%SCoutput, SIZE(y%SuperController), 'OtherState%dll_data%SuperController', ErrStat2, ErrMsg2 )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF (ErrStat >= AbortErrLev) RETURN
+      OtherState%dll_data%SCoutput = 0.0_SiKi
+   END IF
+      
 
       ! Initialize dll data stored in OtherState
    OtherState%dll_data%GenState   = 1
@@ -279,7 +311,7 @@ SUBROUTINE BladedInterface_End(u, p, OtherState, ErrStat, ErrMsg)
       OtherState%dll_data%avrSWAP( 1) = -1.0   ! Status flag set as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation (-)
       !CALL Fill_avrSWAP( -1_IntKi, -10.0_DbKi, u, p, LEN(ErrMsg), OtherState%dll_data )
 
-      CALL CallBladedDLL(p%DLL_Trgt,  OtherState%dll_data, p, ErrStat, ErrMsg)
+      CALL CallBladedDLL(u, p%DLL_Trgt,  OtherState%dll_data, p, ErrStat, ErrMsg)
    END IF
       
    CALL FreeDynamicLib( p%DLL_Trgt, ErrStat2, ErrMsg2 )
@@ -314,7 +346,7 @@ SUBROUTINE BladedInterface_CalcOutput(t, u, p, OtherState, ErrStat, ErrMsg)
    CALL Fill_avrSWAP( t, u, p, LEN(ErrMsg), OtherState%dll_data )
        
       ! Call the Bladed-style DLL controller:
-   CALL CallBladedDLL(p%DLL_Trgt,  OtherState%dll_data, p, ErrStat, ErrMsg)
+   CALL CallBladedDLL(u, p%DLL_Trgt,  OtherState%dll_data, p, ErrStat, ErrMsg)
       IF ( ErrStat >= AbortErrLev ) RETURN
 
       !bjj: setting this after the call so that the first call is with avrSWAP(1)=0 [apparently it doesn't like to be called at initialization.... but maybe we can fix that later]

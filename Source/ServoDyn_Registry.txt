@@ -30,6 +30,8 @@ typedef	^	InitInputType	ReKi	r_N_O_G	{3}	-	-	"nacelle origin for setting up mesh
 typedef	^	InitInputType	DbKi	Tmax	-	-	-	"max time from glue code"	s
 typedef	^	InitInputType	ReKi	AvgWindSpeed	-	-	-	"average wind speed for the simulation"	m/s
 typedef	^	InitInputType	ReKi	AirDens	-	-	-	"air density"	kg/m^3
+typedef	^	InitInputType	IntKi	NumSCin	-	-	-	"number of controller inputs [from supercontroller]"	-
+typedef	^	InitInputType	IntKi	NumSCout	-	-	-	"number of controller outputs [to supercontroller]"	-
 
 # Define outputs from the initialization routine here:
 typedef	^	InitOutputType	CHARACTER(ChanLen)	WriteOutputHdr	{:}	-	-	"Names of the output-to-file channels"	-
@@ -123,6 +125,7 @@ typedef	^	BladedDLLType	ReKi	GenTrq	-	-	-	"Electrical generator torque from Blad
 typedef	^	BladedDLLType	IntKi	GenState	-	-	-	"Generator state from Bladed DLL"	N-m
 #typedef	^	BladedDLLType	ReKi	ElecPwr	-	-	-	"Electrical power sent to Bladed DLL"	W
 typedef	^	BladedDLLType	ReKi	BlPitchCom	3	-	-	"Commanded blade pitch angles"	radians
+typedef	^	BladedDLLType	SiKi	SCoutput	{:}	-	-	"controller output to supercontroller"	-
 
 # ..... States ....................................................................................................................
 # Define continuous (differentiable) states here:
@@ -290,7 +293,7 @@ typedef	^	InputType	ReKi	YawAngle	-	-	-	"Estimate of yaw (nacelle + platform)"	r
 typedef	^	InputType	ReKi	ElecPwr_prev	-	-	-	"Electrical power (from previous step), sent to Bladed DLL"	W
 typedef	^	InputType	ReKi	GenTrq_prev	-	-	-	"Electrical generator torque (from previous step), sent to Bladed DLL"	N-m
 typedef	^	InputType	TMD_InputType	NTMD	-	-	-	"TMD module inputs"	-
-
+typedef	^	InputType	SiKi	SuperController	{:}	-	-	"A swap array: used to pass input data to the DLL controller from the supercontroller"	-
 
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:
@@ -304,3 +307,4 @@ typedef	^	OutputType	ReKi	HSSBrTrqC	-	-	-	"Commanded HSS brake torque"	N-m
 typedef	^	OutputType	ReKi	ElecPwr	-	-	-	"Electrical power"	W
 typedef	^	OutputType	ReKi	TBDrCon	{:}	-	-	"Instantaneous tip-brake drag constant, Cd*Area"
 typedef	^	OutputType	TMD_OutputType	NTMD	-	-	-	"TMD module outputs"	-
+typedef	^	OutputType	SiKi	SuperController	{:}	-	-	"A swap array: used to pass output data from the DLL controller to the supercontroller"	-
