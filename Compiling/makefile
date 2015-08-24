@@ -453,8 +453,8 @@ $(IceF_DIR)/IceFloe_Types.f90: $(IceF_DIR)/IceFloe_FASTRegistry.inp
 $(IceD_DIR)/IceDyn_Types.f90: $(IceD_DIR)/Registry_IceDyn.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR)  -O $(IceD_DIR)
 
-$(OpFM_DIR)/OpenFOAM_Types.f90: $(OpFM_Reg)/OpenFOAM_Registry.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR) -ccode -O $(OpFM_Reg)
+$(OpFM_DIR)/OpenFOAM_Types.f90: $(OpFM_DIR)/OpenFOAM_Registry.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR) -ccode -O $(OpFM_DIR)
 
 $(IfW_DIR)/InflowWind_Types.f90: $(IfW_DIR_Reg)/InflowWind.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg) -O $(IfW_DIR)
