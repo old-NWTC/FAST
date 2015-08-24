@@ -35,7 +35,7 @@ LDFLAGS = -shared -O2 -m$(BITS) -fbacktrace
    # Destination and RootName for executable
 
 OUTPUT_NAME = DISCON
-DEST_DIR    = .
+DEST_DIR    = ../CertTest/5MW_Baseline/ServoData
 
    #==========================================================#
    # You should not need to change anything beyond this point #
