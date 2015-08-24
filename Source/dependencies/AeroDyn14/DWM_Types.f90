@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.08.01, 21-May-2015)
+! FAST Registry (v2.08.02, 12-Aug-2015)
 !*********************************************************************************************************************************
 ! DWM_Types
 !.................................................................................................................................
@@ -34,6 +34,7 @@ MODULE DWM_Types
 USE IfW_UniformWind_Types
 USE IfW_TSFFWind_Types
 USE IfW_BladedFFWind_Types
+USE IfW_HAWCWind_Types
 USE IfW_UserWind_Types
 USE Lidar_Types
 USE InflowWind_Types

@@ -4465,7 +4465,7 @@ SUBROUTINE ValidateTowerData ( InputFileData, ErrStat, ErrMsg )
 
    DO I = 2,InputFileData%NTwInpSt
       IF ( InputFileData%HtFract(I) <= InputFileData%HtFract(I-1) )  THEN
-         CALL SetErrors( ErrID_Fatal, 'HtFract('//TRIM( Num2LStr( I ) )//') must be greater than BlFract('&
+         CALL SetErrors( ErrID_Fatal, 'HtFract('//TRIM( Num2LStr( I ) )//') must be greater than HtFract('&
                                                       //TRIM( Num2LStr(I-1) )//').')
 
       ENDIF
