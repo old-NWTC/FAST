@@ -402,7 +402,7 @@ default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
 
 $(FAST_DIR)/FAST_Types.f90: $(FAST_DIR)/FAST_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(TMD_DIR) -I $(AD14_DIR) -I $(AD_DIR) -I $(BD_DIR) \
-	-I $(HD_DIR_Reg) -I $(IceF_DIR) -I $(IceD_DIR) -I $(MAP_DIR) -I $(FEAM_DIR) -I $(MD_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR) -I $(OpFM_DIR)\
+	-I $(HD_DIR_Reg) -I $(IceF_DIR) -I $(IceD_DIR) -I $(MAP_DIR) -I $(FEAM_DIR) -I $(MD_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR) -I $(OpFM_DIR) \
 	-noextrap -O $(FAST_DIR)
 
 $(TMD_DIR)/TMD_Types.f90: $(TMD_DIR)/TMD_Registry.txt
@@ -715,10 +715,6 @@ superclean:
 	$(DEL_CMD) "$(ED_DIR)$(PATH_SEP)ElastoDyn_Types.f90"
 	$(DEL_CMD) "$(AD14_DIR)$(PATH_SEP)AeroDyn14_Types.f90"
 	$(DEL_CMD) "$(DWM_DIR)$(PATH_SEP)DWM_Types.f90"
-	$(DEL_CMD) "$(AD_DIR)$(PATH_SEP)AeroDyn_Types.f90"
-	$(DEL_CMD) "$(AFI_DIR)$(PATH_SEP)UnsteadyAero_Types.f90"
-	$(DEL_CMD) "$(UA_DIR)$(PATH_SEP)AirfoilInfo_Types.f90"
-	$(DEL_CMD) "$(BEMT_DIR)$(PATH_SEP)BEMT_Types.f90"
 	$(DEL_CMD) "$(SD_DIR)$(PATH_SEP)SubDyn_Types.f90"
 	$(DEL_CMD) "$(FEAM_DIR)$(PATH_SEP)FEAMooring_Types.f90"
 	$(DEL_CMD) "$(MD_DIR)$(PATH_SEP)MoorDyn_Types.f90"
