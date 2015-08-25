@@ -1,6 +1,6 @@
 !=======================================================================
-SUBROUTINE DISCON ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) BIND (C, NAME='DISCON')
-!DEC$ ATTRIBUTES DLLEXPORT :: DISCON
+SUBROUTINE DISCON_Sub ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) BIND (C, NAME='DISCON')
+!DEC$ ATTRIBUTES DLLEXPORT :: DISCON_Sub
 
    ! This Bladed-style DLL controller is used to implement a variable-speed
    ! generator-torque controller and PI collective blade pitch controller for
@@ -11,11 +11,14 @@ SUBROUTINE DISCON ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) BIND (C, N
    ! compile with either gfortran or Intel Visual Fortran (IVF)
    ! DO NOT REMOVE or MODIFY LINES starting with "!DEC$" or "!GCC$"
    ! !DEC$ specifies attributes for IVF and !GCC$ specifies attributes for gfortran
+   !
+   ! 25-Aug-2015: Also note that the subroutine is called DISCON_Sub internally because of a  
+   ! gfortran internal compiler error that presents itself when I use DISCON on Mac/Linux.
    
 USE, INTRINSIC :: ISO_C_Binding
 
 IMPLICIT                        NONE
-!GCC$ ATTRIBUTES DLLEXPORT :: DISCON
+!GCC$ ATTRIBUTES DLLEXPORT :: DISCON_Sub
 
 
    ! Passed Variables:
@@ -558,5 +561,5 @@ ENDIF
 avcMSG = TRANSFER( TRIM(ErrMsg)//C_NULL_CHAR, avcMSG )
 
 RETURN
-END SUBROUTINE DISCON
+END SUBROUTINE DISCON_Sub
 !=======================================================================
