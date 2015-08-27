@@ -84,7 +84,7 @@ True          PtfmYDOF    - Platform yaw rotation DOF (flag)
 4.22923E+09   PtfmPIner   - Platform inertia for pitch tilt rotation about the platform CM (kg m^2)
  1.6423E+08   PtfmYIner   - Platform inertia for yaw rotation about the platform CM (kg m^2)
 ---------------------- BLADE ---------------------------------------------------
-         20   BldNodes    - Number of blade nodes (per blade) used for analysis (-)
+         17   BldNodes    - Number of blade nodes (per blade) used for analysis (-)
 "NRELOffshrBsline5MW_Blade.dat"    BldFile(1)  - Name of file containing properties for blade 1 (quoted string)
 "NRELOffshrBsline5MW_Blade.dat"    BldFile(2)  - Name of file containing properties for blade 2 (quoted string)
 "NRELOffshrBsline5MW_Blade.dat"    BldFile(3)  - Name of file containing properties for blade 3 (quoted string) [unused for 2 blades]
@@ -106,7 +106,7 @@ True          PtfmYDOF    - Platform yaw rotation DOF (flag)
 False         Furling     - Read in additional model properties for furling turbine (flag) [must currently be FALSE)
 "unused"      FurlFile    - Name of file containing furling properties (quoted string) [unused when Furling=False]
 ---------------------- TOWER ---------------------------------------------------
-         17   TwrNodes    - Number of tower nodes used for analysis (-)
+         20   TwrNodes    - Number of tower nodes used for analysis (-)
 "NRELOffshrBsline5MW_OC3Hywind_ElastoDyn_Tower.dat"    TwrFile     - Name of file containing tower properties (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint    - Print summary data to "<RootName>.sum" (flag)
