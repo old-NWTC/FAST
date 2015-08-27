@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-05-09 16:21:07 -0600 (Sat, 09 May 2015) $
-! (File) Revision #: $Rev: 306 $
+! File last committed: $Date: 2015-08-26 12:35:45 -0600 (Wed, 26 Aug 2015) $
+! (File) Revision #: $Rev: 329 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/SysGnuWin.f90 $
 !**********************************************************************************************************************************
 MODULE SysSubs
@@ -496,13 +496,13 @@ CONTAINS
    IF ( LEN_TRIM(Str)  < 1 ) THEN
       WRITE ( CU, '()', IOSTAT=ErrStat )
    ELSE
-      WRITE ( CU,Frm, IOSTAT=ErrStat ) TRIM(Str)
+      WRITE ( CU, Frm, IOSTAT=ErrStat ) TRIM(Str)
    END IF
 
 
    END SUBROUTINE WriteScr ! ( Str )
-!=======================================================================
 
+!=======================================================================
 
 
 !==================================================================================================================================
@@ -562,7 +562,7 @@ END SUBROUTINE LoadDynamicLib
 !==================================================================================================================================
 SUBROUTINE LoadDynamicLibProc ( DLL, ErrStat, ErrMsg )
 
-      ! This SUBROUTINE is used to dynamically load a procedure from a DLL.
+      ! This SUBROUTINE is used to dynamically load a procedure in a DLL.
 
       ! Passed Variables:
 
@@ -570,6 +570,10 @@ SUBROUTINE LoadDynamicLibProc ( DLL, ErrStat, ErrMsg )
    INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     ! Error status of the operation
    CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
+
+      ! local variables
+   INTEGER(IntKi)                            :: i
+   
    INTERFACE  ! Definitions of Windows API routines
 
       !...........................
@@ -594,19 +598,25 @@ SUBROUTINE LoadDynamicLibProc ( DLL, ErrStat, ErrMsg )
 
    ErrStat = ErrID_None
    ErrMsg = ''
+   !IF ( DLL%FileAddr == INT(0,C_INTPTR_T) ) RETURN
 
+   
+      ! Get the procedure addresses:
 
+   do i=1,NWTC_MAX_DLL_PROC
+      if ( len_trim( DLL%ProcName(i) ) > 0 ) then
+   
+         DLL%ProcAddr(i) = GetProcAddress( DLL%FileAddr, TRIM(DLL%ProcName(i))//C_NULL_CHAR )  !the "C_NULL_CHAR" converts the Fortran string to a C-type string (i.e., adds //CHAR(0) to the end)
 
-      ! Get the procedure address:
-
-   DLL%ProcAddr = GetProcAddress( DLL%FileAddr, TRIM(DLL%ProcName)//C_NULL_CHAR )  !the "C_NULL_CHAR" converts the Fortran string to a C-type string (i.e., adds //CHAR(0) to the end)
-
-   IF(.NOT. C_ASSOCIATED(DLL%ProcAddr)) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = 'The procedure '//TRIM(DLL%ProcName)//' in file '//TRIM(DLL%FileName)//' could not be loaded.'
-      RETURN
-   END IF
-
+         IF(.NOT. C_ASSOCIATED(DLL%ProcAddr(i))) THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = 'The procedure '//TRIM(DLL%ProcName(i))//' in file '//TRIM(DLL%FileName)//' could not be loaded.'
+            RETURN
+         END IF
+         
+      end if
+   end do
+         
 
    RETURN
 END SUBROUTINE LoadDynamicLibProc
@@ -639,6 +649,7 @@ SUBROUTINE FreeDynamicLib ( DLL, ErrStat, ErrMsg )
 
 
       ! Free the DLL:
+   IF ( DLL%FileAddr == INT(0,C_INTPTR_T) ) RETURN
 
    Success = FreeLibrary( DLL%FileAddr ) !If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.
 
@@ -649,10 +660,12 @@ SUBROUTINE FreeDynamicLib ( DLL, ErrStat, ErrMsg )
    ELSE
       ErrStat = ErrID_None
       ErrMsg = ''
+      DLL%FileAddr = INT(0,C_INTPTR_T)
    END IF
 
    RETURN
 END SUBROUTINE FreeDynamicLib
 !==================================================================================================================================
+
 
 END MODULE SysSubs

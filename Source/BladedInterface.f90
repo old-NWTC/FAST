@@ -115,7 +115,7 @@ SUBROUTINE CallBladedDLL ( u, DLL, dll_data, p, ErrStat, ErrMsg )
    
    IF ( ALLOCATED(dll_data%SCoutput) ) THEN
          ! Call the DLL (first associate the address from the DLL with the subroutine):
-      CALL C_F_PROCPOINTER( DLL%ProcAddr, DLL_Subroutine) 
+      CALL C_F_PROCPOINTER( DLL%ProcAddr(1), DLL_Subroutine) 
       !bjj: because DLL%ProcAddr is already TYPE(C_FUNPTR), we don't need to use this for the first argument of C_F_PROCPOINTER: TRANSFER(DLL%ProcAddr,C_NULL_FUNPTR)
 
       CALL DLL_SC_Subroutine ( dll_data%avrSWAP, u%SuperController, dll_data%SCoutput, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) 
@@ -123,7 +123,7 @@ SUBROUTINE CallBladedDLL ( u, DLL, dll_data, p, ErrStat, ErrMsg )
    ELSE
       
          ! Call the DLL (first associate the address from the DLL with the subroutine):
-      CALL C_F_PROCPOINTER( DLL%ProcAddr, DLL_Subroutine) 
+      CALL C_F_PROCPOINTER( DLL%ProcAddr(1), DLL_Subroutine) 
       !bjj: because DLL%ProcAddr is already TYPE(C_FUNPTR), we don't need to use this for the first argument of C_F_PROCPOINTER: TRANSFER(DLL%ProcAddr,C_NULL_FUNPTR)
 
       CALL DLL_Subroutine ( dll_data%avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) 
@@ -243,7 +243,9 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
    ! Define and load the DLL:
 
    p%DLL_Trgt%FileName = InputFileData%DLL_FileName
-   p%DLL_Trgt%ProcName = InputFileData%DLL_ProcName
+
+   p%DLL_Trgt%ProcName = "" ! initialize all procedures to empty so we try to load only one
+   p%DLL_Trgt%ProcName(1) = InputFileData%DLL_ProcName
 
    CALL LoadDynamicLib ( p%DLL_Trgt, ErrStat2, ErrMsg2 )
       CALL CheckError(ErrStat2,ErrMsg2)

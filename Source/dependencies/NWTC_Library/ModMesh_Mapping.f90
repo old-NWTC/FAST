@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-07-23 14:54:19 -0600 (Thu, 23 Jul 2015) $
-! (File) Revision #: $Rev: 321 $
+! File last committed: $Date: 2015-08-26 13:37:59 -0600 (Wed, 26 Aug 2015) $
+! (File) Revision #: $Rev: 330 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/ModMesh_Mapping.f90 $
 !**********************************************************************************************************************************
 ! This code implements the spatial mapping algorithms described in 
@@ -926,6 +926,7 @@ SUBROUTINE CreateMapping_ProjectToLine2(Mesh1, Mesh2, Map, Mesh1_TYPE, ErrStat, 
    REAL(ReKi)      :: dist
    REAL(ReKi)      :: min_dist
    REAL(ReKi)      :: elem_position
+   REAL(SiKi)      :: elem_position_SiKi
 
    REAL(ReKi)      :: Mesh1_xyz(3)
 
@@ -993,12 +994,17 @@ SUBROUTINE CreateMapping_ProjectToLine2(Mesh1, Mesh2, Map, Mesh1_TYPE, ErrStat, 
                   ! note: i forumlated it this way because Fortran doesn't necessarially do shortcutting and I don't want to call EqualRealNos if we don't need it:
             if ( elem_position .ge. 0.0_ReKi .and. elem_position .le. 1.0_ReKi ) then !we're ON the element (between the two nodes)
                on_element = .true.
-            elseif (EqualRealNos( elem_position, 1.0_ReKi )) then !we're ON the element (at a node)
-               on_element = .true.
-            elseif (EqualRealNos( elem_position,  0.0_ReKi )) then !we're ON the element (at a node)
-               on_element = .true.
-            else !we're not on the element
-               on_element = .false.
+            else
+               elem_position_SiKi = REAL( elem_position, SiKi )
+               if (EqualRealNos( elem_position_SiKi, 1.0_SiKi )) then !we're ON the element (at a node)
+                  on_element = .true.
+                  elem_position = 1.0_ReKi
+               elseif (EqualRealNos( elem_position_SiKi,  0.0_SiKi )) then !we're ON the element (at a node)
+                  on_element = .true.
+                  elem_position = 0.0_ReKi
+               else !we're not on the element
+                  on_element = .false.
+               end if               
             end if
 
             if (on_element) then
@@ -1028,7 +1034,8 @@ SUBROUTINE CreateMapping_ProjectToLine2(Mesh1, Mesh2, Map, Mesh1_TYPE, ErrStat, 
          if (.not. found) then
 
             if (Map(i)%OtherMesh_Element .lt. 1 )  then
-               CALL SetErrStat( ErrID_Fatal, 'node does not project onto any line2 element', ErrStat, ErrMsg, 'CreateMapping_ProjectToLine2')
+               CALL SetErrStat( ErrID_Fatal, 'Node does not project onto any line2 element.', ErrStat, ErrMsg, 'CreateMapping_ProjectToLine2')
+               call WrScr( 'Node '//trim(num2Lstr(i))//': position on last element = '//trim(num2lstr(elem_position)) )
                RETURN
             endif
 

@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-30 12:53:04 -0600 (Thu, 30 Apr 2015) $
-! (File) Revision #: $Rev: 300 $
+! File last committed: $Date: 2015-08-26 12:35:45 -0600 (Wed, 26 Aug 2015) $
+! (File) Revision #: $Rev: 329 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Base.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_Base
@@ -52,6 +52,9 @@ MODULE NWTC_Base
 
    INTEGER(IntKi)                :: AbortErrLev  = ErrID_Fatal                     ! Note that this is not a PARAMETER
 
+   
+   INTEGER(IntKi), PARAMETER     :: NWTC_MAX_DLL_PROC  = 3                         ! maximum number of procedures that can be dynamically loaded from a DLL (see DLL_Type)
+   
 
       ! Type definition for dynamically loaded libraries:
       !  Note that changes here may need to be reflected in DLLTypePack() DLLTypeUnPack(), and the FAST Registry.exe
@@ -60,10 +63,10 @@ MODULE NWTC_Base
 
       INTEGER(C_INTPTR_T)       :: FileAddr                                        ! The address of file FileName.         (RETURN value from LoadLibrary ) [Windows]
       TYPE(C_PTR)               :: FileAddrX = C_NULL_PTR                          ! The address of file FileName.         (RETURN value from dlopen ) [Linux]
-      TYPE(C_FUNPTR)            :: ProcAddr  = C_NULL_FUNPTR                       ! The address of procedure ProcName.    (RETURN value from GetProcAddress or dlsym) [initialized to Null for pack/unpack]
+      TYPE(C_FUNPTR)            :: ProcAddr(NWTC_MAX_DLL_PROC)  = C_NULL_FUNPTR    ! The address of procedure ProcName.    (RETURN value from GetProcAddress or dlsym) [initialized to Null for pack/unpack]
 
       CHARACTER(1024)           :: FileName                                        ! The name of the DLL file including the full path to the current working directory.
-      CHARACTER(1024)           :: ProcName                                        ! The name of the procedure in the DLL that will be called.
+      CHARACTER(1024)           :: ProcName(NWTC_MAX_DLL_PROC)  = ""               ! The name of the procedure in the DLL that will be called.
 
    END TYPE DLL_Type
 
