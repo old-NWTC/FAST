@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-08-21 14:44:15 -0600 (Fri, 21 Aug 2015) $
-! (File) Revision #: $Rev: 1090 $
+! File last committed: $Date: 2015-08-27 14:41:17 -0600 (Thu, 27 Aug 2015) $
+! (File) Revision #: $Rev: 1100 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/BladedInterface.f90 $
 !**********************************************************************************************************************************
 MODULE BladedInterface
@@ -115,16 +115,14 @@ SUBROUTINE CallBladedDLL ( u, DLL, dll_data, p, ErrStat, ErrMsg )
    
    IF ( ALLOCATED(dll_data%SCoutput) ) THEN
          ! Call the DLL (first associate the address from the DLL with the subroutine):
-      CALL C_F_PROCPOINTER( DLL%ProcAddr(1), DLL_Subroutine) 
-      !bjj: because DLL%ProcAddr is already TYPE(C_FUNPTR), we don't need to use this for the first argument of C_F_PROCPOINTER: TRANSFER(DLL%ProcAddr,C_NULL_FUNPTR)
-
+      CALL C_F_PROCPOINTER( DLL%ProcAddr(1), DLL_SC_Subroutine) 
       CALL DLL_SC_Subroutine ( dll_data%avrSWAP, u%SuperController, dll_data%SCoutput, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) 
             
    ELSE
       
          ! Call the DLL (first associate the address from the DLL with the subroutine):
       CALL C_F_PROCPOINTER( DLL%ProcAddr(1), DLL_Subroutine) 
-      !bjj: because DLL%ProcAddr is already TYPE(C_FUNPTR), we don't need to use this for the first argument of C_F_PROCPOINTER: TRANSFER(DLL%ProcAddr,C_NULL_FUNPTR)
+
 
       CALL DLL_Subroutine ( dll_data%avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) 
    END IF
