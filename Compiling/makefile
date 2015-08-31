@@ -17,7 +17,7 @@ BITS = 32
 
 #================================================================================#
 # if compiling FAST as a shared library, use
-#FAST_driver = FAST_Library
+# FAST_driver = FAST_Library
 # to generate a stand-alone version of FAST, use
 FAST_driver = FAST_Prog
 #================================================================================#
@@ -123,7 +123,7 @@ endif
 
 DEST_DIR    = $(BIN_DIR)
 
-ifeq ($(FAST_Driver),FAST_Library)
+ifeq ($(FAST_driver),FAST_Library)
    LDFLAGS := $(LDFLAGS) -shared
    OUTPUT_NAME = FAST_Library
 else
@@ -147,7 +147,7 @@ ifeq ($(OS),Windows_NT)
    PATH_SEP  = \\
    SYS_FILE  = SysGnuWin
 
-   ifeq ($(FAST_Driver),FAST_Library)
+   ifeq ($(FAST_driver),FAST_Library)
       EXE_EXT   = _gwin$(BITS).dll
    else
       EXE_EXT   = _gwin$(BITS).exe
@@ -164,7 +164,7 @@ else
    PATH_SEP  = /
    SYS_FILE  = SysGnuLinux
 
-   ifeq ($(FAST_Driver),FAST_Library)
+   ifeq ($(FAST_driver),FAST_Library)
       EXE_EXT   = _glin$(BITS).so
    else
       EXE_EXT   = _glin$(BITS)
