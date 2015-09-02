@@ -22,9 +22,9 @@ False         CompUserPtfmLd  - Compute additional platform loading (flag) {fals
 False         CompUserTwrLd   - Compute additional tower loading (flag) {false: none; true: user-defined from routine UserTwrLd}
 ---------------------- INPUT FILES ---------------------------------------------
 "5MW_Baseline/NRELOffshrBsline5MW_OC4DeepCwindSemi_ElastoDyn.dat"    EDFile          - Name of file containing ElastoDyn input parameters (quoted string)
-"unused"      BDBldFile(1)    - Name of file containing BeamDyn input parameters for blade 1 (quoted string)
-"unused"      BDBldFile(2)    - Name of file containing BeamDyn input parameters for blade 2 (quoted string)
-"unused"      BDBldFile(3)    - Name of file containing BeamDyn input parameters for blade 3 (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_BeamDyn.dat"    BDBldFile(1)    - Name of file containing BeamDyn input parameters for blade 1 (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_BeamDyn.dat"    BDBldFile(2)    - Name of file containing BeamDyn input parameters for blade 2 (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_BeamDyn.dat"    BDBldFile(3)    - Name of file containing BeamDyn input parameters for blade 3 (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_InflowWind_Steady8mps.dat"    InflowFile      - Name of file containing inflow wind input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_AeroDyn_Equil_noTwr.dat"    AeroFile        - Name of file containing aerodynamic input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_OC4DeepCwindSemi_ServoDyn.dat"    ServoFile       - Name of file containing control and electrical-drive input parameters (quoted string)
