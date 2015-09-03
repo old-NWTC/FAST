@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
 ! LICENSING
-! Copyright (C) 2013-2014  National Renewable Energy Laboratory
+! Copyright (C) 2013-2015  National Renewable Energy Laboratory
 !
 !    This file is part of FAST's Controls and Electrical Drive Module, "ServoDyn".
 !
@@ -32,7 +32,7 @@ MODULE ServoDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.03.00a-bjj', '20-Aug-2015' )
+   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.03.01a-bjj', '3-Sep-2015' )
    CHARACTER(*),   PARAMETER            :: SrvD_Nickname = 'SrvD'
    
 #ifdef COMPILE_SIMULINK
@@ -756,7 +756,7 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    AllOuts(HSSBrTqC)= 0.001*y%HSSBrTrqC
 
    DO K=1,p%NumBl
-      AllOuts( BlPitchC(K) ) = y%BlPitchCom(K)
+      AllOuts( BlPitchC(K) ) = y%BlPitchCom(K)*R2D
    END DO        
    
    AllOuts(YawMomCom) = y%YawMom

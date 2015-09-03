@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
 ! LICENSING
-! Copyright (C) 2013-2014  National Renewable Energy Laboratory
+! Copyright (C) 2013-2015  National Renewable Energy Laboratory
 !
 !    This file is part of FAST's Controls and Electrical Drive Module, "ServoDyn".
 !
@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-08-27 14:41:17 -0600 (Thu, 27 Aug 2015) $
-! (File) Revision #: $Rev: 1100 $
+! File last committed: $Date: 2015-08-28 12:15:04 -0600 (Fri, 28 Aug 2015) $
+! (File) Revision #: $Rev: 1101 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/BladedInterface.f90 $
 !**********************************************************************************************************************************
 MODULE BladedInterface
@@ -114,17 +114,16 @@ SUBROUTINE CallBladedDLL ( u, DLL, dll_data, p, ErrStat, ErrMsg )
    avcMSG     = TRANSFER( C_NULL_CHAR,                     avcMSG     ) !bjj this is intent(out), so we shouldn't have to do this, but, to be safe...
    
    IF ( ALLOCATED(dll_data%SCoutput) ) THEN
-         ! Call the DLL (first associate the address from the DLL with the subroutine):
+         ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
       CALL C_F_PROCPOINTER( DLL%ProcAddr(1), DLL_SC_Subroutine) 
       CALL DLL_SC_Subroutine ( dll_data%avrSWAP, u%SuperController, dll_data%SCoutput, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) 
             
    ELSE
       
-         ! Call the DLL (first associate the address from the DLL with the subroutine):
+         ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
       CALL C_F_PROCPOINTER( DLL%ProcAddr(1), DLL_Subroutine) 
-
-
       CALL DLL_Subroutine ( dll_data%avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) 
+      
    END IF
    
    
