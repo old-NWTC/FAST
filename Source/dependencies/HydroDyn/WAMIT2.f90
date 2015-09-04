@@ -4487,7 +4487,7 @@ SUBROUTINE WAMIT2_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOu
       
          ! add the two points for step-change after last entered frequency
       Data4D%WvFreq1( Data4D%NumWvFreq1-1 )     = Data4D%WvFreq1(Data4D%NumWvFreq1-2) + 10.0_ReKi*EPSILON(0.0_ReKi)
-      Data4D%WvFreq1( Data4D%NumWvFreq1   )     = HUGE(1.0_ReKi)
+      Data4D%WvFreq1( Data4D%NumWvFreq1   )     = HUGE(1.0_ReKi)/3.  ! divided by 3 because we get overflow when using EqualRealNos (Huge,Huge) later (b/c we try to add Huge+Huge)
 
 
 
@@ -4502,7 +4502,7 @@ SUBROUTINE WAMIT2_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOu
       
          ! add the two points for step-change after last entered frequency
       Data4D%WvFreq2( Data4D%NumWvFreq2-1 )     = Data4D%WvFreq2(Data4D%NumWvFreq2-2) + 10.0_ReKi*EPSILON(0.0_ReKi)
-      Data4D%WvFreq2( Data4D%NumWvFreq2   )     = HUGE(1.0_ReKi)
+      Data4D%WvFreq2( Data4D%NumWvFreq2   )     = HUGE(1.0_ReKi)/3  ! divided by 3 because we get overflow when using EqualRealNos (Huge,Huge) later (b/c we try to add Huge+Huge)
 
 
          ! Now that we know how many frequencies and wave directions there are, we can allocate the array

@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
 ! LICENSING
-! Copyright (C) 2013-2014  National Renewable Energy Laboratory
+! Copyright (C) 2013-2015  National Renewable Energy Laboratory
 !
 !    This file is part of FAST's Controls and Electrical Drive Module, "ServoDyn".
 !
@@ -114,17 +114,16 @@ SUBROUTINE CallBladedDLL ( u, DLL, dll_data, p, ErrStat, ErrMsg )
    avcMSG     = TRANSFER( C_NULL_CHAR,                     avcMSG     ) !bjj this is intent(out), so we shouldn't have to do this, but, to be safe...
    
    IF ( ALLOCATED(dll_data%SCoutput) ) THEN
-         ! Call the DLL (first associate the address from the DLL with the subroutine):
+         ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
       CALL C_F_PROCPOINTER( DLL%ProcAddr(1), DLL_SC_Subroutine) 
       CALL DLL_SC_Subroutine ( dll_data%avrSWAP, u%SuperController, dll_data%SCoutput, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) 
             
    ELSE
       
-         ! Call the DLL (first associate the address from the DLL with the subroutine):
+         ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
       CALL C_F_PROCPOINTER( DLL%ProcAddr(1), DLL_Subroutine) 
-
-
       CALL DLL_Subroutine ( dll_data%avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) 
+      
    END IF
    
    
@@ -342,13 +341,22 @@ SUBROUTINE BladedInterface_CalcOutput(t, u, p, OtherState, ErrStat, ErrMsg)
    
    
       ! Set the input values of the avrSWAP array:
-  
    CALL Fill_avrSWAP( t, u, p, LEN(ErrMsg), OtherState%dll_data )
-       
+
+!CALL WrNumAryFileNR ( 58, (/t/),'1x,ES15.6E2', ErrStat, ErrMsg )
+!CALL WrNumAryFileNR ( 58, OtherState%dll_data%avrSWAP,'1x,ES15.6E2', ErrStat, ErrMsg )
+!write(58,'()')
+   
+   
       ! Call the Bladed-style DLL controller:
    CALL CallBladedDLL(u, p%DLL_Trgt,  OtherState%dll_data, p, ErrStat, ErrMsg)
       IF ( ErrStat >= AbortErrLev ) RETURN
 
+!CALL WrNumAryFileNR ( 59, (/t/),'1x,ES15.6E2', ErrStat, ErrMsg )
+!CALL WrNumAryFileNR ( 59, OtherState%dll_data%avrSWAP,'1x,ES15.6E2', ErrStat, ErrMsg )
+!write(59,'()')
+      
+      
       !bjj: setting this after the call so that the first call is with avrSWAP(1)=0 [apparently it doesn't like to be called at initialization.... but maybe we can fix that later]
    OtherState%dll_data%avrSWAP( 1) = 1.0   ! Status flag set as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation (-)
 

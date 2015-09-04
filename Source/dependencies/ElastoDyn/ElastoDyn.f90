@@ -20,8 +20,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-08-24 13:35:11 -0600 (Mon, 24 Aug 2015) $
-! (File) Revision #: $Rev: 1094 $
+! File last committed: $Date: 2015-09-03 13:23:42 -0600 (Thu, 03 Sep 2015) $
+! (File) Revision #: $Rev: 1111 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn.f90 $
 !**********************************************************************************************************************************
 
@@ -1445,10 +1445,9 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    IF (p%BD4Blades) THEN
          ! we need the initial outputs to send BeamDyn for its states. I should probably put them in
          ! the InitOutput type, but I'm going to use the ED_Outputs instead
-      ! OtherState%BlPitch = u%BlPitchCom
       ! 
       !   ! set the coordinate system variables:
-      !CALL SetCoordSy( t, OtherState%CoordSys, OtherState%RtHS, OtherState%BlPitch, p, x, ErrStat, ErrMsg )
+      !CALL SetCoordSy( t, OtherState%CoordSys, OtherState%RtHS, u%BlPitchCom, p, x, ErrStat, ErrMsg )
       !   IF (ErrStat >= AbortErrLev) RETURN
       !
       !CALL CalculatePositions(        p, x, OtherState%CoordSys,    OtherState%RtHS ) ! calculate positions
@@ -1978,11 +1977,11 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
       ! Blade Pitch Motions:
 
-   OtherState%AllOuts(PtchPMzc1) = OtherState%BlPitch(1)*R2D
-   OtherState%AllOuts(PtchPMzc2) = OtherState%BlPitch(2)*R2D
+   OtherState%AllOuts(PtchPMzc1) = u%BlPitchCom(1)*R2D
+   OtherState%AllOuts(PtchPMzc2) = u%BlPitchCom(2)*R2D
    IF ( p%NumBl == 3 )  THEN ! 3-blader
 
-      OtherState%AllOuts(PtchPMzc3) = OtherState%BlPitch(3)*R2D
+      OtherState%AllOuts(PtchPMzc3) = u%BlPitchCom(3)*R2D
 
    ELSE  ! 2-blader
 
@@ -2976,10 +2975,10 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, 
    ! See if the values stored in OtherState%RtHS and OtherState%CoordSys need to be updated:
    IF ( UpdateValues ) THEN       
       
-       OtherState%BlPitch = u%BlPitchCom
+       !OtherState%BlPitch = u%BlPitchCom
        
          ! set the coordinate system variables:
-      CALL SetCoordSy( t, OtherState%CoordSys, OtherState%RtHS, OtherState%BlPitch, p, x, ErrStat, ErrMsg )
+      CALL SetCoordSy( t, OtherState%CoordSys, OtherState%RtHS, u%BlPitchCom, p, x, ErrStat, ErrMsg )
          IF (ErrStat >= AbortErrLev) RETURN
    
       CALL CalculatePositions(        p, x, OtherState%CoordSys,    OtherState%RtHS ) ! calculate positions
@@ -8429,9 +8428,9 @@ SUBROUTINE Init_OtherStates( OtherState, p, x, InputFileData, ErrStat, ErrMsg  )
    
    
    
-   CALL AllocAry(OtherState%BlPitch, p%NumBl, 'BlPitch', ErrStat, ErrMsg )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-   OtherState%BlPitch = InputFileData%BlPitch(1:p%NumBl)
+   !CALL AllocAry(OtherState%BlPitch, p%NumBl, 'BlPitch', ErrStat, ErrMsg )
+   !      IF ( ErrStat >= AbortErrLev ) RETURN
+   !   OtherState%BlPitch = InputFileData%BlPitch(1:p%NumBl)
 
    CALL AllocAry( OtherState%AugMat,       p%NDOF,          p%NAug,          'AugMat',       ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) RETURN

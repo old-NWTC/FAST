@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-08-19 10:47:46 -0600 (Wed, 19 Aug 2015) $
-! (File) Revision #: $Rev: 150 $
+! File last committed: $Date: 2015-09-01 11:51:53 -0600 (Tue, 01 Sep 2015) $
+! (File) Revision #: $Rev: 160 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/AeroDyn/AeroDyn.f90 $
 !**********************************************************************************************************************************
 module AeroDyn
@@ -94,7 +94,7 @@ subroutine AD_SetInitOut(p, InitOut, errStat, errMsg)
          m = (k-1)*p%NumBlNds*23 + (j-1)*23 
          
          chanPrefix = "B"//trim(num2lstr(k))//"N"//trim(num2lstr(j))
-         InitOut%WriteOutputHdr( m + 1 ) = trim(chanPrefix)//"Theta"
+         InitOut%WriteOutputHdr( m + 1 ) = trim(chanPrefix)//"Twst"
          InitOut%WriteOutputUnt( m + 1 ) = '  (deg)  '
          InitOut%WriteOutputHdr( m + 2 ) = trim(chanPrefix)//"Psi"
          InitOut%WriteOutputUnt( m + 2 ) = '  (deg)  '
@@ -102,11 +102,11 @@ subroutine AD_SetInitOut(p, InitOut, errStat, errMsg)
          InitOut%WriteOutputUnt( m + 3 ) = '  (m/s)  '
          InitOut%WriteOutputHdr( m + 4 ) = trim(chanPrefix)//"Vy"
          InitOut%WriteOutputUnt( m + 4 ) = '  (m/s)  '
-         InitOut%WriteOutputHdr( m + 5 ) = ' '//trim(chanPrefix)//"AxInd"
+         InitOut%WriteOutputHdr( m + 5 ) = ' '//trim(chanPrefix)//"AIn"
          InitOut%WriteOutputUnt( m + 5 ) = '  (deg)  '
-         InitOut%WriteOutputHdr( m + 6 ) = ' '//trim(chanPrefix)//"TanInd"
+         InitOut%WriteOutputHdr( m + 6 ) = ' '//trim(chanPrefix)//"ApIn"
          InitOut%WriteOutputUnt( m + 6 ) = '  (deg)  '
-         InitOut%WriteOutputHdr( m + 7 ) = trim(chanPrefix)//"IndVel"
+         InitOut%WriteOutputHdr( m + 7 ) = trim(chanPrefix)//"Vrel"
          InitOut%WriteOutputUnt( m + 7 ) = '  (m/s)  '
          InitOut%WriteOutputHdr( m + 8 ) = ' '//trim(chanPrefix)//"Phi"
          InitOut%WriteOutputUnt( m + 8 ) = '  (deg)  '
@@ -1337,6 +1337,9 @@ SUBROUTINE ValidateInputData( InputFileData, NumBl, ErrStat, ErrMsg )
          "In this version, UAMod must be 2 (Gonzalez's variant) or 3 (Minemma/Pierce variant).", ErrStat, ErrMsg, RoutineName )  ! NOTE: for later-  1 (baseline/original) 
    end if
    
+   
+   
+   
    if (.not. InputFileData%FLookUp ) call SetErrStat( ErrID_Fatal, 'FLookUp must be TRUE for this version.', ErrStat, ErrMsg, RoutineName )
    
          ! validate the AFI input data because it doesn't appear to be done in AFI
@@ -1631,11 +1634,10 @@ SUBROUTINE Init_BEMTmodule( InputFileData, u_AD, u, p, x, xd, z, OtherState, y, 
      end do
   end do
    
-   InitInp%UA_Flag = InputFileData%AFAeroMod == AFAeroMod_BL_unsteady
-   InitInp%UAMod   = InputFileData%UAMod
-   InitInp%Flookup = InputFileData%Flookup
-   InitInp%a_s     = InputFileData%SpdSound
-   
+   InitInp%UA_Flag  = InputFileData%AFAeroMod == AFAeroMod_BL_unsteady
+   InitInp%UAMod    = InputFileData%UAMod
+   InitInp%Flookup  = InputFileData%Flookup
+   InitInp%a_s      = InputFileData%SpdSound
    
    call BEMT_Init(InitInp, u, p%BEMT,  x, xd, z, OtherState, p%AFI%AFInfo, y, Interval, InitOut, ErrStat2, ErrMsg2 )
       call SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)   

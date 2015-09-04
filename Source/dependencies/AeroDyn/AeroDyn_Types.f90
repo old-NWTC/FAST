@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.08.02, 12-Aug-2015)
+! FAST Registry (v2.08.01, 21-May-2015)
 !*********************************************************************************************************************************
 ! AeroDyn_Types
 !.................................................................................................................................
@@ -86,7 +86,7 @@ IMPLICIT NONE
     LOGICAL  :: TIDrag      ! Include the drag term in the tangential-induction calculation? [used only when WakeMod=1 and TanInd=TRUE] [flag]
     REAL(ReKi)  :: IndToler      ! Convergence tolerance for BEM induction factors [used only when WakeMod=1] [-]
     REAL(ReKi)  :: MaxIter      ! Maximum number of iteration steps [used only when WakeMod=1] [-]
-    REAL(ReKi)  :: UAMod      ! Unsteady Aero Model Switch (switch) {1=Baseline model (Original), 2=Gonzalez's variant (changes in Cn,Cc,Cm), 3=Minemma/Pierce variant (changes in Cc and Cm)} [used only when AFAreoMod=2] [-]
+    INTEGER(IntKi)  :: UAMod      ! Unsteady Aero Model Switch (switch) {1=Baseline model (Original), 2=Gonzalez's variant (changes in Cn,Cc,Cm), 3=Minemma/Pierce variant (changes in Cc and Cm)} [used only when AFAreoMod=2] [-]
     LOGICAL  :: FLookup      ! Flag to indicate whether a lookup for f' will be calculated (TRUE) or whether best-fit exponential equations will be used (FALSE); if FALSE S1-S4 must be provided in airfoil input files [used only when AFAreoMod=2] [flag]
     REAL(ReKi)  :: InCol_Alfa      ! The column in the airfoil tables that contains the angle of attack [-]
     REAL(ReKi)  :: InCol_Cl      ! The column in the airfoil tables that contains the lift coefficient [-]
@@ -1603,7 +1603,7 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1  ! TIDrag
       Re_BufSz   = Re_BufSz   + 1  ! IndToler
       Re_BufSz   = Re_BufSz   + 1  ! MaxIter
-      Re_BufSz   = Re_BufSz   + 1  ! UAMod
+      Int_BufSz  = Int_BufSz  + 1  ! UAMod
       Int_BufSz  = Int_BufSz  + 1  ! FLookup
       Re_BufSz   = Re_BufSz   + 1  ! InCol_Alfa
       Re_BufSz   = Re_BufSz   + 1  ! InCol_Cl
@@ -1729,8 +1729,8 @@ ENDIF
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%MaxIter
       Re_Xferred   = Re_Xferred   + 1
-      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%UAMod
-      Re_Xferred   = Re_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%UAMod
+      Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%FLookup , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%InCol_Alfa
@@ -1944,8 +1944,8 @@ ENDIF
       Re_Xferred   = Re_Xferred + 1
       OutData%MaxIter = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
-      OutData%UAMod = ReKiBuf( Re_Xferred )
-      Re_Xferred   = Re_Xferred + 1
+      OutData%UAMod = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
       OutData%FLookup = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
       OutData%InCol_Alfa = ReKiBuf( Re_Xferred )

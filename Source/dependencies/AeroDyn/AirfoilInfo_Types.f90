@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.08.02, 12-Aug-2015)
+! FAST Registry (v2.08.01, 21-May-2015)
 !*********************************************************************************************************************************
 ! AirfoilInfo_Types
 !.................................................................................................................................
@@ -65,6 +65,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: k3      !  [=]
     REAL(ReKi)  :: k1_hat      !  [=]
     REAL(ReKi)  :: x_cp_bar      !  [=]
+    REAL(ReKi)  :: UACutout      !  [=]
   END TYPE AFI_UA_BL_Type
 ! =======================
 ! =========  AFI_Table_Type  =======
@@ -204,6 +205,7 @@ CONTAINS
     DstUA_BL_TypeData%k3 = SrcUA_BL_TypeData%k3
     DstUA_BL_TypeData%k1_hat = SrcUA_BL_TypeData%k1_hat
     DstUA_BL_TypeData%x_cp_bar = SrcUA_BL_TypeData%x_cp_bar
+    DstUA_BL_TypeData%UACutout = SrcUA_BL_TypeData%UACutout
  END SUBROUTINE AFI_CopyUA_BL_Type
 
  SUBROUTINE AFI_DestroyUA_BL_Type( UA_BL_TypeData, ErrStat, ErrMsg )
@@ -282,6 +284,7 @@ CONTAINS
       Re_BufSz   = Re_BufSz   + 1  ! k3
       Re_BufSz   = Re_BufSz   + 1  ! k1_hat
       Re_BufSz   = Re_BufSz   + 1  ! x_cp_bar
+      Re_BufSz   = Re_BufSz   + 1  ! UACutout
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -368,6 +371,8 @@ CONTAINS
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%k1_hat
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%x_cp_bar
+      Re_Xferred   = Re_Xferred   + 1
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%UACutout
       Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE AFI_PackUA_BL_Type
 
@@ -466,6 +471,8 @@ CONTAINS
       OutData%k1_hat = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
       OutData%x_cp_bar = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+      OutData%UACutout = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE AFI_UnPackUA_BL_Type
 

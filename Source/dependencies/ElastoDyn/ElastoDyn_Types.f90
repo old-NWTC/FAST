@@ -525,7 +525,6 @@ IMPLICIT NONE
     TYPE(ED_ContinuousStateType) , DIMENSION(ED_NMX)  :: xdot      ! previous state deriv for multi-step [-]
     INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IC      ! Array which stores pointers to predictor-corrector results [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: QD2T      ! Solution (acceleration) vector; the first time derivative of QDT [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch      ! Current blade pitch angles [radians]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AugMat      ! The augmented matrix used for the solution of the QD2T()s [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AugMat_factor      ! factored version of AugMat matrix [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: SolnVec      ! b in the equation Ax=b (last column of AugMat) [-]
@@ -14768,18 +14767,6 @@ IF (ALLOCATED(SrcOtherStateData%QD2T)) THEN
   END IF
     DstOtherStateData%QD2T = SrcOtherStateData%QD2T
 ENDIF
-IF (ALLOCATED(SrcOtherStateData%BlPitch)) THEN
-  i1_l = LBOUND(SrcOtherStateData%BlPitch,1)
-  i1_u = UBOUND(SrcOtherStateData%BlPitch,1)
-  IF (.NOT. ALLOCATED(DstOtherStateData%BlPitch)) THEN 
-    ALLOCATE(DstOtherStateData%BlPitch(i1_l:i1_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%BlPitch.', ErrStat, ErrMsg,RoutineName)
-      RETURN
-    END IF
-  END IF
-    DstOtherStateData%BlPitch = SrcOtherStateData%BlPitch
-ENDIF
 IF (ALLOCATED(SrcOtherStateData%AugMat)) THEN
   i1_l = LBOUND(SrcOtherStateData%AugMat,1)
   i1_u = UBOUND(SrcOtherStateData%AugMat,1)
@@ -14881,9 +14868,6 @@ IF (ALLOCATED(OtherStateData%IC)) THEN
 ENDIF
 IF (ALLOCATED(OtherStateData%QD2T)) THEN
   DEALLOCATE(OtherStateData%QD2T)
-ENDIF
-IF (ALLOCATED(OtherStateData%BlPitch)) THEN
-  DEALLOCATE(OtherStateData%BlPitch)
 ENDIF
 IF (ALLOCATED(OtherStateData%AugMat)) THEN
   DEALLOCATE(OtherStateData%AugMat)
@@ -15004,11 +14988,6 @@ ENDIF
   IF ( ALLOCATED(InData%QD2T) ) THEN
     Int_BufSz   = Int_BufSz   + 2*1  ! QD2T upper/lower bounds for each dimension
       Re_BufSz   = Re_BufSz   + SIZE(InData%QD2T)  ! QD2T
-  END IF
-  Int_BufSz   = Int_BufSz   + 1     ! BlPitch allocated yes/no
-  IF ( ALLOCATED(InData%BlPitch) ) THEN
-    Int_BufSz   = Int_BufSz   + 2*1  ! BlPitch upper/lower bounds for each dimension
-      Re_BufSz   = Re_BufSz   + SIZE(InData%BlPitch)  ! BlPitch
   END IF
   Int_BufSz   = Int_BufSz   + 1     ! AugMat allocated yes/no
   IF ( ALLOCATED(InData%AugMat) ) THEN
@@ -15184,19 +15163,6 @@ ENDIF
 
       IF (SIZE(InData%QD2T)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%QD2T))-1 ) = PACK(InData%QD2T,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%QD2T)
-  END IF
-  IF ( .NOT. ALLOCATED(InData%BlPitch) ) THEN
-    IntKiBuf( Int_Xferred ) = 0
-    Int_Xferred = Int_Xferred + 1
-  ELSE
-    IntKiBuf( Int_Xferred ) = 1
-    Int_Xferred = Int_Xferred + 1
-    IntKiBuf( Int_Xferred    ) = LBOUND(InData%BlPitch,1)
-    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%BlPitch,1)
-    Int_Xferred = Int_Xferred + 2
-
-      IF (SIZE(InData%BlPitch)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%BlPitch))-1 ) = PACK(InData%BlPitch,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%BlPitch)
   END IF
   IF ( .NOT. ALLOCATED(InData%AugMat) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -15496,29 +15462,6 @@ ENDIF
     mask1 = .TRUE. 
       IF (SIZE(OutData%QD2T)>0) OutData%QD2T = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%QD2T))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%QD2T)
-    DEALLOCATE(mask1)
-  END IF
-  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! BlPitch not allocated
-    Int_Xferred = Int_Xferred + 1
-  ELSE
-    Int_Xferred = Int_Xferred + 1
-    i1_l = IntKiBuf( Int_Xferred    )
-    i1_u = IntKiBuf( Int_Xferred + 1)
-    Int_Xferred = Int_Xferred + 2
-    IF (ALLOCATED(OutData%BlPitch)) DEALLOCATE(OutData%BlPitch)
-    ALLOCATE(OutData%BlPitch(i1_l:i1_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%BlPitch.', ErrStat, ErrMsg,RoutineName)
-       RETURN
-    END IF
-    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
-       RETURN
-    END IF
-    mask1 = .TRUE. 
-      IF (SIZE(OutData%BlPitch)>0) OutData%BlPitch = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%BlPitch))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%BlPitch)
     DEALLOCATE(mask1)
   END IF
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! AugMat not allocated

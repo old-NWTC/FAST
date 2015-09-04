@@ -9,8 +9,8 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed $Date: 2015-08-20 11:52:34 -0600 (Thu, 20 Aug 2015) $
-# (File) Revision #: $Rev: 1089 $
+# File last committed $Date: 2015-09-03 13:23:42 -0600 (Thu, 03 Sep 2015) $
+# (File) Revision #: $Rev: 1111 $
 # URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn_Registry.txt $
 ###################################################################################################################################
 # ...... Include files (definitions from NWTC Library) ............................................................................
@@ -526,7 +526,7 @@ typedef	^	OtherStateType	IntKi	n	-	-	-	"tracks time step for which OtherState wa
 typedef	^	OtherStateType	ED_ContinuousStateType	xdot	{ED_NMX}	-	-	"previous state deriv for multi-step"
 typedef	^	OtherStateType	IntKi	IC	{:}	-	-	"Array which stores pointers to predictor-corrector results"
 typedef	^	OtherStateType	ReKi	QD2T	{:}	-	-	"Solution (acceleration) vector; the first time derivative of QDT"
-typedef	^	OtherStateType	ReKi	BlPitch	{:}	-	-	"Current blade pitch angles"	radians
+#typedef	^	OtherStateType	ReKi	BlPitch	{:}	-	-	"Current blade pitch angles"	radians
 typedef	^	OtherStateType	ReKi	AugMat	{:}{:}	-	-	"The augmented matrix used for the solution of the QD2T()s"
 typedef	^	OtherStateType	ReKi	AugMat_factor	{:}{:}	-	-	"factored version of AugMat matrix"
 typedef	^	OtherStateType	ReKi	SolnVec	{:}	-	-	"b in the equation Ax=b (last column of AugMat)"
