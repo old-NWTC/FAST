@@ -360,7 +360,8 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
             set(h1(1),'LineStyle','-', 'DisplayName',[descFiles{iFile} ', old'],'Color',LineColors{iFile},      'LineWidth',LineWidthConst+1);
             
             h1(2) = plot(newData{iFile}(:,xCol_new), newData{iFile}(:,yCol_new)/scaleFactor );
-            set(h1(2),'LineStyle','--','DisplayName',[descFiles{iFile} ', new'],'Color',LineColors{iFile}*0.75, 'LineWidth',LineWidthConst+1);       
+            set(h1(2),'LineStyle',':', 'DisplayName',[descFiles{iFile} ', new'],'Color',LineColors{iFile}*0.75, 'LineWidth',LineWidthConst);       
+%           set(h1(2),'LineStyle','--','DisplayName',[descFiles{iFile} ', new'],'Color',LineColors{iFile}*0.75, 'LineWidth',LineWidthConst+1);       
 
             currXLim = xlim;
 

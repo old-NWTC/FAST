@@ -13,7 +13,7 @@ True          TwrAero            - Calculate tower aerodynamic loads? (flag)
   1.464E-05   KinVisc            - Kinematic air viscosity (m^2/s)
         335   SpdSound           - Speed of sound (m/s)
 ======  Blade-Element/Momentum Theory Options  ====================================================== [used only when WakeMod=1]
-1          2   SkewMod            - Type of skewed-wake correction model (switch) {1=uncoupled, 2=Pitt/Peters, 3=coupled} [used only when WakeMod=1]
+          2   SkewMod            - Type of skewed-wake correction model (switch) {1=uncoupled, 2=Pitt/Peters, 3=coupled} [used only when WakeMod=1]
 True          TipLoss            - Use the Prandtl tip-loss model? (flag) [used only when WakeMod=1]
 True          HubLoss            - Use the Prandtl hub-loss model? (flag) [used only when WakeMod=1]
 true          TanInd             - Include tangential induction in BEMT calculations? (flag) [used only when WakeMod=1]

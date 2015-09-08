@@ -39,7 +39,8 @@ main(int argc, char *argv[], char *env[])
       /* note that this will set n_t_global inside the FAST library; so the loop below would need to be changed. I can easily return the
       current value of n_t_global if you need it. */
       strcpy(CheckpointFileRoot, "../../CertTest/Test18.1200");
-      FAST_Restart(CheckpointFileRoot, &AbortErrLev, &NumOutputs, &dt, &ErrStat, ErrMsg);
+      FAST_Restart(CheckpointFileRoot, &AbortErrLev, &NumOutputs, &dt, &n_t_global_start, &ErrStat, ErrMsg);
+
       if (checkError(ErrStat, ErrMsg)) return 1;
 
       //n_t_global_start = 1200;  // we could return this from the checkpoint file, too
@@ -86,7 +87,7 @@ main(int argc, char *argv[], char *env[])
       if you want to create a checkpoint file:
       ********************************* */
       if (n_t_global == n_checkpoint){
-         sprintf(CheckpointFileRoot, "../../CertTest/Test18.%d", n_t_global);
+         sprintf(CheckpointFileRoot, "");
          FAST_CreateCheckpoint(CheckpointFileRoot, &ErrStat, ErrMsg);
          checkError(ErrStat, ErrMsg);
       }

@@ -61,6 +61,12 @@ else
    OBJ_EXT   = .o
    PATH_SEP  = /
    SYS_FILE  = SysGnuLinux
+
+   UNAME := $(shell uname -s)
+
+   ifeq ($(UNAME), Linux)
+      LDFLAGS     := $(LDFLAGS) -fPIC
+   endif
 endif
 
 
