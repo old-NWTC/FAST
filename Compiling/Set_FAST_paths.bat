@@ -37,6 +37,8 @@ SET IfW_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\InflowWind\S
 SET IfW_Reg_Loc=%IfW_Loc%\Registry
 
 SET OpFM_Loc=%FAST_Loc%\dependencies\OpenFOAM
+SET Orca_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\OrcaFlex\SVNdirectory\trunk\Source
+SET Orca_Reg_Loc=%Orca_Loc%\Registry
 
 SET SD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\SubDyn\SVNdirectory\trunk\Source
 
@@ -52,8 +54,6 @@ SET MAP_Include_Lib=%MAP_Loc%\bin\MAP_Win32.lib
 
 SET MD_LOC=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MoorDyn\GitforSVN\branches\matt_current\source
 
-rem ECHO BONNIE: FIX THE FEAM LOCATION!!!
-rem SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
 SET FEAM_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FEAMooring\SVNdirectory\source
 SET FEAM_Reg_Loc=%FEAM_Loc%
 

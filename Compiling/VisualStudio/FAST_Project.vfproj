@@ -297,16 +297,16 @@
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat MoorDyn" Description="Running Registry for MoorDyn" Outputs="..\..\Source\dependencies\MoorDyn\MoorDyn_Types.f90"/></FileConfiguration></File>
 		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn.f90"/>
-		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn_IO.f90"/></Filter></Filter>
-		<Filter Name="OpenFOAM Integration">
+		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn_IO.f90"/></Filter>
+		<Filter Name="OrcaFlex">
 		<Filter Name="RegistryFiles">
-		<File RelativePath="..\..\Source\dependencies\OpenFOAM\OpenFOAM_Registry.txt">
+		<File RelativePath="..\..\Source\dependencies\OrcaFlex\OrcaFlexInterface.txt">
 			<FileConfiguration Name="Debug|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat OpenFOAM" Description="Running Registry for OpenFOAM" Outputs="..\..\Source\dependencies\OpenFOAM\OpenFOAM_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat OrcaFlexInterface" Description="Running Registry for OrcaFlex Interface" Outputs="..\..\Source\dependencies\OrcaFlex\OrcaFlexInterface_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat OpenFOAM" Description="Running Registry for OpenFOAM" Outputs="..\..\Source\dependencies\OpenFOAM\OpenFOAM_Types.f90"/></FileConfiguration></File>
-		<File RelativePath="..\..\Source\dependencies\OpenFOAM\OpenFOAM_Types.f90"/></Filter>
-		<File RelativePath="..\..\Source\dependencies\OpenFOAM\OpenFOAM.f90"/></Filter>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat OrcaFlexInterface" Description="Running Registry for OrcaFlex Interface" Outputs="..\..\Source\dependencies\OrcaFlex\OrcaFlexInterface_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\Source\dependencies\OrcaFlex\OrcaFlexInterface_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\OrcaFlex\OrcaFlexInterface.f90"/></Filter></Filter>
 		<Filter Name="NWTC_Library">
 		<Filter Name="NetLib">
 		<Filter Name="FFTPACK">
@@ -348,6 +348,15 @@
 		<File RelativePath="..\..\Source\dependencies\NWTC_Library\NWTC_Num.f90"/>
 		<File RelativePath="..\..\Source\dependencies\NWTC_Library\SingPrec.f90"/>
 		<File RelativePath="..\..\Source\dependencies\NWTC_Library\SysIVF.f90"/></Filter>
+		<Filter Name="OpenFOAM Integration">
+		<Filter Name="RegistryFiles">
+		<File RelativePath="..\..\Source\dependencies\OpenFOAM\OpenFOAM_Registry.txt">
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat OpenFOAM" Description="Running Registry for OpenFOAM" Outputs="..\..\Source\dependencies\OpenFOAM\OpenFOAM_Types.f90"/></FileConfiguration>
+			<FileConfiguration Name="Release|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat OpenFOAM" Description="Running Registry for OpenFOAM" Outputs="..\..\Source\dependencies\OpenFOAM\OpenFOAM_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\Source\dependencies\OpenFOAM\OpenFOAM_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\OpenFOAM\OpenFOAM.f90"/></Filter>
 		<Filter Name="ServoDyn">
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\ServoDyn_Registry.txt">

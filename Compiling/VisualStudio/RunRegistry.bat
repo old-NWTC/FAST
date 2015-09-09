@@ -42,10 +42,12 @@ SET IceF_Loc=%FAST_Loc%\dependencies\IceFloe
 SET IceD_Loc=%FAST_Loc%\dependencies\IceDyn
 SET MD_Loc=%FAST_Loc%\dependencies\MoorDyn
 SET OpFM_Loc=%FAST_Loc%\dependencies\OpenFOAM
+SET Orca_Loc=%FAST_Loc%\dependencies\OrcaFlex
 
 SET HD_Reg_Loc=%HD_Loc%
 SET IfW_Reg_Loc=%IfW_Loc%
 SET FEAM_Reg_Loc=%FEAM_Loc%
+SET Orca_Reg_Loc=%Orca_Loc%
 
 SET MAP_Loc_R=%MAP_Loc%
 
@@ -65,7 +67,7 @@ SET CURR_LOC=%FAST_Loc%
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
  "%AD_Loc%" -I "%BEMT_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -I "%BD_Loc%" -I^
  "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Reg_Loc%"  -I^
- "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -noextrap -O "%CURR_LOC%"
+ "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -I "%Orca_Reg_Loc%" -noextrap -O "%CURR_LOC%"
 
 echo off
 GOTO checkError
@@ -197,6 +199,12 @@ SET CURR_LOC=%IceD_Loc%
 GOTO checkError
 
 
+:OrcaFlexInterface
+SET CURR_LOC=%Orca_Loc%
+%REGISTRY% "%Orca_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%Orca_Reg_Loc%"  -O "%CURR_LOC%"
+GOTO checkError
+
+
 :checkError
 ECHO.
 IF %ERRORLEVEL% NEQ 0 (
@@ -242,6 +250,8 @@ SET IfW_Reg_Loc=
 SET FEAM_Reg_Loc=
 SET MD_Loc=
 SET OpFM_Loc=
+SET Orca_Loc=
+SET Orca_Reg_Loc=
 
 SET ModuleName=
 SET CURR_LOC=

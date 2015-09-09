@@ -33,7 +33,7 @@ end
     plotFiles = [PlotSimulink, PlotAdams, PlotFAST];
              
 
-    for i= 1:25 
+    for i= 1:26 
         
         fileRoot = ['Test' num2str(i,'%02.0f')];
         

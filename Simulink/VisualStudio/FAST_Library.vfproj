@@ -213,7 +213,11 @@
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn.f90"/>
-		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn_IO.f90"/></Filter></Filter>
+		<File RelativePath="..\..\Source\dependencies\MoorDyn\MoorDyn_IO.f90"/></Filter>
+		<Filter Name="OrcaFlex">
+		<Filter Name="RegistryFiles">
+		<File RelativePath="..\..\Source\dependencies\OrcaFlex\OrcaFlexInterface_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\OrcaFlex\OrcaFlexInterface.f90"/></Filter></Filter>
 		<Filter Name="NWTC_Library">
 		<Filter Name="NetLib">
 		<Filter Name="FFTPACK">
@@ -235,7 +239,23 @@
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration></File></Filter>
 		<Filter Name="FitPACK">
-		<File RelativePath="..\..\Source\dependencies\NetLib\dierckx_fitpack.f"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\NetLib\dierckx_fitpack.f">
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
+			<FileConfiguration Name="Debug_OpFM|x64">
+				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
+			<FileConfiguration Name="Debug_OpFM|Win32">
+				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
+			<FileConfiguration Name="Release_OpFM|Win32">
+				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
+			<FileConfiguration Name="Release|x64">
+				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
+			<FileConfiguration Name="Release_OpFM|x64">
+				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
+			<FileConfiguration Name="Debug|x64">
+				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
+			<FileConfiguration Name="Release|Win32">
+				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration></File></Filter>
 		<Filter Name="ScaLAPACK">
 		<File RelativePath="..\..\Source\dependencies\NetLib\dlasrt2.f">
 			<FileConfiguration Name="Debug|Win32">

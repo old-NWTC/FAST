@@ -79,6 +79,7 @@ SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
 SET MAP_Loc=%FAST_Loc%\dependencies\MAP
 SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
 SET MD_Loc=%FAST_Loc%\dependencies\MoorDyn
+SET Orca_Loc=%FAST_Loc%\dependencies\OrcaFlex
 SET IceF_Loc=%FAST_Loc%\dependencies\IceFloe
 SET IceD_Loc=%FAST_Loc%\dependencies\IceDyn
 
@@ -93,6 +94,7 @@ SET HD_Reg_Loc=%HD_Loc%
 SET IfW_Reg_Loc=%IfW_Loc%
 SET IceF_RanLux_Loc=%IceF_Loc%
 SET FEAM_Reg_Loc=%FEAM_Loc%
+SET Orca_Reg_Loc=%Orca_Loc%
 
 SET MAP_Loc_R=%MAP_Loc%
 SET MAP_Loc_F=%MAP_Loc%
@@ -164,6 +166,10 @@ SET IfW_SOURCES=^
  "%IfW_Loc%\InflowWind.f90"
 
 rem SET OpFM_SOURCES=^
+
+SET Orca_SOURCES=^
+ "%Orca_Loc%\OrcaFlexInterface_Types.f90"^
+ "%Orca_Loc%\OrcaFlexInterface.f90"
 
 
 
@@ -324,7 +330,7 @@ SET CURR_LOC=%FAST_Loc%
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
  "%AD_Loc%" -I "%BEMT_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -I "%BD_Loc%" -I^
  "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Reg_Loc%"  -I^
- "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -noextrap -O "%CURR_LOC%"
+ "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -I "%Orca_Reg_Loc%" -noextrap -O "%CURR_LOC%"
 
 
 ECHO %Lines%
@@ -389,6 +395,11 @@ SET CURR_LOC=%FEAM_Reg_Loc%
 ECHO %Lines%
 SET CURR_LOC=%MD_Loc%
 CALL ::RunRegistry_fmt1 MoorDyn
+
+ECHO %Lines%
+SET CURR_LOC=%Orca_Loc%
+%REGISTRY% "%Orca_Reg_Loc%\OrcaFlexInterface.txt" -I "%NWTC_Lib_Loc%" -I "%Orca_Reg_Loc%" -O "%CURR_LOC%"
+
 
 ECHO %Lines%
 SET CURR_LOC=%MAP_Loc_R%
@@ -533,6 +544,11 @@ ECHO Compiling MoorDyn:
 ifort %COMPOPTS% %MD_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
+ECHO %Lines%
+ECHO Compiling OrcaFlex Interface:
+ifort %COMPOPTS% %Orca_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
 
 ECHO %Lines%
 ECHO Compiling IceFloe:
@@ -624,6 +640,8 @@ SET FEAM_Loc=
 SET MD_Loc=
 SET IceF_Loc=
 SET IceF_RanLux_Loc=
+SET Orca_Loc=
+SET Orca_Reg_Loc=
 
 SET NWTC_SOURCES=
 SET IfW_SOURCES=
@@ -636,6 +654,7 @@ SET SrvD_SOURCES=
 SET SD_SOURCES=
 SET MAP_SOURCES=
 SET FEAM_SOURCES=
+SET Orca_SOURCES=
 SET IceF_SOURCES=
 SET IceD_SOURCES=
 SET FAST_SOURCES=

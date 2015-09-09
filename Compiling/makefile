@@ -67,6 +67,7 @@ SD_DIR       = $(FAST_DIR)/dependencies/SubDyn
 MAP_DIR      = $(FAST_DIR)/dependencies/MAP
 FEAM_DIR     = $(FAST_DIR)/dependencies/FEAMooring
 MD_DIR       = $(FAST_DIR)/dependencies/MoorDyn
+Orca_DIR     = $(FAST_DIR)/dependencies/OrcaFlex
 IceF_DIR     = $(FAST_DIR)/dependencies/IceFloe
 IceD_DIR     = $(FAST_DIR)/dependencies/IceDyn
 
@@ -79,6 +80,7 @@ BEMT_DIR     = $(AD_DIR)
 HD_DIR_Reg   = $(HD_DIR)
 IfW_DIR_Reg  = $(IfW_DIR)
 MAP_DIR_Reg  = $(MAP_DIR)
+Orca_DIR_Reg = $(Orca_DIR)
 
 BIN_DIR      = ../bin
 
@@ -301,6 +303,9 @@ MD_SOURCES =                   \
 	MoorDyn_IO.f90              \
 	MoorDyn.f90
 
+Orca_SOURCES =                 \
+	OrcaFlexInterface_Types.f90 \
+	OrcaFlexInterface.f90
 
 SD_SOURCES =                   \
 	qsort_c_module.f90          \
@@ -355,13 +360,13 @@ FAST_SOURCES =                 \
 
 vpath %.f90       $(NWTC_Lib_DIR) $(AD14_DIR) $(IfW_DIR) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(SD_DIR) $(MAP_DIR) \
                   $(FAST_DIR) $(NETLIB_DIR) $(FEAM_DIR) $(MD_DIR) $(IceF_DIR) $(IceD_DIR) $(DWM_DIR) $(AFI_DIR) $(UA_DIR) \
-                  $(BEMT_DIR) $(AD_DIR) $(BD_DIR) $(OpFM_DIR)
+                  $(BEMT_DIR) $(AD_DIR) $(BD_DIR) $(OpFM_DIR) $(Orca_DIR)
 vpath %.f         $(NETLIB_DIR)
 vpath %.mod       $(INTER_DIR)
 vpath %$(OBJ_EXT) $(INTER_DIR)
 vpath %.txt       $(FAST_DIR) $(AD14_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(IceD_DIR) \
                   $(DWM_DIR) $(FEAM_DIR) $(MD_DIR) $(MAP_DIR) $(AFI_DIR) $(UA_DIR) $(BEMT_DIR) $(AD_DIR) $(BD_DIR) $(OpFM_DIR)
-vpath %.inp       $(IceF_DIR)
+vpath %.inp       $(IceF_DIR) $(Orca_DIR_Reg)
 #apparently vpath doesn't work as expected if I use %.F90 (is it not case sensitive???)
 #vpath %.F90      $(IceF_DIR)
 vpath %           $(IceF_DIR)
@@ -370,7 +375,7 @@ vpath %           $(IceF_DIR)
 ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD14_SOURCES) $(DWM_SOURCES) \
               $(OpFM_SOURCES) $(SrvD_SOURCES) $(ED_SOURCES) $(HD_SOURCES)  $(SD_SOURCES) \
               $(AFI_SOURCES) $(UA_SOURCES) $(BEMT_SOURCES) $(AD_SOURCES) \
-              $(MAP_SOURCES) $(FEAM_SOURCES) $(MD_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES) $(BD_SOURCES)
+              $(MAP_SOURCES) $(FEAM_SOURCES) $(MD_SOURCES) $(Orca_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES) $(BD_SOURCES)
 ALL_OBJS    = $(ALL_SOURCES:.f90=$(OBJ_EXT))
 ALL_OBJS   := $(ALL_OBJS:.F90=$(OBJ_EXT))       #note the upper case here (from IceFloe)
 ALL_OBJS   := $(ALL_OBJS:.f=$(OBJ_EXT))
@@ -403,7 +408,7 @@ default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
 $(FAST_DIR)/FAST_Types.f90: $(FAST_DIR)/FAST_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(TMD_DIR) -I $(AD14_DIR) -I $(AD_DIR) -I $(BD_DIR) \
 	-I $(HD_DIR_Reg) -I $(IceF_DIR) -I $(IceD_DIR) -I $(MAP_DIR) -I $(FEAM_DIR) -I $(MD_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR) -I $(OpFM_DIR) \
-	-noextrap -O $(FAST_DIR)
+	-I $(Orca_DIR_Reg) -noextrap -O $(FAST_DIR)
 
 $(TMD_DIR)/TMD_Types.f90: $(TMD_DIR)/TMD_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -O $(TMD_DIR)
@@ -456,15 +461,20 @@ $(IceD_DIR)/IceDyn_Types.f90: $(IceD_DIR)/Registry_IceDyn.txt
 $(OpFM_DIR)/OpenFOAM_Types.f90: $(OpFM_DIR)/OpenFOAM_Registry.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -ccode -O $(OpFM_DIR)
 
+$(Orca_DIR)/OrcaFlexInterface_Types.f90: $(Orca_DIR_Reg)/OrcaFlexInterface.txt
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(Orca_DIR_Reg)  -O $(Orca_DIR)
+
+
+   # InflowWind Registry files:
 $(IfW_DIR)/InflowWind_Types.f90: $(IfW_DIR_Reg)/InflowWind.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg) -O $(IfW_DIR)
 
 $(IfW_DIR)/Lidar_Types.f90: $(IfW_DIR_Reg)/Lidar.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -O $(IfW_DIR)
 
-   # InflowWind Registry files:
 $(IfW_DIR)/IfW_%_Types.f90: $(IfW_DIR_Reg)/IfW_%.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -noextrap  -O $(IfW_DIR)
+
 
    # HydroDyn Registry files:
 $(HD_DIR)/%_Types.f90: $(HD_DIR_Reg)/%.txt
@@ -626,6 +636,11 @@ MoorDyn_IO$(OBJ_EXT):             NWTC_Library$(OBJ_EXT)  MoorDyn_Types$(OBJ_EXT
 MoorDyn$(OBJ_EXT):                NWTC_Library$(OBJ_EXT)  MoorDyn_IO$(OBJ_EXT)
 
 
+# OrcaFlex dependency rules:
+OrcaFlexInterface_Types$(OBJ_EXT): NWTC_Library$(OBJ_EXT)  $(Orca_DIR)/OrcaFlexInterface_Types.f90
+OrcaFlexInterface$(OBJ_EXT):       NWTC_Library$(OBJ_EXT)  OrcaFlexInterface_Types$(OBJ_EXT)
+
+
 # ElastoDyn dependency rules:
 ElastoDyn_Types$(OBJ_EXT):        NWTC_Library$(OBJ_EXT)  $(ED_DIR)/ElastoDyn_Types.f90
 ElastoDyn$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  ElastoDyn_Types$(OBJ_EXT)  NWTC_LAPACK$(OBJ_EXT)
@@ -679,12 +694,12 @@ FAST_Types$(OBJ_EXT):             NWTC_Library$(OBJ_EXT)  ElastoDyn_Types$(OBJ_E
                                      SubDyn_Types$(OBJ_EXT)  HydroDyn_Types$(OBJ_EXT)  BeamDyn_Types$(OBJ_EXT) \
                                      MAP_Types$(OBJ_EXT)  FEAMooring_Types$(OBJ_EXT)  MoorDyn_Types$(OBJ_EXT)   \
                                      IceFloe_Types$(OBJ_EXT)  IceDyn_Types$(OBJ_EXT) $(FAST_DIR)/FAST_Types.f90  \
-                                     OpenFOAM_Types$(OBJ_EXT)
+                                     OpenFOAM_Types$(OBJ_EXT) OrcaFlexInterface_Types$(OBJ_EXT)
 FAST_Mods$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Types$(OBJ_EXT)
 FAST_Subs$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Mods$(OBJ_EXT)  NWTC_LAPACK$(OBJ_EXT)  AeroDyn14$(OBJ_EXT) \
                                      InflowWind$(OBJ_EXT)  ServoDyn$(OBJ_EXT)  ElastoDyn$(OBJ_EXT) SubDyn$(OBJ_EXT)     \
                                      HydroDyn$(OBJ_EXT)  MAP$(OBJ_EXT)  FEAM$(OBJ_EXT)  MoorDyn$(OBJ_EXT)  OpenFOAM$(OBJ_EXT)  \
-                                     IceFloe$(OBJ_EXT) IceDyn$(OBJ_EXT)  AeroDyn$(OBJ_EXT)  BeamDyn$(OBJ_EXT)
+                                     IceFloe$(OBJ_EXT) IceDyn$(OBJ_EXT)  AeroDyn$(OBJ_EXT)  BeamDyn$(OBJ_EXT) OrcaFlexInterface$(OBJ_EXT)
 $(FAST_driver)$(OBJ_EXT):         NWTC_Library$(OBJ_EXT)  FAST_Subs$(OBJ_EXT)
 
 
@@ -731,4 +746,5 @@ superclean:
 	$(DEL_CMD) "$(BEMT_DIR)$(PATH_SEP)BEMT_Types.f90"
 	$(DEL_CMD) "$(AD_DIR)$(PATH_SEP)AeroDyn_Types.f90"
 	$(DEL_CMD) "$(BD_DIR)$(PATH_SEP)BeamDyn_Types.f90"
+	$(DEL_CMD) "$(Orca_DIR)$(PATH_SEP)OrcaFlexInterface_Types.f90"
 	$(DEL_CMD) *_Types.f90

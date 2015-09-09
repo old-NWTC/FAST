@@ -1,5 +1,5 @@
 ------- FAST v8.12.* INPUT FILE ------------------------------------------------
-FAST Certification Test #18: NREL 5.0 MW Baseline Wind Turbine (Onshore)
+FAST Certification Test #26: NREL 5.0 MW Baseline Wind Turbine (Onshore)
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
 "FATAL"       AbortLevel      - Error level when simulation should abort (string) {"WARNING", "SEVERE", "FATAL"}
@@ -16,10 +16,8 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
           1   CompServo       - Compute control and electrical-drive dynamics (switch) {0=None; 1=ServoDyn}
           0   CompHydro       - Compute hydrodynamic loads (switch) {0=None; 1=HydroDyn}
           0   CompSub         - Compute sub-structural dynamics (switch) {0=None; 1=SubDyn}
-          0   CompMooring     - Compute mooring system (switch) {0=None; 1=MAP++; 2=FEAMooring; 3=MoorDyn}
+          0   CompMooring     - Compute mooring system (switch) {0=None; 1=MAP++; 2=FEAMooring; 3=MoorDyn; 4=OrcaFlex}
           0   CompIce         - Compute ice loads (switch) {0=None; 1=IceFloe; 2=IceDyn}
-False         CompUserPtfmLd  - Compute additional platform loading (flag) {false: none; true: user-defined from routine UserPtfmLd}
-False         CompUserTwrLd   - Compute additional tower loading (flag) {false: none; true: user-defined from routine UserTwrLd}
 ---------------------- INPUT FILES ---------------------------------------------
 "5MW_Baseline/NRELOffshrBsline5MW_Onshore_ElastoDyn.dat"    EDFile          - Name of file containing ElastoDyn input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_BeamDyn.dat"    BDBldFile(1)    - Name of file containing BeamDyn input parameters for blade 1 (quoted string)
@@ -36,7 +34,7 @@ False         CompUserTwrLd   - Compute additional tower loading (flag) {false: 
 True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
           5   SttsTime        - Amount of time between screen status messages (s)
       99999   ChkptTime       - Amount of time between creating checkpoint files for potential restart (s)
-       0.01   DT_Out          - Time step for tabular output (s) (or "default")
+"default"       0.01   DT_Out          - Time step for tabular output (s) (or "default")
           0   TStart          - Time to begin tabular output (s)
           2   OutFileFmt      - Format for tabular (time-marching) output file (switch) {1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both}
 True          TabDelim        - Use tab delimiters in text tabular output file? (flag) {uses spaces if false}
