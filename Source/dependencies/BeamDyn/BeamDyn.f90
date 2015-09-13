@@ -902,8 +902,6 @@ SUBROUTINE BD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
        u%DistrLoad%Moment(:,k) = 0.0D0
    ENDDO
 
-
-
    CALL BD_CopyInput(u, u_tmp, MESH_NEWCOPY, ErrStat2, ErrMsg2)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    CALL BD_InputGlobalLocal(p,u_tmp,ErrStat2,ErrMsg2)
@@ -5608,7 +5606,7 @@ SUBROUTINE BD_InputGlobalLocal( p, u, ErrStat, ErrMsg)
            u%DistrLoad%Moment(1:3,i) = MATMUL(TRANSPOSE(RotTen),u%DistrLoad%Moment(:,i))
        ENDDO
    ELSEIF(p%quadrature .EQ. 2) THEN
-       DO i=1,p%kp_total
+       DO i=1,SUM(p%ngp) - (p%elem_total - 1)
            temp_v(:) = u%DistrLoad%Force(1:3,i)
            u%DistrLoad%Force(1,i) = temp_v(3)
            u%DistrLoad%Force(2,i) = temp_v(1)

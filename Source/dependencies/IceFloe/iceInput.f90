@@ -28,7 +28,7 @@
 
 module iceInputParams
 
-   use , INTRINSIC :: iso_fortran_env   ! for end of file detection
+   use , INTRINSIC :: iso_fortran_env , only : iostat_end  ! for end of file detection
    use precision
    use NWTC_IO, only : GetNewUnit, OpenFInpFile
    use iceLog

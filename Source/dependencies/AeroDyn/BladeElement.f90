@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-07-27 09:34:37 -0600 (Mon, 27 Jul 2015) $
-! (File) Revision #: $Rev: 143 $
+! File last committed: $Date: 2015-09-12 14:54:28 -0600 (Sat, 12 Sep 2015) $
+! (File) Revision #: $Rev: 163 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/BEMT/BladeElement.f90 $
 !**********************************************************************************************************************************
 module BladeElement
@@ -91,7 +91,7 @@ module BladeElement
       
       ErrStat = ErrID_None
       ErrMsg  = ''
-   
+      IntAFCoefs = 0.0_ReKi ! initialize in case we only don't have 4 columns in the airfoil data (i.e., so cm is zero if not in the file)
       
       if (UA_Flag) then
          u_UA%alpha = AOA   

@@ -4366,6 +4366,7 @@ CONTAINS
       LastFile => FirstFile
       NULLIFY ( LastFile%Next )
       LastFile%Filename = TopFileName
+      FileInfo%NumLines = 0
       CurrFile => LastFile
 
       CALL ScanComFile ( FirstFile, CurrFile, LastFile, 1, 0, FileInfo%NumLines, ErrStatLcl, ErrMsg2 )
@@ -4408,7 +4409,7 @@ CONTAINS
          CurrFile => CurrFile%Next
       ENDDO
 
-
+      
          ! Allocate the arrays to hold the non-comments, the files they occur in, and which lines they were found on.
          ! This MUST be done before calling ReadComFile.
 
