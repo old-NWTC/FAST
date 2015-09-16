@@ -1,24 +1,26 @@
 ! ------------ AirfoilInfo v1.00.x Input File ----------------------------------
-! Round Root Section
-! File:  WTCRound.dat
+! SH3052 data from T Hanley XFOIL predictions
+! Reinterpolated and foilchecked by CH Feb04
 ! note that this file uses Marshall Buhl's new input file processing; start all comment lines with !
 ! ------------------------------------------------------------------------------
           1   NonDimArea        ! The non-dimensional area of the airfoil (area/chord^2) (set to 1.0 if unsure or unneeded)
           0   NumCoords         ! The number of coordinates in the airfoil shape file.  Set to zero if coordinates not included.
 ! ......... x-y coordinates are next if NumCoords > 0 .............
+!bjj: removed additional tables because this feature is apparently not yet available in AFI.
+!          3   NumTabs           ! Number of airfoil tables in this file.  Each table must have lines for Re and Ctrl.
           1   NumTabs           ! Number of airfoil tables in this file.  Each table must have lines for Re and Ctrl.
 ! ------------------------------------------------------------------------------
 ! data for table 1
 ! ------------------------------------------------------------------------------
-       0.75   Re                ! Reynolds number in millions
+        0.3   Re                ! Reynolds number in millions
           0   Ctrl              ! Control setting (must be 0 for current AirfoilInfo)
 True          InclUAdata        ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefficients below this line
 !........................................
-          0   alpha0            ! 0-lift angle of attack, depends on airfoil.
-         14   alpha1            ! Angle of attack at f=0.7, (approximately the stall angle) for AOA>alpha0. (deg)
-        -14   alpha2            ! Angle of attack at f=0.7, (approximately the stall angle) for AOA<alpha0. (deg)
+    -10.152   alpha0            ! 0-lift angle of attack, depends on airfoil.
+         11   alpha1            ! Angle of attack at f=0.7, (approximately the stall angle) for AOA>alpha0. (deg)
+        -11   alpha2            ! Angle of attack at f=0.7, (approximately the stall angle) for AOA<alpha0. (deg)
           1   eta_e             ! Recovery factor in the range [0.85 - 0.95] used only for UAMOD=1, it is set to 1 in the code when flookup=True. (-)
-          0   C_nalpha          ! Slope of the 2D normal force coefficient curve. (1/rad)
+      6.249   C_nalpha          ! Slope of the 2D normal force coefficient curve. (1/rad)
 "Default"     T_f0              ! Initial value of the time constant associated with Df in the expression of Df and f''. [default = 3]
 "Default"     T_V0              ! Initial value of the time constant associated with the vortex lift decay process; it is used in the expression of Cvn. It depends on Re,M, and airfoil class. [default = 6]
 "Default"     T_p               ! Boundary-layer,leading edge pressure gradient time constant in the expression of Dp. It should be tuned based on airfoil experimental data. [default = 1.7]
@@ -33,10 +35,10 @@ True          InclUAdata        ! Is unsteady aerodynamics data included in this
           0   S2                ! Constant in the f curve best-fit for         AOA> alpha1; by definition it depends on the airfoil. [ignored if UAMod<>1]
           0   S3                ! Constant in the f curve best-fit for alpha2<=AOA< alpha0; by definition it depends on the airfoil. [ignored if UAMod<>1]
           0   S4                ! Constant in the f curve best-fit for         AOA< alpha2; by definition it depends on the airfoil. [ignored if UAMod<>1]
-          0   Cn1               ! Critical value of C0n at leading edge separation. It should be extracted from airfoil data at a given Mach and Reynolds number. It can be calculated from the static value of Cn at either the break in the pitching moment or the loss of chord force at the onset of stall. It is close to the condition of maximum lift of the airfoil at low Mach numbers.
-          0   Cn2               ! As Cn1 for negative AOAs.
+      2.307   Cn1               ! Critical value of C0n at leading edge separation. It should be extracted from airfoil data at a given Mach and Reynolds number. It can be calculated from the static value of Cn at either the break in the pitching moment or the loss of chord force at the onset of stall. It is close to the condition of maximum lift of the airfoil at low Mach numbers.
+       -0.8   Cn2               ! As Cn1 for negative AOAs.
 "Default"     St_sh             ! Strouhal's shedding frequency constant.  [default = 0.19]
-          1   Cd0               ! 2D drag coefficient value at 0-lift.
+     0.0171   Cd0               ! 2D drag coefficient value at 0-lift.
           0   Cm0               ! 2D pitching moment coefficient about 1/4-chord location, at 0-lift, positive if nose up. [If the aerodynamics coefficients table does not include a column for Cm, this needs to be set to 0.0]
           0   k0                ! Constant in the \hat(x)_cp curve best-fit; = (\hat(x)_AC-0.25).  [ignored if UAMod<>1]
           0   k1                ! Constant in the \hat(x)_cp curve best-fit.  [ignored if UAMod<>1]
@@ -47,10 +49,71 @@ True          InclUAdata        ! Is unsteady aerodynamics data included in this
 "Default"     UACutout          ! Angle of attack above which unsteady aerodynamics are disabled (deg). [Specifying the string "Default" sets UACutout to 45 degrees]
 !........................................
 ! Table of aerodynamics coefficients
-          3   NumAlf            ! Number of data lines in the following table
-!    Alpha      Cl      Cd
-!    (deg)      (-)     (-)
--180.0    0.0   0.5   0.0
-   0.0    0.0   0.5   0.0
- 180.0    0.0   0.5   0.0
-
+         65   NumAlf            ! Number of data lines in the following table
+!    Alpha  Cl      Cd
+!    (deg)  (-)     (-)
+-180.00000    0.00000  0.04485
+-170.00000    0.41544  0.10260
+-160.00000    0.83097  0.26850
+-150.00000    0.91332  0.52260
+-140.00000    0.74187  0.83385
+-130.00000    0.60201  1.16445
+-120.00000    0.45999  1.47375
+-110.00000    0.30780  1.72395
+-100.00000    0.15048  1.88445
+ -90.00000    0.00000  1.93500
+ -80.00000   -0.15048  1.88445
+ -70.00000   -0.30780  1.72395
+ -60.00000   -0.45999  1.47375
+ -50.00000   -0.60201  1.16445
+ -40.00000   -0.74187  0.83385
+ -30.00000   -1.01480  0.34840
+ -20.00000   -0.78990  0.19690
+ -10.00000   -0.05750  0.12600
+  -5.00000    0.38910  0.02980
+  -4.00000    0.57160  0.02320
+  -3.00000    0.69500  0.02280
+  -2.00000    0.79400  0.02460
+  -1.00000    0.89460  0.02540
+   0.00000    0.99320  0.02620
+   1.00000    1.08990  0.02700
+   2.00000    1.18380  0.02820
+   3.00000    1.27410  0.02960
+   4.00000    1.36080  0.03140
+   5.00000    1.44290  0.03340
+   6.00000    1.51900  0.03580
+   7.00000    1.58570  0.03860
+   8.00000    1.63250  0.04240
+   9.00000    1.63920  0.04630
+  10.00000    1.62470  0.05170
+  11.00000    1.59640  0.06170
+  12.00000    1.53980  0.07780
+  13.00000    1.45500  0.10370
+  14.00000    1.35570  0.13820
+  15.00000    1.27860  0.17070
+  16.00000    1.21960  0.19910
+  17.00000    1.17200  0.22420
+  18.00000    1.12710  0.24790
+  19.00000    1.09070  0.26540
+  20.00000    1.14790  0.27230
+  21.00000    1.21200  0.27340
+  22.00000    1.27870  0.27200
+  23.00000    1.34080  0.27350
+  24.00000    1.39580  0.27940
+  25.00000    1.40890  0.31600
+  30.00000    1.44970  0.34840
+  40.00000    1.05975  0.83385
+  50.00000    0.86004  1.16445
+  60.00000    0.65709  1.47375
+  70.00000    0.43965  1.72395
+  80.00000    0.21492  1.88445
+  90.00000    0.00000  1.93500
+ 100.00000   -0.15048  1.88445
+ 110.00000   -0.30780  1.72395
+ 120.00000   -0.45999  1.47375
+ 130.00000   -0.60201  1.16445
+ 140.00000   -0.74187  0.83385
+ 150.00000   -0.91332  0.52260
+ 160.00000   -0.83097  0.26850
+ 170.00000   -0.41544  0.10260
+ 180.00000    0.00000  0.04485

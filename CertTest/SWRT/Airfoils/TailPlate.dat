@@ -15,8 +15,8 @@
 True          InclUAdata        ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefficients below this line
 !........................................
       -4.23   alpha0            ! 0-lift angle of attack, depends on airfoil.
-         12   alpha1            ! Angle of attack at f=0.7, (approximately the stall angle) for AOA>alpha0. (deg)
-        -12   alpha2            ! Angle of attack at f=0.7, (approximately the stall angle) for AOA<alpha0. (deg)
+          4   alpha1            ! Angle of attack at f=0.7, (approximately the stall angle) for AOA>alpha0. (deg)
+         -4   alpha2            ! Angle of attack at f=0.7, (approximately the stall angle) for AOA<alpha0. (deg)
           1   eta_e             ! Recovery factor in the range [0.85 - 0.95] used only for UAMOD=1, it is set to 1 in the code when flookup=True. (-)
     2.71555   C_nalpha          ! Slope of the 2D normal force coefficient curve. (1/rad)
 "Default"     T_f0              ! Initial value of the time constant associated with Df in the expression of Df and f''. [default = 3]
@@ -44,7 +44,7 @@ True          InclUAdata        ! Is unsteady aerodynamics data included in this
           0   k3                ! Constant in the \hat(x)_cp curve best-fit.  [ignored if UAMod<>1]
           0   k1_hat            ! Constant in the expression of Cc due to leading edge vortex effects.  [ignored if UAMod<>1]
 "Default"     x_cp_bar          ! Constant in the expression of \hat(x)_cp^v. [ignored if UAMod<>1, default = 0.2]
-"DEFAULT"   UACutout          ! Angle of attack above which unsteady aerodynamics are disabled (deg). [Specifying the string "Default" sets UACutout to 45 degrees]
+"Default"     UACutout          ! Angle of attack above which unsteady aerodynamics are disabled (deg). [Specifying the string "Default" sets UACutout to 45 degrees]
 !........................................
 ! Table of aerodynamics coefficients
          42   NumAlf            ! Number of data lines in the following table
