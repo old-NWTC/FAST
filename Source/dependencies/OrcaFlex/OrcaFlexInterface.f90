@@ -230,9 +230,9 @@ SUBROUTINE Orca_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
 
       ! We are going to output all the possible outlist variables, so pass in to SetOutParam the full list
    TmpOutList  =  (/    &
-                     "OrcaFxi  ","OrcaFyi  ","OrcaFyi  ","OrcaMxi  ","OrcaMyi  ","OrcaMyi  ",   &     ! Total forces / moments
-                     "OrcaFHFxi","OrcaFHFyi","OrcaFHFyi","OrcaFHMxi","OrcaFHMyi","OrcaFHMyi",   &     ! hydrodynamic contributions
-                     "OrcaAMFxi","OrcaAMFyi","OrcaAMFyi","OrcaAMMxi","OrcaAMMyi","OrcaAMMyi"    &     ! Added mass contributions
+                     "OrcaFxi  ","OrcaFyi  ","OrcaFzi  ","OrcaMxi  ","OrcaMyi  ","OrcaMzi  ",   &     ! Total forces / moments
+                     "OrcaFHFxi","OrcaFHFyi","OrcaFHFzi","OrcaFHMxi","OrcaFHMyi","OrcaFHMzi",   &     ! hydrodynamic contributions
+                     "OrcaAMFxi","OrcaAMFyi","OrcaAMFzi","OrcaAMMxi","OrcaAMMyi","OrcaAMMzi"    &     ! Added mass contributions
                   /)
    p%NumOuts   =  MaxOutPts
    CALL SetOutParam( TmpOutList, p, ErrStatTmp, ErrMsgTmp )
@@ -312,6 +312,7 @@ SUBROUTINE Orca_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
 #else
    CALL OrcaDLL_Init ( DLL_DT, DLL_TMax )
    ! Unfortunately, we don't get any error reporting back from OrcaDLL_Init, so we can't really check anything.
+   !bjj: we should be warning people to use text output files instead of binary in case OrcaFlex crashes...
 #endif
 
 
@@ -364,8 +365,8 @@ SUBROUTINE Orca_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
    END IF
 
 
-   u%PtfmMesh%RemapFlag  = .TRUE.
-   y%PtfmMesh%RemapFlag  = .TRUE.
+   u%PtfmMesh%RemapFlag    = .TRUE.
+   y%PtfmMesh%RemapFlag    = .TRUE.
 
 
 
@@ -373,9 +374,10 @@ SUBROUTINE Orca_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       ! Set zero values for the OtherState arrays
    OtherState%PtfmAM       =  0.0_ReKi
    OtherState%PtfmFt       =  0.0_ReKi
+   OtherState%LastTimeStep =  -1.0_DbKi
    OtherState%Initialized  =  .TRUE.
 
-
+   InitOut%Ver =  Orca_Ver
 
 
 CONTAINS
@@ -761,33 +763,38 @@ SUBROUTINE Orca_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    DLL_PtfmAM  =  0.0_C_FLOAT
    DLL_PtfmFt  =  0.0_C_FLOAT
 #else
-      ! Call OrcaFlex to run the calculation.  There is no error trapping on the OrcaFlex side, so we will have to do some checks on what receive back
-   CALL OrcaDLL_Calc( DLL_X, DLL_Xdot, DLL_ZTime, DLL_DirRootName, DLL_PtfmAM, DLL_PtfmFt )
-#endif
 
+      ! We do not want to call OrcaDLL twice in one timestep.  If _CalcOutput is called twice in a timestep, the second
+      ! call is different from the first only with the accelerations, which OrcaFlex does not do anything with.
+   IF ( t > OtherState%LastTimeStep .and. .not. EqualRealNos(t,OtherState%LastTimeStep) ) THEN
+         ! Call OrcaFlex to run the calculation.  There is no error trapping on the OrcaFlex side, so we will have to do some checks on what receive back
+      CALL OrcaDLL_Calc( DLL_X, DLL_Xdot, DLL_ZTime, DLL_DirRootName, DLL_PtfmAM, DLL_PtfmFt )
+      OtherState%LastTimeStep =  t
 
-      ! Copy data over from the DLL output to the OtherState
-   DO I=1,6
-      OtherState%PtfmFT(I) =  DLL_PtfmFT(I)
-      DO J=1,6
-         OtherState%PtfmAM(J,I)  =  DLL_PtfmAM(J,I)
+         ! Copy data over from the DLL output to the OtherState
+      DO I=1,6
+         OtherState%PtfmFT(I) =  DLL_PtfmFT(I)
+         DO J=1,6
+            OtherState%PtfmAM(J,I)  =  DLL_PtfmAM(J,I)
+         ENDDO
       ENDDO
-   ENDDO
 
 
 
-      ! Perform some quick QA/QC on the DLL results.  There isn't much we can check, so just check that things are symmetric within some tolerance
-   DO I = 1,5        ! Loop through the 1st 5 rows (columns) of PtfmAM
-      DO J = (I+1),6 ! Loop through all columns (rows) passed I
-         IF ( ABS( OtherState%PtfmAM(I,J) - OtherState%PtfmAM(J,I) ) > SymmetryTol )  &
-            ErrStatTmp  =  ErrID_Fatal
-            ErrMsgTmp   =  ' The platform added mass matrix returned from OrcaFlex is unsymmetric.'// &
-                           '  There may be issues with the OrcaFlex calculations.'
-      ENDDO          ! J - All columns (rows) passed I
-   ENDDO             ! I - The 1st 5 rows (columns) of PtfmAM
-   CALL SetErrStat( ErrStatTmp, ErrMsgTmp, ErrStat, ErrMsg, RoutineName )
-   IF ( ErrStat >= ErrID_Fatal) RETURN
+         ! Perform some quick QA/QC on the DLL results.  There isn't much we can check, so just check that things are symmetric within some tolerance
+      DO I = 1,5        ! Loop through the 1st 5 rows (columns) of PtfmAM
+         DO J = (I+1),6 ! Loop through all columns (rows) passed I
+            IF ( ABS( OtherState%PtfmAM(I,J) - OtherState%PtfmAM(J,I) ) > SymmetryTol )  &
+               ErrStatTmp  =  ErrID_Fatal
+               ErrMsgTmp   =  ' The platform added mass matrix returned from OrcaFlex is unsymmetric.'// &
+                              '  There may be issues with the OrcaFlex calculations.'
+         ENDDO          ! J - All columns (rows) passed I
+      ENDDO             ! I - The 1st 5 rows (columns) of PtfmAM
+      CALL SetErrStat( ErrStatTmp, ErrMsgTmp, ErrStat, ErrMsg, RoutineName )
+      IF ( ErrStat >= ErrID_Fatal) RETURN
 
+   ENDIF
+#endif
 
 
       ! Now calculate the forces with what OrcaFlex returned
@@ -801,12 +808,16 @@ SUBROUTINE Orca_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       y%PtfmMesh%Moment(I,1) =  OtherState%F_PtfmAM(I+3) +  OtherState%PtfmFT(I+3)
    ENDDO
 
+!#ifdef NO_LibLoad
+!   y%PtfmMesh%Force  =  6.0E6
+!   y%PtfmMesh%Moment =  2.0E6
+!#endif
+   
 
       ! Set all the outputs
    CALL SetAllOuts( p, y, OtherState, ErrStatTmp, ErrMsgTmp )
    CALL SetErrStat( ErrStatTmp, ErrMsgTmp, ErrStat, ErrMsg, RoutineName )
    IF ( ErrStat >= ErrID_Fatal) RETURN
-
 
 
 
@@ -1089,7 +1100,7 @@ SUBROUTINE SetAllOuts( ParamData, OutData, OtherState, ErrStat, ErrMsg )
 
 
    TYPE(Orca_ParameterType),           INTENT(IN   )  :: ParamData            !< The parameters for Orca
-   TYPE(Orca_OutputType),              INTENT(IN   )  :: OutData              !< Outputs
+   TYPE(Orca_OutputType),              INTENT(INOUT)  :: OutData              !< Outputs
    TYPE(Orca_OtherStateType),          INTENT(INOUT)  :: OtherState           !< The OtherStates info for Orca
    INTEGER(IntKi),                     INTENT(  OUT)  :: ErrStat              !< Error status  from this subroutine
    CHARACTER(*),                       INTENT(  OUT)  :: ErrMsg               !< Error message from this subroutine
@@ -1125,6 +1136,28 @@ SUBROUTINE SetAllOuts( ParamData, OutData, OtherState, ErrStat, ErrMsg )
    OtherState%AllOuts(  OrcaAMMxi  )  =  OtherState%F_PtfmAM(4)
    OtherState%AllOuts(  OrcaAMMyi  )  =  OtherState%F_PtfmAM(5)
    OtherState%AllOuts(  OrcaAMMzi  )  =  OtherState%F_PtfmAM(6)
+
+      ! Set the values for the WriteOutput array
+   OutData%WriteOutput(  OrcaFxi  )  =  OutData%PtfmMesh%Force(1,1)
+   OutData%WriteOutput(  OrcaFyi  )  =  OutData%PtfmMesh%Force(2,1)
+   OutData%WriteOutput(  OrcaFzi  )  =  OutData%PtfmMesh%Force(3,1)
+   OutData%WriteOutput(  OrcaMxi  )  =  OutData%PtfmMesh%Moment(1,1)
+   OutData%WriteOutput(  OrcaMyi  )  =  OutData%PtfmMesh%Moment(2,1)
+   OutData%WriteOutput(  OrcaMzi  )  =  OutData%PtfmMesh%Moment(3,1)
+
+   OutData%WriteOutput(  OrcaFHFxi  )  =  OtherState%PtfmFT(1)
+   OutData%WriteOutput(  OrcaFHFyi  )  =  OtherState%PtfmFT(2)
+   OutData%WriteOutput(  OrcaFHFzi  )  =  OtherState%PtfmFT(3)
+   OutData%WriteOutput(  OrcaFHMxi  )  =  OtherState%PtfmFT(4)
+   OutData%WriteOutput(  OrcaFHMyi  )  =  OtherState%PtfmFT(5)
+   OutData%WriteOutput(  OrcaFHMzi  )  =  OtherState%PtfmFT(6)
+
+   OutData%WriteOutput(  OrcaAMFxi  )  =  OtherState%F_PtfmAM(1)
+   OutData%WriteOutput(  OrcaAMFyi  )  =  OtherState%F_PtfmAM(2)
+   OutData%WriteOutput(  OrcaAMFzi  )  =  OtherState%F_PtfmAM(3)
+   OutData%WriteOutput(  OrcaAMMxi  )  =  OtherState%F_PtfmAM(4)
+   OutData%WriteOutput(  OrcaAMMyi  )  =  OtherState%F_PtfmAM(5)
+   OutData%WriteOutput(  OrcaAMMzi  )  =  OtherState%F_PtfmAM(6)
 
 
 END SUBROUTINE SetAllOuts

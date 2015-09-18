@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-09-04 09:33:56 -0600 (Fri, 04 Sep 2015) $
-! (File) Revision #: $Rev: 333 $
+! File last committed: $Date: 2015-09-11 15:00:07 -0600 (Fri, 11 Sep 2015) $
+! (File) Revision #: $Rev: 334 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_IO.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_IO
@@ -4366,8 +4366,8 @@ CONTAINS
       LastFile => FirstFile
       NULLIFY ( LastFile%Next )
       LastFile%Filename = TopFileName
-      FileInfo%NumLines = 0
       CurrFile => LastFile
+      FileInfo%NumLines = 0
 
       CALL ScanComFile ( FirstFile, CurrFile, LastFile, 1, 0, FileInfo%NumLines, ErrStatLcl, ErrMsg2 )
          CALL SetErrStat( ErrStatLcl, ErrMsg2, ErrStat, ErrMsg, RoutineName )
@@ -4409,7 +4409,7 @@ CONTAINS
          CurrFile => CurrFile%Next
       ENDDO
 
-      
+
          ! Allocate the arrays to hold the non-comments, the files they occur in, and which lines they were found on.
          ! This MUST be done before calling ReadComFile.
 

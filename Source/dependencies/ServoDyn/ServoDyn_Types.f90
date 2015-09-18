@@ -141,6 +141,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: GenTrq      ! Electrical generator torque from Bladed DLL [N-m]
     INTEGER(IntKi)  :: GenState      ! Generator state from Bladed DLL [N-m]
     REAL(ReKi) , DIMENSION(1:3)  :: BlPitchCom      ! Commanded blade pitch angles [radians]
+    REAL(ReKi) , DIMENSION(1:3)  :: PrevBlPitch      ! Previously commanded blade pitch angles [radians]
     REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: SCoutput      ! controller output to supercontroller [-]
   END TYPE BladedDLLType
 ! =======================
@@ -250,6 +251,7 @@ IMPLICIT NONE
     TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam      ! Names and units (and other characteristics) of all requested output parameters [-]
     CHARACTER(1)  :: Delim      ! Column delimiter for output text files [-]
     LOGICAL  :: UseBladedInterface      ! Flag that determines if BladedInterface was used [-]
+    LOGICAL  :: DLL_Delay      ! determines if there is a DLL_DT time delay (true only when DLL_DT /= DT) [-]
     REAL(DbKi)  :: DLL_DT      ! interval for calling DLL (integer multiple number of DT) [s]
     INTEGER(IntKi)  :: DLL_NumTrq      ! No. of points in torque-speed look-up table, 0 = none and use the optimal mode PARAMETERs instead;  nonzero = ignore the optimal mode PARAMETERs by setting Record 16 to 0.0 [-]
     INTEGER(IntKi)  :: Ptch_Cntrl      ! Pitch control: 0 = collective;  1 = individual [-]
@@ -1736,6 +1738,7 @@ ENDIF
     DstBladedDLLTypeData%GenTrq = SrcBladedDLLTypeData%GenTrq
     DstBladedDLLTypeData%GenState = SrcBladedDLLTypeData%GenState
     DstBladedDLLTypeData%BlPitchCom = SrcBladedDLLTypeData%BlPitchCom
+    DstBladedDLLTypeData%PrevBlPitch = SrcBladedDLLTypeData%PrevBlPitch
 IF (ALLOCATED(SrcBladedDLLTypeData%SCoutput)) THEN
   i1_l = LBOUND(SrcBladedDLLTypeData%SCoutput,1)
   i1_u = UBOUND(SrcBladedDLLTypeData%SCoutput,1)
@@ -1812,6 +1815,7 @@ ENDIF
       Re_BufSz   = Re_BufSz   + 1  ! GenTrq
       Int_BufSz  = Int_BufSz  + 1  ! GenState
       Re_BufSz   = Re_BufSz   + SIZE(InData%BlPitchCom)  ! BlPitchCom
+      Re_BufSz   = Re_BufSz   + SIZE(InData%PrevBlPitch)  ! PrevBlPitch
   Int_BufSz   = Int_BufSz   + 1     ! SCoutput allocated yes/no
   IF ( ALLOCATED(InData%SCoutput) ) THEN
     Int_BufSz   = Int_BufSz   + 2*1  ! SCoutput upper/lower bounds for each dimension
@@ -1867,6 +1871,8 @@ ENDIF
       Int_Xferred   = Int_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%BlPitchCom))-1 ) = PACK(InData%BlPitchCom,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%BlPitchCom)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%PrevBlPitch))-1 ) = PACK(InData%PrevBlPitch,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%PrevBlPitch)
   IF ( .NOT. ALLOCATED(InData%SCoutput) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
@@ -1956,6 +1962,17 @@ ENDIF
     mask1 = .TRUE. 
       OutData%BlPitchCom = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%BlPitchCom))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%BlPitchCom)
+    DEALLOCATE(mask1)
+    i1_l = LBOUND(OutData%PrevBlPitch,1)
+    i1_u = UBOUND(OutData%PrevBlPitch,1)
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      OutData%PrevBlPitch = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PrevBlPitch))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%PrevBlPitch)
     DEALLOCATE(mask1)
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! SCoutput not allocated
     Int_Xferred = Int_Xferred + 1
@@ -3475,6 +3492,7 @@ IF (ALLOCATED(SrcParamData%OutParam)) THEN
 ENDIF
     DstParamData%Delim = SrcParamData%Delim
     DstParamData%UseBladedInterface = SrcParamData%UseBladedInterface
+    DstParamData%DLL_Delay = SrcParamData%DLL_Delay
     DstParamData%DLL_DT = SrcParamData%DLL_DT
     DstParamData%DLL_NumTrq = SrcParamData%DLL_NumTrq
     DstParamData%Ptch_Cntrl = SrcParamData%Ptch_Cntrl
@@ -3700,6 +3718,7 @@ ENDIF
   END IF
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%Delim)  ! Delim
       Int_BufSz  = Int_BufSz  + 1  ! UseBladedInterface
+      Int_BufSz  = Int_BufSz  + 1  ! DLL_Delay
       Db_BufSz   = Db_BufSz   + 1  ! DLL_DT
       Int_BufSz  = Int_BufSz  + 1  ! DLL_NumTrq
       Int_BufSz  = Int_BufSz  + 1  ! Ptch_Cntrl
@@ -4007,6 +4026,8 @@ ENDIF
           Int_Xferred = Int_Xferred   + 1
         END DO ! I
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%UseBladedInterface , IntKiBuf(1), 1)
+      Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%DLL_Delay , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%DLL_DT
       Db_Xferred   = Db_Xferred   + 1
@@ -4436,6 +4457,8 @@ ENDIF
         Int_Xferred = Int_Xferred   + 1
       END DO ! I
       OutData%UseBladedInterface = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
+      Int_Xferred   = Int_Xferred + 1
+      OutData%DLL_Delay = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
       OutData%DLL_DT = DbKiBuf( Db_Xferred ) 
       Db_Xferred   = Db_Xferred + 1

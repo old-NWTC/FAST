@@ -196,7 +196,14 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
    IF ( .NOT. EqualRealNos( NINT( p%DLL_DT / p%DT ) * p%DT, p%DLL_DT ) ) THEN
       CALL CheckError( ErrID_Fatal, 'DLL_DT must be an integer multiple of DT.' )
    END IF
-   
+   IF ( p%DLL_DT < EPSILON( p%DLL_DT ) ) THEN 
+      CALL CheckError( ErrID_Fatal, 'DLL_DT must be larger than zero.' )
+   END IF
+
+#ifdef BD_CONTROL_FEATURE   
+   p%DLL_Delay = .not. EqualRealNos( p%DT, p%DLL_DT )  ! to avoid step changes, we'll introduce a time delay and linearly interpolate between DLL_DT steps
+#endif
+   OtherState%dll_data%PrevBlPitch(1:p%NumBl) = p%BlPitchInit
    
    IF ( p%Ptch_Cntrl /= 1_IntKi .AND. p%Ptch_Cntrl /= 0_IntKi ) THEN
       CALL CheckError( ErrID_Fatal, 'Ptch_Cntrl must be 0 or 1.') 

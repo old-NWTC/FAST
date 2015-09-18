@@ -709,7 +709,7 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
             'Warning will not be displayed again.' )
          OtherState%FirstWarn = .FALSE.
       ELSE      
-         
+         OtherState%dll_data%PrevBlPitch(1:p%NumBl) = u%BlPitch ! OtherState%dll_data%BlPitchCom ! used for linear ramp of delayed signal
          OtherState%LastTimeCalled = t
          CALL BladedInterface_CalcOutput( t, u, p, OtherState, ErrStat2, ErrMsg2 )
             CALL CheckError( ErrStat2, ErrMsg2 )
@@ -2036,8 +2036,9 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
       p%UseBladedInterface = .TRUE.   
       
    ELSE
-      p%UseBladedInterface = .FALSE.   
+      p%UseBladedInterface = .FALSE. 
    END IF
+   p%DLL_Delay = .FALSE.  ! will set to true when we set the DLL_DT in the Bladed Interface Init
    
    
       !.............................................
@@ -2223,6 +2224,7 @@ SUBROUTINE Pitch_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
   
       ! local variables      
+   REAL(ReKi)                                     :: factor
    INTEGER(IntKi)                                 :: K           ! counter for blades
 
    
@@ -2257,7 +2259,15 @@ SUBROUTINE Pitch_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
          
          CASE ( ControlMode_DLL )                                ! User-defined pitch control from Bladed-style DLL
             
-            y%BlPitchCom = OtherState%dll_data%BlPitchCom(1:p%NumBl)
+            
+            if (p%DLL_Delay) then
+               factor = (t - OtherState%LastTimeCalled) / p%DLL_DT               
+               y%BlPitchCom = OtherState%dll_data%PrevBlPitch(1:p%NumBl) + &
+                                 factor * ( OtherState%dll_data%BlPitchCom(1:p%NumBl) - OtherState%dll_data%PrevBlPitch(1:p%NumBl) )                               
+            else
+               y%BlPitchCom = OtherState%dll_data%BlPitchCom(1:p%NumBl)               
+            end if
+            
             
       END SELECT
 

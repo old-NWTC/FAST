@@ -926,6 +926,10 @@ SUBROUTINE BD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    p%IniVelo(:) = 0.0D0
    p%IniDisp(:) = x%q(:)
    p%IniVelo(:) = x%dqdt(:)
+
+   CALL BD_CrvExtractCrv(u%RootMotion%Orientation(:,:,1),xd%rot,ErrStat2,ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+   p%alpha = exp(-2.0D0*pi*Interval*15.0)
    ! Define initial guess for the system outputs here:
 
    y%BldForce%Force(:,:)    = 0.0D0
@@ -1166,6 +1170,30 @@ SUBROUTINE BD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )   
    CALL BD_CopyInput(u, u_tmp, MESH_NEWCOPY, ErrStat2, ErrMsg2)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+   ! Lowpass filter added
+   CALL BD_CrvExtractCrv(u_tmp%RootMotion%Orientation(:,:,1),temp_cc,ErrStat2,ErrMsg2) 
+      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+!!WRITE(*,*) 'CalcOutput'
+!!WRITE(*,*) 'u[n]'
+!!WRITE(*,*) temp_cc
+!!WRITE(*,*) 'x[n] (y[n-1])'
+!!WRITE(*,*) xd%rot
+temp_cc = p%alpha * xd%rot+(1.0D0 - p%alpha) * temp_cc
+!!   CALL BD_CrvCompose(temp_cc,p%alpha * xd%rot,(1.0D0 - p%alpha) * temp_cc,0,ErrStat2,ErrMsg2)
+!!      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+   CALL BD_CrvMatrixR(temp_cc,u_tmp%RootMotion%Orientation(:,:,1),ErrStat2,ErrMsg2)
+      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+!   CALL BD_CrvMatrixR(xd%rot,u_tmp%RootMotion%Orientation(:,:,1),ErrStat2,ErrMsg2)
+!      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+!WRITE(*,*) 'y[n]'
+!WRITE(*,*) temp_cc
+!WRITE(*,*) 'CalcOutput'
+!DO i=1,3
+!WRITE(*,*) u_tmp%RootMotion%Orientation(i,:,1)
+!ENDDO
+   !call write(65,*) eulerExtract(u_tmp%RootMotion%Orientation(:,:,1))
+      
+   ! END lowpass filter
    CALL BD_CrvExtractCrv(p%GlbRot,temp_glb,ErrStat2,ErrMsg2)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       if (ErrStat >= AbortErrLev) then
@@ -1425,11 +1453,11 @@ SUBROUTINE BD_NodalRelRot(Nu,node_elem,dof_node,Nr,ErrStat,ErrMsg)
 
    Nr = 0.0D0
    Nu_temp1 = 0.0D0
+   Nu_temp1(1:3) = Nu(4:6)
    DO i=1,node_elem
        temp_id = (i - 1) * dof_node
        Nu_temp = 0.0D0
        DO k=1,3
-           IF(i==1) Nu_temp1(k) = Nu(temp_id+k+3)
            Nu_temp(k) = Nu(temp_id+k+3)
        ENDDO
        Nr_temp = 0.0D0
@@ -1612,10 +1640,10 @@ SUBROUTINE BD_ElementMatrixGA2(Nuu0,Nuuu,Nrr0,Nrrr,Nvvv,Naaa,           &
        IF(fact) THEN
            DO i=1,node_elem
                DO j=1,node_elem
-                   DO m=1,dof_node
-                       temp_id1 = (i-1)*dof_node+m
-                       DO n=1,dof_node
-                           temp_id2 = (j-1)*dof_node+n
+                  DO n=1,dof_node
+                     temp_id2 = (j-1)*dof_node+n
+                        DO m=1,dof_node
+                           temp_id1 = (i-1)*dof_node+m
                            elk(temp_id1,temp_id2) = elk(temp_id1,temp_id2) + hhx(i)*Qe(m,n)*hhx(j)*Jacobian*gw(igp)
                            elk(temp_id1,temp_id2) = elk(temp_id1,temp_id2) + hhx(i)*Pe(m,n)*hpx(j)*Jacobian*gw(igp)
                            elk(temp_id1,temp_id2) = elk(temp_id1,temp_id2) + hpx(i)*Oe(m,n)*hhx(j)*Jacobian*gw(igp)
@@ -3412,10 +3440,9 @@ SUBROUTINE BD_diffmtc(np,ns,spts,npts,igp,hhx,hpx,ErrStat,ErrMsg)
    ErrStat = ErrID_None
    ErrMsg  = ""
 
-   do l = 1,np+1
-     do j = 1,ns
-       dPhis(l,j) = 0.
-       den = 1.
+   do j = igp,igp !1,ns  !bjj: we're returning only column igp, so let's not waste time calculating the rest of them
+      do l = 1,np+1
+         
        if ((abs(spts(j)-1.).LE.eps).AND.(l.EQ.np+1)) then
          dPhis(l,j) = float((np+1)*np)/4.
        elseif ((abs(spts(j)+1.).LE.eps).AND.(l.EQ.1)) then
@@ -3423,6 +3450,8 @@ SUBROUTINE BD_diffmtc(np,ns,spts,npts,igp,hhx,hpx,ErrStat,ErrMsg)
        elseif (abs(spts(j)-npts(l)).LE.eps) then
          dPhis(l,j) = 0.
        else
+         dPhis(l,j) = 0.
+         den = 1.          
          do i = 1,np+1
            if (i.NE.l) then
              den = den*(npts(l)-npts(i))
@@ -3442,14 +3471,14 @@ SUBROUTINE BD_diffmtc(np,ns,spts,npts,igp,hhx,hpx,ErrStat,ErrMsg)
      enddo
    enddo
 
-   do l = 1,np+1
-     do j = 1,ns
-       Ps(l,j) = 0.
-       dnum = 1.
-       den = 1.
+   do j = igp,igp !1,ns  !bjj: we're returning only column igp, so let's not waste time calculating the rest of them
+      do l = 1,np+1
+         
        if(abs(spts(j)-npts(l)).LE.eps) then
          Ps(l,j) = 1.
        else
+         dnum = 1.
+         den = 1.
          do k = 1,np+1
            if (k.NE.l) then
              den = den*(npts(l) - npts(k))
@@ -4823,7 +4852,7 @@ SUBROUTINE BD_GA2(t,n,u,utimes,p,x,xd,z,OtherState,ErrStat,ErrMsg)
    REAL(DbKi),                        INTENT(IN   )  :: utimes(:)   ! times of input
    TYPE(BD_ParameterType),            INTENT(IN   )  :: p           ! Parameters
    TYPE(BD_ContinuousStateType),      INTENT(INOUT)  :: x           ! Continuous states at t on input at t + dt on output
-   TYPE(BD_DiscreteStateType),        INTENT(IN   )  :: xd          ! Discrete states at t
+   TYPE(BD_DiscreteStateType),        INTENT(INOUT)  :: xd          ! Discrete states at t
    TYPE(BD_ConstraintStateType),      INTENT(IN   )  :: z           ! Constraint states at t (possibly a guess)
    TYPE(BD_OtherStateType),           INTENT(INOUT)  :: OtherState  ! Other/optimization states
    INTEGER(IntKi),                    INTENT(  OUT)  :: ErrStat     ! Error status of the operation
@@ -4872,9 +4901,24 @@ SUBROUTINE BD_GA2(t,n,u,utimes,p,x,xd,z,OtherState,ErrStat,ErrMsg)
          return
       end if
 
+   call BD_Input_extrapinterp( u, utimes, u_interp, t, ErrStat2, ErrMsg2 )
+      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+   CALL BD_CrvExtractCrv(u_interp%RootMotion%Orientation(:,:,1),temp_3,ErrStat2,ErrMsg2) 
+      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+   xd%rot(:) = p%alpha * xd%rot(:) + (1.0D0 - p%alpha) * temp_3(:)
+
    call BD_Input_extrapinterp( u, utimes, u_interp, t+p%dt, ErrStat2, ErrMsg2 )
       call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
                  
+   ! Lowpass filter added
+   CALL BD_CrvExtractCrv(u_interp%RootMotion%Orientation(:,:,1),temp_3,ErrStat2,ErrMsg2) 
+      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+   temp_3(:) = p%alpha * xd%rot(:) + (1.0D0 - p%alpha) * temp_3(:)
+
+   CALL BD_CrvMatrixR(temp_3,u_interp%RootMotion%Orientation(:,:,1),ErrStat2,ErrMsg2)
+      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+   ! END lowpass filter
+
    ! GA2: prediction        
    CALL BD_TiSchmPredictorStep( x_tmp%q,x_tmp%dqdt,OS_tmp%acc,OS_tmp%xcc,             &
                                 p%coef,p%dt,x%q,x%dqdt,OtherState%acc,OtherState%xcc, &

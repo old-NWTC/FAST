@@ -43,6 +43,7 @@ typedef  ^  ^                 ReKi              PtfmFt               {6}    - - 
 typedef  ^  ^                 ReKi              F_PtfmAM             {6}   -  -  "Force/moment results calculated from the added mass and accel"   -
 typedef  ^  ^                 LOGICAL           Initialized          -  -  -     "Is the module initialized?"                 -
 typedef  ^  ^                 ReKi              AllOuts              :  -  -     "An array holding the value of all of the calculated (not only selected) output channels" "see OutListParameters.xlsx spreadsheet"
+typedef  ^  ^                 DbKi              LastTimeStep         -  -  -     "The last timestep called"                   -
 
 # Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
 typedef  ^  ParameterType     DbKi              DT                   -  -  -     "Time step for continuous state integration & discrete state update"       seconds

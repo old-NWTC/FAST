@@ -125,6 +125,7 @@ typedef	^	BladedDLLType	ReKi	GenTrq	-	-	-	"Electrical generator torque from Blad
 typedef	^	BladedDLLType	IntKi	GenState	-	-	-	"Generator state from Bladed DLL"	N-m
 #typedef	^	BladedDLLType	ReKi	ElecPwr	-	-	-	"Electrical power sent to Bladed DLL"	W
 typedef	^	BladedDLLType	ReKi	BlPitchCom	3	-	-	"Commanded blade pitch angles"	radians
+typedef	^	BladedDLLType	ReKi	PrevBlPitch	3	-	-	"Previously commanded blade pitch angles"	radians
 typedef	^	BladedDLLType	SiKi	SCoutput	{:}	-	-	"controller output to supercontroller"	-
 
 # ..... States ....................................................................................................................
@@ -230,6 +231,7 @@ typedef	^	ParameterType	OutParmType	OutParam	{:}	-	-	"Names and units (and other
 typedef	^	ParameterType	CHARACTER(1)	Delim	-	-	-	"Column delimiter for output text files"	-
 # parameters for Bladed Interface (dynamic-link library)
 typedef	^	ParameterType	LOGICAL	UseBladedInterface	-	-	-	"Flag that determines if BladedInterface was used"	-
+typedef	^	ParameterType	LOGICAL	DLL_Delay	-	-	-	"determines if there is a DLL_DT time delay (true only when DLL_DT /= DT)"	-
 typedef	^	ParameterType	DbKi	DLL_DT	-	-	-	"interval for calling DLL (integer multiple number of DT)"	s
 typedef	^	ParameterType	IntKi	DLL_NumTrq	-	-	-	"No. of points in torque-speed look-up table, 0 = none and use the optimal mode PARAMETERs instead;  nonzero = ignore the optimal mode PARAMETERs by setting Record 16 to 0.0"	-
 typedef	^	ParameterType	IntKi	Ptch_Cntrl	-	-	-	"Pitch control: 0 = collective;  1 = individual"	-

@@ -30,6 +30,9 @@ MODULE NWTC_Base
 
    IMPLICIT  NONE
 
+   logical :: debug_print = .false.;
+   integer :: debug_print_unit = 70;
+   
 !=======================================================================
 
       ! General constants:
