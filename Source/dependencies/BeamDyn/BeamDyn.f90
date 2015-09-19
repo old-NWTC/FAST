@@ -929,7 +929,7 @@ SUBROUTINE BD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
 
    CALL BD_CrvExtractCrv(u%RootMotion%Orientation(:,:,1),xd%rot,ErrStat2,ErrMsg2)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
-   p%alpha = exp(-2.0D0*pi*Interval*15.0)
+   p%alpha = 0.0 !exp(-2.0D0*pi*Interval*25.0)
    ! Define initial guess for the system outputs here:
 
    y%BldForce%Force(:,:)    = 0.0D0
@@ -1141,6 +1141,7 @@ SUBROUTINE BD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    TYPE(BD_OtherStateType)                      :: OS_tmp
    TYPE(BD_ContinuousStateType)                 :: x_tmp
    TYPE(BD_InputType)                           :: u_tmp
+!   TYPE(BD_InputType)                           :: u_tmp2 ! Activate with filter
    INTEGER(IntKi)                               :: i
    INTEGER(IntKi)                               :: j
    INTEGER(IntKi)                               :: temp_id
@@ -1171,28 +1172,13 @@ SUBROUTINE BD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    CALL BD_CopyInput(u, u_tmp, MESH_NEWCOPY, ErrStat2, ErrMsg2)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    ! Lowpass filter added
-   CALL BD_CrvExtractCrv(u_tmp%RootMotion%Orientation(:,:,1),temp_cc,ErrStat2,ErrMsg2) 
-      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
-!!WRITE(*,*) 'CalcOutput'
-!!WRITE(*,*) 'u[n]'
-!!WRITE(*,*) temp_cc
-!!WRITE(*,*) 'x[n] (y[n-1])'
-!!WRITE(*,*) xd%rot
-temp_cc = p%alpha * xd%rot+(1.0D0 - p%alpha) * temp_cc
-!!   CALL BD_CrvCompose(temp_cc,p%alpha * xd%rot,(1.0D0 - p%alpha) * temp_cc,0,ErrStat2,ErrMsg2)
-!!      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
-   CALL BD_CrvMatrixR(temp_cc,u_tmp%RootMotion%Orientation(:,:,1),ErrStat2,ErrMsg2)
-      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
-!   CALL BD_CrvMatrixR(xd%rot,u_tmp%RootMotion%Orientation(:,:,1),ErrStat2,ErrMsg2)
+!   CALL BD_CrvExtractCrv(u_tmp%RootMotion%Orientation(:,:,1),temp_cc,ErrStat2,ErrMsg2) 
 !      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
-!WRITE(*,*) 'y[n]'
-!WRITE(*,*) temp_cc
-!WRITE(*,*) 'CalcOutput'
-!DO i=1,3
-!WRITE(*,*) u_tmp%RootMotion%Orientation(i,:,1)
-!ENDDO
-   !call write(65,*) eulerExtract(u_tmp%RootMotion%Orientation(:,:,1))
-      
+!   temp_cc = p%alpha * xd%rot+(1.0D0 - p%alpha) * temp_cc
+!   CALL BD_CrvMatrixR(temp_cc,u_tmp%RootMotion%Orientation(:,:,1),ErrStat2,ErrMsg2)
+!      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+!   CALL BD_CopyInput(u_tmp, u_tmp2, MESH_NEWCOPY, ErrStat2, ErrMsg2)
+!      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
    ! END lowpass filter
    CALL BD_CrvExtractCrv(p%GlbRot,temp_glb,ErrStat2,ErrMsg2)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
@@ -1236,6 +1222,7 @@ temp_cc = p%alpha * xd%rot+(1.0D0 - p%alpha) * temp_cc
            y%BldMotion%RotationVel(3,temp_id2) = temp_cc(1)
        ENDDO
    ENDDO
+
 
    CALL BD_InputGlobalLocal(p,u_tmp,ErrStat2,ErrMsg2)
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
@@ -1312,6 +1299,8 @@ temp_cc = p%alpha * xd%rot+(1.0D0 - p%alpha) * temp_cc
    !  compute RootMxr and RootMyr for ServoDyn and
    !  get values to output to file:  
    !-------------------------------------------------------   
+   ! Activate with filter
+!   call Calc_WriteOutput( p, u_tmp2, AllOuts, y, ErrStat, ErrMsg )   
    call Calc_WriteOutput( p, u, AllOuts, y, ErrStat, ErrMsg )   
     
    y%RootMxr = AllOuts( RootMxr )
@@ -1332,6 +1321,8 @@ temp_cc = p%alpha * xd%rot+(1.0D0 - p%alpha) * temp_cc
 contains
    subroutine cleanup()
       CALL BD_DestroyInput(u_tmp, ErrStat2, ErrMsg2)
+   ! Activate with filter
+!      CALL BD_DestroyInput(u_tmp2, ErrStat2, ErrMsg2)
       CALL BD_DestroyContState(x_tmp, ErrStat2, ErrMsg2 )
       CALL BD_DestroyOtherState(OS_tmp, ErrStat2, ErrMsg2 )
    end subroutine cleanup 
@@ -4900,23 +4891,27 @@ SUBROUTINE BD_GA2(t,n,u,utimes,p,x,xd,z,OtherState,ErrStat,ErrMsg)
          call cleanup()
          return
       end if
-
-   call BD_Input_extrapinterp( u, utimes, u_interp, t, ErrStat2, ErrMsg2 )
-      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
-   CALL BD_CrvExtractCrv(u_interp%RootMotion%Orientation(:,:,1),temp_3,ErrStat2,ErrMsg2) 
-      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
-   xd%rot(:) = p%alpha * xd%rot(:) + (1.0D0 - p%alpha) * temp_3(:)
-
+!No filter
    call BD_Input_extrapinterp( u, utimes, u_interp, t+p%dt, ErrStat2, ErrMsg2 )
       call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
-                 
-   ! Lowpass filter added
-   CALL BD_CrvExtractCrv(u_interp%RootMotion%Orientation(:,:,1),temp_3,ErrStat2,ErrMsg2) 
-      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
-   temp_3(:) = p%alpha * xd%rot(:) + (1.0D0 - p%alpha) * temp_3(:)
+!END no filter
 
-   CALL BD_CrvMatrixR(temp_3,u_interp%RootMotion%Orientation(:,:,1),ErrStat2,ErrMsg2)
-      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+   ! Lowpass filter added
+!   call BD_Input_extrapinterp( u, utimes, u_interp, t, ErrStat2, ErrMsg2 )
+!      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+!   CALL BD_CrvExtractCrv(u_interp%RootMotion%Orientation(:,:,1),temp_3,ErrStat2,ErrMsg2) 
+!      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+!   xd%rot(:) = p%alpha * xd%rot(:) + (1.0D0 - p%alpha) * temp_3(:)
+!
+!   call BD_Input_extrapinterp( u, utimes, u_interp, t+p%dt, ErrStat2, ErrMsg2 )
+!      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+!                
+!   CALL BD_CrvExtractCrv(u_interp%RootMotion%Orientation(:,:,1),temp_3,ErrStat2,ErrMsg2) 
+!      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+!   temp_3(:) = p%alpha * xd%rot(:) + (1.0D0 - p%alpha) * temp_3(:)
+!
+!   CALL BD_CrvMatrixR(temp_3,u_interp%RootMotion%Orientation(:,:,1),ErrStat2,ErrMsg2)
+!      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
    ! END lowpass filter
 
    ! GA2: prediction        

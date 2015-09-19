@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-09-03 13:21:14 -0600 (Thu, 03 Sep 2015) $
-! (File) Revision #: $Rev: 1109 $
+! File last committed: $Date: 2015-09-18 13:16:54 -0600 (Fri, 18 Sep 2015) $
+! (File) Revision #: $Rev: 1127 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ServoDyn.f90 $
 !**********************************************************************************************************************************
 MODULE ServoDyn
@@ -32,7 +32,7 @@ MODULE ServoDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.03.01a-bjj', '3-Sep-2015' )
+   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.03.01a-bjj', '19-Sep-2015' )
    CHARACTER(*),   PARAMETER            :: SrvD_Nickname = 'SrvD'
    
 #ifdef COMPILE_SIMULINK
@@ -245,9 +245,13 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       ! Define initial system states here:
       !............................................................................................
 
-   x%DummyContState           = 0
-   xd%DummyDiscState          = 0
-   z%DummyConstrState         = 0
+   x%DummyContState           = 0.0_ReKi   
+   z%DummyConstrState         = 0.0_ReKi
+   
+   CALL AllocAry( OtherState%xd_BlPitchFilter,  p%NumBl, 'BlPitchFilter',  ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
+      OtherState%xd_BlPitchFilter = p%BlPitchInit
    
       ! Initialize other states here:
    CALL AllocAry( OtherState%BlPitchI,  p%NumBl, 'BlPitchI',  ErrStat2, ErrMsg2 )
@@ -443,6 +447,7 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
          IF (ErrStat >= AbortErrLev) RETURN
          
       OtherState%LastTimeCalled = - p%DLL_DT  ! we'll initialize the last time the DLL was called as -1 DLL_DT.
+      OtherState%LastTimeFiltered = - p%DT  ! we'll initialize the last time the DLL was filtered as -1 DT.
       OtherState%FirstWarn      = .TRUE.
    
    ELSE
@@ -608,6 +613,8 @@ SUBROUTINE SrvD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState,
       TYPE(TMD_InputType),ALLOCATABLE                :: u(:)            ! Inputs at t
       INTEGER(IntKi)                                 :: i               ! loop counter 
       INTEGER(IntKi)                                 :: order
+      TYPE(SrvD_InputType)                           :: u_interp        ! interpolated input
+      
       
       INTEGER(IntKi)                                 :: ErrStat2        ! Error status of the operation (occurs after initial error)
       CHARACTER(ErrMsgLen)                           :: ErrMsg2         ! Error message if ErrStat2 /= ErrID_None
@@ -618,31 +625,48 @@ SUBROUTINE SrvD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState,
 
       ErrStat = ErrID_None
       ErrMsg  = ""
-
-         ! Convert Inputs(i)%NTMD to u(:)
-      order = SIZE(Inputs)
-      ALLOCATE(u(order), STAT=ErrStat2)
-      IF(ErrStat2 /= 0) THEN
-         CALL SetErrStat( ErrID_Fatal, 'Could not allocate TMD input array, u', ErrStat, ErrMsg, RoutineName )
-         CALL Cleanup()
-         RETURN
-      END IF
+      
             
-      DO i=1,order
-         CALL TMD_CopyInput( Inputs(i)%NTMD, u(i), MESH_NEWCOPY, ErrStat2, ErrMsg2 )
-         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
-      END DO
-      
-      IF (ErrStat >= AbortErrLev) THEN
-         CALL Cleanup()
-         RETURN
-      END IF
-      
-      
+         ! Convert Inputs(i)%NTMD to u(:)
       IF (p%CompNTMD) THEN 
+         order = SIZE(Inputs)
+         ALLOCATE(u(order), STAT=ErrStat2)
+         IF(ErrStat2 /= 0) THEN
+            CALL SetErrStat( ErrID_Fatal, 'Could not allocate TMD input array, u', ErrStat, ErrMsg, RoutineName )
+            CALL Cleanup()
+            RETURN
+         END IF
+            
+         DO i=1,order
+            CALL TMD_CopyInput( Inputs(i)%NTMD, u(i), MESH_NEWCOPY, ErrStat2, ErrMsg2 )
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         END DO
+      
+         IF (ErrStat >= AbortErrLev) THEN
+            CALL Cleanup()
+            RETURN
+         END IF
+            
          CALL TMD_UpdateStates( t, n, u, InputTimes, p%NTMD, x%NTMD, xd%NTMD, z%NTMD, OtherState%NTMD, ErrStat2, ErrMsg2 )
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       END IF
+      
+      
+         ! Get appropriate value of input for the filter in discrete states
+      ! this works only for the DLL at this point, so we're going to move it there>>>>>>>>>>>>>>>
+      !CALL SrvD_CopyInput( Inputs(1), u_interp, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
+      !   CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      !   IF (ErrStat >= AbortErrLev) THEN
+      !      CALL Cleanup()
+      !      RETURN
+      !   END IF
+      !   
+      !CALL SrvD_Input_ExtrapInterp( Inputs, InputTimes, u_interp, t, ErrStat2, ErrMsg2 )
+      !   CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      !   
+      !CALL SrvD_UpdateDiscState( t, u_interp, p, x, xd, z, OtherState, ErrStat2, ErrMsg2 )
+      !   CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
       CALL Cleanup()
       
@@ -659,6 +683,9 @@ CONTAINS
          DEALLOCATE(u)
       END IF      
    
+      CALL SrvD_DestroyInput(u_interp, ErrStat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+         
    END SUBROUTINE Cleanup
       
 END SUBROUTINE SrvD_UpdateStates
@@ -704,12 +731,19 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    IF ( p%UseBladedInterface ) THEN
       
       IF ( .NOT. EqualRealNos( t - p%DLL_DT, OtherState%LastTimeCalled ) ) THEN
-         IF (OtherState%FirstWarn) CALL CheckError ( ErrID_Warn, 'BladedInterface option was designed for an explicit-loose '//&
-            'coupling scheme. Using last calculated values from DLL on all subsequent calls until time is advanced. '//&
-            'Warning will not be displayed again.' )
-         OtherState%FirstWarn = .FALSE.
-      ELSE      
-         OtherState%dll_data%PrevBlPitch(1:p%NumBl) = u%BlPitch ! OtherState%dll_data%BlPitchCom ! used for linear ramp of delayed signal
+         IF (OtherState%FirstWarn) THEN
+            IF ( EqualRealNos( p%DT, p%DLL_DT ) ) THEN ! This must be because we're doing a correction step or calling multiple times per time step
+               CALL CheckError ( ErrID_Warn, 'BladedInterface option was designed for an explicit-loose '//&
+               'coupling scheme. Using last calculated values from DLL on all subsequent calls until time is advanced. '//&
+               'Warning will not be displayed again.' )
+            ELSE ! this may be because of calling multiple times per time step, but most likely is because DT /= DLL_DT
+               CALL CheckError ( ErrID_Warn, 'Using last calculated values from DLL on all subsequent calls until next DLL_DT has been reached. '//&
+               'Warning will not be displayed again.' )
+            END IF
+            OtherState%FirstWarn = .FALSE.
+         END IF
+      ELSE
+         OtherState%dll_data%PrevBlPitch(1:p%NumBl) = OtherState%dll_data%BlPitchCom ! used for linear ramp of delayed signal
          OtherState%LastTimeCalled = t
          CALL BladedInterface_CalcOutput( t, u, p, OtherState, ErrStat2, ErrMsg2 )
             CALL CheckError( ErrStat2, ErrMsg2 )
@@ -860,11 +894,30 @@ SUBROUTINE SrvD_UpdateDiscState( t, u, p, x, xd, z, OtherState, ErrStat, ErrMsg 
       CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
       CHARACTER(*), PARAMETER                        :: RoutineName = 'SrvD_UpdateDiscState'
-
+      REAL(ReKi)                                     :: temp
+      
          ! Initialize ErrStat
 
       ErrStat = ErrID_None
       ErrMsg  = ""
+
+
+      !xd%BlPitchFilter = p%BlAlpha * xd%BlPitchFilter + (1.0_ReKi - p%BlAlpha) * u%BlPitch
+   
+      !if ( p%PCMode == ControlMode_DLL ) then
+      !   if ( p%DLL_Ramp ) then
+      !      temp = (t - OtherState%LastTimeCalled) / p%DLL_DT                            
+      !      temp = OtherState%dll_data%PrevBlPitch(1:p%NumBl) + &
+      !               temp * ( OtherState%dll_data%BlPitchCom(1:p%NumBl) - OtherState%dll_data%PrevBlPitch(1:p%NumBl) )
+      !   else
+      !      temp = OtherState%dll_data%BlPitchCom(1:p%NumBl)
+      !   end if
+      !   
+      !   xd%BlPitchFilter = p%BlAlpha * xd%BlPitchFilter + (1.0_ReKi - p%BlAlpha) * temp
+      !else
+      !   
+      !end if
+      
 
 
       !   ! Update discrete states here:
@@ -873,8 +926,6 @@ SUBROUTINE SrvD_UpdateDiscState( t, u, p, x, xd, z, OtherState, ErrStat, ErrMsg 
       !END IF
 
          
-      xd%DummyDiscState = 0.0_ReKi
-
 END SUBROUTINE SrvD_UpdateDiscState
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE SrvD_CalcConstrStateResidual( t, u, p, x, xd, z, OtherState, z_residual, ErrStat, ErrMsg )
@@ -1423,6 +1474,16 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
             IF ( ErrStat >= AbortErrLev ) RETURN
       END IF   
    
+      ! DLL_Ramp - Whether a linear ramp should be used between DLL_DT time steps [introduces time shift when true] (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%DLL_Ramp, "DLL_Ramp", "Whether a linear ramp should be used between DLL_DT time steps [introduces time shift when true]", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      ! BPCutoff - Cuttoff frequency for low-pass filter on blade pitch (Hz):
+   CALL ReadVar( UnIn, InputFile, InputFileData%BPCutoff, "BPCutoff", "Cuttoff frequency for low-pass filter on blade pitch (Hz)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
       ! NacYaw_North - Reference yaw angle of the nacelle when the upwind end points due North (deg) (read from file in degrees and converted to radians here):
    CALL ReadVar( UnIn, InputFile, InputFileData%NacYaw_North, "NacYaw_North", "Reference yaw angle of the nacelle when the upwind end points due North (deg)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -2038,8 +2099,6 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
    ELSE
       p%UseBladedInterface = .FALSE. 
    END IF
-   p%DLL_Delay = .FALSE.  ! will set to true when we set the DLL_DT in the Bladed Interface Init
-   
    
       !.............................................
       ! Parameters for file output
@@ -2260,7 +2319,7 @@ SUBROUTINE Pitch_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
          CASE ( ControlMode_DLL )                                ! User-defined pitch control from Bladed-style DLL
             
             
-            if (p%DLL_Delay) then
+            if (p%DLL_Ramp) then
                factor = (t - OtherState%LastTimeCalled) / p%DLL_DT               
                y%BlPitchCom = OtherState%dll_data%PrevBlPitch(1:p%NumBl) + &
                                  factor * ( OtherState%dll_data%BlPitchCom(1:p%NumBl) - OtherState%dll_data%PrevBlPitch(1:p%NumBl) )                               
@@ -2268,6 +2327,13 @@ SUBROUTINE Pitch_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
                y%BlPitchCom = OtherState%dll_data%BlPitchCom(1:p%NumBl)               
             end if
             
+               ! update the filter state once per time step
+            IF ( EqualRealNos( t - p%DT, OtherState%LastTimeFiltered ) ) THEN
+               OtherState%xd_BlPitchFilter = p%BlAlpha * OtherState%xd_BlPitchFilter + (1.0_ReKi - p%BlAlpha) * y%BlPitchCom
+               OtherState%LastTimeFiltered = t
+            END IF
+            
+            y%BlPitchCom = p%BlAlpha * OtherState%xd_BlPitchFilter + (1.0_ReKi - p%BlAlpha) * y%BlPitchCom            
             
       END SELECT
 
@@ -2323,6 +2389,8 @@ SUBROUTINE Pitch_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    
    ENDDO ! K - blades   
       
+
+   
    
 END SUBROUTINE Pitch_CalcOutput
 !----------------------------------------------------------------------------------------------------------------------------------

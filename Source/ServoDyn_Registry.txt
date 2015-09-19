@@ -98,6 +98,8 @@ typedef	^	SrvD_InputFile	CHARACTER(1024)	DLL_FileName	-	-	-	"Name of the DLL fil
 typedef	^	SrvD_InputFile	CHARACTER(1024)	DLL_ProcName	-	-	-	"Name of the procedure in the DLL that will be called"	-
 typedef	^	SrvD_InputFile	CHARACTER(1024)	DLL_InFile	-	-	-	"Name of input file used in DLL"	-
 typedef	^	SrvD_InputFile	DbKi	DLL_DT	-	-	-	"interval for calling DLL (must be integer multiple number of DT steps)"	s
+typedef	^	SrvD_InputFile	LOGICAL	DLL_Ramp	-	-	-	"whether the DLL pitch should be a ramp (true) or step change (false) when DLL_DT <> DT. If true, introduces a time delay."	-
+typedef	^	SrvD_InputFile	ReKi	BPCutoff	-	-	-	"The cutoff frequency for the blade pitch low-pass filter. Large values => no filter."	Hz
 typedef	^	SrvD_InputFile	ReKi	NacYaw_North	-	-	-	"Reference yaw angle of the nacelle when the upwind end points due North [used only with DLL Interface]"	radians
 typedef	^	SrvD_InputFile	IntKi	Ptch_Cntrl	-	-	-	"Record 28: Use individual pitch control {0: collective pitch; 1: individual pitch control} [used only with DLL Interface]"	-
 typedef	^	SrvD_InputFile	ReKi	Ptch_SetPnt	-	-	-	"Record  5: Below-rated pitch angle set-point [used only with DLL Interface]"	radians
@@ -134,7 +136,7 @@ typedef	^	ContinuousStateType	ReKi	DummyContState	-	-	-	"Remove this variable if
 typedef	^	ContinuousStateType	TMD_ContinuousStateType	NTMD	-	-	-	"TMD module states"	-
 
 # Define discrete (nondifferentiable) states here:
-typedef	^	DiscreteStateType	ReKi	DummyDiscState	-	-	-	"Remove this variable if you have discrete states"	-
+#typedef	^	DiscreteStateType	ReKi	BlPitchFilter	{:}	-	-	"blade pitch filter"	-
 typedef	^	DiscreteStateType	TMD_DiscreteStateType	NTMD	-	-	-	"TMD module states"	-
 
 # Define constraint states here:
@@ -158,7 +160,8 @@ typedef	^	OtherStateType	BladedDLLType	dll_data	-	-	-	"data used for Bladed DLL"
 typedef	^	OtherStateType	DbKi	LastTimeCalled	-	-	-	"last time the CalcOutput/Bladed DLL was called"	s
 typedef	^	OtherStateType	logical	FirstWarn	-	-	-	"Whether or not this is the first warning about the DLL being called without Explicit-Loose coupling."	-
 typedef	^	OtherStateType	TMD_OtherStateType	NTMD	-	-	-	"TMD module states"	-
-
+typedef	^	OtherStateType	DbKi	LastTimeFiltered	-	-	-	"last time the CalcOutput/Bladed DLL was filtered"	s
+typedef	^	OtherStateType	ReKi	xd_BlPitchFilter	{:}	-	-	"blade pitch filter"	-
 
 # ..... Parameters ................................................................................................................
 # Define parameters here:
@@ -189,6 +192,7 @@ typedef	^	ParameterType	ReKi	TEC_Xe1	-	-	-	"Thevenin's equivalent stator leakage
 typedef	^	ParameterType	ReKi	GenEff	-	-	-	"Generator efficiency"
 typedef	^	ParameterType	ReKi	BlPitchInit	{:}	-	-	"Initial blade pitch angles"	radians
 typedef	^	ParameterType	ReKi	BlPitchF	{:}	-	-	"Final blade pitch"
+typedef	^	ParameterType	ReKi	BlAlpha
 typedef	^	ParameterType	ReKi	NacYawF	-	-	-	"Final yaw angle after override yaw maneuver"
 typedef	^	ParameterType	ReKi	SpdGenOn	-	-	-	"Generator speed to turn on the generator for a startup"
 typedef	^	ParameterType	DbKi	THSSBrDp	-	-	-	"Time to initiate deployment of the shaft brake"	s
@@ -231,7 +235,7 @@ typedef	^	ParameterType	OutParmType	OutParam	{:}	-	-	"Names and units (and other
 typedef	^	ParameterType	CHARACTER(1)	Delim	-	-	-	"Column delimiter for output text files"	-
 # parameters for Bladed Interface (dynamic-link library)
 typedef	^	ParameterType	LOGICAL	UseBladedInterface	-	-	-	"Flag that determines if BladedInterface was used"	-
-typedef	^	ParameterType	LOGICAL	DLL_Delay	-	-	-	"determines if there is a DLL_DT time delay (true only when DLL_DT /= DT)"	-
+typedef	^	ParameterType	LOGICAL	DLL_Ramp	-	-	-	"determines if there is a DLL_DT-ramp time delay (true only when DLL_DT /= DT)"	-
 typedef	^	ParameterType	DbKi	DLL_DT	-	-	-	"interval for calling DLL (integer multiple number of DT)"	s
 typedef	^	ParameterType	IntKi	DLL_NumTrq	-	-	-	"No. of points in torque-speed look-up table, 0 = none and use the optimal mode PARAMETERs instead;  nonzero = ignore the optimal mode PARAMETERs by setting Record 16 to 0.0"	-
 typedef	^	ParameterType	IntKi	Ptch_Cntrl	-	-	-	"Pitch control: 0 = collective;  1 = individual"	-

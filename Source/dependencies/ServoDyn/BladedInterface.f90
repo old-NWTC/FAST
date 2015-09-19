@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-09-04 09:38:40 -0600 (Fri, 04 Sep 2015) $
-! (File) Revision #: $Rev: 1112 $
+! File last committed: $Date: 2015-09-18 13:16:54 -0600 (Fri, 18 Sep 2015) $
+! (File) Revision #: $Rev: 1127 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/BladedInterface.f90 $
 !**********************************************************************************************************************************
 MODULE BladedInterface
@@ -199,11 +199,12 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
    IF ( p%DLL_DT < EPSILON( p%DLL_DT ) ) THEN 
       CALL CheckError( ErrID_Fatal, 'DLL_DT must be larger than zero.' )
    END IF
-
-#ifdef BD_CONTROL_FEATURE   
-   p%DLL_Delay = .not. EqualRealNos( p%DT, p%DLL_DT )  ! to avoid step changes, we'll introduce a time delay and linearly interpolate between DLL_DT steps
-#endif
+   
+   p%DLL_Ramp = InputFileData%DLL_Ramp 
+   p%BlAlpha = exp( -TwoPi*p%DT*InputFileData%BPCutoff ) !used only for the DLL   
    OtherState%dll_data%PrevBlPitch(1:p%NumBl) = p%BlPitchInit
+   
+   if (InputFileData%BPCutoff < EPSILON( InputFileData%BPCutoff )) CALL CheckError( ErrID_Fatal, 'BPCutoff must be greater than 0.') 
    
    IF ( p%Ptch_Cntrl /= 1_IntKi .AND. p%Ptch_Cntrl /= 0_IntKi ) THEN
       CALL CheckError( ErrID_Fatal, 'Ptch_Cntrl must be 0 or 1.') 
@@ -417,7 +418,8 @@ SUBROUTINE Fill_avrSWAP( t, u, p, ErrMsgSz, dll_data )
    dll_data%avrSWAP( 9) = p%PtchRate_Max                    ! Maximum pitch rate                               (rad/s)
    dll_data%avrSWAP(10) = 0.0                               ! 0 = pitch position actuator, 1 = pitch rate actuator (-) -- must be 0 for FAST
 !bjj: record 11 technically needs the old demanded values (currently equivallent to this quantity)                      
-   dll_data%avrSWAP(11) = u%BlPitch(1)                      ! Current demanded pitch angle (rad  ) -- I am sending the value for blade 1, in the absence of any more information provided in Bladed documentation
+!   dll_data%avrSWAP(11) = u%BlPitch(1)                      ! Current demanded pitch angle (rad  ) -- I am sending the value for blade 1, in the absence of any more information provided in Bladed documentation
+   dll_data%avrSWAP(11) = dll_data%PrevBlPitch(1)           ! Current demanded pitch angle (rad  ) -- I am sending the value for blade 1, in the absence of any more information provided in Bladed documentation
    dll_data%avrSWAP(12) = 0.0                               ! Current demanded pitch rate  (rad/s) -- always zero for FAST
    dll_data%avrSWAP(13) = p%GenPwr_Dem                      ! Demanded power (W)
    dll_data%avrSWAP(14) = u%RotPwr                          ! Measured shaft power (W)
