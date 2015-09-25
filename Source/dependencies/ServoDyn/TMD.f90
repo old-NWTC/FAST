@@ -2,8 +2,8 @@
 ! WLaCava (WGL) and Matt Lackner (MAL)
 ! Tuned Mass Damper Module
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-30 14:01:43 -0600 (Thu, 30 Apr 2015) $
-! (File) Revision #: $Rev: 995 $
+! File last committed: $Date: 2015-09-21 10:57:42 -0600 (Mon, 21 Sep 2015) $
+! (File) Revision #: $Rev: 1129 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/TMD/Source/TMD.f90 $
 !**********************************************************************************************************************************
 MODULE TMD  
@@ -16,7 +16,7 @@ MODULE TMD
    PRIVATE
 
   
-   TYPE(ProgDesc), PARAMETER            :: TMD_Ver = ProgDesc( 'TMD', 'v1.00.00-wgl', '11-March-2015' )
+   TYPE(ProgDesc), PARAMETER            :: TMD_Ver = ProgDesc( 'TMD', 'v1.00.01-wgl', '21-Sep-2015' )
 
     
    

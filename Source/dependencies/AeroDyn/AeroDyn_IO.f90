@@ -1581,7 +1581,7 @@ SUBROUTINE Calc_WriteOutput( p, u, OtherState, y, ErrStat, ErrMsg )
    
    OtherState%AllOuts( RtSpeed ) = OtherState%BEMT_u%omega*RPS2RPM
    OtherState%AllOuts( RtArea  ) = pi*rmax**2
-   
+
    tmp = matmul( u%HubMotion%Orientation(:,:,1), OtherState%V_DiskAvg )
    OtherState%AllOuts( RtVAvgxh ) = tmp(1)
    OtherState%AllOuts( RtVAvgyh ) = tmp(2)

@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-09-08 11:04:57 -0600 (Tue, 08 Sep 2015) $
-! (File) Revision #: $Rev: 350 $
+! File last committed: $Date: 2015-09-23 12:03:23 -0600 (Wed, 23 Sep 2015) $
+! (File) Revision #: $Rev: 357 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/trunk/Source/SubDyn.f90 $
 !**********************************************************************************************************************************
 Module SubDyn
@@ -38,7 +38,7 @@ Module SubDyn
    !       this will add additional matrices to the SubDyn summary file.
    !............................
 
-   TYPE(ProgDesc), PARAMETER  :: SD_ProgDesc = ProgDesc( 'SubDyn', 'v1.01.02a-rrd', '27-Feb-2015' )
+   TYPE(ProgDesc), PARAMETER  :: SD_ProgDesc = ProgDesc( 'SubDyn', 'v1.02.00a-rrd', '23-Sep-2015' )
       
    ! ..... Public Subroutines ...................................................................................................
 
@@ -941,7 +941,7 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
             y%WriteOutput(I) = p%OutParam(I)%SignM * AllOuts( p%OutParam(I)%Indx )
             IF ( p%OutSwtch == 1 .OR. p%OutSwtch == 3 ) THEN
                OtherState%SDWrOutput(I) = y%WriteOutput(I)            
-                  END IF                        
+            END IF                        
          END DO
          
          OtherState%LastOutTime   = t
@@ -1313,7 +1313,7 @@ ELSE   !CBMOD=FALSE  : all modes are retained, not sure how many they are yet
 
 ENDIF
 
-IF (p%Nmodes > 0) THEN
+IF ((p%Nmodes > 0) .OR. (.NOT.(Init%CBMod))) THEN !This if should not be at all, dampings should be divided by 100 regardless, also if CBmod=false p%Nmodes is undefined, but if Nmodes=0 then JDampings does not exist
    Init%JDampings = Init%JDampings/100.0_ReKi   !now the 20 is .20 as it should in all cases for 1 or Nmodes JDampings
 END IF
 

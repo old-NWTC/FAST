@@ -110,14 +110,29 @@ MODULE OrcaFlexInterface
 
    ABSTRACT INTERFACE      ! These are interfaces to the DLL
 
+#ifdef __GFORTRAN__
       SUBROUTINE OrcaFlexUserPtfmLdInitialise(DT,TMax)   BIND(C)
-         USE, INTRINSIC :: ISO_C_BINDING
+#else
+      SUBROUTINE OrcaFlexUserPtfmLdInitialise(DT,TMax)   !!!BIND(C)
+#endif
+         USE, INTRINSIC :: ISO_C_BINDING, ONLY: C_FLOAT
+         !DEC$ ATTRIBUTES STDCALL::OrcaFlexUserPtfmLdInitialise
+         !DEC$ ATTRIBUTES ALIAS:'_OrcaFlexUserPtfmLdInitialise@8'::OrcaFlexUserPtfmLdInitialise
+         !GCC$ ATTRIBUTES STDCALL :: OrcaFlexUserPtfmInitialise
          REAL(C_FLOAT),             INTENT(IN   )  :: DT
-         REAL(C_FLOAT),             INtENT(IN   )  :: TMax
+         REAL(C_FLOAT),             INTENT(IN   )  :: TMax
       END SUBROUTINE OrcaFlexUserPtfmLdInitialise
 
+
+#ifdef __GFORTRAN__
       SUBROUTINE OrcaFlexUserPtfmLd( X, XD, ZTime, DirRoot, PtfmAM, PtfmFt) BIND(C)
-         USE, INTRINSIC :: ISO_C_Binding
+#else
+      SUBROUTINE OrcaFlexUserPtfmLd( X, XD, ZTime, DirRoot, PtfmAM, PtfmFt) !!!BIND(C)
+#endif
+         USE, INTRINSIC :: ISO_C_Binding, ONLY: C_FLOAT, C_CHAR
+         !DEC$ ATTRIBUTES STDCALL::OrcaFlexUserPtfmLd
+         !DEC$ ATTRIBUTES ALIAS:'_OrcaFlexUserPtfmLd@24'::OrcaFlexUserPtfmLd
+         !GCC$ ATTRIBUTES STDCALL :: OrcaFlexUserPtfmLd
          CHARACTER(KIND=C_CHAR),    INTENT(IN   )  :: DirRoot
          REAL(C_FLOAT),             INTENT(IN   )  :: X(6)           !< Translational and rotational displacement (m, radians) relative to inertial frame.
          REAL(C_FLOAT),             INTENT(IN   )  :: XD(6)          !< Translational and rotational velocity (m/s, radians/s) relative to inertial frame.
@@ -126,8 +141,16 @@ MODULE OrcaFlexInterface
          REAL(C_FLOAT),             INTENT(  OUT)  :: PtfmFt(6)      !< Platform forces -- [3 translation (N), 3 moments (N-m)] at reference point.
       END SUBROUTINE OrcaFlexUserPtfmLd
 
+
+
+#ifdef __GFORTRAN__
       SUBROUTINE OrcaFlexUserPtfmLdFinalise()  BIND(C)
+#else
+      SUBROUTINE OrcaFlexUserPtfmLdFinalise()  !!!BIND(C)
+#endif
          USE, INTRINSIC :: ISO_C_BINDING
+         !DEC$ ATTRIBUTES DEFAULT, STDCALL, DECORATE, ALIAS: 'OrcaFlexUserPtfmLdFinalise'::OrcaFlexUserPtfmLdFinalise
+         !GCC$ ATTRIBUTES STDCALL :: OrcaFlexUserPtfmLdFinalise
          ! There is no data to pass.
       END SUBROUTINE OrcaFlexUserPtfmLdFinalise
 
@@ -296,6 +319,7 @@ SUBROUTINE Orca_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       CALL CleanUp
       RETURN
    END IF
+   OtherState%Initialized  =  .TRUE.  ! set this flag immediately after the library was successfully loaded
 
    CALL C_F_PROCPOINTER( p%DLL_Orca%ProcAddr(1), OrcaDLL_Init )
 #endif
@@ -375,7 +399,6 @@ SUBROUTINE Orca_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
    OtherState%PtfmAM       =  0.0_ReKi
    OtherState%PtfmFt       =  0.0_ReKi
    OtherState%LastTimeStep =  -1.0_DbKi
-   OtherState%Initialized  =  .TRUE.
 
    InitOut%Ver =  Orca_Ver
 
@@ -626,13 +649,16 @@ SUBROUTINE Orca_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 #ifdef NO_LibLoad
    CALL SetErrStat( ErrID_Warn,'   -->  Skipping OrcaDLL_End call',ErrStat,ErrMsg,RoutineName )
 #else
-      ! Release the DLL
-   CALL C_F_PROCPOINTER( p%DLL_Orca%ProcAddr(3), OrcaDLL_End )
-   CALL OrcaDLL_End        ! No error handling here.  Just have to assume it worked.
+   if (OtherState%Initialized) then
+         ! Release the DLL
+      CALL C_F_PROCPOINTER( p%DLL_Orca%ProcAddr(3), OrcaDLL_End )
+      CALL OrcaDLL_End        ! No error handling here.  Just have to assume it worked.
 
 
-   CALL FreeDynamicLib( p%DLL_Orca, ErrStatTmp, ErrMsgTmp )
-   CALL SetErrStat( ErrStatTmp,ErrMsgTmp,ErrStat,ErrMsg,RoutineName )
+      CALL FreeDynamicLib( p%DLL_Orca, ErrStatTmp, ErrMsgTmp )
+      CALL SetErrStat( ErrStatTmp,ErrMsgTmp,ErrStat,ErrMsg,RoutineName )
+   end if
+   
 #endif
 
 
@@ -664,7 +690,7 @@ SUBROUTINE Orca_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    CALL Orca_DestroyOutput( y, ErrStatTmp, ErrMsgTmp )
    CALL SetErrStat( ErrStatTmp,ErrMsgTmp,ErrStat,ErrMsg,RoutineName )
 
-
+   OtherState%Initialized = .FALSE.
 
 
 END SUBROUTINE Orca_End
@@ -730,11 +756,6 @@ SUBROUTINE Orca_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    ENDIF
 
 
-#ifdef NO_LibLoad
-#else
-      ! Setup the pointer to the DLL procedure
-   CALL C_F_PROCPOINTER( p%DLL_Orca%ProcAddr(2), OrcaDLL_Calc )
-#endif
 
       ! Copy over time and name to pass to OrcaFlex DLL
    DLL_DirRootName   =  TRIM(p%SimNamePath)//C_NULL_CHAR    ! Path and name of the simulation file without extension.  Null character added to convert from Fortran string to C-type string.
@@ -767,6 +788,8 @@ SUBROUTINE Orca_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       ! We do not want to call OrcaDLL twice in one timestep.  If _CalcOutput is called twice in a timestep, the second
       ! call is different from the first only with the accelerations, which OrcaFlex does not do anything with.
    IF ( t > OtherState%LastTimeStep .and. .not. EqualRealNos(t,OtherState%LastTimeStep) ) THEN
+         ! Setup the pointer to the DLL procedure
+      CALL C_F_PROCPOINTER( p%DLL_Orca%ProcAddr(2), OrcaDLL_Calc )
          ! Call OrcaFlex to run the calculation.  There is no error trapping on the OrcaFlex side, so we will have to do some checks on what receive back
       CALL OrcaDLL_Calc( DLL_X, DLL_Xdot, DLL_ZTime, DLL_DirRootName, DLL_PtfmAM, DLL_PtfmFt )
       OtherState%LastTimeStep =  t
@@ -1116,48 +1139,48 @@ SUBROUTINE SetAllOuts( ParamData, OutData, OtherState, ErrStat, ErrMsg )
 
 
       ! Set the values
-   OtherState%AllOuts(  OrcaFxi  )  =  OutData%PtfmMesh%Force(1,1)
-   OtherState%AllOuts(  OrcaFyi  )  =  OutData%PtfmMesh%Force(2,1)
-   OtherState%AllOuts(  OrcaFzi  )  =  OutData%PtfmMesh%Force(3,1)
-   OtherState%AllOuts(  OrcaMxi  )  =  OutData%PtfmMesh%Moment(1,1)
-   OtherState%AllOuts(  OrcaMyi  )  =  OutData%PtfmMesh%Moment(2,1)
-   OtherState%AllOuts(  OrcaMzi  )  =  OutData%PtfmMesh%Moment(3,1)
+   OtherState%AllOuts(  OrcaFxi  )  =  OutData%PtfmMesh%Force(1,1)/1000_ReKi
+   OtherState%AllOuts(  OrcaFyi  )  =  OutData%PtfmMesh%Force(2,1)/1000_ReKi
+   OtherState%AllOuts(  OrcaFzi  )  =  OutData%PtfmMesh%Force(3,1)/1000_ReKi
+   OtherState%AllOuts(  OrcaMxi  )  =  OutData%PtfmMesh%Moment(1,1)/1000_ReKi
+   OtherState%AllOuts(  OrcaMyi  )  =  OutData%PtfmMesh%Moment(2,1)/1000_ReKi
+   OtherState%AllOuts(  OrcaMzi  )  =  OutData%PtfmMesh%Moment(3,1)/1000_ReKi
 
-   OtherState%AllOuts(  OrcaFHFxi  )  =  OtherState%PtfmFT(1)
-   OtherState%AllOuts(  OrcaFHFyi  )  =  OtherState%PtfmFT(2)
-   OtherState%AllOuts(  OrcaFHFzi  )  =  OtherState%PtfmFT(3)
-   OtherState%AllOuts(  OrcaFHMxi  )  =  OtherState%PtfmFT(4)
-   OtherState%AllOuts(  OrcaFHMyi  )  =  OtherState%PtfmFT(5)
-   OtherState%AllOuts(  OrcaFHMzi  )  =  OtherState%PtfmFT(6)
+   OtherState%AllOuts(  OrcaFHFxi  )  =  OtherState%PtfmFT(1)/1000_ReKi
+   OtherState%AllOuts(  OrcaFHFyi  )  =  OtherState%PtfmFT(2)/1000_ReKi
+   OtherState%AllOuts(  OrcaFHFzi  )  =  OtherState%PtfmFT(3)/1000_ReKi
+   OtherState%AllOuts(  OrcaFHMxi  )  =  OtherState%PtfmFT(4)/1000_ReKi
+   OtherState%AllOuts(  OrcaFHMyi  )  =  OtherState%PtfmFT(5)/1000_ReKi
+   OtherState%AllOuts(  OrcaFHMzi  )  =  OtherState%PtfmFT(6)/1000_ReKi
 
-   OtherState%AllOuts(  OrcaAMFxi  )  =  OtherState%F_PtfmAM(1)
-   OtherState%AllOuts(  OrcaAMFyi  )  =  OtherState%F_PtfmAM(2)
-   OtherState%AllOuts(  OrcaAMFzi  )  =  OtherState%F_PtfmAM(3)
-   OtherState%AllOuts(  OrcaAMMxi  )  =  OtherState%F_PtfmAM(4)
-   OtherState%AllOuts(  OrcaAMMyi  )  =  OtherState%F_PtfmAM(5)
-   OtherState%AllOuts(  OrcaAMMzi  )  =  OtherState%F_PtfmAM(6)
+   OtherState%AllOuts(  OrcaAMFxi  )  =  OtherState%F_PtfmAM(1)/1000_ReKi
+   OtherState%AllOuts(  OrcaAMFyi  )  =  OtherState%F_PtfmAM(2)/1000_ReKi
+   OtherState%AllOuts(  OrcaAMFzi  )  =  OtherState%F_PtfmAM(3)/1000_ReKi
+   OtherState%AllOuts(  OrcaAMMxi  )  =  OtherState%F_PtfmAM(4)/1000_ReKi
+   OtherState%AllOuts(  OrcaAMMyi  )  =  OtherState%F_PtfmAM(5)/1000_ReKi
+   OtherState%AllOuts(  OrcaAMMzi  )  =  OtherState%F_PtfmAM(6)/1000_ReKi
 
       ! Set the values for the WriteOutput array
-   OutData%WriteOutput(  OrcaFxi  )  =  OutData%PtfmMesh%Force(1,1)
-   OutData%WriteOutput(  OrcaFyi  )  =  OutData%PtfmMesh%Force(2,1)
-   OutData%WriteOutput(  OrcaFzi  )  =  OutData%PtfmMesh%Force(3,1)
-   OutData%WriteOutput(  OrcaMxi  )  =  OutData%PtfmMesh%Moment(1,1)
-   OutData%WriteOutput(  OrcaMyi  )  =  OutData%PtfmMesh%Moment(2,1)
-   OutData%WriteOutput(  OrcaMzi  )  =  OutData%PtfmMesh%Moment(3,1)
+   OutData%WriteOutput(  OrcaFxi  )  =  OutData%PtfmMesh%Force(1,1)/1000_ReKi
+   OutData%WriteOutput(  OrcaFyi  )  =  OutData%PtfmMesh%Force(2,1)/1000_ReKi
+   OutData%WriteOutput(  OrcaFzi  )  =  OutData%PtfmMesh%Force(3,1)/1000_ReKi
+   OutData%WriteOutput(  OrcaMxi  )  =  OutData%PtfmMesh%Moment(1,1)/1000_ReKi
+   OutData%WriteOutput(  OrcaMyi  )  =  OutData%PtfmMesh%Moment(2,1)/1000_ReKi
+   OutData%WriteOutput(  OrcaMzi  )  =  OutData%PtfmMesh%Moment(3,1)/1000_ReKi
 
-   OutData%WriteOutput(  OrcaFHFxi  )  =  OtherState%PtfmFT(1)
-   OutData%WriteOutput(  OrcaFHFyi  )  =  OtherState%PtfmFT(2)
-   OutData%WriteOutput(  OrcaFHFzi  )  =  OtherState%PtfmFT(3)
-   OutData%WriteOutput(  OrcaFHMxi  )  =  OtherState%PtfmFT(4)
-   OutData%WriteOutput(  OrcaFHMyi  )  =  OtherState%PtfmFT(5)
-   OutData%WriteOutput(  OrcaFHMzi  )  =  OtherState%PtfmFT(6)
+   OutData%WriteOutput(  OrcaFHFxi  )  =  OtherState%PtfmFT(1)/1000_ReKi
+   OutData%WriteOutput(  OrcaFHFyi  )  =  OtherState%PtfmFT(2)/1000_ReKi
+   OutData%WriteOutput(  OrcaFHFzi  )  =  OtherState%PtfmFT(3)/1000_ReKi
+   OutData%WriteOutput(  OrcaFHMxi  )  =  OtherState%PtfmFT(4)/1000_ReKi
+   OutData%WriteOutput(  OrcaFHMyi  )  =  OtherState%PtfmFT(5)/1000_ReKi
+   OutData%WriteOutput(  OrcaFHMzi  )  =  OtherState%PtfmFT(6)/1000_ReKi
 
-   OutData%WriteOutput(  OrcaAMFxi  )  =  OtherState%F_PtfmAM(1)
-   OutData%WriteOutput(  OrcaAMFyi  )  =  OtherState%F_PtfmAM(2)
-   OutData%WriteOutput(  OrcaAMFzi  )  =  OtherState%F_PtfmAM(3)
-   OutData%WriteOutput(  OrcaAMMxi  )  =  OtherState%F_PtfmAM(4)
-   OutData%WriteOutput(  OrcaAMMyi  )  =  OtherState%F_PtfmAM(5)
-   OutData%WriteOutput(  OrcaAMMzi  )  =  OtherState%F_PtfmAM(6)
+   OutData%WriteOutput(  OrcaAMFxi  )  =  OtherState%F_PtfmAM(1)/1000_ReKi
+   OutData%WriteOutput(  OrcaAMFyi  )  =  OtherState%F_PtfmAM(2)/1000_ReKi
+   OutData%WriteOutput(  OrcaAMFzi  )  =  OtherState%F_PtfmAM(3)/1000_ReKi
+   OutData%WriteOutput(  OrcaAMMxi  )  =  OtherState%F_PtfmAM(4)/1000_ReKi
+   OutData%WriteOutput(  OrcaAMMyi  )  =  OtherState%F_PtfmAM(5)/1000_ReKi
+   OutData%WriteOutput(  OrcaAMMzi  )  =  OtherState%F_PtfmAM(6)/1000_ReKi
 
 
 END SUBROUTINE SetAllOuts

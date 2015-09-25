@@ -899,6 +899,7 @@ subroutine AD_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, errStat, e
    call AD_Input_ExtrapInterp(u,utimes,uInterp,t, errStat2, errMsg2)
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
 
+debug_print_unit = 51      
    call SetInputs(p, uInterp, OtherState, errStat2, errMsg2)      
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
          
@@ -952,6 +953,7 @@ subroutine AD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    ErrMsg  = ""
 
    
+debug_print_unit = 52
    call SetInputs(p, u, OtherState, errStat2, errMsg2)      
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
             
@@ -1024,6 +1026,8 @@ subroutine AD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_resid
    
    ErrStat = ErrID_None
    ErrMsg  = ""
+   
+debug_print_unit = 53
    
    call SetInputs(p, u, OtherState, errStat2, errMsg2)      
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
@@ -1143,11 +1147,15 @@ subroutine SetInputsForBEMT(p, u, OtherState, errStat, errMsg)
    if ( EqualRealNos( tmp_sz, 0.0_ReKi ) ) then
       OtherState%BEMT_u%chi0 = 0.0_ReKi
    else
+
          ! make sure we don't have numerical issues that make the ratio outside +/-1
       tmp_sz_y = min(  1.0_ReKi, OtherState%V_dot_x / tmp_sz )
       tmp_sz_y = max( -1.0_ReKi, tmp_sz_y )
       
       OtherState%BEMT_u%chi0 = acos( tmp_sz_y )
+
+!write(debug_print_unit,'(15(1x,ES15.5E2))')  x_hat_disk, OtherState%V_diskAvg, tmp_sz, OtherState%V_dot_x, tmp_sz_y, OtherState%BEMT_u%chi0
+      
    end if
    
       ! "Azimuth angle" rad
@@ -1800,7 +1808,7 @@ SUBROUTINE TwrInfl( p, u, OtherState, ErrStat, ErrMsg )
          call getLocalTowerProps(p, u, BladeNodePosition, theta_tower_trans, W_tower, xbar, ybar, zbar, TwrCd, ErrStat2, ErrMsg2)
             call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
             if (ErrStat >= AbortErrLev) return
-         
+                     
       
          ! calculate tower influence:
          if ( abs(zbar) < 1.0_ReKi .and. p%TwrPotent /= TwrPotent_none ) then
@@ -1836,6 +1844,8 @@ SUBROUTINE TwrInfl( p, u, OtherState, ErrStat, ErrMsg )
             u_TwrShadow = 0.0_ReKi
          end if
             
+!write(debug_print_unit,'(2(1x,i2),15(1x,ES15.5E2))')  k,j, xbar, ybar, zbar, TwrCd, W_tower, u_TwrPotent
+         
          v(1) = (u_TwrPotent + u_TwrShadow)*W_tower
          v(2) = v_TwrPotent*W_tower
          v(3) = 0.0_ReKi

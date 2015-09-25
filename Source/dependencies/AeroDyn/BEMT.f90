@@ -613,7 +613,7 @@ subroutine BEMT_Init( InitInp, u, p, x, xd, z, OtherState, AFInfo, y, Interval, 
       call UA_Init( Init_UA_Data, u_UA, p%UA, xd%UA, OtherState%UA, y_UA, interval, InitOutData_UA, errStat, errMsg )       
       if (errStat >= AbortErrLev) return
       
-      ! TODO: Disable Unsteady Aero for any node which has C_nalpha = 0.0!  GJH 8/11/2015
+
       do j = 1,p%numBlades
          do i = 1,p%numBladeNodes ! Loop over blades and nodes
       
