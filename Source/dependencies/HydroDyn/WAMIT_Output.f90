@@ -17,9 +17,9 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-14 14:27:12 -0600 (Tue, 14 Apr 2015) $
-! (File) Revision #: $Rev: 614 $
-! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/WAMIT_Output.f90 $
+! File last committed: $Date: 2015-08-11 08:28:58 -0600 (Tue, 11 Aug 2015) $
+! (File) Revision #: $Rev: 622 $
+! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/UserWaves/Source/WAMIT_Output.f90 $
 !**********************************************************************************************************************************
 MODULE WAMIT_Output
 

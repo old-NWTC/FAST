@@ -182,6 +182,7 @@
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\Morison.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\Morison_Output.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\SS_Radiation.f90"/>
+		<File RelativePath="..\..\Source\dependencies\HydroDyn\UserWaves.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\WAMIT.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\WAMIT2.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\WAMIT2_Output.f90"/>

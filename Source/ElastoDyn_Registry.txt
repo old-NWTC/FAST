@@ -24,7 +24,6 @@ param	ElastoDyn/ED	-	IntKi	ED_NMX	-	4	-	"Used in updating predictor-corrector va
 # Define inputs that the initialization routine may need here:
 typedef	ElastoDyn/ED	InitInputType	CHARACTER(1024)	InputFile	-	-	-	"Name of the input file"	-
 typedef	^	InitInputType	CHARACTER(1024)	ADInputFile	-	-	-	"Name of the AeroDyn input file (in this verison, that is where we'll get the blade mesh info"	-
-#typedef	^	InitInputType	IntKi	AdamsUnit	-	-	-	"Unit number of (already-open-for-writing-text) Adams file: if <= 0, don't create Adams file"	-	"bjj: may need two of these unit numbers"
 typedef	^	InitInputType	LOGICAL	CompElast	-	-	-	"flag to determine if ElastoDyn is computing blade loads (true) or BeamDyn is (false)"	-
 typedef	^	InitInputType	CHARACTER(1024)	RootName	-	-	-	"RootName for writing output files"
 
@@ -266,59 +265,59 @@ typedef	^	ED_InputFile	IntKi	method	-	-	-	"Identifier for integration method (1 
 # ..... Internal data types: Coordinate Systems ...................................................................................
 #  This type defines coordinate sytems used internally by FAST.  The 3 components of each vector correspond to the z1, z2, and z3 components of the individual vectors.
 #  NOTE: the orientations of most of these coordinate systems will change every time step.
-typedef	^	ED_CoordSys	ReKi	a1	3	-	-	"Vector / direction a1 (=  xt from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	a2	3	-	-	"Vector / direction a2 (=  zt from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	a3	3	-	-	"Vector / direction a3 (= -yt from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	b1	3	-	-	"Vector / direction b1 (=  xp from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	b2	3	-	-	"Vector / direction b2 (=  zp from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	b3	3	-	-	"Vector / direction b3 (= -yp from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	c1	3	-	-	"Vector / direction c1 (=  xs from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	c2	3	-	-	"Vector / direction c2 (=  zs from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	c3	3	-	-	"Vector / direction c3 (= -ys from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	d1	3	-	-	"Vector / direction d1 (=  xn from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	d2	3	-	-	"Vector / direction d2 (=  zn from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	d3	3	-	-	"Vector / direction d3 (= -yn from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	e1	3	-	-	"Vector / direction e1 (=  xa from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	e2	3	-	-	"Vector / direction e2 (=  ya from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	e3	3	-	-	"Vector / direction e3 (=  za from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	f1	3	-	-	"Vector / direction f1"	-
-typedef	^	ED_CoordSys	ReKi	f2	3	-	-	"Vector / direction f2"	-
-typedef	^	ED_CoordSys	ReKi	f3	3	-	-	"Vector / direction f3"	-
-typedef	^	ED_CoordSys	ReKi	g1	3	-	-	"Vector / direction g1 (=  xh from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	g2	3	-	-	"Vector / direction g2 (=  yh from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	g3	3	-	-	"Vector / direction g3 (=  zh from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	i1	{:}{:}	-	-	"i1(K,:) = vector / direction i1 for blade K (=  xcK from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	i2	{:}{:}	-	-	"i2(K,:) = vector / direction i2 for blade K (=  ycK from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	i3	{:}{:}	-	-	"i3(K,:) = vector / direction i3 for blade K (=  zcK from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	j1	{:}{:}	-	-	"j1(K,:) = vector / direction j1 for blade K (=  xbK from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	j2	{:}{:}	-	-	"j2(K,:) = vector / direction j2 for blade K (=  ybK from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	j3	{:}{:}	-	-	"j3(K,:) = vector / direction j3 for blade K (=  zbK from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	m1	{:}{:}{:}	-	-	"m1(K,J,:) = vector / direction m1 for node J of blade K (used to calc. and return aerodynamic loads from AeroDyn)"	-
-typedef	^	ED_CoordSys	ReKi	m2	{:}{:}{:}	-	-	"m2(K,J,:) = vector / direction m2 for node J of blade K (used to calc. and return aerodynamic loads from AeroDyn)"	-
-typedef	^	ED_CoordSys	ReKi	m3	{:}{:}{:}	-	-	"m3(K,J,:) = vector / direction m3 for node J of blade K (used to calc. and return aerodynamic loads from AeroDyn)"	-
-typedef	^	ED_CoordSys	ReKi	n1	{:}{:}{:}	-	-	"n1(K,J,:) = vector / direction n1 for node J of blade K (= LxbK from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	n2	{:}{:}{:}	-	-	"n2(K,J,:) = vector / direction n2 for node J of blade K (= LybK from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	n3	{:}{:}{:}	-	-	"n3(K,J,:) = vector / direction n3 for node J of blade K (= LzbK from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	p1	3	-	-	"Vector / direction p1 (used to calc. and return tail aerodynamic loads from AeroDyn)"	-
-typedef	^	ED_CoordSys	ReKi	p2	3	-	-	"Vector / direction p2 (used to calc. and return tail aerodynamic loads from AeroDyn)"	-
-typedef	^	ED_CoordSys	ReKi	p3	3	-	-	"Vector / direction p3 (used to calc. and return tail aerodynamic loads from AeroDyn)"	-
-typedef	^	ED_CoordSys	ReKi	rf1	3	-	-	"Vector / direction rf1 (rotor-furl coordinate system = d1 when rotor-furl angle = 0)"	-
-typedef	^	ED_CoordSys	ReKi	rf2	3	-	-	"Vector / direction rf2 (rotor-furl coordinate system = d2 when rotor-furl angle = 0)"	-
-typedef	^	ED_CoordSys	ReKi	rf3	3	-	-	"Vector / direction rf3 (rotor-furl coordinate system = d3 when rotor-furl angle = 0)"	-
-typedef	^	ED_CoordSys	ReKi	rfa	3	-	-	"Vector / direction of the rotor-furl axis"	-
-typedef	^	ED_CoordSys	ReKi	t1	{:}{:}	-	-	"Vector / direction t1 for tower node J (=  Lxt from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	t2	{:}{:}	-	-	"Vector / direction t2 for tower node J (=  Lzt from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	t3	{:}{:}	-	-	"Vector / direction t3 for tower node J (= -Lyt from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	te1	{:}{:}{:}	-	-	"te1(K,J,:) = vector / direction te1 for node J of blade K (used to calc. noise)"	-
-typedef	^	ED_CoordSys	ReKi	te2	{:}{:}{:}	-	-	"te2(K,J,:) = vector / direction te2 for node J of blade K (used to calc. noise)"	-
-typedef	^	ED_CoordSys	ReKi	te3	{:}{:}{:}	-	-	"te3(K,J,:) = vector / direction te3 for node J of blade K (used to calc. noise)"	-
-typedef	^	ED_CoordSys	ReKi	tf1	3	-	-	"Vector / direction tf1 (tail-furl coordinate system = d1 when rotor-furl angle = 0)"	-
-typedef	^	ED_CoordSys	ReKi	tf2	3	-	-	"Vector / direction tf2 (tail-furl coordinate system = d2 when rotor-furl angle = 0)"	-
-typedef	^	ED_CoordSys	ReKi	tf3	3	-	-	"Vector / direction tf3 (tail-furl coordinate system = d3 when rotor-furl angle = 0)"	-
-typedef	^	ED_CoordSys	ReKi	tfa	3	-	-	"Vector / direction of the tail-furl axis"	-
-typedef	^	ED_CoordSys	ReKi	z1	3	-	-	"Vector / direction z1 (=  xi from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	z2	3	-	-	"Vector / direction z2 (=  zi from the IEC coord. system)"	-
-typedef	^	ED_CoordSys	ReKi	z3	3	-	-	"Vector / direction z3 (= -yi from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	a1	3	-	-	"Vector / direction a1 (=  xt from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	a2	3	-	-	"Vector / direction a2 (=  zt from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	a3	3	-	-	"Vector / direction a3 (= -yt from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	b1	3	-	-	"Vector / direction b1 (=  xp from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	b2	3	-	-	"Vector / direction b2 (=  zp from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	b3	3	-	-	"Vector / direction b3 (= -yp from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	c1	3	-	-	"Vector / direction c1 (=  xs from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	c2	3	-	-	"Vector / direction c2 (=  zs from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	c3	3	-	-	"Vector / direction c3 (= -ys from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	d1	3	-	-	"Vector / direction d1 (=  xn from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	d2	3	-	-	"Vector / direction d2 (=  zn from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	d3	3	-	-	"Vector / direction d3 (= -yn from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	e1	3	-	-	"Vector / direction e1 (=  xa from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	e2	3	-	-	"Vector / direction e2 (=  ya from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	e3	3	-	-	"Vector / direction e3 (=  za from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	f1	3	-	-	"Vector / direction f1"	-
+typedef	^	ED_CoordSys	R8Ki	f2	3	-	-	"Vector / direction f2"	-
+typedef	^	ED_CoordSys	R8Ki	f3	3	-	-	"Vector / direction f3"	-
+typedef	^	ED_CoordSys	R8Ki	g1	3	-	-	"Vector / direction g1 (=  xh from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	g2	3	-	-	"Vector / direction g2 (=  yh from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	g3	3	-	-	"Vector / direction g3 (=  zh from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	i1	{:}{:}	-	-	"i1(K,:) = vector / direction i1 for blade K (=  xcK from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	i2	{:}{:}	-	-	"i2(K,:) = vector / direction i2 for blade K (=  ycK from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	i3	{:}{:}	-	-	"i3(K,:) = vector / direction i3 for blade K (=  zcK from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	j1	{:}{:}	-	-	"j1(K,:) = vector / direction j1 for blade K (=  xbK from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	j2	{:}{:}	-	-	"j2(K,:) = vector / direction j2 for blade K (=  ybK from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	j3	{:}{:}	-	-	"j3(K,:) = vector / direction j3 for blade K (=  zbK from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	m1	{:}{:}{:}	-	-	"m1(K,J,:) = vector / direction m1 for node J of blade K (used to calc. and return aerodynamic loads from AeroDyn)"	-
+typedef	^	ED_CoordSys	R8Ki	m2	{:}{:}{:}	-	-	"m2(K,J,:) = vector / direction m2 for node J of blade K (used to calc. and return aerodynamic loads from AeroDyn)"	-
+typedef	^	ED_CoordSys	R8Ki	m3	{:}{:}{:}	-	-	"m3(K,J,:) = vector / direction m3 for node J of blade K (used to calc. and return aerodynamic loads from AeroDyn)"	-
+typedef	^	ED_CoordSys	R8Ki	n1	{:}{:}{:}	-	-	"n1(K,J,:) = vector / direction n1 for node J of blade K (= LxbK from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	n2	{:}{:}{:}	-	-	"n2(K,J,:) = vector / direction n2 for node J of blade K (= LybK from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	n3	{:}{:}{:}	-	-	"n3(K,J,:) = vector / direction n3 for node J of blade K (= LzbK from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	p1	3	-	-	"Vector / direction p1 (used to calc. and return tail aerodynamic loads from AeroDyn)"	-
+typedef	^	ED_CoordSys	R8Ki	p2	3	-	-	"Vector / direction p2 (used to calc. and return tail aerodynamic loads from AeroDyn)"	-
+typedef	^	ED_CoordSys	R8Ki	p3	3	-	-	"Vector / direction p3 (used to calc. and return tail aerodynamic loads from AeroDyn)"	-
+typedef	^	ED_CoordSys	R8Ki	rf1	3	-	-	"Vector / direction rf1 (rotor-furl coordinate system = d1 when rotor-furl angle = 0)"	-
+typedef	^	ED_CoordSys	R8Ki	rf2	3	-	-	"Vector / direction rf2 (rotor-furl coordinate system = d2 when rotor-furl angle = 0)"	-
+typedef	^	ED_CoordSys	R8Ki	rf3	3	-	-	"Vector / direction rf3 (rotor-furl coordinate system = d3 when rotor-furl angle = 0)"	-
+typedef	^	ED_CoordSys	R8Ki	rfa	3	-	-	"Vector / direction of the rotor-furl axis"	-
+typedef	^	ED_CoordSys	R8Ki	t1	{:}{:}	-	-	"Vector / direction t1 for tower node J (=  Lxt from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	t2	{:}{:}	-	-	"Vector / direction t2 for tower node J (=  Lzt from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	t3	{:}{:}	-	-	"Vector / direction t3 for tower node J (= -Lyt from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	te1	{:}{:}{:}	-	-	"te1(K,J,:) = vector / direction te1 for node J of blade K (used to calc. noise)"	-
+typedef	^	ED_CoordSys	R8Ki	te2	{:}{:}{:}	-	-	"te2(K,J,:) = vector / direction te2 for node J of blade K (used to calc. noise)"	-
+typedef	^	ED_CoordSys	R8Ki	te3	{:}{:}{:}	-	-	"te3(K,J,:) = vector / direction te3 for node J of blade K (used to calc. noise)"	-
+typedef	^	ED_CoordSys	R8Ki	tf1	3	-	-	"Vector / direction tf1 (tail-furl coordinate system = d1 when rotor-furl angle = 0)"	-
+typedef	^	ED_CoordSys	R8Ki	tf2	3	-	-	"Vector / direction tf2 (tail-furl coordinate system = d2 when rotor-furl angle = 0)"	-
+typedef	^	ED_CoordSys	R8Ki	tf3	3	-	-	"Vector / direction tf3 (tail-furl coordinate system = d3 when rotor-furl angle = 0)"	-
+typedef	^	ED_CoordSys	R8Ki	tfa	3	-	-	"Vector / direction of the tail-furl axis"	-
+typedef	^	ED_CoordSys	R8Ki	z1	3	-	-	"Vector / direction z1 (=  xi from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	z2	3	-	-	"Vector / direction z2 (=  zi from the IEC coord. system)"	-
+typedef	^	ED_CoordSys	R8Ki	z3	3	-	-	"Vector / direction z3 (= -yi from the IEC coord. system)"	-
 
 # ..... Internal data types: Enabled DOFs ........................................................................................
 #  This type defines variables associated with the module's degrees of freedom (DOFs)
@@ -510,7 +509,7 @@ typedef	^	ED_RtHndSide	ReKi	rSAerCen	{:}{:}{:}	-	-	"aerodynamic pitching moment 
 
 # ..... States ....................................................................................................................
 # Define continuous (differentiable) states here:
-typedef	^	ContinuousStateType	ReKi	QT	{:}	-	-	"Current estimate of Q (displacement matrix) for each degree of freedom"	-
+typedef	^	ContinuousStateType	R8Ki	QT	{:}	-	-	"Current estimate of Q (displacement matrix) for each degree of freedom"	-
 typedef	^	ContinuousStateType	^	QDT	{:}	-	-	"Current estimate of QD (velocity matrix) for each degree of freedom"
 
 # Define discrete (nondifferentiable) states here:
@@ -525,11 +524,11 @@ typedef	^	OtherStateType	ED_RtHndSide	RtHS	-	-	-	"Values used in calculating the
 typedef	^	OtherStateType	IntKi	n	-	-	-	"tracks time step for which OtherState was updated"
 typedef	^	OtherStateType	ED_ContinuousStateType	xdot	{ED_NMX}	-	-	"previous state deriv for multi-step"
 typedef	^	OtherStateType	IntKi	IC	{:}	-	-	"Array which stores pointers to predictor-corrector results"
-typedef	^	OtherStateType	ReKi	QD2T	{:}	-	-	"Solution (acceleration) vector; the first time derivative of QDT"
+typedef	^	OtherStateType	R8Ki	QD2T	{:}	-	-	"Solution (acceleration) vector; the first time derivative of QDT"
 #typedef	^	OtherStateType	ReKi	BlPitch	{:}	-	-	"Current blade pitch angles"	radians
-typedef	^	OtherStateType	ReKi	AugMat	{:}{:}	-	-	"The augmented matrix used for the solution of the QD2T()s"
-typedef	^	OtherStateType	ReKi	AugMat_factor	{:}{:}	-	-	"factored version of AugMat matrix"
-typedef	^	OtherStateType	ReKi	SolnVec	{:}	-	-	"b in the equation Ax=b (last column of AugMat)"
+typedef	^	OtherStateType	R8Ki	AugMat	{:}{:}	-	-	"The augmented matrix used for the solution of the QD2T()s"
+typedef	^	OtherStateType	R8Ki	AugMat_factor	{:}{:}	-	-	"factored version of AugMat matrix"
+typedef	^	OtherStateType	R8Ki	SolnVec	{:}	-	-	"b in the equation Ax=b (last column of AugMat)"
 typedef	^	OtherStateType	IntKi	AugMat_pivot	{:}	-	-	"Pivot column for AugMat in LAPACK factorization"
 #typedef	^	OtherStateType	ED_ContinuousStateType	k1	-	-	-	"Constant for ED_RK4 routine"	-
 typedef	^	OtherStateType	ReKi	AllOuts	{:}	-	-	"An array holding the value of all of the calculated (not only selected) output channels"	"see OutListParameters.xlsx spreadsheet"

@@ -12,7 +12,7 @@
 ###################################################################################################################################
 # File last committed: $Date: 2014-09-24 11:10:30 -0600 (Wed, 24 Sep 2014) $
 # (File) Revision #: $Rev: 508 $
-# URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/RegistryFiles/SS_Radiation.txt $
+# URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/UserWaves/Source/RegistryFiles/SS_Radiation.txt $
 ###################################################################################################################################
 
 typedef SS_Radiation/SS_Rad   InitInputType CHARACTER(1024) InputFile  - - -   "Name of the input file" -

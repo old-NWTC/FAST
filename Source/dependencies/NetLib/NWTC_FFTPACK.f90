@@ -8,8 +8,8 @@
    !                    correct type (to avoid having wSave too small)
    ! ADP: 07/28/2014: Added in the complex FFT routines from fftpack v. 4.1
 !=======================================================================
-! File last committed: $Date: 2014-12-03 11:25:14 -0700 (Wed, 03 Dec 2014) $
-! (File) Revision #: $Rev: 281 $
+! File last committed: $Date: 2015-09-28 22:21:59 -0600 (Mon, 28 Sep 2015) $
+! (File) Revision #: $Rev: 336 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/branches/NetLib/NWTC_source/NWTC_FFTPACK.f90 $
 !=======================================================================
 MODULE NWTC_FFTPACK
@@ -96,8 +96,8 @@ MODULE NWTC_FFTPACK
 
    TYPE, PUBLIC :: FFT_DataType
       PRIVATE
-      REAL(ReKi)                       :: InvN          = 0.0_ReKi      ! Normalization constant
-      REAL(ReKi), ALLOCATABLE          :: wSave(:)                      ! Working array for performing transforms
+      REAL(SiKi)                       :: InvN          = 0.0_SiKi      ! Normalization constant
+      REAL(SiKi), ALLOCATABLE          :: wSave(:)                      ! Working array for performing transforms
       INTEGER                          :: N             = -1            ! Number of steps
       LOGICAL                          :: Normalize     = .FALSE.       ! Whether or not to normalize
       INTEGER                          :: TransformType = Undef_trans   ! the type of transfer function this is for
@@ -113,7 +113,7 @@ CONTAINS
 
       IMPLICIT                         NONE
 
-      REAL(ReKi), INTENT(INOUT)     :: TRH(:)
+      REAL(SiKi), INTENT(INOUT)     :: TRH(:)
       TYPE(FFT_DataType), INTENT(IN):: FFT_Data             ! the handle to this instance of the FFT Module
       
       INTEGER, INTENT(OUT), OPTIONAL:: ErrStat
@@ -168,12 +168,12 @@ CONTAINS
 
       IMPLICIT                         NONE
 
-      COMPLEX(ReKi), INTENT(OUT)    :: TRH_complex_return(:)
-      COMPLEX(ReKi), INTENT(IN)     :: TRH_complex(:)
+      COMPLEX(SiKi), INTENT(OUT)    :: TRH_complex_return(:)
+      COMPLEX(SiKi), INTENT(IN)     :: TRH_complex(:)
       TYPE(FFT_DataType), INTENT(IN):: FFT_Data             ! the handle to this instance of the FFT Module
       INTEGER, INTENT(OUT), OPTIONAL:: ErrStat
 
-      REAL(ReKi), ALLOCATABLE       :: TRH(:)   ! real array to help process the complex-array that fftpack defines as IMPLICIT (real)
+      REAL(SiKi), ALLOCATABLE       :: TRH(:)   ! real array to help process the complex-array that fftpack defines as IMPLICIT (real)
 
       INTEGER                       :: I
      
@@ -208,11 +208,11 @@ CONTAINS
         ! Make sure that the imaginary components at the zeroeth and largest
         ! positive frequency are zero, else abort.
 
-      IF ( .NOT. EqualRealNos( 0.0_ReKi, AIMAG( TRH_complex(1    ) ) ) ) THEN
+      IF ( .NOT. EqualRealNos( 0.0_SiKi, AIMAG( TRH_complex(1    ) ) ) ) THEN
           CALL ProgAbort( 'Error in call to FFT.  The imaginary component at the zeroeth frequency must be zero.', TrapErrors )
           ErrStat = ErrID_Fatal         ! The code can't get here unless PRESENT(ErrStat)
           RETURN      
-      ELSE IF ( .NOT. EqualRealNos( 0.0_ReKi, AIMAG( TRH_complex(FFT_Data%N/2+1) ) ) )  THEN
+      ELSE IF ( .NOT. EqualRealNos( 0.0_SiKi, AIMAG( TRH_complex(FFT_Data%N/2+1) ) ) )  THEN
           CALL ProgAbort( 'Error in call to FFT. '// &
                           'The imaginary component at the largest positive frequency must be zero.', TrapErrors )
           ErrStat = ErrID_Fatal         ! The code can't get here unless PRESENT(ErrStat)
@@ -222,7 +222,7 @@ CONTAINS
 
          ! Populate the array for the frequency information.  Only the first half is populated (note that
          ! this algorithm does not make any assumptions about double sided conjugate pairing)
-      TRH_complex_return = CMPLX(0.0_ReKi,0.0_ReKi)
+      TRH_complex_return = CMPLX(0.0_SiKi,0.0_SiKi)
       DO I=1,FFT_Data%N/2
          TRH_complex_return(I) = TRH_complex(I)
       ENDDO
@@ -258,12 +258,12 @@ CONTAINS
 
       IMPLICIT                         NONE
 
-      COMPLEX(ReKi), INTENT(INOUT)  :: TRH_complex(:)
+      COMPLEX(SiKi), INTENT(INOUT)  :: TRH_complex(:)
       TYPE(FFT_DataType), INTENT(IN):: FFT_Data             ! the handle to this instance of the FFT Module
       INTEGER, INTENT(OUT), OPTIONAL:: ErrStat
       
       
-      REAL(ReKi), ALLOCATABLE       :: TRH(:)
+      REAL(SiKi), ALLOCATABLE       :: TRH(:)
       
       LOGICAL                       :: TrapErrors
       character(1024)               :: ErrMsg   
@@ -321,7 +321,7 @@ CONTAINS
 
       IMPLICIT                         NONE
 
-      REAL(ReKi), INTENT(INOUT)     :: TRH(:)
+      REAL(SiKi), INTENT(INOUT)     :: TRH(:)
       TYPE(FFT_DataType), INTENT(IN):: FFT_Data             ! the handle to this instance of the FFT Module
       INTEGER, INTENT(OUT), OPTIONAL:: ErrStat
       
@@ -368,7 +368,7 @@ CONTAINS
 
       IMPLICIT                         NONE
 
-      REAL(ReKi), INTENT(INOUT)     :: TRH(:)
+      REAL(SiKi), INTENT(INOUT)     :: TRH(:)
       TYPE(FFT_DataType), INTENT(IN):: FFT_Data             ! the handle to this instance of the FFT Module
       INTEGER, INTENT(OUT), OPTIONAL:: ErrStat
       
@@ -413,8 +413,8 @@ CONTAINS
 
       IMPLICIT                         NONE
 
-      REAL(ReKi),    INTENT(OUT)    :: TRH(:)
-      COMPLEX(ReKi), INTENT(IN)     :: TRH_complex(:)
+      REAL(SiKi),    INTENT(OUT)    :: TRH(:)
+      COMPLEX(SiKi), INTENT(IN)     :: TRH_complex(:)
       TYPE(FFT_DataType), INTENT(IN):: FFT_Data             ! the handle to this instance of the FFT Module
       INTEGER, INTENT(OUT), OPTIONAL:: ErrStat
 
@@ -450,11 +450,11 @@ CONTAINS
         ! Make sure that the imaginary components at the zeroeth and largest
         ! positive frequency are zero, else abort.
 
-      IF ( .NOT. EqualRealNos( 0.0_ReKi, AIMAG( TRH_complex(1    ) ) ) ) THEN
+      IF ( .NOT. EqualRealNos( 0.0_SiKi, AIMAG( TRH_complex(1    ) ) ) ) THEN
           CALL ProgAbort( 'Error in call to FFT.  The imaginary component at the zeroeth frequency must be zero.', TrapErrors )
           ErrStat = ErrID_Fatal         ! The code can't get here unless PRESENT(ErrStat)
           RETURN      
-      ELSE IF ( .NOT. EqualRealNos( 0.0_ReKi, AIMAG( TRH_complex(FFT_Data%N/2+1) ) ) )  THEN
+      ELSE IF ( .NOT. EqualRealNos( 0.0_SiKi, AIMAG( TRH_complex(FFT_Data%N/2+1) ) ) )  THEN
           CALL ProgAbort( 'Error in call to FFT. '// &
                           'The imaginary component at the largest positive frequency must be zero.', TrapErrors )
           ErrStat = ErrID_Fatal         ! The code can't get here unless PRESENT(ErrStat)
@@ -492,7 +492,7 @@ CONTAINS
 
       IMPLICIT                         NONE
 
-      REAL(ReKi), INTENT(INOUT)     :: TRH(:)
+      REAL(SiKi), INTENT(INOUT)     :: TRH(:)
       TYPE(FFT_DataType), INTENT(IN):: FFT_Data             ! the handle to this instance of the FFT Module
       INTEGER, INTENT(OUT), OPTIONAL:: ErrStat
       

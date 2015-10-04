@@ -17,9 +17,9 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-05-11 14:56:57 -0600 (Mon, 11 May 2015) $
-! (File) Revision #: $Rev: 616 $
-! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Morison_Output.f90 $
+! File last committed: $Date: 2015-08-11 08:28:58 -0600 (Tue, 11 Aug 2015) $
+! (File) Revision #: $Rev: 622 $
+! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/UserWaves/Source/Morison_Output.f90 $
 !**********************************************************************************************************************************
 MODULE Morison_Output
 

@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.08.01, 21-May-2015)
+! FAST Registry (v2.08.03, 2-Oct-2015)
 !*********************************************************************************************************************************
 ! AeroDyn_Types
 !.................................................................................................................................
@@ -42,9 +42,9 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: NumBlades      ! Number of blades on the turbine [-]
     CHARACTER(1024)  :: RootName      ! RootName for writing output files [-]
     REAL(ReKi) , DIMENSION(1:3)  :: HubPosition      ! X-Y-Z reference position of hub [m]
-    REAL(ReKi) , DIMENSION(1:3,1:3)  :: HubOrientation      ! DCM reference orientation of hub [-]
+    REAL(R8Ki) , DIMENSION(1:3,1:3)  :: HubOrientation      ! DCM reference orientation of hub [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: BladeRootPosition      ! X-Y-Z reference position of each blade root (3 x NumBlades) [m]
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: BladeRootOrientation      ! DCM reference orientation of blade roots (3x3 x NumBlades) [-]
+    REAL(R8Ki) , DIMENSION(:,:,:), ALLOCATABLE  :: BladeRootOrientation      ! DCM reference orientation of blade roots (3x3 x NumBlades) [-]
   END TYPE AD_InitInputType
 ! =======================
 ! =========  AD_InitOutputType  =======
@@ -301,7 +301,7 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1  ! NumBlades
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%RootName)  ! RootName
       Re_BufSz   = Re_BufSz   + SIZE(InData%HubPosition)  ! HubPosition
-      Re_BufSz   = Re_BufSz   + SIZE(InData%HubOrientation)  ! HubOrientation
+      Db_BufSz   = Db_BufSz   + SIZE(InData%HubOrientation)  ! HubOrientation
   Int_BufSz   = Int_BufSz   + 1     ! BladeRootPosition allocated yes/no
   IF ( ALLOCATED(InData%BladeRootPosition) ) THEN
     Int_BufSz   = Int_BufSz   + 2*2  ! BladeRootPosition upper/lower bounds for each dimension
@@ -310,7 +310,7 @@ ENDIF
   Int_BufSz   = Int_BufSz   + 1     ! BladeRootOrientation allocated yes/no
   IF ( ALLOCATED(InData%BladeRootOrientation) ) THEN
     Int_BufSz   = Int_BufSz   + 2*3  ! BladeRootOrientation upper/lower bounds for each dimension
-      Re_BufSz   = Re_BufSz   + SIZE(InData%BladeRootOrientation)  ! BladeRootOrientation
+      Db_BufSz   = Db_BufSz   + SIZE(InData%BladeRootOrientation)  ! BladeRootOrientation
   END IF
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
@@ -351,8 +351,8 @@ ENDIF
         END DO ! I
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%HubPosition))-1 ) = PACK(InData%HubPosition,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%HubPosition)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%HubOrientation))-1 ) = PACK(InData%HubOrientation,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%HubOrientation)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%HubOrientation))-1 ) = PACK(InData%HubOrientation,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%HubOrientation)
   IF ( .NOT. ALLOCATED(InData%BladeRootPosition) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
@@ -385,8 +385,8 @@ ENDIF
     IntKiBuf( Int_Xferred + 1) = UBOUND(InData%BladeRootOrientation,3)
     Int_Xferred = Int_Xferred + 2
 
-      IF (SIZE(InData%BladeRootOrientation)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%BladeRootOrientation))-1 ) = PACK(InData%BladeRootOrientation,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%BladeRootOrientation)
+      IF (SIZE(InData%BladeRootOrientation)>0) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%BladeRootOrientation))-1 ) = PACK(InData%BladeRootOrientation,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%BladeRootOrientation)
   END IF
  END SUBROUTINE AD_PackInitInput
 
@@ -457,8 +457,8 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-      OutData%HubOrientation = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%HubOrientation))-1 ), mask2, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%HubOrientation)
+      OutData%HubOrientation = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%HubOrientation))-1 ), mask2, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%HubOrientation)
     DEALLOCATE(mask2)
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! BladeRootPosition not allocated
     Int_Xferred = Int_Xferred + 1
@@ -511,8 +511,8 @@ ENDIF
        RETURN
     END IF
     mask3 = .TRUE. 
-      IF (SIZE(OutData%BladeRootOrientation)>0) OutData%BladeRootOrientation = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%BladeRootOrientation))-1 ), mask3, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%BladeRootOrientation)
+      IF (SIZE(OutData%BladeRootOrientation)>0) OutData%BladeRootOrientation = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%BladeRootOrientation))-1 ), mask3, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%BladeRootOrientation)
     DEALLOCATE(mask3)
   END IF
  END SUBROUTINE AD_UnPackInitInput

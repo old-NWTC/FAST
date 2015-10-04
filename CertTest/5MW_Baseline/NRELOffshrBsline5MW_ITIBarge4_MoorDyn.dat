@@ -3,7 +3,7 @@ Mooring system for ITI Energy Barge
 False   Echo      - echo the input file data (flag)
 ----------------------- LINE TYPES ------------------------------------------
 1        NTypes    - number of LineTypes
-Name     Diam      MassDen       EA    BA/-zeta  Can     Cat   Cdn   Cdt 
+Name     Diam      MassDen       EA    BA/-zeta  Can     Cat   Cdn   Cdt
 (-)       (m)      (kg/m)        (N)   (N-s/-)   (-)     (-)   (-)   (-)
 main     0.0809    130.403     589.0E6   -0.8    1.0     0.0   1.6   0.1
 ---------------------- CONNECTION PROPERTIES --------------------------------
@@ -42,7 +42,6 @@ Line    LineType  UnstrLen  NumSegs   NodeAnch  NodeFair  Flags/Outputs
 0.001    dtM       - time step to use in mooring integration (s)
 3.0e4    kbot      - bottom stiffness (Pa/m)
 3.0e4    cbot      - bottom damping (Pa-s/m)
-150      WtrDpth   - water depth (m)
 2.0      dtIC      - time interval for analyzing convergence during IC gen (s)
 60.0     TmaxIC    - max time for ic gen (s)
 4.0      CdScaleIC - factor by which to scale drag coefficients during dynamic relaxation (-)

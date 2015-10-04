@@ -1,3 +1,6 @@
+#define IMPLICIT_STATEMENT IMPLICIT INTEGER(4) (I-N), REAL(4) (A-H, O-Z)
+#define IFAC_TYPE REAL(4)
+
 C     --------------------------------------------------------------
 C     Source code obtained from FFTPACK version 4.1 , available at
 C     http://www.scd.ucar.edu/softlib/mathlib.html
@@ -22,6 +25,7 @@ C             ARE REQUIRED FOR DIFFERENT VALUES OF N. THE CONTENTS OF
 C             WSAVE MUST NOT BE CHANGED BETWEEN CALLS OF RFFTF OR RFFTB.
 C
       SUBROUTINE RFFTI (N,WSAVE)
+      IMPLICIT_STATEMENT
       DIMENSION       WSAVE(*)
 C
       IF (N .EQ. 1) RETURN
@@ -31,13 +35,13 @@ C
 
 
       SUBROUTINE RFFTI1 (N,WA,IFAC)
-!bjj START (fix for compatibility in double precision):
-! also note I added nint() around places where IFAC is on the right-hand side of the equation
-!rm      DIMENSION       WA(*)      ,IFAC(*)    ,NTRYH(4)
-         USE PRECISION
-      REAL(ReKi), DIMENSION(*) :: IFAC
+      IMPLICIT_STATEMENT
+!!bjj START (fix for compatibility in double precision):
+!! also note I added nint() around places where IFAC is on the right-hand side of the equation
+!      DIMENSION       WA(*)      ,IFAC(*)    ,NTRYH(4)
+      IFAC_TYPE, DIMENSION(*) :: IFAC
       DIMENSION       WA(*)      ,NTRYH(4)
-!bjj END
+!!bjj END
       DATA NTRYH(1),NTRYH(2),NTRYH(3),NTRYH(4)/4,2,3,5/
       NL = N
       NF = 0
@@ -150,6 +154,7 @@ C             CALLS OF RFFTB OR RFFTF.
 C
 C
       SUBROUTINE RFFTB (N,R,WSAVE)
+      IMPLICIT_STATEMENT
       DIMENSION       R(*)       ,WSAVE(*)
 C
       IF (N .EQ. 1) RETURN
@@ -159,13 +164,13 @@ C
 
 
       SUBROUTINE RFFTB1 (N,C,CH,WA,IFAC)
-!bjj START (fix for compatibility in double precision):
-! also note I added nint() around places where IFAC is on the right-hand side of the equation
-!rm      DIMENSION       CH(*)      ,C(*)       ,WA(*)      ,IFAC(*)
-         USE PRECISION
-      REAL(ReKi), DIMENSION(*) :: IFAC
+      IMPLICIT_STATEMENT
+!!bjj START (fix for compatibility in double precision):
+!! also note I added nint() around places where IFAC is on the right-hand side of the equation
+!      DIMENSION       CH(*)      ,C(*)       ,WA(*)      ,IFAC(*)
+      IFAC_TYPE, DIMENSION(*) :: IFAC
       DIMENSION       CH(*)      ,C(*)       ,WA(*)
-!bjj End     
+!!bjj End     
       NF = nint(IFAC(2))
       NA = 0
       L1 = 1
@@ -226,6 +231,7 @@ C
 
 
       SUBROUTINE RADB2 (IDO,L1,CC,CH,WA1)
+      IMPLICIT_STATEMENT
       DIMENSION       CC(IDO,2,L1)           ,CH(IDO,L1,2)           ,
      1                WA1(*)
       DO 101 K=1,L1
@@ -255,6 +261,7 @@ C
 
 
       SUBROUTINE RADB3 (IDO,L1,CC,CH,WA1,WA2)
+      IMPLICIT_STATEMENT
       DIMENSION       CC(IDO,3,L1)           ,CH(IDO,L1,3)           ,
      1                WA1(*)     ,WA2(*)
       DATA TAUR,TAUI /-.5,.866025403784439/
@@ -294,6 +301,7 @@ C
 
 
       SUBROUTINE RADB4 (IDO,L1,CC,CH,WA1,WA2,WA3)
+      IMPLICIT_STATEMENT
       DIMENSION       CC(IDO,4,L1)           ,CH(IDO,L1,4)           ,
      1                WA1(*)     ,WA2(*)     ,WA3(*)
       DATA SQRT2 /1.414213562373095/
@@ -353,6 +361,7 @@ C
 
 
       SUBROUTINE RADB5 (IDO,L1,CC,CH,WA1,WA2,WA3,WA4)
+      IMPLICIT_STATEMENT
       DIMENSION       CC(IDO,5,L1)           ,CH(IDO,L1,5)           ,
      1                WA1(*)     ,WA2(*)     ,WA3(*)     ,WA4(*)
       DATA TR11,TI11,TR12,TI12 /.309016994374947,.951056516295154,
@@ -418,6 +427,7 @@ C
 
 
       SUBROUTINE RADBG (IDO,IP,L1,IDL1,CC,C1,C2,CH,CH2,WA)
+      IMPLICIT_STATEMENT
       DIMENSION       CH(IDO,L1,IP)          ,CC(IDO,IP,L1)          ,
      1                C1(IDO,L1,IP)          ,C2(IDL1,IP),
      2                CH2(IDL1,IP)           ,WA(*)
@@ -580,6 +590,7 @@ C
 
 
       FUNCTION PIMACH (DUM)
+      IMPLICIT_STATEMENT
 C     PI=3.1415926535897932384626433832795028841971693993751058209749446
 C
       PIMACH = 4.*ATAN(1.0)
@@ -607,6 +618,7 @@ C             OF N. THE CONTENTS OF WSAVE MUST NOT BE CHANGED BETWEEN
 C             CALLS OF COST.
 C
       SUBROUTINE COSTI (N,WSAVE)
+      IMPLICIT_STATEMENT
       DIMENSION       WSAVE(*)
 C
       PI = PIMACH(DUM)
@@ -675,6 +687,7 @@ C     WSAVE   CONTAINS INITIALIZATION CALCULATIONS WHICH MUST NOT BE
 C             DESTROYED BETWEEN CALLS OF COST.
 C
       SUBROUTINE COST (N,X,WSAVE)
+      IMPLICIT_STATEMENT
       DIMENSION       X(*)       ,WSAVE(*)
 C
       NM1 = N-1
@@ -775,6 +788,7 @@ C     WSAVE   CONTAINS RESULTS WHICH MUST NOT BE DESTROYED BETWEEN
 C             CALLS OF RFFTF OR RFFTB.
 C
       SUBROUTINE RFFTF (N,R,WSAVE)
+      IMPLICIT_STATEMENT
       DIMENSION       R(*)       ,WSAVE(*)
 C
       IF (N .EQ. 1) RETURN
@@ -782,12 +796,12 @@ C
       RETURN
       END
       SUBROUTINE RFFTF1 (N,C,CH,WA,IFAC)
+      IMPLICIT_STATEMENT
 !bjj START (fix for compatibility in double precision):
 ! also note I added nint() around places where IFAC is on the right-hand side of the equation
-!rm      DIMENSION       CH(*)      ,C(*)       ,WA(*)      ,IFAC(*)
-         USE PRECISION
-      REAL(ReKi), DIMENSION(*) :: IFAC
+!      DIMENSION       CH(*)      ,C(*)       ,WA(*)      ,IFAC(*)
       DIMENSION       CH(*)      ,C(*)       ,WA(*)
+      IFAC_TYPE, DIMENSION(*) :: IFAC
 !bjj End
       NF = nint(IFAC(2))
       NA = 1
@@ -849,6 +863,7 @@ C
 
 
       SUBROUTINE RADF2 (IDO,L1,CC,CH,WA1)
+      IMPLICIT_STATEMENT
       DIMENSION       CH(IDO,2,L1)           ,CC(IDO,L1,2)           ,
      1                WA1(*)
       DO 101 K=1,L1
@@ -878,6 +893,7 @@ C
 
 
       SUBROUTINE RADF3 (IDO,L1,CC,CH,WA1,WA2)
+      IMPLICIT_STATEMENT
       DIMENSION       CH(IDO,3,L1)           ,CC(IDO,L1,3)           ,
      1                WA1(*)     ,WA2(*)
       DATA TAUR,TAUI /-.5,.866025403784439/
@@ -915,6 +931,7 @@ C
 
 
       SUBROUTINE RADF4 (IDO,L1,CC,CH,WA1,WA2,WA3)
+      IMPLICIT_STATEMENT
       DIMENSION       CC(IDO,L1,4)           ,CH(IDO,4,L1)           ,
      1                WA1(*)     ,WA2(*)     ,WA3(*)
       DATA HSQT2 /.7071067811865475/
@@ -970,6 +987,7 @@ C
 
 
       SUBROUTINE RADF5 (IDO,L1,CC,CH,WA1,WA2,WA3,WA4)
+      IMPLICIT_STATEMENT
       DIMENSION       CC(IDO,L1,5)           ,CH(IDO,5,L1)           ,
      1                WA1(*)     ,WA2(*)     ,WA3(*)     ,WA4(*)
       DATA TR11,TI11,TR12,TI12 /.309016994374947,.951056516295154,
@@ -1031,6 +1049,7 @@ C
 
 
       SUBROUTINE RADFG (IDO,IP,L1,IDL1,CC,C1,C2,CH,CH2,WA)
+      IMPLICIT_STATEMENT
       DIMENSION       CH(IDO,L1,IP)          ,CC(IDO,IP,L1)          ,
      1                C1(IDO,L1,IP)          ,C2(IDL1,IP),
      2                CH2(IDL1,IP)           ,WA(*)
@@ -1218,6 +1237,7 @@ C             OF N. THE CONTENTS OF WSAVE MUST NOT BE CHANGED BETWEEN
 C             CALLS OF SINT.
 C
       SUBROUTINE SINTI (N,WSAVE)
+      IMPLICIT_STATEMENT
       DIMENSION       WSAVE(*)
 C
       PI = PIMACH(DUM)
@@ -1279,6 +1299,7 @@ C     WSAVE   CONTAINS INITIALIZATION CALCULATIONS WHICH MUST NOT BE
 C             DESTROYED BETWEEN CALLS OF SINT.
 C
       SUBROUTINE SINT (N,X,WSAVE)
+      IMPLICIT_STATEMENT
       DIMENSION       X(*)       ,WSAVE(*)
 C
       NP1 = N+1
@@ -1291,12 +1312,12 @@ C
 
 
       SUBROUTINE SINT1(N,WAR,WAS,XH,X,IFAC)
-!bjj START (fix for compatibility in double precision):
-!rm      DIMENSION WAR(*),WAS(*),X(*),XH(*),IFAC(*)
-         USE PRECISION
-      REAL(ReKi), DIMENSION(*) :: IFAC
+      IMPLICIT_STATEMENT
+!!bjj START (fix for compatibility in double precision):
+!      DIMENSION WAR(*),WAS(*),X(*),XH(*),IFAC(*)
       DIMENSION WAR(*),WAS(*),X(*),XH(*)
-!bjj End      
+      IFAC_TYPE, DIMENSION(*) :: IFAC
+!!bjj End      
       DATA SQRT3 /1.73205080756888/
       DO 100 I=1,N
       XH(I) = WAR(I)
@@ -1360,6 +1381,7 @@ C             WSAVE MUST NOT BE CHANGED BETWEEN CALLS OF CFFTF OR CFFTB.
 C
 C **********************************************************************
       SUBROUTINE CFFTI (N,WSAVE)
+      IMPLICIT_STATEMENT
       DIMENSION       WSAVE(*)
 C
       IF (N .EQ. 1) RETURN
@@ -1371,8 +1393,8 @@ C
 
 
       SUBROUTINE CFFTI1 (N,WA,IFAC)
-         USE PRECISION
-      REAL(ReKi), DIMENSION(*) :: IFAC
+      IMPLICIT_STATEMENT
+      IFAC_TYPE, DIMENSION(*) :: IFAC
       DIMENSION       WA(*)      ,NTRYH(4)
       DATA NTRYH(1),NTRYH(2),NTRYH(3),NTRYH(4)/3,4,2,5/
       NL = N
@@ -1480,6 +1502,7 @@ C     WSAVE   CONTAINS INITIALIZATION CALCULATIONS WHICH MUST NOT BE
 C             DESTROYED BETWEEN CALLS OF SUBROUTINE CFFTF OR CFFTB
 C **********************************************************************
       SUBROUTINE CFFTB (N,C,WSAVE)
+      IMPLICIT_STATEMENT
       DIMENSION       C(*)       ,WSAVE(*)
 C
       IF (N .EQ. 1) RETURN
@@ -1491,8 +1514,8 @@ C
 
 
       SUBROUTINE CFFTB1 (N,C,CH,WA,IFAC)
-         USE PRECISION
-      REAL(ReKi), DIMENSION(*) :: IFAC
+      IMPLICIT_STATEMENT
+      IFAC_TYPE, DIMENSION(*) :: IFAC
       DIMENSION       CH(*)      ,C(*)       ,WA(*)
       NF = nint(IFAC(2))
       NA = 0
@@ -1554,6 +1577,7 @@ C
       RETURN
       END
       SUBROUTINE PASSB2 (IDO,L1,CC,CH,WA1)
+      IMPLICIT_STATEMENT
       DIMENSION       CC(IDO,2,L1)           ,CH(IDO,L1,2)           ,
      1                WA1(*)
 !ADP: change WA1(1) to WA1(*)
@@ -1578,6 +1602,7 @@ C
       RETURN
       END
       SUBROUTINE PASSB3 (IDO,L1,CC,CH,WA1,WA2)
+      IMPLICIT_STATEMENT
       DIMENSION       CC(IDO,3,L1)           ,CH(IDO,L1,3)           ,
      1                WA1(*)     ,WA2(*)
       DATA TAUR,TAUI /-.5,.866025403784439/
@@ -1620,6 +1645,7 @@ C
       RETURN
       END
       SUBROUTINE PASSB4 (IDO,L1,CC,CH,WA1,WA2,WA3)
+      IMPLICIT_STATEMENT
       DIMENSION       CC(IDO,4,L1)           ,CH(IDO,L1,4)           ,
      1                WA1(*)     ,WA2(*)     ,WA3(*)
       IF (IDO .NE. 2) GO TO 102
@@ -1671,6 +1697,7 @@ C
       RETURN
       END
       SUBROUTINE PASSB5 (IDO,L1,CC,CH,WA1,WA2,WA3,WA4)
+      IMPLICIT_STATEMENT
       DIMENSION       CC(IDO,5,L1)           ,CH(IDO,L1,5)           ,
      1                WA1(*)     ,WA2(*)     ,WA3(*)     ,WA4(*)
       DATA TR11,TI11,TR12,TI12 /.309016994374947,.951056516295154,
@@ -1746,6 +1773,7 @@ C
       RETURN
       END
       SUBROUTINE PASSB (NAC,IDO,IP,L1,IDL1,CC,C1,C2,CH,CH2,WA)
+      IMPLICIT_STATEMENT
       DIMENSION       CH(IDO,L1,IP)          ,CC(IDO,IP,L1)          ,
      1                C1(IDO,L1,IP)          ,WA(*)      ,C2(IDL1,IP),
      2                CH2(IDL1,IP)
@@ -1913,6 +1941,7 @@ C             DESTROYED BETWEEN CALLS OF SUBROUTINE CFFTF OR CFFTB
 C
 C **********************************************************************
       SUBROUTINE CFFTF (N,C,WSAVE)
+      IMPLICIT_STATEMENT
       DIMENSION       C(*)       ,WSAVE(*)
 C
       IF (N .EQ. 1) RETURN
@@ -1922,8 +1951,8 @@ C
       RETURN
       END
       SUBROUTINE CFFTF1 (N,C,CH,WA,IFAC)
-         USE PRECISION
-      REAL(ReKi), DIMENSION(*) :: IFAC
+      IMPLICIT_STATEMENT
+      IFAC_TYPE, DIMENSION(*) :: IFAC
       DIMENSION       CH(*)      ,C(*)       ,WA(*)
       NF = nint(IFAC(2))
       NA = 0
@@ -1985,6 +2014,7 @@ C
       RETURN
       END
       SUBROUTINE PASSF2 (IDO,L1,CC,CH,WA1)
+      IMPLICIT_STATEMENT
       DIMENSION       CC(IDO,2,L1)           ,CH(IDO,L1,2)           ,
      1                WA1(*)
       IF (IDO .GT. 2) GO TO 102
@@ -2008,6 +2038,7 @@ C
       RETURN
       END
       SUBROUTINE PASSF3 (IDO,L1,CC,CH,WA1,WA2)
+      IMPLICIT_STATEMENT
       DIMENSION       CC(IDO,3,L1)           ,CH(IDO,L1,3)           ,
      1                WA1(*)     ,WA2(*)
       DATA TAUR,TAUI /-.5,-.866025403784439/
@@ -2050,6 +2081,7 @@ C
       RETURN
       END
       SUBROUTINE PASSF4 (IDO,L1,CC,CH,WA1,WA2,WA3)
+      IMPLICIT_STATEMENT
       DIMENSION       CC(IDO,4,L1)           ,CH(IDO,L1,4)           ,
      1                WA1(*)     ,WA2(*)     ,WA3(*)
       IF (IDO .NE. 2) GO TO 102
@@ -2101,6 +2133,7 @@ C
       RETURN
       END
       SUBROUTINE PASSF5 (IDO,L1,CC,CH,WA1,WA2,WA3,WA4)
+      IMPLICIT_STATEMENT
       DIMENSION       CC(IDO,5,L1)           ,CH(IDO,L1,5)           ,
      1                WA1(*)     ,WA2(*)     ,WA3(*)     ,WA4(*)
       DATA TR11,TI11,TR12,TI12 /.309016994374947,-.951056516295154,
@@ -2176,6 +2209,7 @@ C
       RETURN
       END
       SUBROUTINE PASSF (NAC,IDO,IP,L1,IDL1,CC,C1,C2,CH,CH2,WA)
+      IMPLICIT_STATEMENT
       DIMENSION       CH(IDO,L1,IP)          ,CC(IDO,IP,L1)          ,
      1                C1(IDO,L1,IP)          ,WA(*)      ,C2(IDL1,IP),
      2                CH2(IDL1,IP)

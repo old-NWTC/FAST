@@ -24,17 +24,19 @@ FAST_driver = FAST_Prog
 
 
 
-FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
-LDFLAGS = -O2 -m$(BITS) -fbacktrace
+#FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -DDOUBLE_PRECISION  -fdefault-real-8
+#LDFLAGS = -O2 -m$(BITS) -fbacktrace
 
-#FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -g -pg
-#LDFLAGS = -O0 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware -g -pg
+FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -DDOUBLE_PRECISION  -fdefault-real-8 -g -pg
+LDFLAGS = -O0 -m$(BITS) -fbacktrace  -g -pg
 
 #.........................................
 # preprocessor definitions:
 #  -DDOUBLE_PRECISION
 #
 # some useful gfortran options:
+# -Wl,--stack=999999999,--large-address-aware
+#
 #  -DFPE_TRAP_ENABLED
 #  -Wl,--large-address-aware   # not necessary when $(BITS) is 64 (64-bit target)
 #  -Wl,--stack=999999999       # not necessary when $(BITS) is 64
@@ -96,10 +98,11 @@ ifeq ($(OS),Windows_NT)
    LDFLAGS     := $(LDFLAGS) -llapack -lblas -LC:/LAPACK/win32
    LAPACK_LINK :=
 
+   UNAME       := $(OS)
 else
 
    Registry     = $(FAST_DIR)/dependencies/registry.exe
-   MAP_lib      = $(MAP_DIR)/MAP.so
+   MAP_lib      = $(BIN_DIR)/libmap-1.10.00.so
 
    UNAME := $(shell uname -s)
 
@@ -128,6 +131,10 @@ DEST_DIR    = $(BIN_DIR)
 ifeq ($(FAST_driver),FAST_Library)
    LDFLAGS := $(LDFLAGS) -shared
    OUTPUT_NAME = FAST_Library
+
+   ifeq ($(UNAME), Linux)
+      LDFLAGS := $(LDFLAGS) -fPIC
+   endif
 else
    OUTPUT_NAME = FAST
 endif
@@ -270,6 +277,7 @@ HD_SOURCES =                   \
 	Waves2_Output.f90           \
 	Waves2.f90                  \
 	Waves_Types.f90             \
+	UserWaves.f90               \
 	Waves.f90                   \
 	Current_Types.f90           \
 	Current.f90                 \
@@ -496,7 +504,7 @@ NWTC_Library$(OBJ_EXT):           ModMesh$(OBJ_EXT)  ModMesh_Mapping$(OBJ_EXT)
 NWTC_LAPACK$(OBJ_EXT):            NWTC_Base$(OBJ_EXT)
 NWTC_ScaLAPACK$(OBJ_EXT):         NWTC_Base$(OBJ_EXT) dlasrt2$(OBJ_EXT) slasrt2$(OBJ_EXT)
 NWTC_FFTPACK$(OBJ_EXT):           NWTC_Library$(OBJ_EXT) fftpack4.1$(OBJ_EXT)
-fftpack4.1$(OBJ_EXT):             SingPrec$(OBJ_EXT)
+#fftpack4.1$(OBJ_EXT):             SingPrec$(OBJ_EXT)
 
 
 NWTC_FitPack$(OBJ_EXT):           NWTC_Library$(OBJ_EXT) dierckx_fitpack$(OBJ_EXT)
@@ -579,7 +587,8 @@ Waves2$(OBJ_EXT):                 NWTC_Library$(OBJ_EXT)  Waves2_Types$(OBJ_EXT)
                                      Waves2_Output$(OBJ_EXT)  Waves$(OBJ_EXT)
 
 Waves_Types$(OBJ_EXT):            NWTC_Library$(OBJ_EXT) $(HD_DIR)/Waves_Types.f90
-Waves$(OBJ_EXT):                  Waves_Types$(OBJ_EXT)   NWTC_FFTPACK$(OBJ_EXT)
+UserWaves$(OBJ_EXT):              Waves_Types$(OBJ_EXT)   NWTC_FFTPACK$(OBJ_EXT)
+Waves$(OBJ_EXT):                  Waves_Types$(OBJ_EXT)   NWTC_FFTPACK$(OBJ_EXT)  UserWaves$(OBJ_EXT)
 
 Current_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT) $(HD_DIR)/Current_Types.f90
 Current$(OBJ_EXT):                Current_Types$(OBJ_EXT)

@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.08.02, 12-Aug-2015)
+! FAST Registry (v2.08.03, 2-Oct-2015)
 !*********************************************************************************************************************************
 ! WAMIT_Types
 !.................................................................................................................................
@@ -53,13 +53,13 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: NStepWave      !  [-]
     INTEGER(IntKi)  :: NStepWave2      !  [-]
     REAL(ReKi)  :: WaveDOmega      !  [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevC0      ! Discrete Fourier transform of the instantaneous elevation of incident waves at the platform reference point.  First column is real part, second column is imaginary part [(meters)]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      !  [-]
+    REAL(SiKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevC0      ! Discrete Fourier transform of the instantaneous elevation of incident waves at the platform reference point.  First column is real part, second column is imaginary part [(meters)]
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      !  [-]
     INTEGER(IntKi)  :: WaveMod      !  [-]
     REAL(ReKi)  :: WtrDens      !  [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveDirArr      ! Array of wave directions (one per frequency) from the Waves module [-]
-    REAL(ReKi)  :: WaveDirMin      ! Minimum wave direction from Waves module [-]
-    REAL(ReKi)  :: WaveDirMax      ! Maximum wave direction from Waves module [-]
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: WaveDirArr      ! Array of wave directions (one per frequency) from the Waves module [-]
+    REAL(SiKi)  :: WaveDirMin      ! Minimum wave direction from Waves module [-]
+    REAL(SiKi)  :: WaveDirMax      ! Maximum wave direction from Waves module [-]
     CHARACTER(10) , DIMENSION(1:18)  :: OutList      ! This should really be dimensioned with MaxOutPts [-]
     LOGICAL  :: OutAll      !  [-]
     INTEGER(IntKi)  :: NumOuts      !  [-]
@@ -106,9 +106,9 @@ IMPLICIT NONE
     REAL(ReKi)  :: PtfmCOBxt      !  [-]
     REAL(ReKi)  :: PtfmCOByt      !  [-]
     INTEGER(IntKi)  :: RdtnMod      !  [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveExctn      !  [-]
+    REAL(SiKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveExctn      !  [-]
     REAL(ReKi)  :: RhoXg      !  [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      !  [-]
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      !  [-]
     INTEGER(IntKi)  :: NStepWave      !  [-]
     TYPE(Conv_Rdtn_ParameterType)  :: Conv_Rdtn      !  [-]
     TYPE(SS_Rad_ParameterType)  :: SS_Rdtn      !  [-]
@@ -680,7 +680,7 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-      IF (SIZE(OutData%WaveElevC0)>0) OutData%WaveElevC0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevC0))-1 ), mask2, 0.0_ReKi )
+      IF (SIZE(OutData%WaveElevC0)>0) OutData%WaveElevC0 = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevC0))-1 ), mask2, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevC0)
     DEALLOCATE(mask2)
   END IF
@@ -703,7 +703,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%WaveTime)>0) OutData%WaveTime = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ), mask1, 0.0_ReKi )
+      IF (SIZE(OutData%WaveTime)>0) OutData%WaveTime = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ), mask1, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveTime)
     DEALLOCATE(mask1)
   END IF
@@ -730,13 +730,13 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%WaveDirArr)>0) OutData%WaveDirArr = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveDirArr))-1 ), mask1, 0.0_ReKi )
+      IF (SIZE(OutData%WaveDirArr)>0) OutData%WaveDirArr = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveDirArr))-1 ), mask1, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveDirArr)
     DEALLOCATE(mask1)
   END IF
-      OutData%WaveDirMin = ReKiBuf( Re_Xferred )
+      OutData%WaveDirMin = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
-      OutData%WaveDirMax = ReKiBuf( Re_Xferred )
+      OutData%WaveDirMax = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
     i1_l = LBOUND(OutData%OutList,1)
     i1_u = UBOUND(OutData%OutList,1)
@@ -2491,7 +2491,7 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-      IF (SIZE(OutData%WaveExctn)>0) OutData%WaveExctn = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveExctn))-1 ), mask2, 0.0_ReKi )
+      IF (SIZE(OutData%WaveExctn)>0) OutData%WaveExctn = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveExctn))-1 ), mask2, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveExctn)
     DEALLOCATE(mask2)
   END IF
@@ -2516,7 +2516,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%WaveTime)>0) OutData%WaveTime = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ), mask1, 0.0_ReKi )
+      IF (SIZE(OutData%WaveTime)>0) OutData%WaveTime = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ), mask1, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveTime)
     DEALLOCATE(mask1)
   END IF

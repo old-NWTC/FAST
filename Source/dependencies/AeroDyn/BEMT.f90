@@ -1018,7 +1018,7 @@ subroutine BEMT_CalcOutput( t, u, p, x, xd, z, OtherState, AFInfo, y, errStat, e
          if ( p%useInduction ) then
             r = u%rlocal(i,j)
             if (p%skewWakeMod < SkewMod_Coupled) then
-               ! TODO: Need to turn off unsteady to compute inductions, and then call ComputeAirfoilCoefs with UA on for calculating the Cx, Cy, Cl, Cd values
+               ! Turn off unsteady to compute inductions, and then call ComputeAirfoilCoefs with UA on for calculating the Cx, Cy, Cl, Cd values
                fzero = BEMTU_InductionWithResidual(y%phi(i,j), psi, chi0, p%numReIterations, p%airDens, p%kinVisc, p%numBlades, u%rlocal(i,j), Rtip, p%chord(i,j), u%theta(i,j),  AFInfo(p%AFindx(i,j)), &
                               Vx, Vy, p%useTanInd, .TRUE.,.TRUE., p%useHubLoss, p%useTipLoss, p%hubLossConst(i,j), p%tipLossConst(i,j), SkewMod_Uncoupled, &
                               .FALSE., p%UA, xd%UA, OtherState%UA, &

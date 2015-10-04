@@ -236,6 +236,7 @@ SET HD_SOURCES=^
  "%HD_Loc%\SS_Radiation_Types.f90" ^
  "%HD_Loc%\SS_Radiation.f90" ^
  "%HD_Loc%\Waves_Types.f90" ^
+ "%HD_Loc%\UserWaves.f90" ^
  "%HD_Loc%\Waves.f90" ^
  "%HD_Loc%\Waves2_Types.f90" ^
  "%HD_Loc%\Waves2_Output.f90" ^

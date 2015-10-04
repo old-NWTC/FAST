@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.08.02, 12-Aug-2015)
+! FAST Registry (v2.08.03, 2-Oct-2015)
 !*********************************************************************************************************************************
 ! Conv_Radiation_Types
 !.................................................................................................................................
@@ -39,9 +39,9 @@ IMPLICIT NONE
     CHARACTER(80)  :: RdtnDTChr 
     REAL(ReKi)  :: HighFreq      !  [-]
     CHARACTER(1024)  :: WAMITFile      !  [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: HdroAddMs      !  [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: HdroFreq      !  [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: HdroDmpng      !  [-]
+    REAL(SiKi) , DIMENSION(:,:), ALLOCATABLE  :: HdroAddMs      !  [-]
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: HdroFreq      !  [-]
+    REAL(SiKi) , DIMENSION(:,:), ALLOCATABLE  :: HdroDmpng      !  [-]
     INTEGER(IntKi)  :: NInpFreq      !  [-]
     REAL(DbKi)  :: RdtnTMax      !  [-]
     INTEGER(IntKi)  :: UnSum      !  [-]
@@ -79,7 +79,7 @@ IMPLICIT NONE
   TYPE, PUBLIC :: Conv_Rdtn_ParameterType
     REAL(DbKi)  :: DT      ! Time step for continuous state integration & discrete state update [seconds]
     REAL(DbKi)  :: RdtnDT      !  [-]
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: RdtnKrnl      !  [-]
+    REAL(SiKi) , DIMENSION(:,:,:), ALLOCATABLE  :: RdtnKrnl      !  [-]
     INTEGER(IntKi)  :: NStepRdtn      !  [-]
     INTEGER(IntKi)  :: NStepRdtn1      !  [-]
   END TYPE Conv_Rdtn_ParameterType
@@ -399,7 +399,7 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-      IF (SIZE(OutData%HdroAddMs)>0) OutData%HdroAddMs = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%HdroAddMs))-1 ), mask2, 0.0_ReKi )
+      IF (SIZE(OutData%HdroAddMs)>0) OutData%HdroAddMs = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%HdroAddMs))-1 ), mask2, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%HdroAddMs)
     DEALLOCATE(mask2)
   END IF
@@ -422,7 +422,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%HdroFreq)>0) OutData%HdroFreq = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%HdroFreq))-1 ), mask1, 0.0_ReKi )
+      IF (SIZE(OutData%HdroFreq)>0) OutData%HdroFreq = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%HdroFreq))-1 ), mask1, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%HdroFreq)
     DEALLOCATE(mask1)
   END IF
@@ -448,7 +448,7 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-      IF (SIZE(OutData%HdroDmpng)>0) OutData%HdroDmpng = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%HdroDmpng))-1 ), mask2, 0.0_ReKi )
+      IF (SIZE(OutData%HdroDmpng)>0) OutData%HdroDmpng = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%HdroDmpng))-1 ), mask2, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%HdroDmpng)
     DEALLOCATE(mask2)
   END IF
@@ -1412,7 +1412,7 @@ ENDIF
        RETURN
     END IF
     mask3 = .TRUE. 
-      IF (SIZE(OutData%RdtnKrnl)>0) OutData%RdtnKrnl = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%RdtnKrnl))-1 ), mask3, 0.0_ReKi )
+      IF (SIZE(OutData%RdtnKrnl)>0) OutData%RdtnKrnl = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%RdtnKrnl))-1 ), mask3, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%RdtnKrnl)
     DEALLOCATE(mask3)
   END IF

@@ -504,6 +504,10 @@ SUBROUTINE AddMeanVelocity(p, InitInp, ErrStat, ErrMsg)
                U = 0.0_ReKi
             ENDIF
 
+      CASE ( WindProfileType_Constant )
+         
+           U = p%URef            
+            
       CASE DEFAULT
          
             U = 0.0_ReKi

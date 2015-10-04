@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-09-01 11:51:53 -0600 (Tue, 01 Sep 2015) $
-! (File) Revision #: $Rev: 160 $
+! File last committed: $Date: 2015-10-03 21:17:42 -0600 (Sat, 03 Oct 2015) $
+! (File) Revision #: $Rev: 166 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/AeroDyn/AeroDyn.f90 $
 !**********************************************************************************************************************************
 module AeroDyn
@@ -28,7 +28,6 @@ module AeroDyn
    use AeroDyn_IO
    use BEMT
    use AirfoilInfo
-   use BladeElement, only : SkewMod_Uncoupled, SkewMod_PittPeters, SkewMod_Coupled
    use NWTC_LAPACK
    
    
@@ -212,6 +211,7 @@ subroutine AD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    
    
    p%NumBlades = InitInp%NumBlades ! need this before reading the AD input file so that we know how many blade files to read
+   !bjj: note that we haven't validated p%NumBlades before using it below!
    p%RootName  = TRIM(InitInp%RootName)//'.AD'
    
       ! Read the primary AeroDyn input file
@@ -306,6 +306,15 @@ subroutine AD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    call AD_SetInitOut(p, InitOut, errStat2, errMsg2)
       call SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName ) 
    
+      
+      !............................................................................................
+      ! Print the summary file if requested:
+      !............................................................................................
+   if (InputFileData%SumPrint) then
+      call AD_PrintSum( InputFileData, p, u, y, OtherState, ErrStat2, ErrMsg2 )
+         call SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+   end if
+      
             
    call Cleanup() 
       
@@ -496,9 +505,9 @@ subroutine Init_u( u, p, InputFileData, InitInp, errStat, errMsg )
       ! Local variables
    real(reKi)                                   :: position(3)       ! node reference position
    real(reKi)                                   :: positionL(3)      ! node local position
-   real(reKi)                                   :: theta(3)          ! Euler angles
-   real(reKi)                                   :: orientation(3,3)  ! node reference orientation
-   real(reKi)                                   :: orientationL(3,3) ! node local orientation
+   real(R8Ki)                                   :: theta(3)          ! Euler angles
+   real(R8Ki)                                   :: orientation(3,3)  ! node reference orientation
+   real(R8Ki)                                   :: orientationL(3,3) ! node local orientation
    
    integer(intKi)                               :: j                 ! counter for nodes
    integer(intKi)                               :: k                 ! counter for blades
@@ -693,7 +702,7 @@ subroutine Init_u( u, p, InputFileData, InitInp, errStat, errMsg )
 
             
                ! reference orientation of the jth node in the kth blade, relative to the root in the local blade coordinate system:
-            theta(1)     =  0.0_ReKi
+            theta(1)     =  0.0_R8Ki
             theta(2)     =  InputFileData%BladeProps(k)%BlCrvAng(j)
             theta(3)     = -InputFileData%BladeProps(k)%BlTwist( j)            
             orientationL = EulerConstruct( theta )
@@ -899,7 +908,6 @@ subroutine AD_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, errStat, e
    call AD_Input_ExtrapInterp(u,utimes,uInterp,t, errStat2, errMsg2)
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
 
-debug_print_unit = 51      
    call SetInputs(p, uInterp, OtherState, errStat2, errMsg2)      
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
          
@@ -953,7 +961,6 @@ subroutine AD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    ErrMsg  = ""
 
    
-debug_print_unit = 52
    call SetInputs(p, u, OtherState, errStat2, errMsg2)      
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
             
@@ -1027,8 +1034,6 @@ subroutine AD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_resid
    ErrStat = ErrID_None
    ErrMsg  = ""
    
-debug_print_unit = 53
-   
    call SetInputs(p, u, OtherState, errStat2, errMsg2)      
       call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
    
@@ -1099,9 +1104,9 @@ subroutine SetInputsForBEMT(p, u, OtherState, errStat, errMsg)
    real(ReKi)                              :: y_hat_disk(3)
    real(ReKi)                              :: z_hat_disk(3)
    real(ReKi)                              :: tmp(3)
-   real(ReKi)                              :: theta(3)
-   real(ReKi)                              :: orientation(3,3)
-   real(ReKi)                              :: orientation_nopitch(3,3)
+   real(R8Ki)                              :: theta(3)
+   real(R8Ki)                              :: orientation(3,3)
+   real(R8Ki)                              :: orientation_nopitch(3,3)
    real(ReKi)                              :: tmp_sz, tmp_sz_y
    
    integer(intKi)                          :: j                      ! loop counter for nodes
@@ -1147,7 +1152,6 @@ subroutine SetInputsForBEMT(p, u, OtherState, errStat, errMsg)
    if ( EqualRealNos( tmp_sz, 0.0_ReKi ) ) then
       OtherState%BEMT_u%chi0 = 0.0_ReKi
    else
-
          ! make sure we don't have numerical issues that make the ratio outside +/-1
       tmp_sz_y = min(  1.0_ReKi, OtherState%V_dot_x / tmp_sz )
       tmp_sz_y = max( -1.0_ReKi, tmp_sz_y )
@@ -1178,7 +1182,7 @@ subroutine SetInputsForBEMT(p, u, OtherState, errStat, errMsg)
          ! construct system equivalent to u%BladeRootMotion(k)%Orientation, but without the blade-pitch angle:
       
       !orientation = matmul( u%BladeRootMotion(k)%Orientation(:,:,1), transpose(u%HubMotion%Orientation(:,:,1)) )
-      call LAPACK_gemm( 'n', 't', 1.0_ReKi, u%BladeRootMotion(k)%Orientation(:,:,1), u%HubMotion%Orientation(:,:,1), 0.0_ReKi, orientation, errStat2, errMsg2)
+      call LAPACK_gemm( 'n', 't', 1.0_R8Ki, u%BladeRootMotion(k)%Orientation(:,:,1), u%HubMotion%Orientation(:,:,1), 0.0_R8Ki, orientation, errStat2, errMsg2)
          call SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
       theta = EulerExtract( orientation ) !hub_theta_root(k)
 #ifndef DBG_OUTS
@@ -1194,7 +1198,7 @@ subroutine SetInputsForBEMT(p, u, OtherState, errStat, errMsg)
             ! deflection), blade-pitch and twist (aerodynamic + elastic) angles:
          
          ! orientation = matmul( u%BladeMotion(k)%Orientation(:,:,j), transpose(orientation_nopitch) )
-         call LAPACK_gemm( 'n', 't', 1.0_ReKi, u%BladeMotion(k)%Orientation(:,:,j), orientation_nopitch, 0.0_ReKi, orientation, errStat2, errMsg2)
+         call LAPACK_gemm( 'n', 't', 1.0_R8Ki, u%BladeMotion(k)%Orientation(:,:,j), orientation_nopitch, 0.0_R8Ki, orientation, errStat2, errMsg2)
             call SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
          theta = EulerExtract( orientation ) !root(k)WithoutPitch_theta(j)_blade(k)
          
@@ -1310,6 +1314,7 @@ SUBROUTINE ValidateInputData( InputFileData, NumBl, ErrStat, ErrMsg )
    ErrStat = ErrID_None
    ErrMsg  = ""
          
+   if (NumBl > MaxBl .or. NumBl < 1) call SetErrStat( ErrID_Fatal, 'Number of blades must be between 1 and '//trim(num2lstr(MaxBl))//'.', ErrSTat, ErrMsg, RoutineName )
    if (InputFileData%DTAero <= 0.0)  call SetErrStat ( ErrID_Fatal, 'DTAero must be greater than zero.', ErrStat, ErrMsg, RoutineName )
    if (InputFileData%WakeMod /= WakeMod_None .and. InputFileData%WakeMod /= WakeMod_BEMT) call SetErrStat ( ErrID_Fatal, &
       'WakeMod must '//trim(num2lstr(WakeMod_None))//' (none) or '//trim(num2lstr(WakeMod_BEMT))//' (BEMT).', ErrStat, ErrMsg, RoutineName ) 
@@ -1624,6 +1629,8 @@ SUBROUTINE Init_BEMTmodule( InputFileData, u_AD, u, p, x, xd, z, OtherState, y, 
    do k=1,p%numBlades
       
       InitInp%zHub(k) = TwoNorm( u_AD%BladeRootMotion(k)%Position(:,1) - u_AD%HubMotion%Position(:,1) )  
+      if (EqualRealNos(InitInp%zHub(k),0.0_ReKi) ) &
+         call SetErrStat( ErrID_Fatal, "zHub for blade "//trim(num2lstr(k))//" is zero.", ErrStat, ErrMsg, RoutineName)
       
       InitInp%zLocal(1,k) = InitInp%zHub(k) + TwoNorm( u_AD%BladeMotion(k)%Position(:,1) - u_AD%BladeRootMotion(k)%Position(:,1) )
       do j=2,p%NumBlNds
@@ -1646,6 +1653,12 @@ SUBROUTINE Init_BEMTmodule( InputFileData, u_AD, u, p, x, xd, z, OtherState, y, 
    InitInp%UAMod    = InputFileData%UAMod
    InitInp%Flookup  = InputFileData%Flookup
    InitInp%a_s      = InputFileData%SpdSound
+   
+   if (ErrStat >= AbortErrLev) then
+      call cleanup()
+      return
+   end if
+   
    
    call BEMT_Init(InitInp, u, p%BEMT,  x, xd, z, OtherState, p%AFI%AFInfo, y, Interval, InitOut, ErrStat2, ErrMsg2 )
       call SetErrStat(ErrStat2,ErrMsg2, ErrStat, ErrMsg, RoutineName)   
@@ -1808,7 +1821,7 @@ SUBROUTINE TwrInfl( p, u, OtherState, ErrStat, ErrMsg )
          call getLocalTowerProps(p, u, BladeNodePosition, theta_tower_trans, W_tower, xbar, ybar, zbar, TwrCd, ErrStat2, ErrMsg2)
             call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
             if (ErrStat >= AbortErrLev) return
-                     
+         
       
          ! calculate tower influence:
          if ( abs(zbar) < 1.0_ReKi .and. p%TwrPotent /= TwrPotent_none ) then

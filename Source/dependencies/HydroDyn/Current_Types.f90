@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.08.02, 12-Aug-2015)
+! FAST Registry (v2.08.03, 2-Oct-2015)
 !*********************************************************************************************************************************
 ! Current_Types
 !.................................................................................................................................
@@ -35,42 +35,42 @@ USE NWTC_Library
 IMPLICIT NONE
 ! =========  Current_InitInputType  =======
   TYPE, PUBLIC :: Current_InitInputType
-    REAL(ReKi)  :: CurrSSV0      !  [-]
+    REAL(SiKi)  :: CurrSSV0      !  [-]
     CHARACTER(80)  :: CurrSSDirChr      !  [-]
-    REAL(ReKi)  :: CurrSSDir      !  [-]
-    REAL(ReKi)  :: CurrNSRef      !  [-]
-    REAL(ReKi)  :: CurrNSV0      !  [-]
-    REAL(ReKi)  :: CurrNSDir      !  [-]
-    REAL(ReKi)  :: CurrDIV      !  [-]
-    REAL(ReKi)  :: CurrDIDir      !  [-]
+    REAL(SiKi)  :: CurrSSDir      !  [-]
+    REAL(SiKi)  :: CurrNSRef      !  [-]
+    REAL(SiKi)  :: CurrNSV0      !  [-]
+    REAL(SiKi)  :: CurrNSDir      !  [-]
+    REAL(SiKi)  :: CurrDIV      !  [-]
+    REAL(SiKi)  :: CurrDIDir      !  [-]
     INTEGER(IntKi)  :: CurrMod      !  [-]
-    REAL(ReKi)  :: WtrDpth      !  [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: MorisonNodezi      !  [-]
+    REAL(SiKi)  :: WtrDpth      !  [-]
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: MorisonNodezi      !  [-]
     INTEGER(IntKi)  :: NMorisonNodes      !  [-]
     CHARACTER(1024)  :: DirRoot      !  [-]
   END TYPE Current_InitInputType
 ! =======================
 ! =========  Current_InitOutputType  =======
   TYPE, PUBLIC :: Current_InitOutputType
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CurrVxi      !  [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CurrVyi      !  [-]
-    REAL(ReKi)  :: PCurrVxiPz0      !  [-]
-    REAL(ReKi)  :: PCurrVyiPz0      !  [-]
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: CurrVxi      !  [-]
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: CurrVyi      !  [-]
+    REAL(SiKi)  :: PCurrVxiPz0      !  [-]
+    REAL(SiKi)  :: PCurrVyiPz0      !  [-]
   END TYPE Current_InitOutputType
 ! =======================
 ! =========  Current_ContinuousStateType  =======
   TYPE, PUBLIC :: Current_ContinuousStateType
-    REAL(ReKi)  :: DummyContState      ! Remove this variable if you have continuous states [-]
+    REAL(SiKi)  :: DummyContState      ! Remove this variable if you have continuous states [-]
   END TYPE Current_ContinuousStateType
 ! =======================
 ! =========  Current_DiscreteStateType  =======
   TYPE, PUBLIC :: Current_DiscreteStateType
-    REAL(ReKi)  :: DummyDiscState      ! Remove this variable if you have discrete states [-]
+    REAL(SiKi)  :: DummyDiscState      ! Remove this variable if you have discrete states [-]
   END TYPE Current_DiscreteStateType
 ! =======================
 ! =========  Current_ConstraintStateType  =======
   TYPE, PUBLIC :: Current_ConstraintStateType
-    REAL(ReKi)  :: DummyConstrState      ! Remove this variable if you have constraint states [-]
+    REAL(SiKi)  :: DummyConstrState      ! Remove this variable if you have constraint states [-]
   END TYPE Current_ConstraintStateType
 ! =======================
 ! =========  Current_OtherStateType  =======
@@ -85,12 +85,12 @@ IMPLICIT NONE
 ! =======================
 ! =========  Current_InputType  =======
   TYPE, PUBLIC :: Current_InputType
-    REAL(ReKi)  :: DummyInput      ! Remove this variable if you have input data [-]
+    REAL(SiKi)  :: DummyInput      ! Remove this variable if you have input data [-]
   END TYPE Current_InputType
 ! =======================
 ! =========  Current_OutputType  =======
   TYPE, PUBLIC :: Current_OutputType
-    REAL(ReKi)  :: DummyOutput      ! Remove this variable if you have output data [-]
+    REAL(SiKi)  :: DummyOutput      ! Remove this variable if you have output data [-]
   END TYPE Current_OutputType
 ! =======================
 CONTAINS
@@ -304,27 +304,27 @@ ENDIF
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-      OutData%CurrSSV0 = ReKiBuf( Re_Xferred )
+      OutData%CurrSSV0 = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
       DO I = 1, LEN(OutData%CurrSSDirChr)
         OutData%CurrSSDirChr(I:I) = CHAR(IntKiBuf(Int_Xferred))
         Int_Xferred = Int_Xferred   + 1
       END DO ! I
-      OutData%CurrSSDir = ReKiBuf( Re_Xferred )
+      OutData%CurrSSDir = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
-      OutData%CurrNSRef = ReKiBuf( Re_Xferred )
+      OutData%CurrNSRef = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
-      OutData%CurrNSV0 = ReKiBuf( Re_Xferred )
+      OutData%CurrNSV0 = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
-      OutData%CurrNSDir = ReKiBuf( Re_Xferred )
+      OutData%CurrNSDir = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
-      OutData%CurrDIV = ReKiBuf( Re_Xferred )
+      OutData%CurrDIV = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
-      OutData%CurrDIDir = ReKiBuf( Re_Xferred )
+      OutData%CurrDIDir = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
       OutData%CurrMod = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
-      OutData%WtrDpth = ReKiBuf( Re_Xferred )
+      OutData%WtrDpth = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! MorisonNodezi not allocated
     Int_Xferred = Int_Xferred + 1
@@ -345,7 +345,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%MorisonNodezi)>0) OutData%MorisonNodezi = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%MorisonNodezi))-1 ), mask1, 0.0_ReKi )
+      IF (SIZE(OutData%MorisonNodezi)>0) OutData%MorisonNodezi = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%MorisonNodezi))-1 ), mask1, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%MorisonNodezi)
     DEALLOCATE(mask1)
   END IF
@@ -575,7 +575,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%CurrVxi)>0) OutData%CurrVxi = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CurrVxi))-1 ), mask1, 0.0_ReKi )
+      IF (SIZE(OutData%CurrVxi)>0) OutData%CurrVxi = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CurrVxi))-1 ), mask1, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%CurrVxi)
     DEALLOCATE(mask1)
   END IF
@@ -598,13 +598,13 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%CurrVyi)>0) OutData%CurrVyi = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CurrVyi))-1 ), mask1, 0.0_ReKi )
+      IF (SIZE(OutData%CurrVyi)>0) OutData%CurrVyi = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CurrVyi))-1 ), mask1, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%CurrVyi)
     DEALLOCATE(mask1)
   END IF
-      OutData%PCurrVxiPz0 = ReKiBuf( Re_Xferred )
+      OutData%PCurrVxiPz0 = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
-      OutData%PCurrVyiPz0 = ReKiBuf( Re_Xferred )
+      OutData%PCurrVyiPz0 = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE Current_UnPackInitOutput
 
@@ -735,7 +735,7 @@ ENDIF
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-      OutData%DummyContState = ReKiBuf( Re_Xferred )
+      OutData%DummyContState = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE Current_UnPackContState
 
@@ -866,7 +866,7 @@ ENDIF
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-      OutData%DummyDiscState = ReKiBuf( Re_Xferred )
+      OutData%DummyDiscState = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE Current_UnPackDiscState
 
@@ -997,7 +997,7 @@ ENDIF
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-      OutData%DummyConstrState = ReKiBuf( Re_Xferred )
+      OutData%DummyConstrState = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE Current_UnPackConstrState
 
@@ -1390,7 +1390,7 @@ ENDIF
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-      OutData%DummyInput = ReKiBuf( Re_Xferred )
+      OutData%DummyInput = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE Current_UnPackInput
 
@@ -1521,7 +1521,7 @@ ENDIF
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-      OutData%DummyOutput = ReKiBuf( Re_Xferred )
+      OutData%DummyOutput = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE Current_UnPackOutput
 

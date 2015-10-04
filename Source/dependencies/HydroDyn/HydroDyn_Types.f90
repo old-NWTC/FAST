@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.08.02, 12-Aug-2015)
+! FAST Registry (v2.08.03, 2-Oct-2015)
 !*********************************************************************************************************************************
 ! HydroDyn_Types
 !.................................................................................................................................
@@ -51,7 +51,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: Gravity      ! Supplied by Driver:  Gravitational acceleration [(m/s^2)]
     REAL(DbKi)  :: TMax      ! Supplied by Driver:  The total simulation time [(sec)]
     LOGICAL  :: HasIce      ! Supplied by Driver:  Whether this simulation has ice loading (flag) [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevXY      ! Supplied by Driver:  X-Y locations for WaveElevation output (for visualization).  First dimension is the X (1) and Y (2) coordinate.  Second dimension is the point number. [m,-]
+    REAL(SiKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevXY      ! Supplied by Driver:  X-Y locations for WaveElevation output (for visualization).  First dimension is the X (1) and Y (2) coordinate.  Second dimension is the point number. [m,-]
     REAL(ReKi)  :: PtfmLocationX      ! Supplied by Driver:  X coordinate of platform location in the wave field [m]
     REAL(ReKi)  :: PtfmLocationY      ! Supplied by Driver:  Y coordinate of platform location in the wave field [m]
     CHARACTER(80)  :: PtfmSgFChr      ! Platform horizontal surge translation force (flag) or DEFAULT [-]
@@ -73,11 +73,12 @@ IMPLICIT NONE
     TYPE(Waves_InitInputType)  :: Waves      ! Initialization data for Waves module [-]
     TYPE(Waves2_InitInputType)  :: Waves2      ! Initialization data for Waves module [-]
     TYPE(Current_InitInputType)  :: Current      ! Initialization data for Current module [-]
+    CHARACTER(1024)  :: PotFile      ! The name of the root potential flow file (without extension for WAMIT, complete name for FIT) [-]
     TYPE(WAMIT_InitInputType)  :: WAMIT      ! Initialization data for WAMIT module [-]
     TYPE(WAMIT2_InitInputType)  :: WAMIT2      ! Initialization data for WAMIT2 module [-]
     TYPE(Morison_InitInputType)  :: Morison      ! Initialization data for Morison module [-]
     LOGICAL  :: Echo      ! Echo the input files to a file with the same name as the input but with a .echo extension [T/F] [-]
-    LOGICAL  :: HasWAMIT      ! .TRUE. if using WAMIT model, .FALSE. otherwise [-]
+    INTEGER(IntKi)  :: PotMod      ! 1 if using WAMIT model, 0 if no potential flow model, or 2 if FIT model [-]
     INTEGER(IntKi)  :: NUserOutputs      ! Number of Hydrodyn-level requested output channels [-]
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: UserOutputs      ! This should really be dimensioned with MaxOutPts [-]
     INTEGER(IntKi)  :: OutSwtch      ! Output requested channels to: [1=Hydrodyn.out 2=GlueCode.out  3=both files] [-]
@@ -98,7 +99,7 @@ IMPLICIT NONE
     TYPE(Morison_InitOutputType)  :: Morison      ! Initialization output from the Morison module [-]
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! The is the list of all HD-related output channel header strings (includes all sub-module channels) [-]
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! The is the list of all HD-related output channel unit strings (includes all sub-module channels) [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevSeries      ! Wave elevation time-series at each of the points given by WaveElevXY.  First dimension is the timestep. Second dimension is XY point number corresponding to second dimension of WaveElevXY. [(m)]
+    REAL(SiKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevSeries      ! Wave elevation time-series at each of the points given by WaveElevXY.  First dimension is the timestep. Second dimension is XY point number corresponding to second dimension of WaveElevXY. [(m)]
     TYPE(ProgDesc)  :: Ver      ! Version of HydroDyn [-]
     REAL(ReKi)  :: WtrDens      ! Water density [(kg/m^3)]
     REAL(ReKi)  :: WtrDpth      ! Water depth [(m)]
@@ -128,7 +129,7 @@ IMPLICIT NONE
 ! =======================
 ! =========  HydroDyn_ConstraintStateType  =======
   TYPE, PUBLIC :: HydroDyn_ConstraintStateType
-    REAL(ReKi)  :: DummyConstrState      ! Remove this variable if you have constraint states [-]
+    REAL(SiKi)  :: DummyConstrState      ! Remove this variable if you have constraint states [-]
   END TYPE HydroDyn_ConstraintStateType
 ! =======================
 ! =========  HydroDyn_OtherStateType  =======
@@ -156,11 +157,12 @@ IMPLICIT NONE
     TYPE(WAMIT2_ParameterType)  :: WAMIT2      ! Parameter data for the WAMIT2 module [-]
     TYPE(Waves2_ParameterType)  :: Waves2      ! Parameter data for the Waves2 module [-]
     TYPE(Morison_ParameterType)  :: Morison      ! Parameter data for the Morison module [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      ! Array of time samples, (sec) [-]
+    INTEGER(IntKi)  :: PotMod      ! 1 if using WAMIT model, 0 if no potential flow model, or 2 if FIT model [-]
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      ! Array of time samples, (sec) [-]
     INTEGER(IntKi)  :: NStepWave      ! Number of data points in the wave kinematics arrays [-]
     INTEGER(IntKi)  :: NWaveElev      ! Number of wave elevation outputs [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev      ! Total wave elevation [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev1      ! First order wave elevation [-]
+    REAL(SiKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev      ! Total wave elevation [-]
+    REAL(SiKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev1      ! First order wave elevation [-]
     REAL(ReKi) , DIMENSION(1:6)  :: AddF0      ! Additional pre-load forces and moments (N,N,N,N-m,N-m,N-m) [-]
     REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddCLin      ! Additional stiffness matrix [-]
     REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddBLin      ! Additional linear damping matrix [-]
@@ -262,6 +264,7 @@ ENDIF
       CALL Current_CopyInitInput( SrcInitInputData%Current, DstInitInputData%Current, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
+    DstInitInputData%PotFile = SrcInitInputData%PotFile
       CALL WAMIT_CopyInitInput( SrcInitInputData%WAMIT, DstInitInputData%WAMIT, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
@@ -272,7 +275,7 @@ ENDIF
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
     DstInitInputData%Echo = SrcInitInputData%Echo
-    DstInitInputData%HasWAMIT = SrcInitInputData%HasWAMIT
+    DstInitInputData%PotMod = SrcInitInputData%PotMod
     DstInitInputData%NUserOutputs = SrcInitInputData%NUserOutputs
 IF (ALLOCATED(SrcInitInputData%UserOutputs)) THEN
   i1_l = LBOUND(SrcInitInputData%UserOutputs,1)
@@ -436,6 +439,7 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+      Int_BufSz  = Int_BufSz  + 1*LEN(InData%PotFile)  ! PotFile
       Int_BufSz   = Int_BufSz + 3  ! WAMIT: size of buffers for each call to pack subtype
       CALL WAMIT_PackInitInput( Re_Buf, Db_Buf, Int_Buf, InData%WAMIT, ErrStat2, ErrMsg2, .TRUE. ) ! WAMIT 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
@@ -488,7 +492,7 @@ ENDIF
          DEALLOCATE(Int_Buf)
       END IF
       Int_BufSz  = Int_BufSz  + 1  ! Echo
-      Int_BufSz  = Int_BufSz  + 1  ! HasWAMIT
+      Int_BufSz  = Int_BufSz  + 1  ! PotMod
       Int_BufSz  = Int_BufSz  + 1  ! NUserOutputs
   Int_BufSz   = Int_BufSz   + 1     ! UserOutputs allocated yes/no
   IF ( ALLOCATED(InData%UserOutputs) ) THEN
@@ -696,6 +700,10 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
+        DO I = 1, LEN(InData%PotFile)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%PotFile(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
       CALL WAMIT_PackInitInput( Re_Buf, Db_Buf, Int_Buf, InData%WAMIT, ErrStat2, ErrMsg2, OnlySize ) ! WAMIT 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
@@ -782,7 +790,7 @@ ENDIF
       ENDIF
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%Echo , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
-      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%HasWAMIT , IntKiBuf(1), 1)
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%PotMod
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NUserOutputs
       Int_Xferred   = Int_Xferred   + 1
@@ -903,7 +911,7 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-      IF (SIZE(OutData%WaveElevXY)>0) OutData%WaveElevXY = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevXY))-1 ), mask2, 0.0_ReKi )
+      IF (SIZE(OutData%WaveElevXY)>0) OutData%WaveElevXY = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevXY))-1 ), mask2, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevXY)
     DEALLOCATE(mask2)
   END IF
@@ -1117,6 +1125,10 @@ ENDIF
       IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+      DO I = 1, LEN(OutData%PotFile)
+        OutData%PotFile(I:I) = CHAR(IntKiBuf(Int_Xferred))
+        Int_Xferred = Int_Xferred   + 1
+      END DO ! I
       Buf_size=IntKiBuf( Int_Xferred )
       Int_Xferred = Int_Xferred + 1
       IF(Buf_size > 0) THEN
@@ -1239,7 +1251,7 @@ ENDIF
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
       OutData%Echo = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
-      OutData%HasWAMIT = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
+      OutData%PotMod = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%NUserOutputs = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
@@ -2038,7 +2050,7 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-      IF (SIZE(OutData%WaveElevSeries)>0) OutData%WaveElevSeries = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevSeries))-1 ), mask2, 0.0_ReKi )
+      IF (SIZE(OutData%WaveElevSeries)>0) OutData%WaveElevSeries = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevSeries))-1 ), mask2, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevSeries)
     DEALLOCATE(mask2)
   END IF
@@ -3396,7 +3408,7 @@ ENDIF
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-      OutData%DummyConstrState = ReKiBuf( Re_Xferred )
+      OutData%DummyConstrState = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE HydroDyn_UnPackConstrState
 
@@ -4420,6 +4432,7 @@ ENDIF
       CALL Morison_CopyParam( SrcParamData%Morison, DstParamData%Morison, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
+    DstParamData%PotMod = SrcParamData%PotMod
 IF (ALLOCATED(SrcParamData%WaveTime)) THEN
   i1_l = LBOUND(SrcParamData%WaveTime,1)
   i1_u = UBOUND(SrcParamData%WaveTime,1)
@@ -4627,6 +4640,7 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+      Int_BufSz  = Int_BufSz  + 1  ! PotMod
   Int_BufSz   = Int_BufSz   + 1     ! WaveTime allocated yes/no
   IF ( ALLOCATED(InData%WaveTime) ) THEN
     Int_BufSz   = Int_BufSz   + 2*1  ! WaveTime upper/lower bounds for each dimension
@@ -4819,6 +4833,8 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%PotMod
+      Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%WaveTime) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
@@ -5137,6 +5153,8 @@ ENDIF
       IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+      OutData%PotMod = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveTime not allocated
     Int_Xferred = Int_Xferred + 1
   ELSE
@@ -5156,7 +5174,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      IF (SIZE(OutData%WaveTime)>0) OutData%WaveTime = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ), mask1, 0.0_ReKi )
+      IF (SIZE(OutData%WaveTime)>0) OutData%WaveTime = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ), mask1, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveTime)
     DEALLOCATE(mask1)
   END IF
@@ -5186,7 +5204,7 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-      IF (SIZE(OutData%WaveElev)>0) OutData%WaveElev = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev))-1 ), mask2, 0.0_ReKi )
+      IF (SIZE(OutData%WaveElev)>0) OutData%WaveElev = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev))-1 ), mask2, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev)
     DEALLOCATE(mask2)
   END IF
@@ -5212,7 +5230,7 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-      IF (SIZE(OutData%WaveElev1)>0) OutData%WaveElev1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev1))-1 ), mask2, 0.0_ReKi )
+      IF (SIZE(OutData%WaveElev1)>0) OutData%WaveElev1 = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev1))-1 ), mask2, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev1)
     DEALLOCATE(mask2)
   END IF
