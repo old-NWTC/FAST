@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-10-03 21:21:05 -0600 (Sat, 03 Oct 2015) $
-! (File) Revision #: $Rev: 341 $
+! File last committed: $Date: 2015-10-04 17:43:34 -0600 (Sun, 04 Oct 2015) $
+! (File) Revision #: $Rev: 342 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/ModMesh.f90 $
 !**********************************************************************************************************************************
 MODULE ModMesh
@@ -932,7 +932,7 @@ CONTAINS
         IF ( Mesh%FieldMask(MASKID_FORCE) ) Re_BufSz = Re_BufSz + Mesh%Nnodes * 3
         IF ( Mesh%FieldMask(MASKID_MOMENT) ) Re_BufSz = Re_BufSz + Mesh%Nnodes * 3
         !IF ( Mesh%FieldMask(MASKID_ORIENTATION) ) Re_BufSz = Re_BufSz + Mesh%Nnodes * 9
-        IF ( Mesh%FieldMask(MASKID_TRANSLATIONDISP) ) Re_BufSz = Re_BufSz + Mesh%Nnodes * 3
+        !IF ( Mesh%FieldMask(MASKID_TRANSLATIONDISP) ) Re_BufSz = Re_BufSz + Mesh%Nnodes * 3
         IF ( Mesh%FieldMask(MASKID_ROTATIONVEL) ) Re_BufSz = Re_BufSz + Mesh%Nnodes * 3
         IF ( Mesh%FieldMask(MASKID_TRANSLATIONVEL) ) Re_BufSz = Re_BufSz + Mesh%Nnodes * 3
         IF ( Mesh%FieldMask(MASKID_ROTATIONACC) ) Re_BufSz = Re_BufSz + Mesh%Nnodes * 3
@@ -947,6 +947,7 @@ CONTAINS
      IF (Mesh%Initialized) THEN
         Db_BufSz = Db_BufSz + Mesh%Nnodes * 9 ! RefOrientation
         IF ( Mesh%FieldMask(MASKID_ORIENTATION) ) Db_BufSz = Db_BufSz + Mesh%Nnodes * 9
+        IF ( Mesh%FieldMask(MASKID_TRANSLATIONDISP) ) Db_BufSz = Db_BufSz + Mesh%Nnodes * 3
      END IF 
      
      !.........................................
@@ -1048,7 +1049,7 @@ CONTAINS
          ENDIF
          IF ( Mesh%FieldMask(MASKID_TRANSLATIONDISP) ) THEN ! TranslationDisp
             DO i = 1, Mesh%Nnodes
-               ReKiBuf(Re_Xferred:Re_Xferred+2) = Mesh%TranslationDisp(:,i); Re_Xferred = Re_Xferred + 3
+               DbKiBuf(Db_Xferred:Db_Xferred+2) = Mesh%TranslationDisp(:,i); Db_Xferred = Db_Xferred + 3
             ENDDO
          ENDIF
          IF ( Mesh%FieldMask(MASKID_ROTATIONVEL) ) THEN ! RotationVel

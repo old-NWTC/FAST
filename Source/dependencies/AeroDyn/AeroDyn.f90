@@ -577,7 +577,7 @@ subroutine Init_u( u, p, InputFileData, InitInp, errStat, errMsg )
 
       
       u%TowerMotion%Orientation     = u%TowerMotion%RefOrientation
-      u%TowerMotion%TranslationDisp = 0.0_ReKi
+      u%TowerMotion%TranslationDisp = 0.0_R8Ki
       u%TowerMotion%TranslationVel  = 0.0_ReKi
       u%TowerMotion%RotationVel     = 0.0_ReKi
       
@@ -614,7 +614,7 @@ subroutine Init_u( u, p, InputFileData, InitInp, errStat, errMsg )
 
          
       u%HubMotion%Orientation     = u%HubMotion%RefOrientation
-      u%HubMotion%TranslationDisp = 0.0_ReKi
+      u%HubMotion%TranslationDisp = 0.0_R8Ki
       u%HubMotion%TranslationVel  = 0.0_ReKi
       u%HubMotion%RotationVel     = 0.0_ReKi   
       
@@ -657,7 +657,7 @@ subroutine Init_u( u, p, InputFileData, InitInp, errStat, errMsg )
 
       
          u%BladeRootMotion(k)%Orientation     = u%BladeRootMotion(k)%RefOrientation
-         u%BladeRootMotion(k)%TranslationDisp = 0.0_ReKi
+         u%BladeRootMotion(k)%TranslationDisp = 0.0_R8Ki
          u%BladeRootMotion(k)%TranslationVel  = 0.0_ReKi
          u%BladeRootMotion(k)%RotationVel     = 0.0_ReKi
    
@@ -729,7 +729,7 @@ subroutine Init_u( u, p, InputFileData, InitInp, errStat, errMsg )
 
       
          u%BladeMotion(k)%Orientation     = u%BladeMotion(k)%RefOrientation
-         u%BladeMotion(k)%TranslationDisp = 0.0_ReKi
+         u%BladeMotion(k)%TranslationDisp = 0.8_ReKi
          u%BladeMotion(k)%TranslationVel  = 0.0_ReKi
          u%BladeMotion(k)%RotationVel     = 0.0_ReKi
    
@@ -1157,8 +1157,6 @@ subroutine SetInputsForBEMT(p, u, OtherState, errStat, errMsg)
       tmp_sz_y = max( -1.0_ReKi, tmp_sz_y )
       
       OtherState%BEMT_u%chi0 = acos( tmp_sz_y )
-
-!write(debug_print_unit,'(15(1x,ES15.5E2))')  x_hat_disk, OtherState%V_diskAvg, tmp_sz, OtherState%V_dot_x, tmp_sz_y, OtherState%BEMT_u%chi0
       
    end if
    
@@ -1856,9 +1854,7 @@ SUBROUTINE TwrInfl( p, u, OtherState, ErrStat, ErrMsg )
          else
             u_TwrShadow = 0.0_ReKi
          end if
-            
-!write(debug_print_unit,'(2(1x,i2),15(1x,ES15.5E2))')  k,j, xbar, ybar, zbar, TwrCd, W_tower, u_TwrPotent
-         
+                     
          v(1) = (u_TwrPotent + u_TwrShadow)*W_tower
          v(2) = v_TwrPotent*W_tower
          v(3) = 0.0_ReKi

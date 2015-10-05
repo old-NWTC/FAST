@@ -4,9 +4,9 @@
 # It also contains copy, destroy, pack, and unpack routines associated with each defined data types.
 # See the NWTC Programmer's Handbook for further information on the format/contents of this file.
 ###################################################################################################################################
-# File last committed: $Date$
-# (File) Revision #: $Rev$
-# URL: $HeadURL$
+# File last committed: $Date: 2015-10-03 21:26:37 -0600 (Sat, 03 Oct 2015) $
+# (File) Revision #: $Rev: 200 $
+# URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/Registry-AD14.txt $
 ###################################################################################################################################
 #
 # Entries are of the form

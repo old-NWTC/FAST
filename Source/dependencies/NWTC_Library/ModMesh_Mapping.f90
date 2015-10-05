@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-10-03 21:21:05 -0600 (Sat, 03 Oct 2015) $
-! (File) Revision #: $Rev: 341 $
+! File last committed: $Date: 2015-10-04 17:43:34 -0600 (Sun, 04 Oct 2015) $
+! (File) Revision #: $Rev: 342 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/ModMesh_Mapping.f90 $
 !**********************************************************************************************************************************
 ! This code implements the spatial mapping algorithms described in 
@@ -594,8 +594,8 @@ SUBROUTINE Transfer_Motions_Line2_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg 
       ! local variables
    INTEGER(IntKi)            :: i , j                          ! counter over the nodes
    INTEGER(IntKi)            :: n, n1, n2                      ! temporary space for node numbers
-   REAL(ReKi)                :: FieldValueN1(3)                ! Temporary variable to store field values on element nodes
-   REAL(ReKi)                :: FieldValueN2(3)                ! Temporary variable to store field values on element nodes
+   REAL(R8Ki)                :: FieldValueN1(3)                ! Temporary variable to store field values on element nodes
+   REAL(R8Ki)                :: FieldValueN2(3)                ! Temporary variable to store field values on element nodes
    REAL(ReKi)                :: TmpVec(3)
    REAL(R8Ki)                :: RotationMatrix(3,3)
 

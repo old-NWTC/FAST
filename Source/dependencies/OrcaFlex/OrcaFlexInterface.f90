@@ -766,7 +766,7 @@ SUBROUTINE Orca_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    CALL SetErrStat( ErrStatTmp, ErrMsgTmp, ErrStat, ErrMsg, RoutineName )
    IF ( ErrStat >= ErrID_Fatal) RETURN
 
-   q         = reshape((/u%PtfmMesh%TranslationDisp(:,1),rotdisp(:)/),(/6/))
+   q         = reshape((/REAL(u%PtfmMesh%TranslationDisp(:,1),ReKi),rotdisp(:)/),(/6/))
    qdot      = reshape((/u%PtfmMesh%TranslationVel(:,1),u%PtfmMesh%RotationVel(:,1)/),(/6/))
    qdotdot   = reshape((/u%PtfmMesh%TranslationAcc(:,1),u%PtfmMesh%RotationAcc(:,1)/),(/6/))
 

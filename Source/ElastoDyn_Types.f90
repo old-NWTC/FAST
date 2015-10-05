@@ -359,34 +359,34 @@ IMPLICIT NONE
 ! =======================
 ! =========  ED_RtHndSide  =======
   TYPE, PUBLIC :: ED_RtHndSide
-    REAL(ReKi) , DIMENSION(1:3)  :: rO      ! Position vector from inertial frame origin to tower-top / base plate (point O) [m]
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: rQS      ! Position vector from the apex of rotation (point Q) to a point on a blade (point S) [m]
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: rS      ! Position vector from inertial frame origin to a point on a blade (point S) [m]
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: rS0S      ! Position vector from the blade root (point S(0)) to a point on a blade (point S) [m]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rT      ! Position vector from inertial frame origin to the current node (point T(HNodes(J)) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rT0O      ! Position vector from the tower base (point T(0)) to tower-top / base plate (point O) [m]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rT0T      ! Position vector from a height of TowerBsHt (base of flexible portion of tower) (point T(0)) to a point on the tower (point T) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rZ      ! Position vector from inertia frame origin to platform reference (point Z) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rZO      ! Position vector from platform reference (point Z) to tower-top / base plate (point O) [m]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rZT      ! Position vector from platform reference (point Z) to a point on a tower (point T) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rPQ      ! Position vector from teeter pin (point P) to apex of rotation (point Q) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rP      ! Position vector from inertial frame origin to teeter pin (point P) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rV      ! Position vector from inertial frame origin to specified point on rotor-furl axis (point V) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rZY      ! Position vector from platform reference (point Z) to platform mass center (point Y) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rOU      ! Position vector from tower-top / base plate (point O) to nacelle center of mass (point U). [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rOV      ! Position vector from tower-top / base plate (point O) to specified point on rotor-furl axis (point V) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rVD      ! Position vector from specified point on rotor-furl axis (point V) to center of mass of structure that furls with the rotor (not including rotor) (point D) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rOW      ! Position vector from tower-top / base plate (point O) to specified point on  tail-furl axis (point W) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rPC      ! Position vector from teeter pin (point P) to hub center of mass (point C) [m]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rPS0      ! Position vector from teeter pin (point P) to blade root (point S(0)) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rQ      ! Position vector from inertial frame origin to apex of rotation (point Q) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rQC      ! Position vector from apex of rotation (point Q) to hub center of mass (point C) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rVIMU      ! Position vector from specified point on rotor-furl axis (point V) to nacelle IMU (point IMU) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rVP      ! Position vector from specified point on rotor-furl axis (point V) to teeter pin (point P) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rWI      ! Position vector from specified point on  tail-furl axis (point W) to tail boom center of mass     (point I) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rWJ      ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of mass     (point J) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rWK      ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of pressure (point K) [m]
-    REAL(ReKi) , DIMENSION(1:3)  :: rZT0      ! Position vector from platform reference (point Z) to tower base (point T(0)) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rO      ! Position vector from inertial frame origin to tower-top / base plate (point O) [m]
+    REAL(R8Ki) , DIMENSION(:,:,:), ALLOCATABLE  :: rQS      ! Position vector from the apex of rotation (point Q) to a point on a blade (point S) [m]
+    REAL(R8Ki) , DIMENSION(:,:,:), ALLOCATABLE  :: rS      ! Position vector from inertial frame origin to a point on a blade (point S) [m]
+    REAL(R8Ki) , DIMENSION(:,:,:), ALLOCATABLE  :: rS0S      ! Position vector from the blade root (point S(0)) to a point on a blade (point S) [m]
+    REAL(R8Ki) , DIMENSION(:,:), ALLOCATABLE  :: rT      ! Position vector from inertial frame origin to the current node (point T(HNodes(J)) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rT0O      ! Position vector from the tower base (point T(0)) to tower-top / base plate (point O) [m]
+    REAL(R8Ki) , DIMENSION(:,:), ALLOCATABLE  :: rT0T      ! Position vector from a height of TowerBsHt (base of flexible portion of tower) (point T(0)) to a point on the tower (point T) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rZ      ! Position vector from inertia frame origin to platform reference (point Z) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rZO      ! Position vector from platform reference (point Z) to tower-top / base plate (point O) [m]
+    REAL(R8Ki) , DIMENSION(:,:), ALLOCATABLE  :: rZT      ! Position vector from platform reference (point Z) to a point on a tower (point T) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rPQ      ! Position vector from teeter pin (point P) to apex of rotation (point Q) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rP      ! Position vector from inertial frame origin to teeter pin (point P) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rV      ! Position vector from inertial frame origin to specified point on rotor-furl axis (point V) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rZY      ! Position vector from platform reference (point Z) to platform mass center (point Y) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rOU      ! Position vector from tower-top / base plate (point O) to nacelle center of mass (point U). [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rOV      ! Position vector from tower-top / base plate (point O) to specified point on rotor-furl axis (point V) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rVD      ! Position vector from specified point on rotor-furl axis (point V) to center of mass of structure that furls with the rotor (not including rotor) (point D) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rOW      ! Position vector from tower-top / base plate (point O) to specified point on  tail-furl axis (point W) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rPC      ! Position vector from teeter pin (point P) to hub center of mass (point C) [m]
+    REAL(R8Ki) , DIMENSION(:,:), ALLOCATABLE  :: rPS0      ! Position vector from teeter pin (point P) to blade root (point S(0)) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rQ      ! Position vector from inertial frame origin to apex of rotation (point Q) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rQC      ! Position vector from apex of rotation (point Q) to hub center of mass (point C) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rVIMU      ! Position vector from specified point on rotor-furl axis (point V) to nacelle IMU (point IMU) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rVP      ! Position vector from specified point on rotor-furl axis (point V) to teeter pin (point P) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rWI      ! Position vector from specified point on  tail-furl axis (point W) to tail boom center of mass     (point I) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rWJ      ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of mass     (point J) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rWK      ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of pressure (point K) [m]
+    REAL(R8Ki) , DIMENSION(1:3)  :: rZT0      ! Position vector from platform reference (point Z) to tower base (point T(0)) [m]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AngPosEF      ! Angular position of the current point on the tower (body F) in the inertial frame (body E for earth) [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AngPosXF      ! Angular position of the current point on the tower (body F) in the platform (body X) [-]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: AngPosHM      ! Angular position of eleMent J of blade K (body M) in the hub (body H) [-]
@@ -410,7 +410,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(1:3)  :: AngVelEB      ! Angular velocity of the base plate (body B) in the inertia frame (body E for earth) [-]
     REAL(ReKi) , DIMENSION(1:3)  :: AngVelER      ! Angular velocity of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame (body E for earth) [-]
     REAL(ReKi) , DIMENSION(1:3)  :: AngVelEX      ! Angular velocity of the platform (body X) in the inertia frame (body E for earth) [-]
-    REAL(ReKi)  :: TeetAngVel      ! Angular velocity of the teeter motion [-]
+    REAL(R8Ki)  :: TeetAngVel      ! Angular velocity of the teeter motion [-]
     REAL(ReKi) , DIMENSION(1:3)  :: AngAccEBt      ! Portion of the angular acceleration of the base plate (body B) in the inertia frame (body E for earth) associated with everything but the QD2T()s [-]
     REAL(ReKi) , DIMENSION(1:3)  :: AngAccERt      ! Portion of the angular acceleration of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame (body E for earth) associated with everything but the QD2T()s [-]
     REAL(ReKi) , DIMENSION(1:3)  :: AngAccEXt      ! Portion of the angular acceleration of the platform (body X) in the inertia frame (body E for earth) associated with everything but the QD2T()s [-]
@@ -485,7 +485,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PMomNTail      ! Partial moment at the nacelle (body N) / selected point on tail-furl axis (point W) due the tail [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PMomX0Trb      ! Partial moment at the platform (body X) / tower base (point T(0)) due to the turbine [-]
     REAL(ReKi) , DIMENSION(1:6,1:3)  :: PMXHydro      ! Partial platform hydrodynamic moment at the platform (body X) / platform reference (point Z) [-]
-    REAL(ReKi)  :: TeetAng      ! Current teeter angle = QT(DOF_Teet) for 2-blader or 0 for 3-blader (this is used in place of QT(DOF_Teet) throughout RtHS() [-]
+    REAL(R8Ki)  :: TeetAng      ! Current teeter angle = QT(DOF_Teet) for 2-blader or 0 for 3-blader (this is used in place of QT(DOF_Teet) throughout RtHS() [-]
     REAL(ReKi) , DIMENSION(1:3)  :: FrcVGnRtt      ! Portion of the force at the rotor-furl axis (point V) due to the structure that furls with the rotor, generator, and rotor associated with everything but the QD2T()'s [-]
     REAL(ReKi) , DIMENSION(1:3)  :: FrcWTailt      ! Portion of the force at the tail-furl axis (point W) due to the tail associated with everything but the QD2T()'s [-]
     REAL(ReKi) , DIMENSION(1:3)  :: FrcZAllt      ! Portion of the force at platform reference (point Z) due to everything associated with everything but the QD2T()'s [-]
@@ -544,7 +544,7 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: BldNodes      ! Number of blade nodes used in the analysis [-]
     INTEGER(IntKi)  :: TipNode      ! Index of the additional node located at the blade tip = BldNodes + 1 [-]
     INTEGER(IntKi)  :: NDOF      ! Number of total degrees of freedom (DOFs) [-]
-    REAL(ReKi)  :: TwoPiNB      ! Two pi divided by the number of blades [radians]
+    REAL(R8Ki)  :: TwoPiNB      ! Two pi divided by the number of blades [radians]
     INTEGER(IntKi)  :: NAug      ! Dimension of augmented solution matrix [-]
     INTEGER(IntKi)  :: NPH      ! Number of DOFs that contribute to the angular velocity of the hub (body H) in the inertia frame [-]
     INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PH      ! Array of DOF indices (pointers) that contribute to the angular velocity of the hub (body H) in the inertia frame [-]
@@ -9761,62 +9761,62 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rO)  ! rO
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rO)  ! rO
   Int_BufSz   = Int_BufSz   + 1     ! rQS allocated yes/no
   IF ( ALLOCATED(InData%rQS) ) THEN
     Int_BufSz   = Int_BufSz   + 2*3  ! rQS upper/lower bounds for each dimension
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rQS)  ! rQS
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rQS)  ! rQS
   END IF
   Int_BufSz   = Int_BufSz   + 1     ! rS allocated yes/no
   IF ( ALLOCATED(InData%rS) ) THEN
     Int_BufSz   = Int_BufSz   + 2*3  ! rS upper/lower bounds for each dimension
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rS)  ! rS
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rS)  ! rS
   END IF
   Int_BufSz   = Int_BufSz   + 1     ! rS0S allocated yes/no
   IF ( ALLOCATED(InData%rS0S) ) THEN
     Int_BufSz   = Int_BufSz   + 2*3  ! rS0S upper/lower bounds for each dimension
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rS0S)  ! rS0S
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rS0S)  ! rS0S
   END IF
   Int_BufSz   = Int_BufSz   + 1     ! rT allocated yes/no
   IF ( ALLOCATED(InData%rT) ) THEN
     Int_BufSz   = Int_BufSz   + 2*2  ! rT upper/lower bounds for each dimension
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rT)  ! rT
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rT)  ! rT
   END IF
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rT0O)  ! rT0O
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rT0O)  ! rT0O
   Int_BufSz   = Int_BufSz   + 1     ! rT0T allocated yes/no
   IF ( ALLOCATED(InData%rT0T) ) THEN
     Int_BufSz   = Int_BufSz   + 2*2  ! rT0T upper/lower bounds for each dimension
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rT0T)  ! rT0T
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rT0T)  ! rT0T
   END IF
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rZ)  ! rZ
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rZO)  ! rZO
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rZ)  ! rZ
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rZO)  ! rZO
   Int_BufSz   = Int_BufSz   + 1     ! rZT allocated yes/no
   IF ( ALLOCATED(InData%rZT) ) THEN
     Int_BufSz   = Int_BufSz   + 2*2  ! rZT upper/lower bounds for each dimension
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rZT)  ! rZT
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rZT)  ! rZT
   END IF
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rPQ)  ! rPQ
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rP)  ! rP
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rV)  ! rV
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rZY)  ! rZY
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rOU)  ! rOU
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rOV)  ! rOV
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rVD)  ! rVD
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rOW)  ! rOW
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rPC)  ! rPC
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rPQ)  ! rPQ
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rP)  ! rP
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rV)  ! rV
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rZY)  ! rZY
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rOU)  ! rOU
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rOV)  ! rOV
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rVD)  ! rVD
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rOW)  ! rOW
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rPC)  ! rPC
   Int_BufSz   = Int_BufSz   + 1     ! rPS0 allocated yes/no
   IF ( ALLOCATED(InData%rPS0) ) THEN
     Int_BufSz   = Int_BufSz   + 2*2  ! rPS0 upper/lower bounds for each dimension
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rPS0)  ! rPS0
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rPS0)  ! rPS0
   END IF
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rQ)  ! rQ
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rQC)  ! rQC
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rVIMU)  ! rVIMU
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rVP)  ! rVP
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rWI)  ! rWI
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rWJ)  ! rWJ
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rWK)  ! rWK
-      Re_BufSz   = Re_BufSz   + SIZE(InData%rZT0)  ! rZT0
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rQ)  ! rQ
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rQC)  ! rQC
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rVIMU)  ! rVIMU
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rVP)  ! rVP
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rWI)  ! rWI
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rWJ)  ! rWJ
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rWK)  ! rWK
+      Db_BufSz   = Db_BufSz   + SIZE(InData%rZT0)  ! rZT0
   Int_BufSz   = Int_BufSz   + 1     ! AngPosEF allocated yes/no
   IF ( ALLOCATED(InData%AngPosEF) ) THEN
     Int_BufSz   = Int_BufSz   + 2*2  ! AngPosEF upper/lower bounds for each dimension
@@ -9892,7 +9892,7 @@ ENDIF
       Re_BufSz   = Re_BufSz   + SIZE(InData%AngVelEB)  ! AngVelEB
       Re_BufSz   = Re_BufSz   + SIZE(InData%AngVelER)  ! AngVelER
       Re_BufSz   = Re_BufSz   + SIZE(InData%AngVelEX)  ! AngVelEX
-      Re_BufSz   = Re_BufSz   + 1  ! TeetAngVel
+      Db_BufSz   = Db_BufSz   + 1  ! TeetAngVel
       Re_BufSz   = Re_BufSz   + SIZE(InData%AngAccEBt)  ! AngAccEBt
       Re_BufSz   = Re_BufSz   + SIZE(InData%AngAccERt)  ! AngAccERt
       Re_BufSz   = Re_BufSz   + SIZE(InData%AngAccEXt)  ! AngAccEXt
@@ -10135,7 +10135,7 @@ ENDIF
       Re_BufSz   = Re_BufSz   + SIZE(InData%PMomX0Trb)  ! PMomX0Trb
   END IF
       Re_BufSz   = Re_BufSz   + SIZE(InData%PMXHydro)  ! PMXHydro
-      Re_BufSz   = Re_BufSz   + 1  ! TeetAng
+      Db_BufSz   = Db_BufSz   + 1  ! TeetAng
       Re_BufSz   = Re_BufSz   + SIZE(InData%FrcVGnRtt)  ! FrcVGnRtt
       Re_BufSz   = Re_BufSz   + SIZE(InData%FrcWTailt)  ! FrcWTailt
       Re_BufSz   = Re_BufSz   + SIZE(InData%FrcZAllt)  ! FrcZAllt
@@ -10196,8 +10196,8 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rO))-1 ) = PACK(InData%rO,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rO)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rO))-1 ) = PACK(InData%rO,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rO)
   IF ( .NOT. ALLOCATED(InData%rQS) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
@@ -10214,8 +10214,8 @@ ENDIF
     IntKiBuf( Int_Xferred + 1) = UBOUND(InData%rQS,3)
     Int_Xferred = Int_Xferred + 2
 
-      IF (SIZE(InData%rQS)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rQS))-1 ) = PACK(InData%rQS,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rQS)
+      IF (SIZE(InData%rQS)>0) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rQS))-1 ) = PACK(InData%rQS,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rQS)
   END IF
   IF ( .NOT. ALLOCATED(InData%rS) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -10233,8 +10233,8 @@ ENDIF
     IntKiBuf( Int_Xferred + 1) = UBOUND(InData%rS,3)
     Int_Xferred = Int_Xferred + 2
 
-      IF (SIZE(InData%rS)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rS))-1 ) = PACK(InData%rS,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rS)
+      IF (SIZE(InData%rS)>0) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rS))-1 ) = PACK(InData%rS,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rS)
   END IF
   IF ( .NOT. ALLOCATED(InData%rS0S) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -10252,8 +10252,8 @@ ENDIF
     IntKiBuf( Int_Xferred + 1) = UBOUND(InData%rS0S,3)
     Int_Xferred = Int_Xferred + 2
 
-      IF (SIZE(InData%rS0S)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rS0S))-1 ) = PACK(InData%rS0S,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rS0S)
+      IF (SIZE(InData%rS0S)>0) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rS0S))-1 ) = PACK(InData%rS0S,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rS0S)
   END IF
   IF ( .NOT. ALLOCATED(InData%rT) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -10268,11 +10268,11 @@ ENDIF
     IntKiBuf( Int_Xferred + 1) = UBOUND(InData%rT,2)
     Int_Xferred = Int_Xferred + 2
 
-      IF (SIZE(InData%rT)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rT))-1 ) = PACK(InData%rT,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rT)
+      IF (SIZE(InData%rT)>0) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rT))-1 ) = PACK(InData%rT,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rT)
   END IF
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rT0O))-1 ) = PACK(InData%rT0O,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rT0O)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rT0O))-1 ) = PACK(InData%rT0O,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rT0O)
   IF ( .NOT. ALLOCATED(InData%rT0T) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
@@ -10286,13 +10286,13 @@ ENDIF
     IntKiBuf( Int_Xferred + 1) = UBOUND(InData%rT0T,2)
     Int_Xferred = Int_Xferred + 2
 
-      IF (SIZE(InData%rT0T)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rT0T))-1 ) = PACK(InData%rT0T,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rT0T)
+      IF (SIZE(InData%rT0T)>0) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rT0T))-1 ) = PACK(InData%rT0T,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rT0T)
   END IF
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rZ))-1 ) = PACK(InData%rZ,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rZ)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rZO))-1 ) = PACK(InData%rZO,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rZO)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rZ))-1 ) = PACK(InData%rZ,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rZ)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rZO))-1 ) = PACK(InData%rZO,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rZO)
   IF ( .NOT. ALLOCATED(InData%rZT) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
@@ -10306,27 +10306,27 @@ ENDIF
     IntKiBuf( Int_Xferred + 1) = UBOUND(InData%rZT,2)
     Int_Xferred = Int_Xferred + 2
 
-      IF (SIZE(InData%rZT)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rZT))-1 ) = PACK(InData%rZT,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rZT)
+      IF (SIZE(InData%rZT)>0) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rZT))-1 ) = PACK(InData%rZT,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rZT)
   END IF
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rPQ))-1 ) = PACK(InData%rPQ,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rPQ)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rP))-1 ) = PACK(InData%rP,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rP)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rV))-1 ) = PACK(InData%rV,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rV)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rZY))-1 ) = PACK(InData%rZY,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rZY)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rOU))-1 ) = PACK(InData%rOU,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rOU)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rOV))-1 ) = PACK(InData%rOV,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rOV)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rVD))-1 ) = PACK(InData%rVD,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rVD)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rOW))-1 ) = PACK(InData%rOW,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rOW)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rPC))-1 ) = PACK(InData%rPC,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rPC)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rPQ))-1 ) = PACK(InData%rPQ,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rPQ)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rP))-1 ) = PACK(InData%rP,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rP)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rV))-1 ) = PACK(InData%rV,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rV)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rZY))-1 ) = PACK(InData%rZY,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rZY)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rOU))-1 ) = PACK(InData%rOU,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rOU)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rOV))-1 ) = PACK(InData%rOV,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rOV)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rVD))-1 ) = PACK(InData%rVD,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rVD)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rOW))-1 ) = PACK(InData%rOW,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rOW)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rPC))-1 ) = PACK(InData%rPC,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rPC)
   IF ( .NOT. ALLOCATED(InData%rPS0) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
@@ -10340,25 +10340,25 @@ ENDIF
     IntKiBuf( Int_Xferred + 1) = UBOUND(InData%rPS0,2)
     Int_Xferred = Int_Xferred + 2
 
-      IF (SIZE(InData%rPS0)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rPS0))-1 ) = PACK(InData%rPS0,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rPS0)
+      IF (SIZE(InData%rPS0)>0) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rPS0))-1 ) = PACK(InData%rPS0,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rPS0)
   END IF
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rQ))-1 ) = PACK(InData%rQ,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rQ)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rQC))-1 ) = PACK(InData%rQC,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rQC)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rVIMU))-1 ) = PACK(InData%rVIMU,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rVIMU)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rVP))-1 ) = PACK(InData%rVP,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rVP)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rWI))-1 ) = PACK(InData%rWI,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rWI)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rWJ))-1 ) = PACK(InData%rWJ,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rWJ)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rWK))-1 ) = PACK(InData%rWK,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rWK)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rZT0))-1 ) = PACK(InData%rZT0,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%rZT0)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rQ))-1 ) = PACK(InData%rQ,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rQ)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rQC))-1 ) = PACK(InData%rQC,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rQC)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rVIMU))-1 ) = PACK(InData%rVIMU,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rVIMU)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rVP))-1 ) = PACK(InData%rVP,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rVP)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rWI))-1 ) = PACK(InData%rWI,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rWI)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rWJ))-1 ) = PACK(InData%rWJ,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rWJ)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rWK))-1 ) = PACK(InData%rWK,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rWK)
+      DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%rZT0))-1 ) = PACK(InData%rZT0,.TRUE.)
+      Db_Xferred   = Db_Xferred   + SIZE(InData%rZT0)
   IF ( .NOT. ALLOCATED(InData%AngPosEF) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
@@ -10629,8 +10629,8 @@ ENDIF
       Re_Xferred   = Re_Xferred   + SIZE(InData%AngVelER)
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AngVelEX))-1 ) = PACK(InData%AngVelEX,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%AngVelEX)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%TeetAngVel
-      Re_Xferred   = Re_Xferred   + 1
+      DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%TeetAngVel
+      Db_Xferred   = Db_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AngAccEBt))-1 ) = PACK(InData%AngAccEBt,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%AngAccEBt)
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AngAccERt))-1 ) = PACK(InData%AngAccERt,.TRUE.)
@@ -11445,8 +11445,8 @@ ENDIF
   END IF
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%PMXHydro))-1 ) = PACK(InData%PMXHydro,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%PMXHydro)
-      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%TeetAng
-      Re_Xferred   = Re_Xferred   + 1
+      DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%TeetAng
+      Db_Xferred   = Db_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%FrcVGnRtt))-1 ) = PACK(InData%FrcVGnRtt,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%FrcVGnRtt)
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%FrcWTailt))-1 ) = PACK(InData%FrcWTailt,.TRUE.)
@@ -11593,8 +11593,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rO = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rO))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rO)
+      OutData%rO = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rO))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rO)
     DEALLOCATE(mask1)
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! rQS not allocated
     Int_Xferred = Int_Xferred + 1
@@ -11621,8 +11621,8 @@ ENDIF
        RETURN
     END IF
     mask3 = .TRUE. 
-      IF (SIZE(OutData%rQS)>0) OutData%rQS = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rQS))-1 ), mask3, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rQS)
+      IF (SIZE(OutData%rQS)>0) OutData%rQS = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rQS))-1 ), mask3, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rQS)
     DEALLOCATE(mask3)
   END IF
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! rS not allocated
@@ -11650,8 +11650,8 @@ ENDIF
        RETURN
     END IF
     mask3 = .TRUE. 
-      IF (SIZE(OutData%rS)>0) OutData%rS = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rS))-1 ), mask3, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rS)
+      IF (SIZE(OutData%rS)>0) OutData%rS = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rS))-1 ), mask3, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rS)
     DEALLOCATE(mask3)
   END IF
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! rS0S not allocated
@@ -11679,8 +11679,8 @@ ENDIF
        RETURN
     END IF
     mask3 = .TRUE. 
-      IF (SIZE(OutData%rS0S)>0) OutData%rS0S = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rS0S))-1 ), mask3, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rS0S)
+      IF (SIZE(OutData%rS0S)>0) OutData%rS0S = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rS0S))-1 ), mask3, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rS0S)
     DEALLOCATE(mask3)
   END IF
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! rT not allocated
@@ -11705,8 +11705,8 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-      IF (SIZE(OutData%rT)>0) OutData%rT = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rT))-1 ), mask2, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rT)
+      IF (SIZE(OutData%rT)>0) OutData%rT = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rT))-1 ), mask2, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rT)
     DEALLOCATE(mask2)
   END IF
     i1_l = LBOUND(OutData%rT0O,1)
@@ -11717,8 +11717,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rT0O = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rT0O))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rT0O)
+      OutData%rT0O = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rT0O))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rT0O)
     DEALLOCATE(mask1)
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! rT0T not allocated
     Int_Xferred = Int_Xferred + 1
@@ -11742,8 +11742,8 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-      IF (SIZE(OutData%rT0T)>0) OutData%rT0T = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rT0T))-1 ), mask2, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rT0T)
+      IF (SIZE(OutData%rT0T)>0) OutData%rT0T = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rT0T))-1 ), mask2, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rT0T)
     DEALLOCATE(mask2)
   END IF
     i1_l = LBOUND(OutData%rZ,1)
@@ -11754,8 +11754,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rZ = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rZ))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rZ)
+      OutData%rZ = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rZ))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rZ)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%rZO,1)
     i1_u = UBOUND(OutData%rZO,1)
@@ -11765,8 +11765,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rZO = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rZO))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rZO)
+      OutData%rZO = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rZO))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rZO)
     DEALLOCATE(mask1)
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! rZT not allocated
     Int_Xferred = Int_Xferred + 1
@@ -11790,8 +11790,8 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-      IF (SIZE(OutData%rZT)>0) OutData%rZT = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rZT))-1 ), mask2, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rZT)
+      IF (SIZE(OutData%rZT)>0) OutData%rZT = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rZT))-1 ), mask2, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rZT)
     DEALLOCATE(mask2)
   END IF
     i1_l = LBOUND(OutData%rPQ,1)
@@ -11802,8 +11802,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rPQ = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rPQ))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rPQ)
+      OutData%rPQ = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rPQ))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rPQ)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%rP,1)
     i1_u = UBOUND(OutData%rP,1)
@@ -11813,8 +11813,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rP))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rP)
+      OutData%rP = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rP))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rP)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%rV,1)
     i1_u = UBOUND(OutData%rV,1)
@@ -11824,8 +11824,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rV = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rV))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rV)
+      OutData%rV = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rV))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rV)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%rZY,1)
     i1_u = UBOUND(OutData%rZY,1)
@@ -11835,8 +11835,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rZY = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rZY))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rZY)
+      OutData%rZY = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rZY))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rZY)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%rOU,1)
     i1_u = UBOUND(OutData%rOU,1)
@@ -11846,8 +11846,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rOU = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rOU))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rOU)
+      OutData%rOU = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rOU))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rOU)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%rOV,1)
     i1_u = UBOUND(OutData%rOV,1)
@@ -11857,8 +11857,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rOV = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rOV))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rOV)
+      OutData%rOV = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rOV))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rOV)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%rVD,1)
     i1_u = UBOUND(OutData%rVD,1)
@@ -11868,8 +11868,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rVD = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rVD))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rVD)
+      OutData%rVD = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rVD))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rVD)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%rOW,1)
     i1_u = UBOUND(OutData%rOW,1)
@@ -11879,8 +11879,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rOW = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rOW))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rOW)
+      OutData%rOW = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rOW))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rOW)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%rPC,1)
     i1_u = UBOUND(OutData%rPC,1)
@@ -11890,8 +11890,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rPC = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rPC))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rPC)
+      OutData%rPC = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rPC))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rPC)
     DEALLOCATE(mask1)
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! rPS0 not allocated
     Int_Xferred = Int_Xferred + 1
@@ -11915,8 +11915,8 @@ ENDIF
        RETURN
     END IF
     mask2 = .TRUE. 
-      IF (SIZE(OutData%rPS0)>0) OutData%rPS0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rPS0))-1 ), mask2, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rPS0)
+      IF (SIZE(OutData%rPS0)>0) OutData%rPS0 = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rPS0))-1 ), mask2, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rPS0)
     DEALLOCATE(mask2)
   END IF
     i1_l = LBOUND(OutData%rQ,1)
@@ -11927,8 +11927,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rQ = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rQ))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rQ)
+      OutData%rQ = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rQ))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rQ)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%rQC,1)
     i1_u = UBOUND(OutData%rQC,1)
@@ -11938,8 +11938,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rQC = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rQC))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rQC)
+      OutData%rQC = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rQC))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rQC)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%rVIMU,1)
     i1_u = UBOUND(OutData%rVIMU,1)
@@ -11949,8 +11949,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rVIMU = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rVIMU))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rVIMU)
+      OutData%rVIMU = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rVIMU))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rVIMU)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%rVP,1)
     i1_u = UBOUND(OutData%rVP,1)
@@ -11960,8 +11960,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rVP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rVP))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rVP)
+      OutData%rVP = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rVP))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rVP)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%rWI,1)
     i1_u = UBOUND(OutData%rWI,1)
@@ -11971,8 +11971,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rWI = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rWI))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rWI)
+      OutData%rWI = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rWI))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rWI)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%rWJ,1)
     i1_u = UBOUND(OutData%rWJ,1)
@@ -11982,8 +11982,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rWJ = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rWJ))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rWJ)
+      OutData%rWJ = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rWJ))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rWJ)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%rWK,1)
     i1_u = UBOUND(OutData%rWK,1)
@@ -11993,8 +11993,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rWK = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rWK))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rWK)
+      OutData%rWK = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rWK))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rWK)
     DEALLOCATE(mask1)
     i1_l = LBOUND(OutData%rZT0,1)
     i1_u = UBOUND(OutData%rZT0,1)
@@ -12004,8 +12004,8 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-      OutData%rZT0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rZT0))-1 ), mask1, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%rZT0)
+      OutData%rZT0 = REAL( UNPACK(DbKiBuf( Db_Xferred:Db_Xferred+(SIZE(OutData%rZT0))-1 ), mask1, 0.0_DbKi ), R8Ki)
+      Db_Xferred   = Db_Xferred   + SIZE(OutData%rZT0)
     DEALLOCATE(mask1)
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! AngPosEF not allocated
     Int_Xferred = Int_Xferred + 1
@@ -12497,8 +12497,8 @@ ENDIF
       OutData%AngVelEX = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AngVelEX))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%AngVelEX)
     DEALLOCATE(mask1)
-      OutData%TeetAngVel = ReKiBuf( Re_Xferred )
-      Re_Xferred   = Re_Xferred + 1
+      OutData%TeetAngVel = REAL( DbKiBuf( Re_Xferred ), R8Ki) 
+      Db_Xferred   = Db_Xferred + 1
     i1_l = LBOUND(OutData%AngAccEBt,1)
     i1_u = UBOUND(OutData%AngAccEBt,1)
     ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
@@ -14025,8 +14025,8 @@ ENDIF
       OutData%PMXHydro = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PMXHydro))-1 ), mask2, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%PMXHydro)
     DEALLOCATE(mask2)
-      OutData%TeetAng = ReKiBuf( Re_Xferred )
-      Re_Xferred   = Re_Xferred + 1
+      OutData%TeetAng = REAL( DbKiBuf( Re_Xferred ), R8Ki) 
+      Db_Xferred   = Db_Xferred + 1
     i1_l = LBOUND(OutData%FrcVGnRtt,1)
     i1_u = UBOUND(OutData%FrcVGnRtt,1)
     ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
@@ -17054,7 +17054,7 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1  ! BldNodes
       Int_BufSz  = Int_BufSz  + 1  ! TipNode
       Int_BufSz  = Int_BufSz  + 1  ! NDOF
-      Re_BufSz   = Re_BufSz   + 1  ! TwoPiNB
+      Db_BufSz   = Db_BufSz   + 1  ! TwoPiNB
       Int_BufSz  = Int_BufSz  + 1  ! NAug
       Int_BufSz  = Int_BufSz  + 1  ! NPH
   Int_BufSz   = Int_BufSz   + 1     ! PH allocated yes/no
@@ -17646,8 +17646,8 @@ ENDIF
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NDOF
       Int_Xferred   = Int_Xferred   + 1
-      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%TwoPiNB
-      Re_Xferred   = Re_Xferred   + 1
+      DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%TwoPiNB
+      Db_Xferred   = Db_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NAug
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NPH
@@ -19177,8 +19177,8 @@ ENDIF
       Int_Xferred   = Int_Xferred + 1
       OutData%NDOF = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
-      OutData%TwoPiNB = ReKiBuf( Re_Xferred )
-      Re_Xferred   = Re_Xferred + 1
+      OutData%TwoPiNB = REAL( DbKiBuf( Re_Xferred ), R8Ki) 
+      Db_Xferred   = Db_Xferred + 1
       OutData%NAug = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%NPH = IntKiBuf( Int_Xferred ) 

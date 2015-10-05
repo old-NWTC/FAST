@@ -348,34 +348,34 @@ typedef	^	ED_ActiveDOFs	IntKi	Diag	{:}	-	-	"Array containing the indices of SrtP
 
 # ..... Internal data types: Right Hand Side ...................................................................................
 # RtHS Positions:
-typedef	^	ED_RtHndSide	ReKi	rO	3	-	-	"Position vector from inertial frame origin to tower-top / base plate (point O)"	m
-typedef	^	ED_RtHndSide	ReKi	rQS	{:}{:}{:}	-	-	"Position vector from the apex of rotation (point Q) to a point on a blade (point S)"	m
-typedef	^	ED_RtHndSide	ReKi	rS	{:}{:}{:}	-	-	"Position vector from inertial frame origin to a point on a blade (point S)"	m
-typedef	^	ED_RtHndSide	ReKi	rS0S	{:}{:}{:}	-	-	"Position vector from the blade root (point S(0)) to a point on a blade (point S)"	m
-typedef	^	ED_RtHndSide	ReKi	rT	{:}{:}	-	-	"Position vector from inertial frame origin to the current node (point T(HNodes(J))"	m
-typedef	^	ED_RtHndSide	ReKi	rT0O	3	-	-	"Position vector from the tower base (point T(0)) to tower-top / base plate (point O)"	m
-typedef	^	ED_RtHndSide	ReKi	rT0T	{:}{:}	-	-	"Position vector from a height of TowerBsHt (base of flexible portion of tower) (point T(0)) to a point on the tower (point T)"	m
-typedef	^	ED_RtHndSide	ReKi	rZ	3	-	-	"Position vector from inertia frame origin to platform reference (point Z)"	m
-typedef	^	ED_RtHndSide	ReKi	rZO	3	-	-	"Position vector from platform reference (point Z) to tower-top / base plate (point O)"	m
-typedef	^	ED_RtHndSide	ReKi	rZT	{:}{:}	-	-	"Position vector from platform reference (point Z) to a point on a tower (point T)"	m
-typedef	^	ED_RtHndSide	ReKi	rPQ	3	-	-	"Position vector from teeter pin (point P) to apex of rotation (point Q)"	m
-typedef	^	ED_RtHndSide	ReKi	rP	3	-	-	"Position vector from inertial frame origin to teeter pin (point P)"	m
-typedef	^	ED_RtHndSide	ReKi	rV	3	-	-	"Position vector from inertial frame origin to specified point on rotor-furl axis (point V)"	m
-typedef	^	ED_RtHndSide	ReKi	rZY	3	-	-	"Position vector from platform reference (point Z) to platform mass center (point Y)"	m
-typedef	^	ED_RtHndSide	ReKi	rOU	3	-	-	"Position vector from tower-top / base plate (point O) to nacelle center of mass (point U)."	m
-typedef	^	ED_RtHndSide	ReKi	rOV	3	-	-	"Position vector from tower-top / base plate (point O) to specified point on rotor-furl axis (point V)"	m
-typedef	^	ED_RtHndSide	ReKi	rVD	3	-	-	"Position vector from specified point on rotor-furl axis (point V) to center of mass of structure that furls with the rotor (not including rotor) (point D)"	m
-typedef	^	ED_RtHndSide	ReKi	rOW	3	-	-	"Position vector from tower-top / base plate (point O) to specified point on  tail-furl axis (point W)"	m
-typedef	^	ED_RtHndSide	ReKi	rPC	3	-	-	"Position vector from teeter pin (point P) to hub center of mass (point C)"	m
-typedef	^	ED_RtHndSide	ReKi	rPS0	{:}{:}	-	-	"Position vector from teeter pin (point P) to blade root (point S(0))"	m
-typedef	^	ED_RtHndSide	ReKi	rQ	3	-	-	"Position vector from inertial frame origin to apex of rotation (point Q)"	m
-typedef	^	ED_RtHndSide	ReKi	rQC	3	-	-	"Position vector from apex of rotation (point Q) to hub center of mass (point C)"	m
-typedef	^	ED_RtHndSide	ReKi	rVIMU	3	-	-	"Position vector from specified point on rotor-furl axis (point V) to nacelle IMU (point IMU)"	m
-typedef	^	ED_RtHndSide	ReKi	rVP	3	-	-	"Position vector from specified point on rotor-furl axis (point V) to teeter pin (point P)"	m
-typedef	^	ED_RtHndSide	ReKi	rWI	3	-	-	"Position vector from specified point on  tail-furl axis (point W) to tail boom center of mass     (point I)"	m
-typedef	^	ED_RtHndSide	ReKi	rWJ	3	-	-	"Position vector from specified point on  tail-furl axis (point W) to tail fin  center of mass     (point J)"	m
-typedef	^	ED_RtHndSide	ReKi	rWK	3	-	-	"Position vector from specified point on  tail-furl axis (point W) to tail fin  center of pressure (point K)"	m
-typedef	^	ED_RtHndSide	ReKi	rZT0	3	-	-	"Position vector from platform reference (point Z) to tower base (point T(0))"	m
+typedef	^	ED_RtHndSide	R8Ki	rO	3	-	-	"Position vector from inertial frame origin to tower-top / base plate (point O)"	m
+typedef	^	ED_RtHndSide	R8Ki	rQS	{:}{:}{:}	-	-	"Position vector from the apex of rotation (point Q) to a point on a blade (point S)"	m
+typedef	^	ED_RtHndSide	R8Ki	rS	{:}{:}{:}	-	-	"Position vector from inertial frame origin to a point on a blade (point S)"	m
+typedef	^	ED_RtHndSide	R8Ki	rS0S	{:}{:}{:}	-	-	"Position vector from the blade root (point S(0)) to a point on a blade (point S)"	m
+typedef	^	ED_RtHndSide	R8Ki	rT	{:}{:}	-	-	"Position vector from inertial frame origin to the current node (point T(HNodes(J))"	m
+typedef	^	ED_RtHndSide	R8Ki	rT0O	3	-	-	"Position vector from the tower base (point T(0)) to tower-top / base plate (point O)"	m
+typedef	^	ED_RtHndSide	R8Ki	rT0T	{:}{:}	-	-	"Position vector from a height of TowerBsHt (base of flexible portion of tower) (point T(0)) to a point on the tower (point T)"	m
+typedef	^	ED_RtHndSide	R8Ki	rZ	3	-	-	"Position vector from inertia frame origin to platform reference (point Z)"	m
+typedef	^	ED_RtHndSide	R8Ki	rZO	3	-	-	"Position vector from platform reference (point Z) to tower-top / base plate (point O)"	m
+typedef	^	ED_RtHndSide	R8Ki	rZT	{:}{:}	-	-	"Position vector from platform reference (point Z) to a point on a tower (point T)"	m
+typedef	^	ED_RtHndSide	R8Ki	rPQ	3	-	-	"Position vector from teeter pin (point P) to apex of rotation (point Q)"	m
+typedef	^	ED_RtHndSide	R8Ki	rP	3	-	-	"Position vector from inertial frame origin to teeter pin (point P)"	m
+typedef	^	ED_RtHndSide	R8Ki	rV	3	-	-	"Position vector from inertial frame origin to specified point on rotor-furl axis (point V)"	m
+typedef	^	ED_RtHndSide	R8Ki	rZY	3	-	-	"Position vector from platform reference (point Z) to platform mass center (point Y)"	m
+typedef	^	ED_RtHndSide	R8Ki	rOU	3	-	-	"Position vector from tower-top / base plate (point O) to nacelle center of mass (point U)."	m
+typedef	^	ED_RtHndSide	R8Ki	rOV	3	-	-	"Position vector from tower-top / base plate (point O) to specified point on rotor-furl axis (point V)"	m
+typedef	^	ED_RtHndSide	R8Ki	rVD	3	-	-	"Position vector from specified point on rotor-furl axis (point V) to center of mass of structure that furls with the rotor (not including rotor) (point D)"	m
+typedef	^	ED_RtHndSide	R8Ki	rOW	3	-	-	"Position vector from tower-top / base plate (point O) to specified point on  tail-furl axis (point W)"	m
+typedef	^	ED_RtHndSide	R8Ki	rPC	3	-	-	"Position vector from teeter pin (point P) to hub center of mass (point C)"	m
+typedef	^	ED_RtHndSide	R8Ki	rPS0	{:}{:}	-	-	"Position vector from teeter pin (point P) to blade root (point S(0))"	m
+typedef	^	ED_RtHndSide	R8Ki	rQ	3	-	-	"Position vector from inertial frame origin to apex of rotation (point Q)"	m
+typedef	^	ED_RtHndSide	R8Ki	rQC	3	-	-	"Position vector from apex of rotation (point Q) to hub center of mass (point C)"	m
+typedef	^	ED_RtHndSide	R8Ki	rVIMU	3	-	-	"Position vector from specified point on rotor-furl axis (point V) to nacelle IMU (point IMU)"	m
+typedef	^	ED_RtHndSide	R8Ki	rVP	3	-	-	"Position vector from specified point on rotor-furl axis (point V) to teeter pin (point P)"	m
+typedef	^	ED_RtHndSide	R8Ki	rWI	3	-	-	"Position vector from specified point on  tail-furl axis (point W) to tail boom center of mass     (point I)"	m
+typedef	^	ED_RtHndSide	R8Ki	rWJ	3	-	-	"Position vector from specified point on  tail-furl axis (point W) to tail fin  center of mass     (point J)"	m
+typedef	^	ED_RtHndSide	R8Ki	rWK	3	-	-	"Position vector from specified point on  tail-furl axis (point W) to tail fin  center of pressure (point K)"	m
+typedef	^	ED_RtHndSide	R8Ki	rZT0	3	-	-	"Position vector from platform reference (point Z) to tower base (point T(0))"	m
 # RtHS Angular positions
 typedef	^	ED_RtHndSide	ReKi	AngPosEF	{:}{:}	-	-	"Angular position of the current point on the tower (body F) in the inertial frame (body E for earth)"
 typedef	^	ED_RtHndSide	ReKi	AngPosXF	{:}{:}	-	-	"Angular position of the current point on the tower (body F) in the platform (body X)"
@@ -401,7 +401,7 @@ typedef	^	ED_RtHndSide	ReKi	AngVelEN	3	-	-	"Angular velocity of the nacelle (bod
 typedef	^	ED_RtHndSide	ReKi	AngVelEB	3	-	-	"Angular velocity of the base plate (body B) in the inertia frame (body E for earth)"
 typedef	^	ED_RtHndSide	ReKi	AngVelER	3	-	-	"Angular velocity of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame (body E for earth)"
 typedef	^	ED_RtHndSide	ReKi	AngVelEX	3	-	-	"Angular velocity of the platform (body X) in the inertia frame (body E for earth)"
-typedef	^	ED_RtHndSide	ReKi	TeetAngVel	-	-	-	"Angular velocity of the teeter motion"
+typedef	^	ED_RtHndSide	R8Ki	TeetAngVel	-	-	-	"Angular velocity of the teeter motion"
 # RtHS Angular accelerations
 typedef	^	ED_RtHndSide	ReKi	AngAccEBt	3	-	-	"Portion of the angular acceleration of the base plate (body B) in the inertia frame (body E for earth) associated with everything but the QD2T()s"
 typedef	^	ED_RtHndSide	ReKi	AngAccERt	3	-	-	"Portion of the angular acceleration of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame (body E for earth) associated with everything but the QD2T()s"
@@ -490,7 +490,7 @@ typedef	^	ED_RtHndSide	ReKi	PMomNGnRt	{:}{:}	-	-	"Partial moment at the nacelle 
 typedef	^	ED_RtHndSide	ReKi	PMomNTail	{:}{:}	-	-	"Partial moment at the nacelle (body N) / selected point on tail-furl axis (point W) due the tail"
 typedef	^	ED_RtHndSide	ReKi	PMomX0Trb	{:}{:}	-	-	"Partial moment at the platform (body X) / tower base (point T(0)) due to the turbine"
 typedef	^	ED_RtHndSide	ReKi	PMXHydro	{6}{3}	-	-	"Partial platform hydrodynamic moment at the platform (body X) / platform reference (point Z)"
-typedef	^	ED_RtHndSide	ReKi	TeetAng	-	-	-	"Current teeter angle = QT(DOF_Teet) for 2-blader or 0 for 3-blader (this is used in place of QT(DOF_Teet) throughout RtHS()"
+typedef	^	ED_RtHndSide	R8Ki	TeetAng	-	-	-	"Current teeter angle = QT(DOF_Teet) for 2-blader or 0 for 3-blader (this is used in place of QT(DOF_Teet) throughout RtHS()"
 typedef	^	ED_RtHndSide	ReKi	FrcVGnRtt	3	-	-	"Portion of the force at the rotor-furl axis (point V) due to the structure that furls with the rotor, generator, and rotor associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	FrcWTailt	3	-	-	"Portion of the force at the tail-furl axis (point W) due to the tail associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	FrcZAllt	3	-	-	"Portion of the force at platform reference (point Z) due to everything associated with everything but the QD2T()'s"
@@ -546,7 +546,7 @@ typedef	^	ParameterType	DbKi	DT24	-	-	-	"=DT/24 (used in loose coupling)"	second
 typedef	^	ParameterType	IntKi	BldNodes	-	-	-	"Number of blade nodes used in the analysis"	-
 typedef	^	ParameterType	IntKi	TipNode	-	-	-	"Index of the additional node located at the blade tip = BldNodes + 1"	-
 typedef	^	ParameterType	IntKi	NDOF	-	-	-	"Number of total degrees of freedom (DOFs)"	-
-typedef	^	ParameterType	ReKi	TwoPiNB	-	-	-	"Two pi divided by the number of blades"	radians
+typedef	^	ParameterType	R8Ki	TwoPiNB	-	-	-	"Two pi divided by the number of blades"	radians
 typedef	^	ParameterType	IntKi	NAug	-	-	-	"Dimension of augmented solution matrix"	-
 typedef	^	ParameterType	IntKi	NPH	-	-	-	"Number of DOFs that contribute to the angular velocity of the hub (body H) in the inertia frame"
 typedef	^	ParameterType	IntKi	PH	{:}	-	-	"Array of DOF indices (pointers) that contribute to the angular velocity of the hub (body H) in the inertia frame"

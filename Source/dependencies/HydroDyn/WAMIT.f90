@@ -1488,7 +1488,7 @@ SUBROUTINE WAMIT_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, ErrMs
          ! Determine the rotational angles from the direction-cosine matrix
       rotdisp = GetSmllRotAngs ( u%Mesh%Orientation(:,:,1), ErrStat, ErrMsg )
 
-      q         = reshape((/u%Mesh%TranslationDisp(:,1),rotdisp(:)/),(/6/))
+      q         = reshape((/real(u%Mesh%TranslationDisp(:,1),ReKi),rotdisp(:)/),(/6/))
       qdot      = reshape((/u%Mesh%TranslationVel(:,1),u%Mesh%RotationVel(:,1)/),(/6/))
       qdotdot   = reshape((/u%Mesh%TranslationAcc(:,1),u%Mesh%RotationAcc(:,1)/),(/6/))
       

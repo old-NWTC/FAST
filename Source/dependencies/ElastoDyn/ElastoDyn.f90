@@ -20,8 +20,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-09-03 13:23:42 -0600 (Thu, 03 Sep 2015) $
-! (File) Revision #: $Rev: 1111 $
+! File last committed: $Date: 2015-10-03 21:37:37 -0600 (Sat, 03 Oct 2015) $
+! (File) Revision #: $Rev: 1139 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn.f90 $
 !**********************************************************************************************************************************
 
@@ -1704,7 +1704,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 !   REAL(ReKi)                   :: ComDenom                                        ! Common denominator used in several expressions.
 !   REAL(ReKi)                   :: CThrstys                                        ! Estimate of the ys-location of the center of thrust.
 !   REAL(ReKi)                   :: CThrstzs                                        ! Estimate of the zs-location of the center of thrust.
-   REAL(ReKi)                   :: FrcMGagB  (3)                                   ! Total force at the blade element   (body M) / blade strain gage location            (point S) due to the blade above the strain gage.
+   REAL(R8Ki)                   :: FrcMGagB  (3)                                   ! Total force at the blade element   (body M) / blade strain gage location            (point S) due to the blade above the strain gage.
    REAL(ReKi)                   :: FrcFGagT  (3)                                   ! Total force at the tower element   (body F) / tower strain gage location            (point T) due to the nacelle and rotor and tower above the strain gage.
    REAL(ReKi)                   :: FrcONcRt  (3)                                   ! Total force at the yaw bearing (point O  ) due to the nacelle, generator, and rotor
    REAL(ReKi)                   :: FrcPRot   (3)                                   ! Total force at the teeter pin  (point P  ) due to the rotor
@@ -1723,16 +1723,16 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    REAL(ReKi)                   :: MomNTail  (3)                                   ! Total moment at the nacelle         (body N) / specified point on  tail-furl axis    (point W) due to the tail.
    REAL(ReKi)                   :: MomX0Trb  (3)                                   ! Total moment at the tower base      (body X) / base of flexible portion of the tower (point T(0)) due to the entire wind turbine.
    REAL(ReKi)                   :: MXHydro   (3)                                   ! Total platform hydrodynamic moment acting at the platform (body X) / platform reference (point Z).
-   REAL(ReKi)                   :: rOPO      (3)                                   ! Position vector from the undeflected tower top (point O prime) to the deflected tower top (point O).
-   REAL(ReKi)                   :: rOSTip    (3)                                   ! Position vector from the deflected tower top (point O) to the deflected blade tip (point S tip).
-   REAL(ReKi)                   :: rOSTipxn                                        ! Component of rOSTip directed along the xn-axis.
-   REAL(ReKi)                   :: rOSTipyn                                        ! Component of rOSTip directed along the yn-axis.
-   REAL(ReKi)                   :: rOSTipzn                                        ! Component of rOSTip directed along the zn-axis.
-   REAL(ReKi)                   :: rTPT      (3)                                   ! Position vector from the undeflected tower node (point T prime) to the deflected node (point T)
-   REAL(ReKi)                   :: rSPS      (3)                                   ! Position vector from the undeflected blade node (point S prime) to the deflected node (point S)
-   REAL(ReKi)                   :: rSTipPSTip(3)                                   ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip).
-   REAL(ReKi)                   :: TmpVec    (3)                                   ! A temporary vector used in various computations.
-   REAL(ReKi)                   :: TmpVec2   (3)                                   ! A temporary vector.
+   REAL(R8Ki)                   :: rOPO      (3)                                   ! Position vector from the undeflected tower top (point O prime) to the deflected tower top (point O).
+   REAL(R8Ki)                   :: rOSTip    (3)                                   ! Position vector from the deflected tower top (point O) to the deflected blade tip (point S tip).
+   REAL(R8Ki)                   :: rOSTipxn                                        ! Component of rOSTip directed along the xn-axis.
+   REAL(R8Ki)                   :: rOSTipyn                                        ! Component of rOSTip directed along the yn-axis.
+   REAL(R8Ki)                   :: rOSTipzn                                        ! Component of rOSTip directed along the zn-axis.
+   REAL(R8Ki)                   :: rTPT      (3)                                   ! Position vector from the undeflected tower node (point T prime) to the deflected node (point T)
+   REAL(R8Ki)                   :: rSPS      (3)                                   ! Position vector from the undeflected blade node (point S prime) to the deflected node (point S)
+   REAL(R8Ki)                   :: rSTipPSTip(3)                                   ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip).
+   REAL(R8Ki)                   :: TmpVec    (3)                                   ! A temporary vector used in various computations.
+   REAL(R8Ki)                   :: TmpVec2   (3)                                   ! A temporary vector.
 
    INTEGER, PARAMETER           :: NDims = 3
    REAL(ReKi)                   :: LinAccES (NDims,0:p%TipNode,p%NumBl)            ! Total linear acceleration of a point on a   blade (point S) in the inertia frame (body E for earth).
@@ -2192,7 +2192,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
          FrcMGagB = 0.001*FrcMGagB           ! Convert the local force to kN
 
 
-         TmpVec = CROSS_PRODUCT( ( 0.25_DbKi*p%DRNodes(p%BldGagNd(I)) )*OtherState%CoordSys%j3(K,:), REAL(TmpVec2,DbKi) )                              ! Portion of MomMGagB associated with 1/2 of the strain gage element
+         TmpVec = CROSS_PRODUCT( ( 0.25_R8Ki*p%DRNodes(p%BldGagNd(I)) )*OtherState%CoordSys%j3(K,:), TmpVec2 )                              ! Portion of MomMGagB associated with 1/2 of the strain gage element
 
          MomMGagB = MomMGagB + ( TmpVec + OtherState%RtHS%MMAero(:,K,p%BldGagNd(I)) )* ( 0.5 *p%DRNodes(p%BldGagNd(I)) )
          MomMGagB = 0.001*MomMGagB           ! Convert the local moment to kN-m
@@ -2354,7 +2354,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       FrcFGagT = FrcFGagT + TmpVec2 * 0.5 * p%DHNodes(p%TwrGagNd(I))
       FrcFGagT = 0.001*FrcFGagT  ! Convert the local force to kN
 
-      TmpVec = CROSS_PRODUCT( ( 0.25_DbKi*p%DHNodes( p%TwrGagNd(I)) )*OtherState%CoordSys%a2, REAL(TmpVec2,DbKi) )              ! Portion of MomFGagT associated with 1/2 of the strain gage element
+      TmpVec = CROSS_PRODUCT( ( 0.25_R8Ki*p%DHNodes( p%TwrGagNd(I)) )*OtherState%CoordSys%a2, TmpVec2 )              ! Portion of MomFGagT associated with 1/2 of the strain gage element
       TmpVec   = TmpVec   + MFHydro(:,p%TwrGagNd(I))
       MomFGagT = MomFGagT + TmpVec * 0.5 * p%DHNodes(p%TwrGagNd(I))
       MomFGagT = 0.001*MomFGagT  ! Convert the local moment to kN-m
@@ -5572,7 +5572,7 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
    !...............................................................................................................................
    ! Calculate some indirect inputs:
    !...............................................................................................................................
-   p%TwoPiNB   = TwoPi/p%NumBl                                                     ! 2*Pi/NumBl is used in RtHS().
+   p%TwoPiNB   = TwoPi_D/p%NumBl                                                   ! 2*Pi/NumBl is used in RtHS().
 
    p%rZT0zt    = p%TowerBsHt - p%PtfmRefzt                                         ! zt-component of position vector rZT0.
    p%RefTwrHt  = p%TowerHt   - p%PtfmRefzt                                         ! Vertical distance between ElastoDyn's undisplaced tower height (variable TowerHt) and ElastoDyn's inertia frame reference point (variable PtfmRef).
@@ -11056,9 +11056,9 @@ SUBROUTINE Teeter( t, p, TeetDef, TeetRate, TeetMom )
       ! Passed Variables:
    REAL(DbKi), INTENT(IN)             :: t                                       ! simulation time
    TYPE(ED_ParameterType), INTENT(IN) :: p                                       ! parameters from the structural dynamics module
-   REAL(ReKi), INTENT(IN )            :: TeetDef                                 ! The teeter deflection, x%QT(DOF_Teet).
+   REAL(R8Ki), INTENT(IN )            :: TeetDef                                 ! The teeter deflection, x%QT(DOF_Teet).
    REAL(ReKi), INTENT(OUT)            :: TeetMom                                 ! The total moment supplied by the stop, spring, and damper.
-   REAL(ReKi), INTENT(IN )            :: TeetRate                                ! The teeter rate, x%QDT(DOF_Teet).
+   REAL(R8Ki), INTENT(IN )            :: TeetRate                                ! The teeter rate, x%QDT(DOF_Teet).
 
 
       ! Local variables:
@@ -11093,7 +11093,7 @@ SUBROUTINE Teeter( t, p, TeetDef, TeetRate, TeetMom )
       SprgDef = AbsDef - p%TeetSStP
 
       IF ( SprgDef > 0.0_ReKi )  THEN
-         TeetKMom = -SIGN( SprgDef*p%TeetSSSp, TeetDef )
+         TeetKMom = -SIGN( SprgDef*p%TeetSSSp, real(TeetDef,ReKi) )
       ELSE
          TeetKMom = 0.0_ReKi
       ENDIF
@@ -11104,7 +11104,7 @@ SUBROUTINE Teeter( t, p, TeetDef, TeetRate, TeetMom )
       StopDef = AbsDef - p%TeetHStP
 
       IF ( StopDef > 0.0_ReKi )  THEN
-         TeetSMom = -p%TeetHSSp*SIGN( StopDef, TeetDef )
+         TeetSMom = -p%TeetHSSp*SIGN( StopDef, real(TeetDef,reKi) )
       ELSE
          TeetSMom = 0.0_ReKi
       ENDIF
@@ -11122,10 +11122,10 @@ SUBROUTINE Teeter( t, p, TeetDef, TeetRate, TeetMom )
 
       ! Add coulomb friction to the teeter hinge.
 
-      IF ( .NOT. EqualRealNos( TeetRate, 0.0_ReKi ) )  THEN
+      IF ( .NOT. EqualRealNos( TeetRate, 0.0_R8Ki ) )  THEN
          TeetFMom = 0.0_ReKi
       ELSE
-         TeetFMom = -SIGN( p%TeetCDmp, TeetRate )
+         TeetFMom = -SIGN( p%TeetCDmp, real(TeetRate,reKi) )
       ENDIF
 
 
@@ -11275,7 +11275,7 @@ SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
    TYPE(ED_RtHndSide),           INTENT(INOUT)  :: RtHSdat     ! data from the RtHndSid module (contains positions to be set)
 
       !Local variables
-   REAL(ReKi)                   :: rK        (3)                                   ! Position vector from inertial frame origin to tail fin center of pressure (point K).
+   REAL(R8Ki)                   :: rK        (3)                                   ! Position vector from inertial frame origin to tail fin center of pressure (point K).
    !REAL(ReKi)                   :: rQ        (3)                                   ! Position vector from inertial frame origin to apex of rotation (point Q).
 
    INTEGER(IntKi)               :: J                                               ! Counter for elements
