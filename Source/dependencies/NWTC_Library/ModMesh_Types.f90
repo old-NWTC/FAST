@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-10-04 17:43:34 -0600 (Sun, 04 Oct 2015) $
-! (File) Revision #: $Rev: 342 $
+! File last committed: $Date: 2015-10-05 20:11:24 -0600 (Mon, 05 Oct 2015) $
+! (File) Revision #: $Rev: 344 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/ModMesh_Types.f90 $
 !**********************************************************************************************************************************
 MODULE ModMesh_Types
@@ -77,6 +77,7 @@ MODULE ModMesh_Types
    INTEGER, PUBLIC, PARAMETER :: MESH_SIBLING         = 2
    INTEGER, PUBLIC, PARAMETER :: MESH_UPDATECOPY      = 3
    INTEGER, PUBLIC, PARAMETER :: MESH_UPDATEREFERENCE = 4
+   INTEGER, PUBLIC, PARAMETER :: MESH_COUSIN          = 5
 
    INTEGER, PUBLIC, PARAMETER :: MESH_NEXT  = -2
    INTEGER, PUBLIC, PARAMETER :: MESH_NOMOREELEMS  = -3

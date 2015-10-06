@@ -23,9 +23,9 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-09-28 09:27:01 -0600 (Mon, 28 Sep 2015) $
-! (File) Revision #: $Rev: 643 $
-! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/UserWaves/Source/HydroDyn.f90 $
+! File last committed: $Date: 2015-10-05 13:26:24 -0600 (Mon, 05 Oct 2015) $
+! (File) Revision #: $Rev: 647 $
+! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/HydroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn
 
@@ -46,7 +46,7 @@ MODULE HydroDyn
    PRIVATE
 
   
-   TYPE(ProgDesc), PARAMETER            :: HydroDyn_ProgDesc = ProgDesc( 'HydroDyn', 'v2.03.00b-adp', '26-Sep-2015' )
+   TYPE(ProgDesc), PARAMETER            :: HydroDyn_ProgDesc = ProgDesc( 'HydroDyn', 'v2.03.00c-adp', '05-Oct-2015' )
 
     
    

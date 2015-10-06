@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-09-23 12:03:23 -0600 (Wed, 23 Sep 2015) $
-! (File) Revision #: $Rev: 357 $
+! File last committed: $Date: 2015-10-05 10:11:03 -0600 (Mon, 05 Oct 2015) $
+! (File) Revision #: $Rev: 359 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/trunk/Source/SubDyn.f90 $
 !**********************************************************************************************************************************
 Module SubDyn
