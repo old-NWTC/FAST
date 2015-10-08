@@ -73,7 +73,7 @@ IMPLICIT NONE
   TYPE, PUBLIC :: InflowWind_InputFile
     LOGICAL  :: EchoFlag      ! Echo the input file [-]
     INTEGER(IntKi)  :: WindType = 0      ! Type of windfile [-]
-    REAL(ReKi)  :: PropogationDir      ! Direction of wind propogation (meteorological direction) [(degrees)]
+    REAL(ReKi)  :: PropagationDir      ! Direction of wind propagation (meteorological direction) [(degrees)]
     INTEGER(IntKi)  :: NWindVel      ! Number of points to output the wind velocity (0 to 9) [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WindVxiList      ! List of X coordinates for wind velocity measurements [meters]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WindVyiList      ! List of Y coordinates for wind velocity measurements [meters]
@@ -162,7 +162,7 @@ IMPLICIT NONE
     LOGICAL  :: Initialized = .FALSE.      ! Flag to indicate if the module was initialized [-]
     LOGICAL  :: CTTS_Flag = .FALSE.      ! determines if coherent turbulence is used [-]
     REAL(DbKi)  :: DT      ! Time step for cont. state integration & disc. state update [seconds]
-    REAL(ReKi)  :: PropogationDir      ! Direction of wind propogation [radians]
+    REAL(ReKi)  :: PropagationDir      ! Direction of wind propagation [radians]
     REAL(ReKi) , DIMENSION(1:3,1:3)  :: RotToWind      ! Rotation matrix for rotating from the global XYZ coordinate system to the wind coordinate system (wind along X') [-]
     REAL(ReKi) , DIMENSION(1:3,1:3)  :: RotFromWind      ! Rotation matrix for rotating from the wind coordinate system (wind along X') back to the global XYZ coordinate system.  Equal to TRANSPOSE(RotToWind) [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WindViXYZprime      ! List of XYZ coordinates for velocity measurements, translated to the wind coordinate system (prime coordinates).  This equals MATMUL( RotToWind, ParamData%WindViXYZ ) [meters/second]
@@ -506,7 +506,7 @@ CONTAINS
    ErrMsg  = ""
     DstInputFileData%EchoFlag = SrcInputFileData%EchoFlag
     DstInputFileData%WindType = SrcInputFileData%WindType
-    DstInputFileData%PropogationDir = SrcInputFileData%PropogationDir
+    DstInputFileData%PropagationDir = SrcInputFileData%PropagationDir
     DstInputFileData%NWindVel = SrcInputFileData%NWindVel
 IF (ALLOCATED(SrcInputFileData%WindVxiList)) THEN
   i1_l = LBOUND(SrcInputFileData%WindVxiList,1)
@@ -659,7 +659,7 @@ ENDIF
   Int_BufSz  = 0
       Int_BufSz  = Int_BufSz  + 1  ! EchoFlag
       Int_BufSz  = Int_BufSz  + 1  ! WindType
-      Re_BufSz   = Re_BufSz   + 1  ! PropogationDir
+      Re_BufSz   = Re_BufSz   + 1  ! PropagationDir
       Int_BufSz  = Int_BufSz  + 1  ! NWindVel
   Int_BufSz   = Int_BufSz   + 1     ! WindVxiList allocated yes/no
   IF ( ALLOCATED(InData%WindVxiList) ) THEN
@@ -753,7 +753,7 @@ ENDIF
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%WindType
       Int_Xferred   = Int_Xferred   + 1
-      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%PropogationDir
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%PropagationDir
       Re_Xferred   = Re_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NWindVel
       Int_Xferred   = Int_Xferred   + 1
@@ -950,7 +950,7 @@ ENDIF
       Int_Xferred   = Int_Xferred + 1
       OutData%WindType = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
-      OutData%PropogationDir = ReKiBuf( Re_Xferred )
+      OutData%PropagationDir = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
       OutData%NWindVel = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
@@ -2654,7 +2654,7 @@ ENDIF
     DstParamData%Initialized = SrcParamData%Initialized
     DstParamData%CTTS_Flag = SrcParamData%CTTS_Flag
     DstParamData%DT = SrcParamData%DT
-    DstParamData%PropogationDir = SrcParamData%PropogationDir
+    DstParamData%PropagationDir = SrcParamData%PropagationDir
     DstParamData%RotToWind = SrcParamData%RotToWind
     DstParamData%RotFromWind = SrcParamData%RotFromWind
 IF (ALLOCATED(SrcParamData%WindViXYZprime)) THEN
@@ -2799,7 +2799,7 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1  ! Initialized
       Int_BufSz  = Int_BufSz  + 1  ! CTTS_Flag
       Db_BufSz   = Db_BufSz   + 1  ! DT
-      Re_BufSz   = Re_BufSz   + 1  ! PropogationDir
+      Re_BufSz   = Re_BufSz   + 1  ! PropagationDir
       Re_BufSz   = Re_BufSz   + SIZE(InData%RotToWind)  ! RotToWind
       Re_BufSz   = Re_BufSz   + SIZE(InData%RotFromWind)  ! RotFromWind
   Int_BufSz   = Int_BufSz   + 1     ! WindViXYZprime allocated yes/no
@@ -2997,7 +2997,7 @@ ENDIF
       Int_Xferred   = Int_Xferred   + 1
       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%DT
       Db_Xferred   = Db_Xferred   + 1
-      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%PropogationDir
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%PropagationDir
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%RotToWind))-1 ) = PACK(InData%RotToWind,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%RotToWind)
@@ -3318,7 +3318,7 @@ ENDIF
       Int_Xferred   = Int_Xferred + 1
       OutData%DT = DbKiBuf( Db_Xferred ) 
       Db_Xferred   = Db_Xferred + 1
-      OutData%PropogationDir = ReKiBuf( Re_Xferred )
+      OutData%PropagationDir = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
     i1_l = LBOUND(OutData%RotToWind,1)
     i1_u = UBOUND(OutData%RotToWind,1)

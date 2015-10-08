@@ -1,9 +1,9 @@
-!STARTOFREGISTRYGENERATEDFILE './NWTC_Library_Types.f90'
+!STARTOFREGISTRYGENERATEDFILE 'NWTC_Library_Types.f90'
 !
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.06.00, 14-Apr-2015)
+! FAST Registry (v2.08.03, 2-Oct-2015)
 !*********************************************************************************************************************************
 ! NWTC_Library_Types
 !.................................................................................................................................
@@ -120,7 +120,7 @@ SUBROUTINE NWTC_Library_CopyProgDesc( SrcProgDescData, DstProgDescData, CtrlCode
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
    INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
-   CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(ErrMsgLen)           :: ErrMsg2
    CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_CopyProgDesc'
 ! 
    ErrStat = ErrID_None
@@ -156,10 +156,10 @@ SUBROUTINE NWTC_Library_CopyProgDesc( SrcProgDescData, DstProgDescData, CtrlCode
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_PackProgDesc'
  ! buffers to store subtypes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -242,7 +242,7 @@ SUBROUTINE NWTC_Library_CopyProgDesc( SrcProgDescData, DstProgDescData, CtrlCode
   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_UnPackProgDesc'
  ! buffers to store meshes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -279,7 +279,7 @@ SUBROUTINE NWTC_Library_CopyProgDesc( SrcProgDescData, DstProgDescData, CtrlCode
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
    INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
-   CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(ErrMsgLen)           :: ErrMsg2
    CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_CopyFASTdataType'
 ! 
    ErrStat = ErrID_None
@@ -339,13 +339,13 @@ ENDIF
   ErrStat = ErrID_None
   ErrMsg  = ""
 IF (ALLOCATED(FASTdataTypeData%ChanNames)) THEN
-   DEALLOCATE(FASTdataTypeData%ChanNames)
+  DEALLOCATE(FASTdataTypeData%ChanNames)
 ENDIF
 IF (ALLOCATED(FASTdataTypeData%ChanUnits)) THEN
-   DEALLOCATE(FASTdataTypeData%ChanUnits)
+  DEALLOCATE(FASTdataTypeData%ChanUnits)
 ENDIF
 IF (ALLOCATED(FASTdataTypeData%Data)) THEN
-   DEALLOCATE(FASTdataTypeData%Data)
+  DEALLOCATE(FASTdataTypeData%Data)
 ENDIF
  END SUBROUTINE NWTC_Library_DestroyFASTdataType
 
@@ -364,10 +364,10 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_PackFASTdataType'
  ! buffers to store subtypes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -439,11 +439,11 @@ ENDIF
           IntKiBuf(Int_Xferred) = ICHAR(InData%Descr(I:I), IntKi)
           Int_Xferred = Int_Xferred   + 1
         END DO ! I
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumChans
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumChans
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumRecs
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumRecs
       Int_Xferred   = Int_Xferred   + 1
-       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%TimeStep
+      DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%TimeStep
       Db_Xferred   = Db_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%ChanNames) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -519,7 +519,7 @@ ENDIF
   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_UnPackFASTdataType'
  ! buffers to store meshes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -636,7 +636,7 @@ ENDIF
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: ErrStat2
-   CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(ErrMsgLen)           :: ErrMsg2
    CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_CopyOutParmType'
 ! 
    ErrStat = ErrID_None
@@ -673,10 +673,10 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_PackOutParmType'
  ! buffers to store subtypes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -724,7 +724,7 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%Indx
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%Indx
       Int_Xferred   = Int_Xferred   + 1
         DO I = 1, LEN(InData%Name)
           IntKiBuf(Int_Xferred) = ICHAR(InData%Name(I:I), IntKi)
@@ -734,7 +734,7 @@ ENDIF
           IntKiBuf(Int_Xferred) = ICHAR(InData%Units(I:I), IntKi)
           Int_Xferred = Int_Xferred   + 1
         END DO ! I
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%SignM
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%SignM
       Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE NWTC_Library_PackOutParmType
 
@@ -758,7 +758,7 @@ ENDIF
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_UnPackOutParmType'
  ! buffers to store meshes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -794,7 +794,7 @@ ENDIF
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
    INTEGER(IntKi)                 :: ErrStat2
-   CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(ErrMsgLen)           :: ErrMsg2
    CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_CopyFileInfoType'
 ! 
    ErrStat = ErrID_None
@@ -861,16 +861,16 @@ ENDIF
   ErrStat = ErrID_None
   ErrMsg  = ""
 IF (ALLOCATED(FileInfoTypeData%FileLine)) THEN
-   DEALLOCATE(FileInfoTypeData%FileLine)
+  DEALLOCATE(FileInfoTypeData%FileLine)
 ENDIF
 IF (ALLOCATED(FileInfoTypeData%FileIndx)) THEN
-   DEALLOCATE(FileInfoTypeData%FileIndx)
+  DEALLOCATE(FileInfoTypeData%FileIndx)
 ENDIF
 IF (ALLOCATED(FileInfoTypeData%FileList)) THEN
-   DEALLOCATE(FileInfoTypeData%FileList)
+  DEALLOCATE(FileInfoTypeData%FileList)
 ENDIF
 IF (ALLOCATED(FileInfoTypeData%Lines)) THEN
-   DEALLOCATE(FileInfoTypeData%Lines)
+  DEALLOCATE(FileInfoTypeData%Lines)
 ENDIF
  END SUBROUTINE NWTC_Library_DestroyFileInfoType
 
@@ -889,10 +889,10 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_PackFileInfoType'
  ! buffers to store subtypes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -958,9 +958,9 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumLines
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumLines
       Int_Xferred   = Int_Xferred   + 1
-       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumFiles
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumFiles
       Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%FileLine) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -1045,7 +1045,7 @@ ENDIF
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_UnPackFileInfoType'
  ! buffers to store meshes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -1173,7 +1173,7 @@ ENDIF
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
    INTEGER(IntKi)                 :: ErrStat2
-   CHARACTER(1024)                :: ErrMsg2
+   CHARACTER(ErrMsgLen)           :: ErrMsg2
    CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_CopyQuaternion'
 ! 
    ErrStat = ErrID_None
@@ -1208,10 +1208,10 @@ ENDIF
   INTEGER(IntKi)                 :: Db_Xferred
   INTEGER(IntKi)                 :: Int_BufSz
   INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_PackQuaternion'
  ! buffers to store subtypes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -1257,9 +1257,9 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%q0
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%q0
       Re_Xferred   = Re_Xferred   + 1
-       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%v))-1 ) = PACK(InData%v,.TRUE.)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%v))-1 ) = PACK(InData%v,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%v)
  END SUBROUTINE NWTC_Library_PackQuaternion
 
@@ -1284,7 +1284,7 @@ ENDIF
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
   INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(1024)                :: ErrMsg2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'NWTC_Library_UnPackQuaternion'
  ! buffers to store meshes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
@@ -1306,7 +1306,7 @@ ENDIF
        RETURN
     END IF
     mask1 = .TRUE. 
-       OutData%v = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%v))-1 ), mask1, 0.0_ReKi )
+      OutData%v = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%v))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%v)
     DEALLOCATE(mask1)
  END SUBROUTINE NWTC_Library_UnPackQuaternion

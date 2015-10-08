@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-10-03 21:17:42 -0600 (Sat, 03 Oct 2015) $
-! (File) Revision #: $Rev: 166 $
+! File last committed: $Date: 2015-10-07 19:26:01 -0600 (Wed, 07 Oct 2015) $
+! (File) Revision #: $Rev: 172 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/AeroDyn/AeroDyn.f90 $
 !**********************************************************************************************************************************
 module AeroDyn
@@ -1311,7 +1311,11 @@ SUBROUTINE ValidateInputData( InputFileData, NumBl, ErrStat, ErrMsg )
    
    ErrStat = ErrID_None
    ErrMsg  = ""
-         
+   
+!bjj >>> added for release (UA not producing the results we want, yet)   
+   if (InputFileData%AFAeroMod == AFAeroMod_BL_unsteady) call SetErrStat ( ErrID_Fatal, 'Unsteady aerodynamics module is not enabled in this version of AeroDyn. Set AFAeroMod to 1.', ErrStat, ErrMsg, RoutineName ) 
+!bjj <<<      
+   
    if (NumBl > MaxBl .or. NumBl < 1) call SetErrStat( ErrID_Fatal, 'Number of blades must be between 1 and '//trim(num2lstr(MaxBl))//'.', ErrSTat, ErrMsg, RoutineName )
    if (InputFileData%DTAero <= 0.0)  call SetErrStat ( ErrID_Fatal, 'DTAero must be greater than zero.', ErrStat, ErrMsg, RoutineName )
    if (InputFileData%WakeMod /= WakeMod_None .and. InputFileData%WakeMod /= WakeMod_BEMT) call SetErrStat ( ErrID_Fatal, &
@@ -1346,12 +1350,10 @@ SUBROUTINE ValidateInputData( InputFileData, NumBl, ErrStat, ErrMsg )
    if (InputFileData%AFAeroMod == AFAeroMod_BL_unsteady ) then
       if (InputFileData%UAMod < 2 .or. InputFileData%UAMod > 3 ) call SetErrStat( ErrID_Fatal, &
          "In this version, UAMod must be 2 (Gonzalez's variant) or 3 (Minemma/Pierce variant).", ErrStat, ErrMsg, RoutineName )  ! NOTE: for later-  1 (baseline/original) 
+      
+      if (.not. InputFileData%FLookUp ) call SetErrStat( ErrID_Fatal, 'FLookUp must be TRUE for this version.', ErrStat, ErrMsg, RoutineName )
    end if
-   
-   
-   
-   
-   if (.not. InputFileData%FLookUp ) call SetErrStat( ErrID_Fatal, 'FLookUp must be TRUE for this version.', ErrStat, ErrMsg, RoutineName )
+           
    
          ! validate the AFI input data because it doesn't appear to be done in AFI
    if (InputFileData%NumAFfiles < 1) call SetErrStat( ErrID_Fatal, 'The number of unique airfoil tables (NumAFfiles) must be greater than zero.', ErrStat, ErrMsg, RoutineName )   

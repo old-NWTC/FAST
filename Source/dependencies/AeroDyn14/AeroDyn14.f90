@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-10-03 21:26:37 -0600 (Sat, 03 Oct 2015) $
-! (File) Revision #: $Rev: 200 $
+! File last committed: $Date: 2015-10-06 22:41:11 -0600 (Tue, 06 Oct 2015) $
+! (File) Revision #: $Rev: 202 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/AeroDyn14.f90 $
 !**********************************************************************************************************************************
 MODULE AeroDyn14
@@ -32,7 +32,7 @@ MODULE AeroDyn14
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: AD14_Ver = ProgDesc( 'AeroDyn14', 'v14.04.00a-bjj', '14-Apr-2015' )
+   TYPE(ProgDesc), PARAMETER            :: AD14_Ver = ProgDesc( 'AeroDyn14', 'v14.04.00a-bjj', '6-Oct-2015' )
 
       ! ..... Public Subroutines ............
 

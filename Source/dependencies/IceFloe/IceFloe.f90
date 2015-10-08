@@ -18,8 +18,8 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-14 14:30:21 -0600 (Tue, 14 Apr 2015) $
-! (File) Revision #: $Rev: 975 $
+! File last committed: $Date: 2015-10-06 22:44:50 -0600 (Tue, 06 Oct 2015) $
+! (File) Revision #: $Rev: 1146 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFloe.f90 $
 !**********************************************************************************************************************************!
 
@@ -59,7 +59,7 @@ MODULE IceFloe
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER  :: IceFloe_Ver = ProgDesc( 'IceFloe', 'v1.00.00', '30-Jun-2014' )
+   TYPE(ProgDesc), PARAMETER  :: IceFloe_Ver = ProgDesc( 'IceFloe', 'v1.00.01', '30-Sep-2015' )
 
 ! ..... Public Subroutines ...................................................................................................
 

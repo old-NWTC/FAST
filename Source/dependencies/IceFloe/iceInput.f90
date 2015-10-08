@@ -18,9 +18,9 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-18 13:10:21 -0700 (Wed, 18 Jun 2014) $
-! (File) Revision #: $Rev: 147 $
-! URL: $HeadURL: http://sel1004.verit.dnv.com:8080/svn/LoadSimCtl_SurfaceIce/trunk/IceDyn_IntelFortran/IceDyn/source/IceFloe/iceInput.f90 $
+! File last committed: $Date: 2015-10-06 22:44:50 -0600 (Tue, 06 Oct 2015) $
+! (File) Revision #: $Rev: 1146 $
+! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/iceInput.f90 $
 !**********************************************************************************************************************************
 
 !****************************************************************

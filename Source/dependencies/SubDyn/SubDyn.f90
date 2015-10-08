@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-10-05 10:11:03 -0600 (Mon, 05 Oct 2015) $
-! (File) Revision #: $Rev: 359 $
+! File last committed: $Date: 2015-10-06 09:44:07 -0600 (Tue, 06 Oct 2015) $
+! (File) Revision #: $Rev: 361 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/trunk/Source/SubDyn.f90 $
 !**********************************************************************************************************************************
 Module SubDyn
@@ -38,7 +38,7 @@ Module SubDyn
    !       this will add additional matrices to the SubDyn summary file.
    !............................
 
-   TYPE(ProgDesc), PARAMETER  :: SD_ProgDesc = ProgDesc( 'SubDyn', 'v1.02.00a-rrd', '23-Sep-2015' )
+   TYPE(ProgDesc), PARAMETER  :: SD_ProgDesc = ProgDesc( 'SubDyn', 'v1.02.00a-rrd', '5-Oct-2015' )
       
    ! ..... Public Subroutines ...................................................................................................
 
