@@ -1,18 +1,21 @@
 
 FAST Summary File
 
-Predictions were generated on 27-Apr-2015 at 13:32:19 using FAST (v8.11.01a-bjj, 21-Apr-2015), compiled as a 32-bit application using single precision
+Predictions were generated on 07-Oct-2015 at 20:30:22 using FAST (v8.12.00a-bjj, 6-Oct-2015), compiled as a 32-bit application using single precision
   compiled with
-    NWTC Subroutine Library (v2.05.03a-bjj, 16-Apr-2015)
-    ElastoDyn (v1.02.00a-bjj, 31-Mar-2015)
-    InflowWind (v3.00.01a-adp, 27-Apr-2015)
-    AeroDyn (v14.04.00a-bjj, 14-Apr-2015)
-    ServoDyn (v1.02.00a-bjj, 31-Mar-2015)
-    HydroDyn (v2.02.02a-gjh, 25-Mar-2015)
-    SubDyn (v1.01.02a-rrd, 27-Feb-2015)
+    NWTC Subroutine Library (v2.06.05a-bjj, 5-Oct-2015)
+    ElastoDyn (v1.03.00a-bjj, 5-Oct-2015)
+    BeamDyn (unknown version, unknown date) [not called]
+    InflowWind (v3.01.00a-adp, 5-Oct-2015)
+    AeroDyn14 (v14.04.00a-bjj, 6-Oct-2015)
+    AeroDyn (unknown version, unknown date) [not called]
+    ServoDyn (v1.03.01a-bjj, 5-Oct-2015)
+    HydroDyn (v2.03.00c-adp, 05-Oct-2015)
+    SubDyn (v1.02.00a-rrd, 5-Oct-2015)
     MAP (unknown version, unknown date) [not called]
     FEAMooring (unknown version, unknown date) [not called]
     MoorDyn (unknown version, unknown date) [not called]
+    OrcaFlexInterface (unknown version, unknown date) [not called]
     IceFloe (unknown version, unknown date) [not called]
     IceDyn (unknown version, unknown date) [not called]
 
@@ -23,7 +26,7 @@ Description from the FAST input file:
 
 Interpolation order for input/output time histories: 2 (quadratic)
 Number of correction iterations:  1
-Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, and HydroDyn:   4860
+Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, HydroDyn, OrcaFlex, and/or BeamDyn:   4860
 
 
    Requested Time Steps  
@@ -33,7 +36,7 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, and Hydro
   FAST (glue code)    8.000E-03
   InflowWind          8.000E-03              1
   ElastoDyn           8.000E-03              1
-  AeroDyn             8.000E-03              1
+  AeroDyn14           8.000E-03              1
   ServoDyn            8.000E-03              1
   HydroDyn            8.000E-03              1
   SubDyn              8.000E-03              1

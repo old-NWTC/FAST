@@ -24,11 +24,11 @@ FAST_driver = FAST_Prog
 
 
 
-#FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -DDOUBLE_PRECISION  -fdefault-real-8
-#LDFLAGS = -O2 -m$(BITS) -fbacktrace
+FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
+LDFLAGS = -O2 -m$(BITS) -fbacktrace
 
-FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -DDOUBLE_PRECISION  -fdefault-real-8 -g -pg
-LDFLAGS = -O0 -m$(BITS) -fbacktrace  -g -pg
+#FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -DDOUBLE_PRECISION  -fdefault-real-8 -g -pg
+#LDFLAGS = -O0 -m$(BITS) -fbacktrace  -g -pg
 
 #.........................................
 # preprocessor definitions:
@@ -38,12 +38,12 @@ LDFLAGS = -O0 -m$(BITS) -fbacktrace  -g -pg
 # -Wl,--stack=999999999,--large-address-aware
 #
 #  -DFPE_TRAP_ENABLED
-#  -Wl,--large-address-aware   # not necessary when $(BITS) is 64 (64-bit target)
-#  -Wl,--stack=999999999       # not necessary when $(BITS) is 64
+#  -Wl,--large-address-aware              # not necessary when $(BITS) is 64 (64-bit target)
+#  -Wl,--stack=999999999                  # not necessary when $(BITS) is 64
 #  -Wconversion-extra -Wconversion
-#  -fdefault-real-8 # note this also promotes doubles to 16-bytes if possible
+#  -fdefault-real-8                       # note this also promotes doubles to 16-bytes if possible
 #  -fcheck=bounds,do,mem,pointer -std=f2003 -O0 -v -Wall
-#  -pg                          # generate debugging info for debugger
+#  -pg                                    # generate debugging info for debugger
 # http://gcc.gnu.org/onlinedocs/gfortran/Option-Index.html#Option-Index
 #
 # makefile options:
@@ -102,7 +102,7 @@ ifeq ($(OS),Windows_NT)
 else
 
    Registry     = $(FAST_DIR)/dependencies/registry.exe
-   MAP_lib      = $(BIN_DIR)/libmap-1.10.00.so
+   MAP_lib      = $(BIN_DIR)/libmap-1.10.01.so
 
    UNAME := $(shell uname -s)
 
@@ -110,10 +110,12 @@ else
          # Mac needs some additional flags prepended for linking to get lapack working:
       LDFLAGS     := -framework Accelerate $(LDFLAGS)
       LAPACK_LINK :=
+      #DLL_EXT     := dylib
    else
         # ifeq ($(UNAME), Linux)
         # bjj verify this: # I've been told that the lapack linking needs to occur at the end of the line (after all the object files) on linux:
       LAPACK_LINK  = -llapack -lblas
+      #DLL_EXT     := so
    endif
 
   # some options to dynamically load .so libraries (loaded when called in ServoDyn) for DLL control
