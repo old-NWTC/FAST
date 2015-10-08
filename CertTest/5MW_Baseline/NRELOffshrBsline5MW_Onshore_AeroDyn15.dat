@@ -61,12 +61,12 @@ TwrElev        TwrDiam        TwrCd
 85.268         3.870          1.0
 87.600         3.870          1.0
 ======  Outputs  ====================================================================================
-False         SumPrint            - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
-          3   NBlOuts             - Number of blade node outputs [0 - 9] (-)
- 1, 9, 19     BlOutNd             - Blade nodes whose values will be output  (-)
-          0   NTwOuts             - Number of tower node outputs [0 - 9]  (-)
- 1, 2, 3, 4, 5     TwOutNd             - Tower nodes whose values will be output  (-)
-                   OutList             - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
+True          SumPrint           - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
+         3    NBlOuts            - Number of blade node outputs [0 - 9] (-)
+ 1, 9, 19     BlOutNd            - Blade nodes whose values will be output  (-)
+         0    NTwOuts            - Number of tower node outputs [0 - 9]  (-)
+ 1, 2, 6      TwOutNd            - Tower nodes whose values will be output  (-)
+              OutList            - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
 "RtSpeed, RtSkew, B1Azimuth"
 "B1N1Theta, B1N2Theta, B1N3Theta"
 "B1N1VDisx, B1N1VDisy, B1N1VDisz"   ! disturbed wind velocity at Blade 1, Node 1

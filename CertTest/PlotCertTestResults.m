@@ -56,7 +56,7 @@ continue; %bjj: linearization not yet available in FAST 8.
             
                 % Compare time series
                 
-            if i == 4  || i > 17 % use the new binary file format
+            if i == 2 || i == 4  || i > 17 % use the new binary file format
                 oldFiles = strcat( oldRoot,  {'.outb', '.plt', '.outb'} );
                 newFiles = strcat( newRoot,  {'.outb', '.plt', '.outb'} );                                                
             else  % use the text format

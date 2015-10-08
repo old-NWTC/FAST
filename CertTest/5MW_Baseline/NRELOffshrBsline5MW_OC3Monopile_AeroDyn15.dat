@@ -64,7 +64,7 @@ TwrElev        TwrDiam        TwrCd
 ======  Outputs  ====================================================================================
 False         SumPrint            - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
           3   NBlOuts             - Number of blade node outputs [0 - 9] (-)
- 1, 9, 19     BlOutNd             - Blade nodes whose values will be output  (-)
+ 2, 9, 16, 4,5,7, 11, 13,14     BlOutNd             - Blade nodes whose values will be output  (-)
           0   NTwOuts             - Number of tower node outputs [0 - 9]  (-)
  1, 2, 3, 4, 5     TwOutNd             - Tower nodes whose values will be output  (-)
                    OutList             - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
@@ -77,6 +77,27 @@ False         SumPrint            - Generate a summary file listing input option
 "B1N2STVx,  B1N2STVy,  B1N2STVz"    ! structural translational velocity at Blade 1, Node 2
 "B1N3STVx,  B1N3STVy,  B1N3STVz"    ! structural translational velocity at Blade 1, Node 2
 "B1N1AxInd, B1N2AxInd, B1N3AxInd"
+"B1N1TnInd, B1N2TnInd, B1N3TnInd"
 "B1N1Alpha, B1N2Alpha, B1N3Alpha"
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------
+"RtVAvgxh, RtVAvgyh, RtVAvgzh"
+
+"b1n1cl,  b1n2cl,  b1n3cl, b1n4cl, b1n5cl, b1n6cl, b1n7cl, b1n8cl, b1n9cl "
+"b1n1cd,  b1n2cd,  b1n3cd, b1n4cd, b1n5cd, b1n6cd, b1n7cd, b1n8cd, b1n9cd "
+"b1n1cm,  b1n2cm,  b1n3cm, b1n4cm, b1n5cm, b1n6cm, b1n7cm, b1n8cm, b1n9cm "
+"b1n1phi, b1n2phi, b1n3phi,b1n4phi,b1n5phi,b1n6phi,b1n7phi,b1n8phi,b1n9phi"
+
+"b1n1fx,  b1n2fx,  b1n3fx, b1n4fx, b1n5fx, b1n6fx, b1n7fx, b1n8fx, b1n9fx"
+"b1n1fy,  b1n2fy,  b1n3fy, b1n4fy, b1n5fy, b1n6fy, b1n7fy, b1n8fy, b1n9fy"
+
+
+
+"b2n1cl,  b2n2cl,  b2n3cl, b2n4cl, b2n5cl, b2n6cl, b2n7cl, b2n8cl, b2n9cl "
+"b2n1cd,  b2n2cd,  b2n3cd, b2n4cd, b2n5cd, b2n6cd, b2n7cd, b2n8cd, b2n9cd "
+"b2n1cm,  b2n2cm,  b2n3cm, b2n4cm, b2n5cm, b2n6cm, b2n7cm, b2n8cm, b2n9cm "
+"b2n1phi, b2n2phi, b2n3phi,b2n4phi,b2n5phi,b2n6phi,b2n7phi,b2n8phi,b2n9phi"
+"b3n1cl,  b3n2cl,  b3n3cl, b3n4cl, b3n5cl, b3n6cl, b3n7cl, b3n8cl, b3n9cl "
+"b3n1cd,  b3n2cd,  b3n3cd, b3n4cd, b3n5cd, b3n6cd, b3n7cd, b3n8cd, b3n9cd "
+"b3n1cm,  b3n2cm,  b3n3cm, b3n4cm, b3n5cm, b3n6cm, b3n7cm, b3n8cm, b3n9cm "
+"b3n1phi, b3n2phi, b3n3phi,b3n4phi,b3n5phi,b3n6phi,b3n7phi,b3n8phi,b3n9phi"

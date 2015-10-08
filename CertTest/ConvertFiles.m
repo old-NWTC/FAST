@@ -16,24 +16,18 @@ addpath( genpath( FASTSimulationToolbox ) );
 % -------------------------------------------------------------------------
 oldDir = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\CertTest';
 newDir = '.';
-createAD15 = true;
+createAD15 = false; true;
 
-for i=1:25
+for i=1:26
    
     baseFileName  = ['Test' num2str(i,'%02.0f')  ]; %'_noHD'
     inputfile = [oldDir filesep baseFileName '.fst'];      
     
     
     ConvertFAST8_10to12(inputfile,newDir, createAD15);
-    
-    if (i>22)
-        baseFileName  = ['Test' num2str(i,'%02.0f') '_MD' ]; %'_noHD'
-        inputfile = [oldDir filesep baseFileName '.fst'];      
-        ConvertFAST8_10to12(inputfile,newDir, createAD15);
-    end
-    
+        
 end
-%%
+
 ConvertFAST8_10to12([oldDir filesep 'Test19_noHD.fst'],newDir, createAD15);
 ConvertFAST8_10to12([oldDir filesep 'Test19_withIce.fst'],newDir, createAD15);
 ConvertFAST8_10to12([oldDir filesep 'Test21_withIce.fst'],newDir, createAD15);
