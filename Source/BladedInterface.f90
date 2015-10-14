@@ -67,28 +67,25 @@ MODULE BladedInterface
   
 #ifdef STATIC_DLL_LOAD   
    INTERFACE
-      SUBROUTINE DISCON ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG )  BIND(C, NAME='DISCON')
+   
+#ifdef LOAD_SUPERCONTROLLER   
+      SUBROUTINE DISCON ( avrSWAP, from_SC, to_SC, aviFAIL, accINFILE, avcOUTNAME, avcMSG )  BIND(C, NAME='DISCON')
+#else      
+      SUBROUTINE DISCON ( avrSWAP,                 aviFAIL, accINFILE, avcOUTNAME, avcMSG )  BIND(C, NAME='DISCON')
+#endif      
+
          USE, INTRINSIC :: ISO_C_Binding
          
          REAL(C_FLOAT),          INTENT(INOUT) :: avrSWAP   (*)  ! DATA 
+#ifdef LOAD_SUPERCONTROLLER   
+         REAL(C_FLOAT),          INTENT(IN   ) :: from_SC   (*)  ! DATA from the supercontroller
+         REAL(C_FLOAT),          INTENT(INOUT) :: to_SC     (*)  ! DATA to the supercontroller
+#endif         
          INTEGER(C_INT),         INTENT(INOUT) :: aviFAIL        ! FLAG  (Status set in DLL and returned to simulation code)
          CHARACTER(KIND=C_CHAR), INTENT(IN)    :: accINFILE (*)  ! INFILE
          CHARACTER(KIND=C_CHAR), INTENT(IN)    :: avcOUTNAME(*)  ! OUTNAME (Simulation RootName)
          CHARACTER(KIND=C_CHAR), INTENT(INOUT) :: avcMSG    (*)  ! MESSAGE (Message from DLL to simulation code [ErrMsg])         
       END SUBROUTINE DISCON
-
-      SUBROUTINE DISCON_SC ( avrSWAP, from_SC, to_SC, aviFAIL, accINFILE, avcOUTNAME, avcMSG )  BIND(C, NAME='DISCON_SC')
-         USE, INTRINSIC :: ISO_C_Binding
-         
-         REAL(C_FLOAT),          INTENT(INOUT) :: avrSWAP   (*)  ! DATA 
-         REAL(C_FLOAT),          INTENT(IN   ) :: from_SC   (*)  ! DATA from the supercontroller
-         REAL(C_FLOAT),          INTENT(INOUT) :: to_SC     (*)  ! DATA to the supercontroller
-         INTEGER(C_INT),         INTENT(INOUT) :: aviFAIL        ! FLAG  (Status set in DLL and returned to simulation code)
-         CHARACTER(KIND=C_CHAR), INTENT(IN)    :: accINFILE (*)  ! INFILE
-         CHARACTER(KIND=C_CHAR), INTENT(IN)    :: avcOUTNAME(*)  ! OUTNAME (Simulation RootName)
-         CHARACTER(KIND=C_CHAR), INTENT(INOUT) :: avcMSG    (*)  ! MESSAGE (Message from DLL to simulation code [ErrMsg])         
-      END SUBROUTINE DISCON_SC
-      
    END INTERFACE   
 #endif
 
@@ -146,7 +143,7 @@ SUBROUTINE CallBladedDLL ( u, DLL, dll_data, p, ErrStat, ErrMsg )
       ! if we're statically loading the library (i.e., OpenFOAM), we can just call DISCON(); 
       ! I'll leave some options for whether the supercontroller is being used
 #ifdef LOAD_SUPERCONTROLLER
-   CALL DISCON_SC( dll_data%avrSWAP, u%SuperController, dll_data%SCoutput, aviFAIL, accINFILE, avcOUTNAME, avcMSG )
+   CALL DISCON( dll_data%avrSWAP, u%SuperController, dll_data%SCoutput, aviFAIL, accINFILE, avcOUTNAME, avcMSG )
 #else
    CALL DISCON( dll_data%avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG )
 #endif
@@ -206,11 +203,11 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
       
 
    ! Define all the parameters for the Bladed Interface   
-   IF (ALLOCATED(y%SuperController)) THEN   
-      InputFileData%DLL_ProcName      = 'DISCON_SC'                  ! The name of the procedure in the DLL that will be called.
-   ELSE
+   !IF (ALLOCATED(y%SuperController)) THEN   
+   !   InputFileData%DLL_ProcName      = 'DISCON_SC'                  ! The name of the procedure in the DLL that will be called.
+   !ELSE
       InputFileData%DLL_ProcName      = 'DISCON'                    ! The name of the procedure in the DLL that will be called.
-   END IF
+   !END IF
    
    ErrStat = ErrID_None
    ErrMsg= ''
