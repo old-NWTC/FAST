@@ -33,7 +33,7 @@ MODULE BladedInterface
    IMPLICIT                        NONE
 
 
-   TYPE(ProgDesc), PARAMETER    :: BladedInterface_Ver = ProgDesc( 'ServoDyn Interface for Bladed Controllers', 'using '//TRIM(OS_Desc), '20-Aug-2015' )
+   TYPE(ProgDesc), PARAMETER    :: BladedInterface_Ver = ProgDesc( 'ServoDyn Interface for Bladed Controllers', 'using '//TRIM(OS_Desc), '14-Oct-2015' )
    
    
       ! Definition of the DLL Interface (from Bladed):
@@ -113,6 +113,18 @@ SUBROUTINE CallBladedDLL ( u, DLL, dll_data, p, ErrStat, ErrMsg )
    accINFILE  = TRANSFER( TRIM(p%DLL_InFile)//C_NULL_CHAR, accINFILE  )
    avcMSG     = TRANSFER( C_NULL_CHAR,                     avcMSG     ) !bjj this is intent(out), so we shouldn't have to do this, but, to be safe...
    
+#ifdef STATIC_DLL_LOAD
+
+      ! if we're statically loading the library (i.e., OpenFOAM), we can just call DISCON(); 
+      ! I'll leave some options for whether the supercontroller is being used
+   if ( ALLOCATED(dll_data%SCoutput) ) then
+      CALL DISCON( dll_data%avrSWAP, u%SuperController, dll_data%SCoutput, aviFAIL, accINFILE, avcOUTNAME, avcMSG )
+   else
+      CALL DISCON( dll_data%avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG )
+   end if
+
+#else
+
    IF ( ALLOCATED(dll_data%SCoutput) ) THEN
          ! Call the DLL (first associate the address from the procedure in the DLL with the subroutine):
       CALL C_F_PROCPOINTER( DLL%ProcAddr(1), DLL_SC_Subroutine) 
@@ -126,6 +138,7 @@ SUBROUTINE CallBladedDLL ( u, DLL, dll_data, p, ErrStat, ErrMsg )
       
    END IF
    
+#endif
    
    IF ( aviFAIL /= 0 ) THEN
 
@@ -245,6 +258,12 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
    OtherState%dll_Data%YawRateCom = 0.0
    OtherState%dll_Data%HSSBrFrac  = 0.0
 
+   
+#ifdef STATIC_DLL_LOAD
+      ! because OpenFOAM needs the MPI task to copy the library, we're not going to dynamically load it; it needs to be loaded at runtime.
+   p%DLL_Trgt%FileName = ''
+   p%DLL_Trgt%ProcName = ''
+#else
    ! Define and load the DLL:
 
    p%DLL_Trgt%FileName = InputFileData%DLL_FileName
@@ -255,6 +274,7 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
    CALL LoadDynamicLib ( p%DLL_Trgt, ErrStat2, ErrMsg2 )
       CALL CheckError(ErrStat2,ErrMsg2)
       IF ( ErrStat >= AbortErrLev ) RETURN
+#endif
       
     ! Set status flag:
 
@@ -321,7 +341,7 @@ SUBROUTINE BladedInterface_End(u, p, OtherState, ErrStat, ErrMsg)
       CALL CallBladedDLL(u, p%DLL_Trgt,  OtherState%dll_data, p, ErrStat, ErrMsg)
    END IF
       
-   CALL FreeDynamicLib( p%DLL_Trgt, ErrStat2, ErrMsg2 )
+   CALL FreeDynamicLib( p%DLL_Trgt, ErrStat2, ErrMsg2 )  ! this doesn't do anything #ifdef STATIC_DLL_LOAD  because p%DLL_Trgt is 0 (NULL)
    IF (ErrStat2 /= ErrID_None) THEN  
       ErrStat = MAX(ErrStat, ErrStat2)      
       ErrMsg = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
