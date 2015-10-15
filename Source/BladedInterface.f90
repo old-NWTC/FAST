@@ -396,19 +396,23 @@ SUBROUTINE BladedInterface_CalcOutput(t, u, p, OtherState, ErrStat, ErrMsg)
    
       ! Set the input values of the avrSWAP array:
    CALL Fill_avrSWAP( t, u, p, LEN(ErrMsg), OtherState%dll_data )
-
+   
+#ifdef DEBUG_BLADED_INTERFACE
 !CALL WrNumAryFileNR ( 58, (/t/),'1x,ES15.6E2', ErrStat, ErrMsg )
-!CALL WrNumAryFileNR ( 58, OtherState%dll_data%avrSWAP,'1x,ES15.6E2', ErrStat, ErrMsg )
-!write(58,'()')
+CALL WrNumAryFileNR ( 58, OtherState%dll_data%avrSWAP,'1x,ES15.6E2', ErrStat, ErrMsg )
+write(58,'()')
+#endif
    
    
       ! Call the Bladed-style DLL controller:
    CALL CallBladedDLL(u, p%DLL_Trgt,  OtherState%dll_data, p, ErrStat, ErrMsg)
       IF ( ErrStat >= AbortErrLev ) RETURN
 
+#ifdef DEBUG_BLADED_INTERFACE
 !CALL WrNumAryFileNR ( 59, (/t/),'1x,ES15.6E2', ErrStat, ErrMsg )
-!CALL WrNumAryFileNR ( 59, OtherState%dll_data%avrSWAP,'1x,ES15.6E2', ErrStat, ErrMsg )
-!write(59,'()')
+CALL WrNumAryFileNR ( 59, OtherState%dll_data%avrSWAP,'1x,ES15.6E2', ErrStat, ErrMsg )
+write(59,'()')
+#endif
       
       
       !bjj: setting this after the call so that the first call is with avrSWAP(1)=0 [apparently it doesn't like to be called at initialization.... but maybe we can fix that later]
