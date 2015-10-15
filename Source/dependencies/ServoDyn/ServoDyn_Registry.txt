@@ -9,9 +9,9 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed $Date: 2015-09-19 10:53:21 -0600 (Sat, 19 Sep 2015) $
-# (File) Revision #: $Rev: 1128 $
-# URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ServoDyn_Registry.txt $
+# File last committed $Date$
+# (File) Revision #: $Rev$
+# URL: $HeadURL$
 ###################################################################################################################################
 
 
@@ -30,8 +30,8 @@ typedef	^	InitInputType	ReKi	r_N_O_G	{3}	-	-	"nacelle origin for setting up mesh
 typedef	^	InitInputType	DbKi	Tmax	-	-	-	"max time from glue code"	s
 typedef	^	InitInputType	ReKi	AvgWindSpeed	-	-	-	"average wind speed for the simulation"	m/s
 typedef	^	InitInputType	ReKi	AirDens	-	-	-	"air density"	kg/m^3
-typedef	^	InitInputType	IntKi	NumSCin	-	-	-	"number of controller inputs [from supercontroller]"	-
-typedef	^	InitInputType	IntKi	NumSCout	-	-	-	"number of controller outputs [to supercontroller]"	-
+typedef	^	InitInputType	IntKi	NumSC2Ctrl	-	-	-	"number of controller inputs [from supercontroller]"	-
+typedef	^	InitInputType	IntKi	NumCtrl2SC	-	-	-	"number of controller outputs [to supercontroller]"	-
 
 # Define outputs from the initialization routine here:
 typedef	^	InitOutputType	CHARACTER(ChanLen)	WriteOutputHdr	{:}	-	-	"Names of the output-to-file channels"	-

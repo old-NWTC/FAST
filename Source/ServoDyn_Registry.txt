@@ -30,8 +30,8 @@ typedef	^	InitInputType	ReKi	r_N_O_G	{3}	-	-	"nacelle origin for setting up mesh
 typedef	^	InitInputType	DbKi	Tmax	-	-	-	"max time from glue code"	s
 typedef	^	InitInputType	ReKi	AvgWindSpeed	-	-	-	"average wind speed for the simulation"	m/s
 typedef	^	InitInputType	ReKi	AirDens	-	-	-	"air density"	kg/m^3
-typedef	^	InitInputType	IntKi	NumSCin	-	-	-	"number of controller inputs [from supercontroller]"	-
-typedef	^	InitInputType	IntKi	NumSCout	-	-	-	"number of controller outputs [to supercontroller]"	-
+typedef	^	InitInputType	IntKi	NumSC2Ctrl	-	-	-	"number of controller inputs [from supercontroller]"	-
+typedef	^	InitInputType	IntKi	NumCtrl2SC	-	-	-	"number of controller outputs [to supercontroller]"	-
 
 # Define outputs from the initialization routine here:
 typedef	^	InitOutputType	CHARACTER(ChanLen)	WriteOutputHdr	{:}	-	-	"Names of the output-to-file channels"	-

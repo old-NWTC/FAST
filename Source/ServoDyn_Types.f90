@@ -45,8 +45,8 @@ IMPLICIT NONE
     REAL(DbKi)  :: Tmax      ! max time from glue code [s]
     REAL(ReKi)  :: AvgWindSpeed      ! average wind speed for the simulation [m/s]
     REAL(ReKi)  :: AirDens      ! air density [kg/m^3]
-    INTEGER(IntKi)  :: NumSCin      ! number of controller inputs [from supercontroller] [-]
-    INTEGER(IntKi)  :: NumSCout      ! number of controller outputs [to supercontroller] [-]
+    INTEGER(IntKi)  :: NumSC2Ctrl      ! number of controller inputs [from supercontroller] [-]
+    INTEGER(IntKi)  :: NumCtrl2SC      ! number of controller outputs [to supercontroller] [-]
   END TYPE SrvD_InitInputType
 ! =======================
 ! =========  SrvD_InitOutputType  =======
@@ -370,8 +370,8 @@ ENDIF
     DstInitInputData%Tmax = SrcInitInputData%Tmax
     DstInitInputData%AvgWindSpeed = SrcInitInputData%AvgWindSpeed
     DstInitInputData%AirDens = SrcInitInputData%AirDens
-    DstInitInputData%NumSCin = SrcInitInputData%NumSCin
-    DstInitInputData%NumSCout = SrcInitInputData%NumSCout
+    DstInitInputData%NumSC2Ctrl = SrcInitInputData%NumSC2Ctrl
+    DstInitInputData%NumCtrl2SC = SrcInitInputData%NumCtrl2SC
  END SUBROUTINE SrvD_CopyInitInput
 
  SUBROUTINE SrvD_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
@@ -436,8 +436,8 @@ ENDIF
       Db_BufSz   = Db_BufSz   + 1  ! Tmax
       Re_BufSz   = Re_BufSz   + 1  ! AvgWindSpeed
       Re_BufSz   = Re_BufSz   + 1  ! AirDens
-      Int_BufSz  = Int_BufSz  + 1  ! NumSCin
-      Int_BufSz  = Int_BufSz  + 1  ! NumSCout
+      Int_BufSz  = Int_BufSz  + 1  ! NumSC2Ctrl
+      Int_BufSz  = Int_BufSz  + 1  ! NumCtrl2SC
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -498,9 +498,9 @@ ENDIF
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%AirDens
       Re_Xferred   = Re_Xferred   + 1
-      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumSCin
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumSC2Ctrl
       Int_Xferred   = Int_Xferred   + 1
-      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumSCout
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumCtrl2SC
       Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE SrvD_PackInitInput
 
@@ -589,9 +589,9 @@ ENDIF
       Re_Xferred   = Re_Xferred + 1
       OutData%AirDens = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
-      OutData%NumSCin = IntKiBuf( Int_Xferred ) 
+      OutData%NumSC2Ctrl = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
-      OutData%NumSCout = IntKiBuf( Int_Xferred ) 
+      OutData%NumCtrl2SC = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
  END SUBROUTINE SrvD_UnPackInitInput
 

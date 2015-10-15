@@ -439,8 +439,8 @@ IMPLICIT NONE
     LOGICAL  :: LidRadialVel      ! TRUE => return radial component, FALSE => return 'x' direction estimate [-]
     INTEGER(IntKi)  :: TurbineID      ! ID number for turbine (used to create output file naming convention) [-]
     REAL(ReKi) , DIMENSION(1:3)  :: TurbinePos      ! Initial position of turbine base (origin used in future for graphics) [m]
-    INTEGER(IntKi)  :: NumSCin      ! number of controller inputs [from supercontroller] [-]
-    INTEGER(IntKi)  :: NumSCout      ! number of controller outputs [to supercontroller] [-]
+    INTEGER(IntKi)  :: NumSC2Ctrl      ! number of controller inputs [from supercontroller] [-]
+    INTEGER(IntKi)  :: NumCtrl2SC      ! number of controller outputs [to supercontroller] [-]
   END TYPE FAST_ExternInitType
 ! =======================
 ! =========  FAST_TurbineType  =======
@@ -23300,8 +23300,8 @@ ENDIF
     DstExternInitTypeData%LidRadialVel = SrcExternInitTypeData%LidRadialVel
     DstExternInitTypeData%TurbineID = SrcExternInitTypeData%TurbineID
     DstExternInitTypeData%TurbinePos = SrcExternInitTypeData%TurbinePos
-    DstExternInitTypeData%NumSCin = SrcExternInitTypeData%NumSCin
-    DstExternInitTypeData%NumSCout = SrcExternInitTypeData%NumSCout
+    DstExternInitTypeData%NumSC2Ctrl = SrcExternInitTypeData%NumSC2Ctrl
+    DstExternInitTypeData%NumCtrl2SC = SrcExternInitTypeData%NumCtrl2SC
  END SUBROUTINE FAST_CopyExternInitType
 
  SUBROUTINE FAST_DestroyExternInitType( ExternInitTypeData, ErrStat, ErrMsg )
@@ -23355,8 +23355,8 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1  ! LidRadialVel
       Int_BufSz  = Int_BufSz  + 1  ! TurbineID
       Re_BufSz   = Re_BufSz   + SIZE(InData%TurbinePos)  ! TurbinePos
-      Int_BufSz  = Int_BufSz  + 1  ! NumSCin
-      Int_BufSz  = Int_BufSz  + 1  ! NumSCout
+      Int_BufSz  = Int_BufSz  + 1  ! NumSC2Ctrl
+      Int_BufSz  = Int_BufSz  + 1  ! NumCtrl2SC
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -23394,9 +23394,9 @@ ENDIF
       Int_Xferred   = Int_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TurbinePos))-1 ) = PACK(InData%TurbinePos,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%TurbinePos)
-      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumSCin
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumSC2Ctrl
       Int_Xferred   = Int_Xferred   + 1
-      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumSCout
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumCtrl2SC
       Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE FAST_PackExternInitType
 
@@ -23452,9 +23452,9 @@ ENDIF
       OutData%TurbinePos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TurbinePos))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%TurbinePos)
     DEALLOCATE(mask1)
-      OutData%NumSCin = IntKiBuf( Int_Xferred ) 
+      OutData%NumSC2Ctrl = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
-      OutData%NumSCout = IntKiBuf( Int_Xferred ) 
+      OutData%NumCtrl2SC = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
  END SUBROUTINE FAST_UnPackExternInitType
 

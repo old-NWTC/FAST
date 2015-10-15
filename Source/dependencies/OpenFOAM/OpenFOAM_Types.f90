@@ -37,13 +37,13 @@ IMPLICIT NONE
 ! =========  OpFM_InitInputType_C  =======
   TYPE, BIND(C) :: OpFM_InitInputType_C
    TYPE(C_PTR) :: object = C_NULL_PTR
-    INTEGER(KIND=C_INT) :: NumSCin 
-    INTEGER(KIND=C_INT) :: NumSCout 
+    INTEGER(KIND=C_INT) :: NumSC2Ctrl 
+    INTEGER(KIND=C_INT) :: NumCtrl2SC 
   END TYPE OpFM_InitInputType_C
   TYPE, PUBLIC :: OpFM_InitInputType
     TYPE( OpFM_InitInputType_C ) :: C_obj
-    INTEGER(IntKi)  :: NumSCin      ! number of controller inputs [from supercontroller] [-]
-    INTEGER(IntKi)  :: NumSCout      ! number of controller outputs [to supercontroller] [-]
+    INTEGER(IntKi)  :: NumSC2Ctrl      ! number of controller inputs [from supercontroller] [-]
+    INTEGER(IntKi)  :: NumCtrl2SC      ! number of controller outputs [to supercontroller] [-]
   END TYPE OpFM_InitInputType
 ! =======================
 ! =========  OpFM_InitOutputType_C  =======
@@ -153,10 +153,10 @@ CONTAINS
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-    DstInitInputData%NumSCin = SrcInitInputData%NumSCin
-    DstInitInputData%C_obj%NumSCin = SrcInitInputData%C_obj%NumSCin
-    DstInitInputData%NumSCout = SrcInitInputData%NumSCout
-    DstInitInputData%C_obj%NumSCout = SrcInitInputData%C_obj%NumSCout
+    DstInitInputData%NumSC2Ctrl = SrcInitInputData%NumSC2Ctrl
+    DstInitInputData%C_obj%NumSC2Ctrl = SrcInitInputData%C_obj%NumSC2Ctrl
+    DstInitInputData%NumCtrl2SC = SrcInitInputData%NumCtrl2SC
+    DstInitInputData%C_obj%NumCtrl2SC = SrcInitInputData%C_obj%NumCtrl2SC
  END SUBROUTINE OpFM_CopyInitInput
 
  SUBROUTINE OpFM_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
@@ -205,8 +205,8 @@ CONTAINS
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-      Int_BufSz  = Int_BufSz  + 1  ! NumSCin
-      Int_BufSz  = Int_BufSz  + 1  ! NumSCout
+      Int_BufSz  = Int_BufSz  + 1  ! NumSC2Ctrl
+      Int_BufSz  = Int_BufSz  + 1  ! NumCtrl2SC
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -236,9 +236,9 @@ CONTAINS
   Db_Xferred  = 1
   Int_Xferred = 1
 
-      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumSCin
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumSC2Ctrl
       Int_Xferred   = Int_Xferred   + 1
-      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumSCout
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumCtrl2SC
       Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE OpFM_PackInitInput
 
@@ -275,12 +275,12 @@ CONTAINS
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-      OutData%NumSCin = IntKiBuf( Int_Xferred ) 
+      OutData%NumSC2Ctrl = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
-      OutData%C_obj%NumSCin = OutData%NumSCin
-      OutData%NumSCout = IntKiBuf( Int_Xferred ) 
+      OutData%C_obj%NumSC2Ctrl = OutData%NumSC2Ctrl
+      OutData%NumCtrl2SC = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
-      OutData%C_obj%NumSCout = OutData%NumSCout
+      OutData%C_obj%NumCtrl2SC = OutData%NumCtrl2SC
  END SUBROUTINE OpFM_UnPackInitInput
 
  SUBROUTINE OpFM_C2Fary_CopyInitInput( InitInputData, ErrStat, ErrMsg )
@@ -290,8 +290,8 @@ CONTAINS
     ! 
     ErrStat = ErrID_None
     ErrMsg  = ""
-    InitInputData%NumSCin = InitInputData%C_obj%NumSCin
-    InitInputData%NumSCout = InitInputData%C_obj%NumSCout
+    InitInputData%NumSC2Ctrl = InitInputData%C_obj%NumSC2Ctrl
+    InitInputData%NumCtrl2SC = InitInputData%C_obj%NumCtrl2SC
  END SUBROUTINE OpFM_C2Fary_CopyInitInput
 
  SUBROUTINE OpFM_CopyInitOutput( SrcInitOutputData, DstInitOutputData, CtrlCode, ErrStat, ErrMsg )

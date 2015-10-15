@@ -22,8 +22,8 @@
 
   typedef struct OpFM_InitInputType {
     void * object ;
-    int NumSCin ;
-    int NumSCout ;
+    int NumSC2Ctrl ;
+    int NumCtrl2SC ;
   } OpFM_InitInputType_t ;
   typedef struct OpFM_InitOutputType {
     void * object ;

@@ -215,9 +215,8 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
       
-   if ( (InitInp%NumSCin > 0 .and. InitInp%NumSCout <= 0) .or. &
-        (InitInp%NumSCin <= 0 .and. InitInp%NumSCout > 0) ) then
-      
+   if ( (InitInp%NumCtrl2SC  > 0 .and. InitInp%NumCtrl2SC <= 0) .or. &
+        (InitInp%NumSC2Ctrl <= 0 .and. InitInp%NumSC2Ctrl  > 0) ) then      
       call CheckError( ErrID_Fatal, "If supercontroller is used, there must be at least one supercontroller input and one supercontroller output." )
       return
    end if
@@ -291,8 +290,8 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
         
-   IF (InitInp%NumSCin > 0 .and. p%UseBladedInterface) THEN
-      CALL AllocAry( u%SuperController, InitInp%NumSCin, 'u%SuperController', ErrStat2, ErrMsg2 )
+   IF (InitInp%NumSC2Ctrl > 0 .and. p%UseBladedInterface) THEN
+      CALL AllocAry( u%SuperController, InitInp%NumSC2Ctrl, 'u%SuperController', ErrStat2, ErrMsg2 )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
       u%SuperController = 0.0_SiKi
@@ -366,8 +365,8 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       IF (ErrStat >= AbortErrLev) RETURN
 
    
-   IF (InitInp%NumSCout > 0 .and. p%UseBladedInterface) THEN
-      CALL AllocAry( y%SuperController, InitInp%NumSCout, 'y%SuperController', ErrStat2, ErrMsg2 )
+   IF (InitInp%NumCtrl2SC > 0 .and. p%UseBladedInterface) THEN
+      CALL AllocAry( y%SuperController, InitInp%NumCtrl2SC, 'y%SuperController', ErrStat2, ErrMsg2 )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
       y%SuperController = 0.0_SiKi
