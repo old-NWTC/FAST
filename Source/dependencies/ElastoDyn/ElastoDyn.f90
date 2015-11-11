@@ -20,8 +20,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-10-05 22:26:16 -0600 (Mon, 05 Oct 2015) $
-! (File) Revision #: $Rev: 1143 $
+! File last committed: $Date: 2015-11-11 10:05:54 -0700 (Wed, 11 Nov 2015) $
+! (File) Revision #: $Rev: 1167 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn.f90 $
 !**********************************************************************************************************************************
 
@@ -33,10 +33,10 @@ MODULE ElastoDyn_Parameters
 
    USE NWTC_Library
 
-   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.03.00a-bjj', '5-Oct-2015' )
+   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.03.01a-bjj', '5-Nov-2015' )
    CHARACTER(*),   PARAMETER  :: ED_Nickname = 'ED'
    
-   REAL(ReKi), PARAMETER            :: SmallAngleLimit_Deg  =  15.0                     ! Largest input angle considered "small" (used as a check on input data), degrees
+   REAL(ReKi), PARAMETER      :: SmallAngleLimit_Deg  =  15.0                     ! Largest input angle considered "small" (used as a check on input data), degrees
 
 
       ! Parameters related to degrees of freedom (formerly MODULE DOFs)
@@ -1482,6 +1482,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    InitOut%BladeLength = p%TipRad - p%HubRad
    InitOut%PlatformPos = x%QT(1:6)
    InitOut%HubHt       = p%HubHt
+   InitOut%TwrBasePos  = u%TowerLn2Mesh%Position(:,p%TwrNodes + 2)
 
    CALL AllocAry(InitOut%BlPitch, p%NumBl, 'BlPitch', ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -1714,7 +1715,6 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    REAL(ReKi)                   :: LinAccEIMU(3)                                   ! Total linear acceleration of the nacelle IMU (point IMU) in the inertia frame (body E for earth)
    REAL(ReKi)                   :: LinAccEO  (3)                                   ! Total linear acceleration of the base plate (point O) in the inertia frame (body E for earth)
    REAL(ReKi)                   :: LinAccEZ  (3)                                   ! Total linear acceleration of the platform refernce (point Z) in the inertia frame (body E for earth)
-   REAL(ReKi)                   :: LinVelET0 (3)                                   ! Total linear velocity of the tower base (point T0) in the inertia frame (body E for earth) 
    REAL(ReKi)                   :: MomBNcRt  (3)                                   ! Total moment at the base plate      (body B) / yaw bearing                           (point O) due to the nacelle, generator, and rotor.
    REAL(ReKi)                   :: MomFGagT  (3)                                   ! Total moment at the tower element   (body F) / tower strain gage location            (point T) due to the nacelle and rotor and tower above the strain gage.
    REAL(ReKi)                   :: MomLPRot  (3)                                   ! Total moment at the low-speed shaft (body L) / teeter pin                            (point P) due to the rotor.
@@ -1736,7 +1736,8 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
    INTEGER, PARAMETER           :: NDims = 3
    REAL(ReKi)                   :: LinAccES (NDims,0:p%TipNode,p%NumBl)            ! Total linear acceleration of a point on a   blade (point S) in the inertia frame (body E for earth).
-   REAL(ReKi)                   :: LinAccET (NDims,p%TwrNodes)                     ! Total linear acceleration of a point on the tower (point T) in the inertia frame (body E for earth).
+   REAL(ReKi)                   :: LinAccET (NDims,0:p%TwrNodes)                   ! Total linear acceleration of a point on the tower (point T) in the inertia frame (body E for earth).
+   REAL(ReKi)                   :: AngAccEF (NDims,0:p%TwrNodes)                   ! Total angular acceleration of tower element J (body F) in the inertia frame (body E for earth).
    REAL(ReKi)                   :: FrcS0B   (NDims,p%NumBl)                        ! Total force at the blade root (point S(0)) due to the blade.
    REAL(ReKi)                   :: FTTower  (NDims,p%TwrNodes)                     ! Total hydrodynamic + aerodynamic force per unit length acting on the tower at point T.
    REAL(ReKi)                   :: MFHydro  (NDims,p%TwrNodes)                     ! Total hydrodynamic + aerodynamic moment per unit length acting on a tower element (body F) at point T.
@@ -1880,14 +1881,25 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
    ENDDO          ! K - All blades
 
-   DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
+   DO J = 0,p%TwrNodes  ! Loop through the tower nodes / elements, starting at the tower base (0)
 
       LinAccET(:,J) = OtherState%RtHS%LinAccETt(:,J)
+      AngAccEF(:,J) = OtherState%RtHS%AngAccEFt(:,J)
+
+      DO I = 1,p%DOFs%NPTE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
+         LinAccET(:,J) = LinAccET(:,J) + OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,:)*OtherState%QD2T(p%DOFs%PTE(I))
+         AngAccEF(:,J) = AngAccEF(:,J) + OtherState%RtHS%PAngVelEF(J,p%DOFs%PTE(I),0,:)*OtherState%QD2T(p%DOFs%PTE(I))
+      ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
+
+   ENDDO ! J - Tower nodes / elements
+
+
+   DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
+
       FTTower (:,J) = OtherState%RtHS%FTHydrot (:,J)
       MFHydro (:,J) = OtherState%RtHS%MFHydrot (:,J)
 
       DO I = 1,p%DOFs%NPTE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
-         LinAccET(:,J) = LinAccET(:,J) + OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,:)*OtherState%QD2T(p%DOFs%PTE(I))
          FTTower (:,J) = FTTower (:,J) + OtherState%RtHS%PFTHydro (:,J,p%DOFs%PTE(I)  )*OtherState%QD2T(p%DOFs%PTE(I))
          MFHydro (:,J) = MFHydro (:,J) + OtherState%RtHS%PMFHydro (:,J,p%DOFs%PTE(I)  )*OtherState%QD2T(p%DOFs%PTE(I))
       ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
@@ -2528,7 +2540,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
                y%BladeLn2Mesh(K)%Orientation(2,3,NodeNum) =     OtherState%CoordSys%te2(K,J2,2)
                y%BladeLn2Mesh(K)%Orientation(3,3,NodeNum) =     OtherState%CoordSys%te3(K,J2,2)
                
-                  ! Translational Acceleration
+                  ! Translational Acceleration (for water-power request for added mass calculations)
                y%BladeLn2Mesh(K)%TranslationAcc(1,NodeNum) =     LinAccES(1,J2,K)
                y%BladeLn2Mesh(K)%TranslationAcc(2,NodeNum) = -1.*LinAccES(3,J2,K)
                y%BladeLn2Mesh(K)%TranslationAcc(3,NodeNum) =     LinAccES(2,J2,K)  
@@ -2832,6 +2844,15 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       y%TowerLn2Mesh%RotationVel(1,J)     =     OtherState%RtHS%AngVelEF(1,J)
       y%TowerLn2Mesh%RotationVel(2,J)     = -1.*OtherState%RtHS%AngVelEF(3,J)
       y%TowerLn2Mesh%RotationVel(3,J)     =     OtherState%RtHS%AngVelEF(2,J) 
+            
+      y%TowerLn2Mesh%TranslationAcc(1,J)  =     LinAccET(1,J)
+      y%TowerLn2Mesh%TranslationAcc(2,J)  = -1.*LinAccET(3,J)
+      y%TowerLn2Mesh%TranslationAcc(3,J)  =     LinAccET(2,J)
+            
+      y%TowerLn2Mesh%RotationAcc(1,J)     =     AngAccEF(1,J)
+      y%TowerLn2Mesh%RotationAcc(2,J)     = -1.*AngAccEF(3,J)
+      y%TowerLn2Mesh%RotationAcc(3,J)     =     AngAccEF(2,J) 
+      
    END DO
                
    
@@ -2860,6 +2881,14 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    y%TowerLn2Mesh%RotationVel(2,J)     = -1.*OtherState%RtHS%AngVelEB(3)
    y%TowerLn2Mesh%RotationVel(3,J)     =     OtherState%RtHS%AngVelEB(2) 
 
+   y%TowerLn2Mesh%TranslationAcc(1,J)  =     LinAccEO(1)
+   y%TowerLn2Mesh%TranslationAcc(2,J)  = -1.*LinAccEO(3)
+   y%TowerLn2Mesh%TranslationAcc(3,J)  =     LinAccEO(2)
+   
+   y%TowerLn2Mesh%RotationAcc(1,J)     =     AngAccEB(1)
+   y%TowerLn2Mesh%RotationAcc(2,J)     = -1.*AngAccEB(3)
+   y%TowerLn2Mesh%RotationAcc(3,J)     =     AngAccEB(2) 
+
    
    ! p%TwrNodes+2 is the tower base:
    J = p%TwrNodes+2
@@ -2878,15 +2907,22 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    y%TowerLn2Mesh%Orientation(3,3,J)   =     OtherState%CoordSys%a2(2)
    y%TowerLn2Mesh%Orientation(2,3,J)   = -1.*OtherState%CoordSys%a3(2)
 
-   LinVelET0 = OtherState%RtHS%LinVelEZ + CROSS_PRODUCT( OtherState%RtHS%AngVelEX, OtherState%RtHS%rZT0 )
-   y%TowerLn2Mesh%TranslationVel(1,J)  =     LinVelET0(1)       
-   y%TowerLn2Mesh%TranslationVel(2,J)  = -1.*LinVelET0(3) 
-   y%TowerLn2Mesh%TranslationVel(3,J)  =     LinVelET0(2)   
+   y%TowerLn2Mesh%TranslationVel(1,J)  =     OtherState%RtHS%LinVelET(1,0)       
+   y%TowerLn2Mesh%TranslationVel(2,J)  = -1.*OtherState%RtHS%LinVelET(3,0) 
+   y%TowerLn2Mesh%TranslationVel(3,J)  =     OtherState%RtHS%LinVelET(2,0)   
    
-   y%TowerLn2Mesh%RotationVel(1,J)     =     OtherState%RtHS%AngVelEX(1)
-   y%TowerLn2Mesh%RotationVel(2,J)     = -1.*OtherState%RtHS%AngVelEX(3)
-   y%TowerLn2Mesh%RotationVel(3,J)     =     OtherState%RtHS%AngVelEX(2) 
-
+   y%TowerLn2Mesh%RotationVel(1,J)     =     OtherState%RtHS%AngVelEF(1,0)
+   y%TowerLn2Mesh%RotationVel(2,J)     = -1.*OtherState%RtHS%AngVelEF(3,0)
+   y%TowerLn2Mesh%RotationVel(3,J)     =     OtherState%RtHS%AngVelEF(2,0) 
+   
+   y%TowerLn2Mesh%TranslationAcc(1,J)  =     LinAccET(1,0)
+   y%TowerLn2Mesh%TranslationAcc(2,J)  = -1.*LinAccET(3,0)
+   y%TowerLn2Mesh%TranslationAcc(3,J)  =     LinAccET(2,0)
+   
+   y%TowerLn2Mesh%RotationAcc(1,J)     =     AngAccEF(1,0)
+   y%TowerLn2Mesh%RotationAcc(2,J)     = -1.*AngAccEF(3,0)
+   y%TowerLn2Mesh%RotationAcc(3,J)     =     AngAccEF(2,0) 
+   
    !...............................................................................................................................
    ! Outputs required for ServoDyn
    !...............................................................................................................................
@@ -4700,8 +4736,8 @@ SUBROUTINE SetOtherParameters( p, InputFileData, ErrStat, ErrMsg )
 
       ! Allocate the arrays needed in the Coeff routine:
 
-   CALL AllocAry( p%AxRedTFA, 2,       2_IntKi, p%TTopNode,         'AxRedTFA',  ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( p%AxRedTSS, 2,       2_IntKi, p%TTopNode,         'AxRedTSS',  ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   !CALL AllocAry( p%AxRedTFA, 2,       2_IntKi, p%TTopNode,         'AxRedTFA',  ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
+   !CALL AllocAry( p%AxRedTSS, 2,       2_IntKi, p%TTopNode,         'AxRedTSS',  ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
    !CALL AllocAry( p%AxRedBld, p%NumBl, 3_IntKi, 3_IntKi, p%TipNode, 'AxRedBld',  ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( p%BldCG,    p%NumBl,                              'BldCG',     ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( p%KBF,      p%NumBl, 2_IntKi, 2_IntKi,            'KBF',       ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) RETURN
@@ -4726,17 +4762,14 @@ SUBROUTINE SetOtherParameters( p, InputFileData, ErrStat, ErrMsg )
       RETURN
    END IF
 
-   ALLOCATE ( p%TwrFASF(2,p%TTopNode,0:2) , STAT=ErrStat )
+   
+   ALLOCATE ( p%TwrFASF(2,0:p%TTopNode,0:2) , &
+              p%TwrSSSF(2,0:p%TTopNode,0:2) , & 
+              p%AxRedTFA(2,2,0:p%TTopNode)  , &
+              p%AxRedTSS(2,2,0:p%TTopNode)  , STAT=ErrStat )
    IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
-      ErrMsg  = 'Error allocating TwrFASF array.'
-      RETURN
-   END IF
-
-   ALLOCATE ( p%TwrSSSF(2,p%TTopNode,0:2) , STAT=ErrStat   )
-   IF ( ErrStat /= 0 ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = 'Error allocating TwrSSSF array.'
+      ErrMsg  = 'Error allocating TwrFASF, TwrSSSF, AxRedTFA, and p%AxRedTSS arrays.'
       RETURN
    END IF
 
@@ -4769,7 +4802,7 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
    CHARACTER(*),     PARAMETER              :: RoutineName = 'Alloc_RtHS'
 
       ! positions:
-   CALL AllocAry( RtHS%rZT,       Dims, p%TwrNodes,        'rZT',       ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+  !CALL AllocAry( RtHS%rZT,       Dims, p%TwrNodes,        'rZT',       ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%rT,        Dims, p%TwrNodes,        'rT',        ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%rT0T,      Dims, p%TwrNodes,        'rT0T',      ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
   !CALL AllocAry( RtHS%rQS,       Dims, p%NumBl,p%TipNode, 'rQS',       ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
@@ -4777,19 +4810,37 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
    CALL AllocAry( RtHS%rS0S,      Dims, p%NumBl,p%TipNode, 'rS0S',      ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%rPS0,      Dims, p%NumBl,           'rPS0',      ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%rSAerCen,  Dims, p%TipNode, p%NumBl,'rSAerCen',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-   
-   allocate(RtHS%rS(Dims,  p%NumBl,0:p%TipNode), &
+  
+      ! tower
+   allocate(RtHS%rZT(      Dims,  0:p%TwrNodes), &
+            RtHS%AngPosEF( Dims,  0:p%TwrNodes), &
+            RtHS%AngPosXF( Dims,  0:p%TwrNodes), &
+            RtHS%AngVelEF( Dims,  0:p%TwrNodes), &
+            RtHS%LinVelET( Dims,  0:p%TwrNodes), &
+            RtHS%AngAccEFt(Dims,  0:p%TwrNodes), &
+            RtHS%LinAccETt(Dims,  0:p%TwrNodes), &
+      STAT=ErrStat)
+      if (ErrStat /= 0) then
+         ErrStat = ErrID_Fatal
+         ErrMsg  = "Error allocating rZT, AngPosEF, AngPosXF, LinVelET, AngVelEF, LinAccETt, and AngAccEFt arrays."
+         RETURN
+      end if
+               
+      
+      ! blades
+   allocate(RtHS%rS( Dims, p%NumBl,0:p%TipNode), &
             RtHS%rQS(Dims, p%NumBl,0:p%TipNode), STAT=ErrStat)
-   if (ErrStat /= 0) then
-      ErrStat = ErrID_Fatal
-      ErrMsg  = "Error allocating rS and rQS."
-   end if
+      if (ErrStat /= 0) then
+         ErrStat = ErrID_Fatal
+         ErrMsg  = "Error allocating rS and rQS."
+         RETURN
+      end if
    
 
       ! angular velocities (including partial angular velocities):
-   CALL AllocAry( RtHS%AngVelEF,  Dims, p%TwrNodes,        'AngVelEF',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%AngPosEF,  Dims, p%TwrNodes,        'AngPosEF',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%AngPosXF,  Dims, p%TwrNodes,        'AngPosXF',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   !CALL AllocAry( RtHS%AngVelEF,  Dims, p%TwrNodes,        'AngVelEF',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   !CALL AllocAry( RtHS%AngPosEF,  Dims, p%TwrNodes,        'AngPosEF',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   !CALL AllocAry( RtHS%AngPosXF,  Dims, p%TwrNodes,        'AngPosXF',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
 
 
          ! These angular velocities are allocated to start numbering a dimension with 0 instead of 1:
@@ -4821,7 +4872,7 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
       RETURN
    ENDIF
 
-   ALLOCATE ( RtHS%PAngVelEF(p%TwrNodes,       p%NDOF,0:1,Dims) , STAT=ErrStat )
+   ALLOCATE ( RtHS%PAngVelEF(0:p%TwrNodes, p%NDOF,0:1,Dims) , STAT=ErrStat )
    IF ( ErrStat /= 0_IntKi )  THEN
       ErrStat = ErrID_Fatal
       ErrMsg = ' Error allocating memory for the PAngVelEF array.'
@@ -4859,10 +4910,11 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
    ENDIF
 
       ! angular accelerations:
-   CALL AllocAry( RtHS%AngAccEFt, Dims, p%TwrNodes,         'AngAccEFt', ErrStat, ErrMsg );  IF ( ErrStat /= ErrID_None ) RETURN
+   !CALL AllocAry( RtHS%AngAccEFt, Dims, p%TwrNodes,         'AngAccEFt', ErrStat, ErrMsg );  IF ( ErrStat /= ErrID_None ) RETURN
 
       ! linear velocities (including partial linear velocities):
-   CALL AllocAry( RtHS%LinVelET,  Dims, p%TwrNodes,         'LinVelET',  ErrStat, ErrMsg );  IF ( ErrStat /= ErrID_None ) RETURN         
+   !CALL AllocAry( RtHS%LinVelET,  Dims, p%TwrNodes,         'LinVelET',  ErrStat, ErrMsg );  IF ( ErrStat /= ErrID_None ) RETURN         
+
    !CALL AllocAry( RtHS%LinVelESm2,                 p%NumBl, 'LinVelESm2',ErrStat, ErrMsg );  IF ( ErrStat /= ErrID_None ) RETURN ! The m2-component (closest to tip) of LinVelES
    ALLOCATE( RtHS%LinVelES( Dims, 0:p%TipNode, p%NumBl ), STAT=ErrStat )
    IF (ErrStat /= 0 ) THEN
@@ -4894,7 +4946,7 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
       RETURN
    ENDIF
 
-   ALLOCATE ( RtHS%PLinVelET(p%TwrNodes,p%NDOF,0:1,Dims) , STAT=ErrStat )
+   ALLOCATE ( RtHS%PLinVelET(0:p%TwrNodes,p%NDOF,0:1,Dims) , STAT=ErrStat )
    IF ( ErrStat /= 0_IntKi )  THEN
       ErrStat = ErrID_Fatal
       ErrMsg = ' Error allocating memory for the PLinVelET array.'
@@ -4950,28 +5002,14 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
       ErrMsg = ' Error allocating memory for the PLinVelEQ array.'
       RETURN
    ENDIF
-   ALLOCATE ( RtHS%PLinVelEU(p%NDOF,0:1,3) , STAT=ErrStat )
+   
+   ALLOCATE ( RtHS%PLinVelEU(p%NDOF,0:1,3) , &
+              RtHS%PLinVelEV(p%NDOF,0:1,3) , &
+              RtHS%PLinVelEW(p%NDOF,0:1,3) , &
+              RtHS%PLinVelEY(p%NDOF,0:1,3) , STAT=ErrStat )
    IF ( ErrStat /= 0_IntKi )  THEN
       ErrStat = ErrID_Fatal
-      ErrMsg = ' Error allocating memory for the PLinVelEU array.'
-      RETURN
-   ENDIF
-   ALLOCATE ( RtHS%PLinVelEV(p%NDOF,0:1,3) , STAT=ErrStat )
-   IF ( ErrStat /= 0_IntKi )  THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg = ' Error allocating memory for the PLinVelEV array.'
-      RETURN
-   ENDIF
-   ALLOCATE ( RtHS%PLinVelEW(p%NDOF,0:1,3) , STAT=ErrStat )
-   IF ( ErrStat /= 0_IntKi )  THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg = ' Error allocating memory for the PLinVelEW array.'
-      RETURN
-   ENDIF
-   ALLOCATE ( RtHS%PLinVelEY(p%NDOF,0:1,3) , STAT=ErrStat )
-   IF ( ErrStat /= 0_IntKi )  THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg = ' Error allocating memory for the PLinVelEY array.'
+      ErrMsg = ' Error allocating memory for the PLinVelEU, PLinVelEV, PLinVelEW and PLinVelEY arrays.'
       RETURN
    ENDIF
 
@@ -4982,11 +5020,10 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
       ErrMsg = ' Error allocating memory for LinAccESt.'
       RETURN
    ENDIF
-      ! ....
 
 
    !CALL AllocAry( RtHS%LinAccESt, Dims, p%NumBl, p%TipNode,'LinAccESt', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%LinAccETt, Dims, p%TwrNodes,        'LinAccETt', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   !CALL AllocAry( RtHS%LinAccETt, Dims, p%TwrNodes,        'LinAccETt', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%PFrcS0B,   Dims, p%NumBl,p%NDOF,    'PFrcS0B',   ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%FrcS0Bt,   Dims, p%NumBl,           'FrcS0Bt',   ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%PMomH0B,   Dims, p%NumBl, p%NDOF,   'PMomH0B',   ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
@@ -9745,7 +9782,12 @@ SUBROUTINE Coeff(p,InputFileData, ErrStat, ErrMsg)
       MTSS(I,I) = p%TwrTpMass
    ENDDO       ! I - All tower modes in a single direction
 
-
+      ! set values for tower base (note that we haven't corrctly defined the values for (:,0,2) in the arrays below):
+   p%TwrFASF(   :,0,0:1) = 0.0_ReKi
+   p%TwrSSSF(   :,0,0:1) = 0.0_ReKi
+   p%AxRedTFA(:,:,0)     = 0.0_ReKi
+   p%AxRedTSS(:,:,0)     = 0.0_ReKi
+   
    DO J = 1,p%TwrNodes    ! Loop through the tower nodes / elements
 
 
@@ -11383,7 +11425,7 @@ SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
    !----------------------------------------------------------------------------------------------------
    ! Get the tower element positions
    !----------------------------------------------------------------------------------------------------
-
+   RtHSdat%rZT (:,0) = RtHSdat%rZT0
    DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
 
 
@@ -11611,7 +11653,7 @@ ENDIF
    ! tower values:
    !...............
 
-   DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
+   DO J = 0,p%TwrNodes  ! Loop through the tower nodes / elements
 
       ! Define the partial angular velocities (and their 1st derivatives) of the
       !   current node (body F(HNodes(J))  in the inertia frame.
@@ -11649,19 +11691,6 @@ ENDIF
                                                              + x%QDT(DOF_TSS1)*RtHSdat%PAngVelEF(J,DOF_TSS1,1,:) &
                                                              + x%QDT(DOF_TFA2)*RtHSdat%PAngVelEF(J,DOF_TFA2,1,:) &
                                                              + x%QDT(DOF_TSS2)*RtHSdat%PAngVelEF(J,DOF_TSS2,1,:)
-
-
-
-      RtHSdat%AngPosXF (:,J)            =                      x%QT (DOF_TFA1)*RtHSdat%PAngVelEF(J,DOF_TFA1,0,:) &
-                                                             + x%QT (DOF_TSS1)*RtHSdat%PAngVelEF(J,DOF_TSS1,0,:) &
-                                                             + x%QT (DOF_TFA2)*RtHSdat%PAngVelEF(J,DOF_TFA2,0,:) &
-                                                             + x%QT (DOF_TSS2)*RtHSdat%PAngVelEF(J,DOF_TSS2,0,:)
-      RtHSdat%AngPosEF (:,J)            =  RtHSdat%AngPosEX  + RtHSdat%AngPosXF(:,J)
-      RtHSdat%AngAccEFt(:,J)            =  RtHSdat%AngAccEXt + x%QDT(DOF_TFA1)*RtHSdat%PAngVelEF(J,DOF_TFA1,1,:) &
-                                                             + x%QDT(DOF_TSS1)*RtHSdat%PAngVelEF(J,DOF_TSS1,1,:) &
-                                                             + x%QDT(DOF_TFA2)*RtHSdat%PAngVelEF(J,DOF_TFA2,1,:) &
-                                                             + x%QDT(DOF_TSS2)*RtHSdat%PAngVelEF(J,DOF_TSS2,1,:)
-
 
    END DO ! J
 
@@ -12088,7 +12117,7 @@ SUBROUTINE CalculateLinearVelPAcc( p, x, CoordSys, RtHSdat )
 
 
 
-   DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
+   DO J = 0,p%TwrNodes  ! Loop through the tower nodes / elements
 
 
       ! Define the partial linear velocities (and their 1st derivatives) of the current node (point T(HNodes(J))) in the inertia frame.
@@ -13304,7 +13333,9 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
                  , TranslationDisp = .TRUE.    &
                  , Orientation     = .TRUE.    &
                  , RotationVel     = .TRUE.    &
-                 , TranslationVel  = .TRUE.    &  !                 , RotationAcc     = .TRUE.    &  !                 , TranslationAcc  = .TRUE.    &
+                 , TranslationVel  = .TRUE.    &  
+                 , RotationAcc     = .TRUE.    &  
+                 , TranslationAcc  = .TRUE.    &
                  , ErrStat  = ErrStat2         &
                  , ErrMess  = ErrMsg2          )      ! automatically sets    y%TowerLn2Mesh%RemapFlag   = .TRUE.
    

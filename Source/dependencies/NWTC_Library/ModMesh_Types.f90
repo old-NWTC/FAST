@@ -21,25 +21,26 @@
 ! (File) Revision #: $Rev: 344 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/ModMesh_Types.f90 $
 !**********************************************************************************************************************************
+!> This module contains the type definition of of ModMesh, the FAST spatial mesh structure.   
 MODULE ModMesh_Types
    USE NWTC_Num
    IMPLICIT NONE
 
-   INTEGER, PUBLIC, PARAMETER :: COMPONENT_INPUT = 1
-   INTEGER, PUBLIC, PARAMETER :: COMPONENT_OUTPUT = 2
-   INTEGER, PUBLIC, PARAMETER :: COMPONENT_STATE = 3
+   INTEGER, PUBLIC, PARAMETER :: COMPONENT_INPUT = 1     !< parameter for "input mesh"
+   INTEGER, PUBLIC, PARAMETER :: COMPONENT_OUTPUT = 2    !< parameter for "output mesh"
+   INTEGER, PUBLIC, PARAMETER :: COMPONENT_STATE = 3     !< parameter for "state mesh" (not recommended to use)
 
 !WARNING... if you add fields here add them to the buffer size computation MeshPack too
-   INTEGER, PUBLIC, PARAMETER :: MASKID_FORCE = 1
-   INTEGER, PUBLIC, PARAMETER :: MASKID_MOMENT = 2
-   INTEGER, PUBLIC, PARAMETER :: MASKID_ORIENTATION = 3
-   INTEGER, PUBLIC, PARAMETER :: MASKID_TRANSLATIONDISP = 4
-   INTEGER, PUBLIC, PARAMETER :: MASKID_TRANSLATIONVEL = 5
-   INTEGER, PUBLIC, PARAMETER :: MASKID_ROTATIONVEL = 6
-   INTEGER, PUBLIC, PARAMETER :: MASKID_TRANSLATIONACC = 7
-   INTEGER, PUBLIC, PARAMETER :: MASKID_ROTATIONACC = 8
-   INTEGER, PUBLIC, PARAMETER :: MASKID_SCALAR = 9
-   INTEGER, PUBLIC, PARAMETER :: FIELDMASK_SIZE = 9
+   INTEGER, PUBLIC, PARAMETER :: MASKID_FORCE           = 1 !< parameter for fields holding force
+   INTEGER, PUBLIC, PARAMETER :: MASKID_MOMENT          = 2 !< parameter for fields holding moment
+   INTEGER, PUBLIC, PARAMETER :: MASKID_ORIENTATION     = 3 !< parameter for fields holding orientation
+   INTEGER, PUBLIC, PARAMETER :: MASKID_TRANSLATIONDISP = 4 !< parameter for fields holding translational displacement
+   INTEGER, PUBLIC, PARAMETER :: MASKID_TRANSLATIONVEL  = 5 !< parameter for fields holding translational velocity
+   INTEGER, PUBLIC, PARAMETER :: MASKID_ROTATIONVEL     = 6 !< parameter for fields holding rotational velocity
+   INTEGER, PUBLIC, PARAMETER :: MASKID_TRANSLATIONACC  = 7 !< parameter for fields holding translational acceleration
+   INTEGER, PUBLIC, PARAMETER :: MASKID_ROTATIONACC     = 8 !< parameter for fields holding rotational acceleration
+   INTEGER, PUBLIC, PARAMETER :: MASKID_SCALAR          = 9 !< parameter for fields holding scalars
+   INTEGER, PUBLIC, PARAMETER :: FIELDMASK_SIZE         = 9 !< maximum number of fields in a mesh 
 
 ! Format of the Int buffer
    INTEGER, PUBLIC, PARAMETER :: HDR_INTBUFSIZE  = 1

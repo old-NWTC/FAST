@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-10-05 13:26:24 -0600 (Mon, 05 Oct 2015) $
-! (File) Revision #: $Rev: 647 $
+! File last committed: $Date: 2015-11-05 17:22:21 -0700 (Thu, 05 Nov 2015) $
+! (File) Revision #: $Rev: 656 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/HydroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn
@@ -850,6 +850,7 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
       END IF  ! ( InitLocal%Morison%NMembers > 0 )
     
 !===============================================
+      p%PotMod = InitLocal%Potmod      
       IF ( InitLocal%UnSum > 0 ) THEN
       
          IF (InitLocal%Waves%WaveMod /= 0 .AND. InitLocal%Waves%WaveMod /= 6)  THEN
@@ -870,7 +871,7 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
             END DO
          END IF
          
-         p%PotMod = InitLocal%Potmod
+         
          IF ( InitLocal%PotMod == 1 .AND.  InitLocal%WAMIT%RdtnMod == 1) THEN
             ! Write the header for this section
             WRITE( InitLocal%UnSum,  '(//)' ) 

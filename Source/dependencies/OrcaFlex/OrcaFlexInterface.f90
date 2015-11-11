@@ -35,7 +35,7 @@ MODULE OrcaFlexInterface_Parameters
 
    IMPLICIT                      NONE
 
-   TYPE(ProgDesc), PARAMETER  :: Orca_Ver = ProgDesc( 'OrcaFlexInterface', 'v1.00.00a-adp', '30-Sep-2015' )
+   TYPE(ProgDesc), PARAMETER  :: Orca_Ver = ProgDesc( 'OrcaFlexInterface', 'v1.00.01a-adp', '14-Oct-2015' )
    CHARACTER(*),   PARAMETER  :: Orca_Nickname = 'Orca'
 
 
@@ -999,23 +999,23 @@ SUBROUTINE SetOutParam(OutList, p, ErrStat, ErrMsg )
    CHARACTER(OutStrLenM1), PARAMETER  :: ValidParamAry(18) =  (/ &                  ! This lists the names of the allowed parameters, which must be sorted alphabetically
                                "ORCAAMFXI","ORCAAMFYI","ORCAAMFZI",  &
                                "ORCAAMMXI","ORCAAMMYI","ORCAAMMZI",  &
+                               "ORCAFXI  ","ORCAFYI  ","ORCAFZI  ",  &
                                "ORCAHMFXI","ORCAHMFYI","ORCAHMFZI",  &
                                "ORCAHMMXI","ORCAHMMYI","ORCAHMMZI",  &
-                               "ORCAFXI  ","ORCAFYI  ","ORCAFZI  ",  &
                                "ORCAMXI  ","ORCAMYI  ","ORCAMZI  "/)
    INTEGER(IntKi), PARAMETER :: ParamIndxAry(18) =  (/ &                            ! This lists the index into AllOuts(:) of the allowed parameters ValidParamAry(:)
                                 OrcaAMFxi , OrcaAMFyi , OrcaAMFzi ,  &
                                 OrcaAMMxi , OrcaAMMyi , OrcaAMMzi ,  &
+                                  OrcaFxi ,   OrcaFyi ,   OrcaFzi ,  &
                                 OrcaHMFxi , OrcaHMFyi , OrcaHMFzi ,  &
                                 OrcaHMMxi , OrcaHMMyi , OrcaHMMzi ,  &
-                                  OrcaFxi ,   OrcaFyi ,   OrcaFzi ,  &
                                   OrcaMxi ,   OrcaMyi ,   OrcaMzi /)
-   CHARACTER(ChanLen), PARAMETER :: ParamUnitsAry(18) =  (/ &                     ! This lists the units corresponding to the allowed parameters
+   CHARACTER(ChanLen), PARAMETER :: ParamUnitsAry(18) =  (/ &                      ! This lists the units corresponding to the allowed parameters
                                "(kN)      ","(kN)      ","(kN)      ",  &
                                "(kN m)    ","(kN m)    ","(kN m)    ",  &
                                "(kN)      ","(kN)      ","(kN)      ",  &
-                               "(kN m)    ","(kN m)    ","(kN m)    ",  &
                                "(kN)      ","(kN)      ","(kN)      ",  &
+                               "(kN m)    ","(kN m)    ","(kN m)    ",  &
                                "(kN m)    ","(kN m)    ","(kN m)    "/)
 
 
