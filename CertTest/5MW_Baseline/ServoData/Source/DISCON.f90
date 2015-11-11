@@ -1,4 +1,5 @@
 !=======================================================================
+!SUBROUTINE DISCON_Sub ( avrSWAP, from_SC, to_SC, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) BIND (C, NAME='DISCON')
 SUBROUTINE DISCON_Sub ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) BIND (C, NAME='DISCON')
 !DEC$ ATTRIBUTES DLLEXPORT :: DISCON_Sub
 
@@ -22,6 +23,9 @@ IMPLICIT                        NONE
 
 
    ! Passed Variables:
+!REAL(C_FLOAT),          INTENT(IN   ) :: from_SC   (*)  ! DATA from the supercontroller
+!REAL(C_FLOAT),          INTENT(INOUT) :: to_SC     (*)  ! DATA to the supercontroller
+
 
 REAL(C_FLOAT),          INTENT(INOUT) :: avrSWAP   (*)                  ! The swap array, used to pass data to, and receive data from, the DLL controller. 
 INTEGER(C_INT),         INTENT(INOUT) :: aviFAIL                        ! A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.
@@ -103,6 +107,10 @@ CHARACTER(SIZE(avcMSG)-1)    :: ErrMsg                                          
 
 iStatus      = NINT( avrSWAP( 1) )
 NumBl        = NINT( avrSWAP(61) )
+
+!print *, 'from_sc: ', from_sc(1:4)
+!to_sc(1) = 5.0;
+!to_sc(2) = 2.0;
 
 
 !BlPitch  (1) =       MIN( MAX( avrSWAP( 4), PC_MinPit ), PC_MaxPit )    ! assume that blade pitch can't exceed limits

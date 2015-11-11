@@ -1,4 +1,4 @@
-------- SERVODYN v1.03.* INPUT FILE --------------------------------------------
+------- SERVODYN v1.04.* INPUT FILE --------------------------------------------
 NREL 5.0 MW Baseline Wind Turbine for Use in Offshore Analysis. Properties from Dutch Offshore Wind Energy Converter (DOWEC) 6MW Pre-Design (10046_009.pdf) and REpower 5M 5MW (5m_uk.pdf)
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo         - Echo input data to <RootName>.ech (flag)
@@ -60,12 +60,14 @@ True          GenTiStp     - Method to stop the generator {T: timed using TimGen
 ---------------------- TUNED MASS DAMPER ---------------------------------------
 False         CompNTMD     - Compute nacelle tuned mass damper {true/false} (flag)
 "NRELOffshrBsline5MW_ServoDyn_TMD.dat"    NTMDfile     - Name of the file for nacelle tuned mass damper (quoted string) [unused when CompNTMD is false]
----------------------- BLADED INTERFACE ----------------------------------------
+False         CompTTMD     - Compute tower tuned mass damper {true/false} (flag)
+"NRELOffshrBsline5MW_ServoDyn_TMD.dat"      TTMDfile     - Name of the file for tower tuned mass damper (quoted string) [unused when CompTTMD is false]
+---------------------- BLADED INTERFACE ---------------------------------------- [used only with Bladed Interface]
 "ServoData/DISCON_win32.dll"    DLL_FileName - Name/location of the dynamic library {.dll [Windows] or .so [Linux]} in the Bladed-DLL format (-) [used only with Bladed Interface]
-"DISCON.IN"    DLL_InFile   - Name of input file sent to the DLL [used only with Bladed Interface] (-)
-"default"     DLL_DT       - Communication interval for dynamic library [used only with Bladed Interface] (s) (or "default")
-false         DLL_Ramp     - Whether a linear ramp should be used between DLL_DT time steps [introduces time shift when true] (flag)
-9999.9        BPCutoff     - Cuttoff frequency for low-pass filter on blade pitch from DLL (Hz)
+"DISCON.IN"    DLL_InFile   - Name of input file sent to the DLL (-) [used only with Bladed Interface]
+"default"     DLL_DT       - Communication interval for dynamic library (s) (or "default") [used only with Bladed Interface]
+false         DLL_Ramp     - Whether a linear ramp should be used between DLL_DT time steps [introduces time shift when true] (flag) [used only with Bladed Interface]
+     9999.9   BPCutoff     - Cuttoff frequency for low-pass filter on blade pitch from DLL (Hz) [used only with Bladed Interface]
           0   NacYaw_North - Reference yaw angle of the nacelle when the upwind end points due North (deg) [used only with Bladed Interface]
           0   Ptch_Cntrl   - Record 28: Use individual pitch control {0: collective pitch; 1: individual pitch control} (switch) [used only with Bladed Interface]
           0   Ptch_SetPnt  - Record  5: Below-rated pitch angle set-point (deg) [used only with Bladed Interface]
@@ -94,5 +96,12 @@ True          TabDelim     - Use tab delimiters in text tabular output file? (fl
 "GenTq"                   - Electrical generator power and torque
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------
-"NTMD_XQ, NTMD_XQD"
-"NTMD_YQ, NTMD_YQD"
+NTMD_XQ
+NTMD_XQD
+NTMD_YQ
+NTMD_YQD
+
+TTMD_XQ
+TTMD_XQD
+TTMD_YQ
+TTMD_YQD

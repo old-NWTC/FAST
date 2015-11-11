@@ -1,4 +1,4 @@
-------- FAST v8.12.* INPUT FILE ------------------------------------------------
+------- FAST v8.13.* INPUT FILE ------------------------------------------------
 FAST Certification Test #22: NREL 5.0 MW Baseline Wind Turbine with ITI Barge Configuration, for use in offshore analysis
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
