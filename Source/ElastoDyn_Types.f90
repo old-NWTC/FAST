@@ -787,7 +787,7 @@ IMPLICIT NONE
   TYPE, PUBLIC :: ED_InputType
     TYPE(MeshType) , DIMENSION(:), ALLOCATABLE  :: BladeLn2Mesh      ! A mesh on each blade, containing aerodynamic forces and moments (formerly AeroBladeForce and AeroBladeMoment) [-]
     TYPE(MeshType)  :: PlatformPtMesh      ! A mesh at the platform reference (point Z), containing force: surge/xi (1), sway/yi (2), and heave/zi (3)-components; and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()s [N]
-    TYPE(MeshType)  :: TowerLn2Mesh      ! Tower line2 mesh with forces: surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the tower force at the current tower node (point T); and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components of the portion of the tower moment acting at the current tower node [N/m]
+    TYPE(MeshType)  :: TowerPtLoads      ! Tower line2 mesh with forces: surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the tower force at the current tower node (point T); and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components of the portion of the tower moment acting at the current tower node [N/m]
     TYPE(MeshType)  :: HubPtLoad      ! A mesh at the teeter pin, containing forces: surge/xi (1), sway/yi (2), and heave/zi (3)-components; and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components acting at the hub. Passed from BeamDyn [-]
     TYPE(MeshType)  :: NacelleLoads      ! From ServoDyn/TMD: loads on the nacelle. [-]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: TwrAddedMass      ! 6-by-6 added mass matrix of the tower elements, per unit length-bjj: place on a mesh [per unit length]
@@ -21524,7 +21524,7 @@ ENDIF
       CALL MeshCopy( SrcInputData%PlatformPtMesh, DstInputData%PlatformPtMesh, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
-      CALL MeshCopy( SrcInputData%TowerLn2Mesh, DstInputData%TowerLn2Mesh, CtrlCode, ErrStat2, ErrMsg2 )
+      CALL MeshCopy( SrcInputData%TowerPtLoads, DstInputData%TowerPtLoads, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
       CALL MeshCopy( SrcInputData%HubPtLoad, DstInputData%HubPtLoad, CtrlCode, ErrStat2, ErrMsg2 )
@@ -21583,7 +21583,7 @@ ENDDO
   DEALLOCATE(InputData%BladeLn2Mesh)
 ENDIF
   CALL MeshDestroy( InputData%PlatformPtMesh, ErrStat, ErrMsg )
-  CALL MeshDestroy( InputData%TowerLn2Mesh, ErrStat, ErrMsg )
+  CALL MeshDestroy( InputData%TowerPtLoads, ErrStat, ErrMsg )
   CALL MeshDestroy( InputData%HubPtLoad, ErrStat, ErrMsg )
   CALL MeshDestroy( InputData%NacelleLoads, ErrStat, ErrMsg )
 IF (ALLOCATED(InputData%TwrAddedMass)) THEN
@@ -21670,20 +21670,20 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
-      Int_BufSz   = Int_BufSz + 3  ! TowerLn2Mesh: size of buffers for each call to pack subtype
-      CALL MeshPack( InData%TowerLn2Mesh, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2, .TRUE. ) ! TowerLn2Mesh 
+      Int_BufSz   = Int_BufSz + 3  ! TowerPtLoads: size of buffers for each call to pack subtype
+      CALL MeshPack( InData%TowerPtLoads, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2, .TRUE. ) ! TowerPtLoads 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
-      IF(ALLOCATED(Re_Buf)) THEN ! TowerLn2Mesh
+      IF(ALLOCATED(Re_Buf)) THEN ! TowerPtLoads
          Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
          DEALLOCATE(Re_Buf)
       END IF
-      IF(ALLOCATED(Db_Buf)) THEN ! TowerLn2Mesh
+      IF(ALLOCATED(Db_Buf)) THEN ! TowerPtLoads
          Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
          DEALLOCATE(Db_Buf)
       END IF
-      IF(ALLOCATED(Int_Buf)) THEN ! TowerLn2Mesh
+      IF(ALLOCATED(Int_Buf)) THEN ! TowerPtLoads
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
@@ -21831,7 +21831,7 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
-      CALL MeshPack( InData%TowerLn2Mesh, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2, OnlySize ) ! TowerLn2Mesh 
+      CALL MeshPack( InData%TowerPtLoads, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2, OnlySize ) ! TowerPtLoads 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -22121,7 +22121,7 @@ ENDIF
         Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
         Int_Xferred = Int_Xferred + Buf_size
       END IF
-      CALL MeshUnpack( OutData%TowerLn2Mesh, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2 ) ! TowerLn2Mesh 
+      CALL MeshUnpack( OutData%TowerPtLoads, Re_Buf, Db_Buf, Int_Buf, ErrStat2, ErrMsg2 ) ! TowerPtLoads 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -23779,7 +23779,7 @@ IF (ALLOCATED(u_out%BladeLn2Mesh) .AND. ALLOCATED(u1%BladeLn2Mesh)) THEN
 END IF ! check if allocated
       CALL MeshExtrapInterp1(u1%PlatformPtMesh, u2%PlatformPtMesh, tin, u_out%PlatformPtMesh, tin_out, ErrStat2, ErrMsg2 )
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-      CALL MeshExtrapInterp1(u1%TowerLn2Mesh, u2%TowerLn2Mesh, tin, u_out%TowerLn2Mesh, tin_out, ErrStat2, ErrMsg2 )
+      CALL MeshExtrapInterp1(u1%TowerPtLoads, u2%TowerPtLoads, tin, u_out%TowerPtLoads, tin_out, ErrStat2, ErrMsg2 )
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
       CALL MeshExtrapInterp1(u1%HubPtLoad, u2%HubPtLoad, tin, u_out%HubPtLoad, tin_out, ErrStat2, ErrMsg2 )
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
@@ -23882,7 +23882,7 @@ IF (ALLOCATED(u_out%BladeLn2Mesh) .AND. ALLOCATED(u1%BladeLn2Mesh)) THEN
 END IF ! check if allocated
       CALL MeshExtrapInterp2(u1%PlatformPtMesh, u2%PlatformPtMesh, u3%PlatformPtMesh, tin, u_out%PlatformPtMesh, tin_out, ErrStat2, ErrMsg2 )
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-      CALL MeshExtrapInterp2(u1%TowerLn2Mesh, u2%TowerLn2Mesh, u3%TowerLn2Mesh, tin, u_out%TowerLn2Mesh, tin_out, ErrStat2, ErrMsg2 )
+      CALL MeshExtrapInterp2(u1%TowerPtLoads, u2%TowerPtLoads, u3%TowerPtLoads, tin, u_out%TowerPtLoads, tin_out, ErrStat2, ErrMsg2 )
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
       CALL MeshExtrapInterp2(u1%HubPtLoad, u2%HubPtLoad, u3%HubPtLoad, tin, u_out%HubPtLoad, tin_out, ErrStat2, ErrMsg2 )
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)

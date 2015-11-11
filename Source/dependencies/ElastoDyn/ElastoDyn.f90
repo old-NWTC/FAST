@@ -1482,7 +1482,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    InitOut%BladeLength = p%TipRad - p%HubRad
    InitOut%PlatformPos = x%QT(1:6)
    InitOut%HubHt       = p%HubHt
-   InitOut%TwrBasePos  = u%TowerLn2Mesh%Position(:,p%TwrNodes + 2)
+   InitOut%TwrBasePos  = y%TowerLn2Mesh%Position(:,p%TwrNodes + 2)
 
    CALL AllocAry(InitOut%BlPitch, p%NumBl, 'BlPitch', ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -12623,42 +12623,42 @@ DO K = 1,p%NumBl ! Loop through all blades
 !.....................................
    
    DO J=1,p%TwrNodes
-      RtHSdat%FTHydrot(:,J) = CoordSys%z1*( u%TowerLn2Mesh%Force(DOF_Sg,J) &
+      RtHSdat%FTHydrot(:,J) = CoordSys%z1*( u%TowerPtLoads%Force(DOF_Sg,J)/p%DHNodes(J) &
                                                   - u%TwrAddedMass(DOF_Sg,DOF_Sg,J)*RtHSdat%LinAccETt(1,J) &
                                                   + u%TwrAddedMass(DOF_Sg,DOF_Sw,J)*RtHSdat%LinAccETt(3,J) &
                                                   - u%TwrAddedMass(DOF_Sg,DOF_Hv,J)*RtHSdat%LinAccETt(2,J) &
                                                   - u%TwrAddedMass(DOF_Sg,DOF_R ,J)*RtHSdat%AngAccEFt(1,J) &
                                                   + u%TwrAddedMass(DOF_Sg,DOF_P ,J)*RtHSdat%AngAccEFt(3,J) &
                                                   - u%TwrAddedMass(DOF_Sg,DOF_Y ,J)*RtHSdat%AngAccEFt(2,J)   ) &
-                            - CoordSys%z3*( u%TowerLn2Mesh%Force(DOF_Sw,J) &
+                            - CoordSys%z3*( u%TowerPtLoads%Force(DOF_Sw,J)/p%DHNodes(J) &
                                                   - u%TwrAddedMass(DOF_Sw,DOF_Sg,J)*RtHSdat%LinAccETt(1,J) &
                                                   + u%TwrAddedMass(DOF_Sw,DOF_Sw,J)*RtHSdat%LinAccETt(3,J) &
                                                   - u%TwrAddedMass(DOF_Sw,DOF_Hv,J)*RtHSdat%LinAccETt(2,J) &
                                                   - u%TwrAddedMass(DOF_Sw,DOF_R ,J)*RtHSdat%AngAccEFt(1,J) &
                                                   + u%TwrAddedMass(DOF_Sw,DOF_P ,J)*RtHSdat%AngAccEFt(3,J) &
                                                   - u%TwrAddedMass(DOF_Sw,DOF_Y ,J)*RtHSdat%AngAccEFt(2,J)   ) &
-                             + CoordSys%z2*( u%TowerLn2Mesh%Force(DOF_Hv,J) &
+                             + CoordSys%z2*( u%TowerPtLoads%Force(DOF_Hv,J)/p%DHNodes(J) &
                                                   - u%TwrAddedMass(DOF_Hv,DOF_Sg,J)*RtHSdat%LinAccETt(1,J) &
                                                   + u%TwrAddedMass(DOF_Hv,DOF_Sw,J)*RtHSdat%LinAccETt(3,J) &
                                                   - u%TwrAddedMass(DOF_Hv,DOF_Hv,J)*RtHSdat%LinAccETt(2,J) &
                                                   - u%TwrAddedMass(DOF_Hv,DOF_R ,J)*RtHSdat%AngAccEFt(1,J) &
                                                   + u%TwrAddedMass(DOF_Hv,DOF_P ,J)*RtHSdat%AngAccEFt(3,J) &
                                                   - u%TwrAddedMass(DOF_Hv,DOF_Y ,J)*RtHSdat%AngAccEFt(2,J)   )
-      RtHSdat%MFHydrot(:,J) = CoordSys%z1*( u%TowerLn2Mesh%Moment(DOF_R-3,J) &
+      RtHSdat%MFHydrot(:,J) = CoordSys%z1*( u%TowerPtLoads%Moment(DOF_R-3,J)/p%DHNodes(J) &
                                                   - u%TwrAddedMass(DOF_R ,DOF_Sg,J)*RtHSdat%LinAccETt(1,J) &
                                                   + u%TwrAddedMass(DOF_R ,DOF_Sw,J)*RtHSdat%LinAccETt(3,J) &
                                                   - u%TwrAddedMass(DOF_R ,DOF_Hv,J)*RtHSdat%LinAccETt(2,J) &
                                                   - u%TwrAddedMass(DOF_R ,DOF_R ,J)*RtHSdat%AngAccEFt(1,J) &
                                                   + u%TwrAddedMass(DOF_R ,DOF_P ,J)*RtHSdat%AngAccEFt(3,J) &
                                                   - u%TwrAddedMass(DOF_R ,DOF_Y ,J)*RtHSdat%AngAccEFt(2,J)   ) &
-                            - CoordSys%z3*( u%TowerLn2Mesh%Moment(DOF_P-3 ,J) &
+                            - CoordSys%z3*( u%TowerPtLoads%Moment(DOF_P-3 ,J)/p%DHNodes(J) &
                                                   - u%TwrAddedMass(DOF_P ,DOF_Sg,J)*RtHSdat%LinAccETt(1,J) &
                                                   + u%TwrAddedMass(DOF_P ,DOF_Sw,J)*RtHSdat%LinAccETt(3,J) &
                                                   - u%TwrAddedMass(DOF_P ,DOF_Hv,J)*RtHSdat%LinAccETt(2,J) &
                                                   - u%TwrAddedMass(DOF_P ,DOF_R ,J)*RtHSdat%AngAccEFt(1,J) &
                                                   + u%TwrAddedMass(DOF_P ,DOF_P ,J)*RtHSdat%AngAccEFt(3,J) &
                                                   - u%TwrAddedMass(DOF_P ,DOF_Y ,J)*RtHSdat%AngAccEFt(2,J)   ) &
-                            + CoordSys%z2*( u%TowerLn2Mesh%Moment(DOF_Y-3 ,J) &
+                            + CoordSys%z2*( u%TowerPtLoads%Moment(DOF_Y-3 ,J)/p%DHNodes(J) &
                                                   - u%TwrAddedMass(DOF_Y ,DOF_Sg,J)*RtHSdat%LinAccETt(1,J) &
                                                   + u%TwrAddedMass(DOF_Y ,DOF_Sw,J)*RtHSdat%LinAccETt(3,J) &
                                                   - u%TwrAddedMass(DOF_Y ,DOF_Hv,J)*RtHSdat%LinAccETt(2,J) &
@@ -13254,7 +13254,7 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
    ! local variables
    REAL(R8Ki)                                   :: Orientation(3,3) 
    REAL(ReKi)                                   :: Position(3) 
-   INTEGER(IntKi)                               :: K           ! loop counter                
+   INTEGER(IntKi)                               :: J, K        ! loop counters
    INTEGER(IntKi)                               :: ErrStat2    ! The error identifier (ErrStat)
    CHARACTER(1024)                              :: ErrMsg2     ! The error message (ErrMsg)
    
@@ -13324,24 +13324,80 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
    
    !.......................................................
    ! Create Line2 Mesh for Motions Output on Tower Line2 Mesh:
+   !  first p%TwrNodes nodes are the same as the input TowerPtLoads mesh
    !.......................................................
-                                        
-   CALL MeshCopy ( SrcMesh  = u%TowerLn2Mesh   &
-                 , DestMesh = y%TowerLn2Mesh   &
-                 , CtrlCode = MESH_SIBLING     &
-                 , IOS      = COMPONENT_OUTPUT &
-                 , TranslationDisp = .TRUE.    &
-                 , Orientation     = .TRUE.    &
-                 , RotationVel     = .TRUE.    &
-                 , TranslationVel  = .TRUE.    &  
-                 , RotationAcc     = .TRUE.    &  
-                 , TranslationAcc  = .TRUE.    &
-                 , ErrStat  = ErrStat2         &
-                 , ErrMess  = ErrMsg2          )      ! automatically sets    y%TowerLn2Mesh%RemapFlag   = .TRUE.
+      
+   CALL MeshCreate( BlankMesh = y%TowerLn2Mesh           &
+                    , IOS             = COMPONENT_INPUT  &
+                    , NNodes          = p%TwrNodes + 2   &
+                    , TranslationDisp = .TRUE.           &
+                    , Orientation     = .TRUE.           &
+                    , RotationVel     = .TRUE.           &
+                    , TranslationVel  = .TRUE.           &  
+                    , RotationAcc     = .TRUE.           &  
+                    , TranslationAcc  = .TRUE.           &
+                    , ErrStat         = ErrStat2         &
+                    , ErrMess         = ErrMsg2          )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF (ErrStat >= AbortErrLev) RETURN
    
-      CALL CheckError( ErrStat2, ErrMsg2 )
+      ! position the nodes on the tower:
+      DO J = 1,p%TwrNodes      
+         CALL MeshPositionNode ( y%TowerLn2Mesh, J, u%TowerPtLoads%Position(:,J), ErrStat2, ErrMsg2, &
+                                 orient = u%TowerPtLoads%RefOrientation(:,:,J) )
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF (ErrStat >= AbortErrLev) RETURN
+      END DO
+
+   ! for now, we're going to add two nodes, one at the beginning and the other at the end
+   ! they're numbered this way so that I don't have to redo all the loops in the computational part of the code
+   ! I am not going to use them in my input.
+      CALL MeshPositionNode ( y%TowerLn2Mesh, p%TwrNodes + 1, (/0.0_ReKi, 0.0_ReKi, p%TowerHt /), ErrStat2, ErrMsg2 ) 
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF (ErrStat >= AbortErrLev) RETURN
+         
+      CALL MeshPositionNode ( y%TowerLn2Mesh, p%TwrNodes + 2, (/0.0_ReKi, 0.0_ReKi, p%TowerBsHt  /), ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF (ErrStat >= AbortErrLev) RETURN
+
+            
+      ! create elements:
+      
+   IF ( p%TwrNodes < 2_IntKi ) THEN  ! if there are less than 2 nodes, we'll throw an error:
+      CALL CheckError(ErrID_Fatal,"Tower Line2 Mesh cannot be created with less than 2 elements.")
+      RETURN
+   ELSE ! create line2 elements from the tower nodes:
+      DO J = 2,p%TwrNodes+1  !the plus 1 includes one of the end nodes
+         CALL MeshConstructElement ( Mesh      = y%TowerLn2Mesh     &
+                                    , Xelement = ELEMENT_LINE2      &
+                                    , P1       = J-1                &   ! node1 number
+                                    , P2       = J                  &   ! node2 number
+                                    , ErrStat  = ErrStat2           &
+                                    , ErrMess  = ErrMsg2            )
+         
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF (ErrStat >= AbortErrLev) RETURN
+      END DO
+      
+   ! add the other extra element, connecting the first node:
+      
+         CALL MeshConstructElement ( Mesh      = y%TowerLn2Mesh     &
+                                    , Xelement = ELEMENT_LINE2      &
+                                    , P1       = p%TwrNodes + 2     &   ! node1 number
+                                    , P2       = 1                  &   ! node2 number
+                                    , ErrStat  = ErrStat2           &
+                                    , ErrMess  = ErrMsg2            )
+         
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF (ErrStat >= AbortErrLev) RETURN
+                                          
+   END IF   
+   
+      ! that's our entire mesh:
+   CALL MeshCommit ( y%TowerLn2Mesh, ErrStat2, ErrMsg2 )   
+      CALL CheckError(ErrStat2,ErrMsg2)
       IF (ErrStat >= AbortErrLev) RETURN
-   
+                                                          
    !.......................................................
    ! Create Point Meshes for motions AeroDyn/BeamDyn needs:
    !.......................................................
@@ -14007,12 +14063,13 @@ SUBROUTINE Init_u( u, p, x, InputFileData, OtherState, ErrStat, ErrMsg )
    u%TwrAddedMass          = 0.0_ReKi  
       
    !.......................................................
-   ! Create Line2 Mesh for loads input on tower:
+   ! Create point Mesh for lumped load input on tower:
+   ! note that this does not contain the end points
    !.......................................................
       
-   CALL MeshCreate( BlankMesh      = u%TowerLn2Mesh         &
+   CALL MeshCreate( BlankMesh      = u%TowerPtLoads         &
                      ,IOS          = COMPONENT_INPUT        &
-                     ,NNodes       = p%TwrNodes + 2         &
+                     ,NNodes       = p%TwrNodes             &
                      ,Force        = .TRUE.                 &
                      ,Moment       = .TRUE.                 &
                      ,ErrStat      = ErrStat2               &
@@ -14025,75 +14082,32 @@ SUBROUTINE Init_u( u, p, x, InputFileData, OtherState, ErrStat, ErrMsg )
    
       ! position the nodes on the tower:
    DO J = 1,p%TwrNodes      
-      CALL MeshPositionNode ( u%TowerLn2Mesh, J, (/0.0_ReKi, 0.0_ReKi, p%HNodes(J) + p%TowerBsHt /), ErrStat2, ErrMsg2 )
+      CALL MeshPositionNode ( u%TowerPtLoads, J, (/0.0_ReKi, 0.0_ReKi, p%HNodes(J) + p%TowerBsHt /), ErrStat2, ErrMsg2 )
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
          IF (ErrStat >= AbortErrLev) THEN
             CALL Cleanup()
             RETURN
          END IF
    END DO
-
-   ! for now, we're going to add two nodes, one at the beginning and the other at the end
-   ! they're numbered this way so that I don't have to redo all the loops in the computational part of the code
-   ! I am not going to use them in my input.
-      CALL MeshPositionNode ( u%TowerLn2Mesh, p%TwrNodes + 1, (/0.0_ReKi, 0.0_ReKi, p%TowerHt /), ErrStat2, ErrMsg2 ) 
-         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
-         IF (ErrStat >= AbortErrLev) THEN
-            CALL Cleanup()
-            RETURN
-         END IF
-         
-      CALL MeshPositionNode ( u%TowerLn2Mesh, p%TwrNodes + 2, (/0.0_ReKi, 0.0_ReKi, p%TowerBsHt  /), ErrStat2, ErrMsg2 )
-         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
-         IF (ErrStat >= AbortErrLev) THEN
-            CALL Cleanup()
-            RETURN
-         END IF
-
-         
    
-      ! create elements:
-      
-   IF ( p%TwrNodes < 2_IntKi ) THEN  ! if there are less than 2 nodes, we'll throw an error:
-      CALL SetErrStat( ErrID_Fatal,"Tower Line2 Mesh cannot be created with less than 2 elements.", ErrStat, ErrMsg, RoutineName )
-      CALL Cleanup()
-      RETURN
-   ELSE ! create line2 elements from the tower nodes:
-      DO J = 2,p%TwrNodes+1  !the plus 1 includes one of the end nodes
-         CALL MeshConstructElement ( Mesh      = u%TowerLn2Mesh     &
-                                    , Xelement = ELEMENT_LINE2      &
-                                    , P1       = J-1                &   ! node1 number
-                                    , P2       = J                  &   ! node2 number
-                                    , ErrStat  = ErrStat2           &
-                                    , ErrMess  = ErrMsg2            )
+      ! create elements:      
+   DO J = 1,p%TwrNodes
+      CALL MeshConstructElement ( Mesh      = u%TowerPtLoads     &
+                                 , Xelement = ELEMENT_POINT      &
+                                 , P1       = J                  &   ! node1 number
+                                 , ErrStat  = ErrStat2           &
+                                 , ErrMess  = ErrMsg2            )
          
-            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
-            IF (ErrStat >= AbortErrLev) THEN
-               CALL Cleanup()
-               RETURN
-            END IF
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+         IF (ErrStat >= AbortErrLev) THEN
+            CALL Cleanup()
+            RETURN
+         END IF
+   END DO
       
-      END DO
-      
-   ! add the other extra element, connecting the first node:
-      
-         CALL MeshConstructElement ( Mesh      = u%TowerLn2Mesh     &
-                                    , Xelement = ELEMENT_LINE2      &
-                                    , P1       = p%TwrNodes + 2     &   ! node1 number
-                                    , P2       = 1                  &   ! node2 number
-                                    , ErrStat  = ErrStat2           &
-                                    , ErrMess  = ErrMsg2            )
-         
-            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
-            IF (ErrStat >= AbortErrLev) THEN
-               CALL Cleanup()
-               RETURN
-            END IF
-                                          
-   END IF   
    
       ! that's our entire mesh:
-   CALL MeshCommit ( u%TowerLn2Mesh, ErrStat2, ErrMsg2 )   
+   CALL MeshCommit ( u%TowerPtLoads, ErrStat2, ErrMsg2 )   
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
       IF (ErrStat >= AbortErrLev) THEN
          CALL Cleanup()
@@ -14101,8 +14115,8 @@ SUBROUTINE Init_u( u, p, x, InputFileData, OtherState, ErrStat, ErrMsg )
       END IF
       
       ! initialize fields
-   u%TowerLn2Mesh%Moment   = 0.0_ReKi
-   u%TowerLn2Mesh%Force    = 0.0_ReKi   
+   u%TowerPtLoads%Moment   = 0.0_ReKi
+   u%TowerPtLoads%Force    = 0.0_ReKi   
          
    !.......................................................
    ! initialize all remaining inputs (non-allocatable):
