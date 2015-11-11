@@ -53,6 +53,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: BladeLength      ! Blade length (for AeroDyn) [meters]
     REAL(ReKi)  :: HubHt      ! Height of the hub [meters]
     REAL(ReKi) , DIMENSION(1:6)  :: PlatformPos      ! Initial platform position (6 DOFs) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: TwrBasePos      ! initial position of the tower base (for SrvD) [m]
   END TYPE ED_InitOutputType
 ! =======================
 ! =========  BladeInputData  =======
@@ -1067,6 +1068,7 @@ ENDIF
     DstInitOutputData%BladeLength = SrcInitOutputData%BladeLength
     DstInitOutputData%HubHt = SrcInitOutputData%HubHt
     DstInitOutputData%PlatformPos = SrcInitOutputData%PlatformPos
+    DstInitOutputData%TwrBasePos = SrcInitOutputData%TwrBasePos
  END SUBROUTINE ED_CopyInitOutput
 
  SUBROUTINE ED_DestroyInitOutput( InitOutputData, ErrStat, ErrMsg )
@@ -1163,6 +1165,7 @@ ENDIF
       Re_BufSz   = Re_BufSz   + 1  ! BladeLength
       Re_BufSz   = Re_BufSz   + 1  ! HubHt
       Re_BufSz   = Re_BufSz   + SIZE(InData%PlatformPos)  ! PlatformPos
+      Re_BufSz   = Re_BufSz   + SIZE(InData%TwrBasePos)  ! TwrBasePos
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -1275,6 +1278,8 @@ ENDIF
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%PlatformPos))-1 ) = PACK(InData%PlatformPos,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%PlatformPos)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TwrBasePos))-1 ) = PACK(InData%TwrBasePos,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%TwrBasePos)
  END SUBROUTINE ED_PackInitOutput
 
  SUBROUTINE ED_UnPackInitOutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1445,6 +1450,17 @@ ENDIF
     mask1 = .TRUE. 
       OutData%PlatformPos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PlatformPos))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%PlatformPos)
+    DEALLOCATE(mask1)
+    i1_l = LBOUND(OutData%TwrBasePos,1)
+    i1_u = UBOUND(OutData%TwrBasePos,1)
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      OutData%TwrBasePos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TwrBasePos))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%TwrBasePos)
     DEALLOCATE(mask1)
  END SUBROUTINE ED_UnPackInitOutput
 
