@@ -12245,19 +12245,19 @@ SUBROUTINE CalculateForcesMoments( p, x, CoordSys, u, RtHSdat )
          NodeNum = J ! we're ignoring the root and tip
          
          if (p%UseAD14) then
-            RtHSdat%FSAero(:,K,J) = u%BladeLn2Mesh(K)%Force(1,NodeNum) * CoordSys%te1(K,J,:) &
-                                  + u%BladeLn2Mesh(K)%Force(2,NodeNum) * CoordSys%te2(K,J,:)
+            RtHSdat%FSAero(:,K,J) = ( u%BladePtLoads(K)%Force(1,NodeNum) * CoordSys%te1(K,J,:) &
+                                    + u%BladePtLoads(K)%Force(2,NodeNum) * CoordSys%te2(K,J,:) ) / p%DRNodes(J)
 
             RtHSdat%MMAero(:,K,J) = CROSS_PRODUCT( RtHSdat%rSAerCen(:,J,K), RtHSdat%FSAero(:,K,J) )&
-                                  + u%BladeLn2Mesh(K)%Moment(3,NodeNum) * CoordSys%te3(K,J,:)        
+                                  + u%BladePtLoads(K)%Moment(3,NodeNum)/p%DRNodes(J) * CoordSys%te3(K,J,:)        
          else
-            RtHSdat%FSAero(1,K,J) =  u%BladeLn2Mesh(K)%Force(1,NodeNum) 
-            RtHSdat%FSAero(2,K,J) =  u%BladeLn2Mesh(K)%Force(3,NodeNum) 
-            RtHSdat%FSAero(3,K,J) = -u%BladeLn2Mesh(K)%Force(2,NodeNum) 
+            RtHSdat%FSAero(1,K,J) =  u%BladePtLoads(K)%Force(1,NodeNum) / p%DRNodes(J)
+            RtHSdat%FSAero(2,K,J) =  u%BladePtLoads(K)%Force(3,NodeNum) / p%DRNodes(J) 
+            RtHSdat%FSAero(3,K,J) = -u%BladePtLoads(K)%Force(2,NodeNum) / p%DRNodes(J)
 
-            RtHSdat%MMAero(1,K,J) =  u%BladeLn2Mesh(K)%Moment(1,NodeNum) 
-            RtHSdat%MMAero(2,K,J) =  u%BladeLn2Mesh(K)%Moment(3,NodeNum) 
-            RtHSdat%MMAero(3,K,J) = -u%BladeLn2Mesh(K)%Moment(2,NodeNum) 
+            RtHSdat%MMAero(1,K,J) =  u%BladePtLoads(K)%Moment(1,NodeNum) / p%DRNodes(J)
+            RtHSdat%MMAero(2,K,J) =  u%BladePtLoads(K)%Moment(3,NodeNum) / p%DRNodes(J)
+            RtHSdat%MMAero(3,K,J) = -u%BladePtLoads(K)%Moment(2,NodeNum) / p%DRNodes(J)
          end if
                      
          
@@ -13254,6 +13254,7 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
    ! local variables
    REAL(R8Ki)                                   :: Orientation(3,3) 
    REAL(ReKi)                                   :: Position(3) 
+   INTEGER(IntKi)                               :: NodeNum     ! node number
    INTEGER(IntKi)                               :: J, K        ! loop counters
    INTEGER(IntKi)                               :: ErrStat2    ! The error identifier (ErrStat)
    CHARACTER(1024)                              :: ErrMsg2     ! The error message (ErrMsg)
@@ -13284,19 +13285,104 @@ SUBROUTINE ED_AllocOutput( p, OtherState, u, y, ErrStat, ErrMsg )
       END IF
    
       DO K = 1,p%NumBl
-         CALL MeshCopy ( SrcMesh  = u%BladeLn2Mesh(K)   &
-                       , DestMesh = y%BladeLn2Mesh(K)   &
-                       , CtrlCode = MESH_SIBLING     &
-                       , IOS      = COMPONENT_OUTPUT &
-                       , TranslationDisp = .TRUE.    &
-                       , Orientation     = .TRUE.    &
-                       , TranslationVel  = .TRUE.    &
-                       , TranslationAcc  = p%UseAD14 &  
-                       , ErrStat  = ErrStat2         &
-                       , ErrMess  = ErrMsg2          )  ! automatically sets    y%BladeLn2Mesh(K)%RemapFlag = .TRUE.
-   
+         
+         CALL MeshCreate( BlankMesh          = y%BladeLn2Mesh(K)      &
+                           , NNodes          = p%BldNodes+2           &
+                           , IOS             = COMPONENT_OUTPUT       &
+                           , TranslationDisp = .TRUE.                 &
+                           , Orientation     = .TRUE.                 &
+                           , RotationVel     = .TRUE.                 &
+                           , TranslationVel  = .TRUE.                 &
+                           , RotationAcc     = .TRUE.                 &
+                           , TranslationAcc  = .TRUE.                 &
+                           , ErrStat         = ErrStat2               &
+                           , ErrMess         = ErrMsg2                )
             CALL CheckError( ErrStat2, ErrMsg2 )
-            IF (ErrStat >= AbortErrLev) RETURN                  
+            IF (ErrStat >= AbortErrLev) RETURN
+      
+         DO J = 1,p%BldNodes               
+            CALL MeshPositionNode ( y%BladeLn2Mesh(K), J, u%BladePtLoads(K)%Position(:,J), ErrStat2, ErrMsg2, Orient=u%BladePtLoads(K)%RefOrientation(:,:,J) )
+               CALL CheckError( ErrStat2, ErrMsg2 )
+               IF (ErrStat >= AbortErrLev) RETURN
+         END DO
+            
+            ! now add position/orientation of nodes for AD14 or AD15
+         if (p%UseAD14) then     ! position/orientation of nodes for AeroDyn v14 or v15    
+         
+               ! Use orientation at p%BldNodes for the extra node at the blade tip
+            CALL MeshPositionNode ( y%BladeLn2Mesh(K), p%BldNodes + 1, (/0.0_ReKi, 0.0_ReKi, p%BldFlexL /), ErrStat2, ErrMsg2, Orient=u%BladePtLoads(K)%RefOrientation(:,:,p%BldNodes) )
+               CALL CheckError( ErrStat2, ErrMsg2 )
+               IF (ErrStat >= AbortErrLev) RETURN
+            
+               ! Use orientation at node 1 for the blade root            
+            CALL MeshPositionNode ( y%BladeLn2Mesh(K), p%BldNodes + 2, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat2, ErrMsg2, Orient=u%BladePtLoads(K)%RefOrientation(:,:,1) )
+               CALL CheckError( ErrStat2, ErrMsg2 )
+               IF (ErrStat >= AbortErrLev) RETURN
+               
+         else
+         
+            ! position the nodes on the blade root and blade tip:
+            DO J = 0,p%TipNode,p%TipNode
+               if (j==0) then ! blade root
+                  NodeNum = p%BldNodes + 2
+               elseif (j==p%TipNode) then ! blade tip
+                  NodeNum = p%BldNodes + 1
+               end if
+         
+               Orientation(1,1) =     OtherState%CoordSys%n1(K,J,1)
+               Orientation(2,1) =     OtherState%CoordSys%n2(K,J,1)
+               Orientation(3,1) =     OtherState%CoordSys%n3(K,J,1)
+               Orientation(1,2) = -1.*OtherState%CoordSys%n1(K,J,3)
+               Orientation(2,2) = -1.*OtherState%CoordSys%n2(K,J,3)
+               Orientation(3,2) = -1.*OtherState%CoordSys%n3(K,J,3)
+               Orientation(1,3) =     OtherState%CoordSys%n1(K,J,2)
+               Orientation(2,3) =     OtherState%CoordSys%n2(K,J,2)
+               Orientation(3,3) =     OtherState%CoordSys%n3(K,J,2) 
+               
+                  ! Translational Displacement 
+               position(1) =     OtherState%RtHS%rS (1,K,J)                ! = the distance from the undeflected tower centerline to the current blade node in the xi ( z1) direction
+               position(2) = -1.*OtherState%RtHS%rS (3,K,J)                ! = the distance from the undeflected tower centerline to the current blade node in the yi (-z3) direction
+               position(3) =     OtherState%RtHS%rS (2,K,J)  + p%PtfmRefzt ! = the distance from the nominal tower base position (i.e., the undeflected position of the tower base) to the current blade node in the zi ( z2) direction
+               
+               
+               CALL MeshPositionNode ( y%BladeLn2Mesh(K), NodeNum, position, ErrStat2, ErrMsg2, Orient=Orientation )
+                  CALL CheckError( ErrStat2, ErrMsg2 )
+                  IF (ErrStat >= AbortErrLev) RETURN
+                                    
+            END DO ! nodes 
+            
+         end if ! position/orientation of nodes for AeroDyn v14 or v15
+         
+         ! create elements:      
+         DO J = 2,p%TipNode !p%BldNodes + 1
+            
+            CALL MeshConstructElement ( Mesh      = y%BladeLn2Mesh(K)  &
+                                       , Xelement = ELEMENT_LINE2      &
+                                       , P1       = J-1                &   ! node1 number
+                                       , P2       = J                  &   ! node2 number
+                                       , ErrStat  = ErrStat2           &
+                                       , ErrMess  = ErrMsg2            )
+               CALL CheckError( ErrStat2, ErrMsg2 )
+               IF (ErrStat >= AbortErrLev) RETURN
+      
+         END DO ! J (blade nodes)
+
+            ! add the other extra element, connecting the first node on the blade:
+         CALL MeshConstructElement ( Mesh      = y%BladeLn2Mesh(K)  &
+                                    , Xelement = ELEMENT_LINE2      &
+                                    , P1       = p%BldNodes + 2     &   ! node1 number (extra node at root)
+                                    , P2       = 1                  &   ! node2 number (first node on blade)
+                                    , ErrStat  = ErrStat2           &
+                                    , ErrMess  = ErrMsg2            )         
+            CALL CheckError( ErrStat2, ErrMsg2 )
+            IF (ErrStat >= AbortErrLev) RETURN
+      
+         
+            ! that's our entire mesh:
+         CALL MeshCommit ( y%BladeLn2Mesh(K), ErrStat2, ErrMsg2 )   
+            CALL CheckError( ErrStat2, ErrMsg2 )
+            IF (ErrStat >= AbortErrLev) RETURN
+   
       END DO
       
    END IF
@@ -13728,9 +13814,9 @@ SUBROUTINE Init_u( u, p, x, InputFileData, OtherState, ErrStat, ErrMsg )
    !.......................................................
       
    IF (.not. p%BD4Blades) THEN
-      ALLOCATE( u%BladeLn2Mesh(p%NumBl), STAT=ErrStat2 )
+      ALLOCATE( u%BladePtLoads(p%NumBl), STAT=ErrStat2 )
       IF ( ErrStat2 /= 0 ) THEN
-         CALL SetErrStat( ErrID_Fatal, "Could not allocate u%BladeLn2Mesh", ErrStat, ErrMsg, RoutineName )
+         CALL SetErrStat( ErrID_Fatal, "Could not allocate u%BladePtLoads", ErrStat, ErrMsg, RoutineName )
          CALL Cleanup()
          RETURN
       END IF
@@ -13738,9 +13824,9 @@ SUBROUTINE Init_u( u, p, x, InputFileData, OtherState, ErrStat, ErrMsg )
    
       DO K=1,p%NumBl
       
-         CALL MeshCreate( BlankMesh         = u%BladeLn2Mesh(K)      &
+         CALL MeshCreate( BlankMesh         = u%BladePtLoads(K)      &
                            ,IOS             = COMPONENT_INPUT        &
-                           ,NNodes          = p%BldNodes+2           &
+                           ,NNodes          = p%BldNodes             &
                            ,Force           = .TRUE.                 &
                            ,Moment          = .TRUE.                 &
                            ,ErrStat         = ErrStat2               &
@@ -13769,46 +13855,18 @@ SUBROUTINE Init_u( u, p, x, InputFileData, OtherState, ErrStat, ErrMsg )
                Orientation(2,3) =  0.0_ReKi
                Orientation(3,3) =  1.0_ReKi
                            
-               CALL MeshPositionNode ( u%BladeLn2Mesh(K), NodeNum, (/0.0_ReKi, 0.0_ReKi, p%RNodes(J) /), ErrStat2, ErrMsg2, Orient=Orientation )
+               CALL MeshPositionNode ( u%BladePtLoads(K), NodeNum, (/0.0_ReKi, 0.0_ReKi, p%RNodes(J) /), ErrStat2, ErrMsg2, Orient=Orientation )
                   CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
                   IF (ErrStat >= AbortErrLev) THEN
                      CALL Cleanup()
                      RETURN
                   END IF
-                           
-               IF ( J == p%BldNodes ) THEN ! Use orientation at p%BldNodes for the extra node at the blade tip
-
-                  NodeNum = p%BldNodes + 1
-                  CALL MeshPositionNode ( u%BladeLn2Mesh(K), NodeNum, (/0.0_ReKi, 0.0_ReKi, p%BldFlexL /), ErrStat2, ErrMsg2, Orient=Orientation )
-                     CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
-                     IF (ErrStat >= AbortErrLev) THEN
-                        CALL Cleanup()
-                        RETURN
-                     END IF
-            
-               ELSEIF (J == 1) THEN ! Use orientation at 1 for the extra node at the hub
-            
-                  NodeNum = p%BldNodes + 2 
-                  CALL MeshPositionNode ( u%BladeLn2Mesh(K), NodeNum, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat2, ErrMsg2, Orient=Orientation )
-                     CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
-                     IF (ErrStat >= AbortErrLev) THEN
-                        CALL Cleanup()
-                        RETURN
-                     END IF
-  
-               END IF
-                                    
+                                                               
             END DO ! nodes  
          else
             ! position the nodes on the blades:
-            DO J = 0,p%TipNode
-               if (j==0) then ! blade root
-                  NodeNum = p%BldNodes + 2
-               elseif (j==p%TipNode) then ! blade tip
-                  NodeNum = p%BldNodes + 1
-               else
-                  NodeNum = J
-               end if
+            DO J = 1,p%BldNodes
+               NodeNum = J
          
                Orientation(1,1) =     OtherState%CoordSys%n1(K,J,1)
                Orientation(2,1) =     OtherState%CoordSys%n2(K,J,1)
@@ -13826,7 +13884,7 @@ SUBROUTINE Init_u( u, p, x, InputFileData, OtherState, ErrStat, ErrMsg )
                position(3) =     OtherState%RtHS%rS (2,K,J)  + p%PtfmRefzt ! = the distance from the nominal tower base position (i.e., the undeflected position of the tower base) to the current blade node in the zi ( z2) direction
                
                
-               CALL MeshPositionNode ( u%BladeLn2Mesh(K), NodeNum, position, ErrStat2, ErrMsg2, Orient=Orientation )
+               CALL MeshPositionNode ( u%BladePtLoads(K), NodeNum, position, ErrStat2, ErrMsg2, Orient=Orientation )
                   CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
                   IF (ErrStat >= AbortErrLev) THEN
                      CALL Cleanup()
@@ -13837,12 +13895,11 @@ SUBROUTINE Init_u( u, p, x, InputFileData, OtherState, ErrStat, ErrMsg )
          end if ! position/orientation of nodes for AeroDyn v14 or v15
          
          ! create elements:      
-         DO J = 2,p%TipNode !p%BldNodes + 1
+         DO J = 1,p%BldNodes !p%BldNodes + 1
             
-            CALL MeshConstructElement ( Mesh      = u%BladeLn2Mesh(K)  &
-                                       , Xelement = ELEMENT_LINE2      &
-                                       , P1       = J-1                &   ! node1 number
-                                       , P2       = J                  &   ! node2 number
+            CALL MeshConstructElement ( Mesh      = u%BladePtLoads(K)  &
+                                       , Xelement = ELEMENT_POINT      &
+                                       , P1       = J                  &   ! node1 number
                                        , ErrStat  = ErrStat2           &
                                        , ErrMess  = ErrMsg2            )
          
@@ -13854,32 +13911,18 @@ SUBROUTINE Init_u( u, p, x, InputFileData, OtherState, ErrStat, ErrMsg )
       
          END DO ! J (blade nodes)
 
-            ! add the other extra element, connecting the first node on the blade:
-         CALL MeshConstructElement ( Mesh      = u%BladeLn2Mesh(K)  &
-                                    , Xelement = ELEMENT_LINE2      &
-                                    , P1       = p%BldNodes + 2     &   ! node1 number (extra node at root)
-                                    , P2       = 1                  &   ! node2 number (first node on blade)
-                                    , ErrStat  = ErrStat2           &
-                                    , ErrMess  = ErrMsg2            )
-         
-            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
-            IF (ErrStat >= AbortErrLev) THEN
-               CALL Cleanup()
-               RETURN
-            END IF
-      
-         
             ! that's our entire mesh:
-         CALL MeshCommit ( u%BladeLn2Mesh(K), ErrStat2, ErrMsg2 )   
+         CALL MeshCommit ( u%BladePtLoads(K), ErrStat2, ErrMsg2 )   
             CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
             IF (ErrStat >= AbortErrLev) THEN
                CALL Cleanup()
                RETURN
             END IF
 
+   
             ! initialize it
-         u%BladeLn2Mesh(K)%Moment   = 0.0_ReKi
-         u%BladeLn2Mesh(K)%Force    = 0.0_ReKi         
+         u%BladePtLoads(K)%Moment   = 0.0_ReKi
+         u%BladePtLoads(K)%Force    = 0.0_ReKi         
          
                      
       END DO ! blades

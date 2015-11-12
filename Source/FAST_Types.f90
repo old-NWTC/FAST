@@ -380,8 +380,8 @@ IMPLICIT NONE
     TYPE(MeshMapType)  :: SrvD_P_2_ED_P_N      ! Map ServoDyn nacelle point mesh to ElastoDyn point mesh on the nacelle [-]
     TYPE(MeshMapType)  :: ED_L_2_SrvD_P_T      ! Map ElastoDyn tower line2 mesh to ServoDyn/TTMD point mesh [-]
     TYPE(MeshMapType)  :: SrvD_P_2_ED_P_T      ! Map ServoDyn tower point mesh to ElastoDyn point load mesh on the tower [-]
-    TYPE(MeshMapType) , DIMENSION(:), ALLOCATABLE  :: BDED_L_2_AD_L_B      ! Map ElastoDyn BladeLn2Mesh line2 meshes OR BeamDyn BldMotion line2 meshes to AeroDyn14 InputMarkers OR AeroDyn BladeMotion line2 meshes [-]
-    TYPE(MeshMapType) , DIMENSION(:), ALLOCATABLE  :: AD_L_2_BDED_L_B      ! Map AeroDyn14 InputMarkers or AeroDyn BladeLoad line2 meshes to ElastoDyn BladeLn2Mesh line2 meshes or BeamDyn BldMotion line2 meshes [-]
+    TYPE(MeshMapType) , DIMENSION(:), ALLOCATABLE  :: BDED_L_2_AD_L_B      ! Map ElastoDyn BladeLn2Mesh point meshes OR BeamDyn BldMotion line2 meshes to AeroDyn14 InputMarkers OR AeroDyn BladeMotion line2 meshes [-]
+    TYPE(MeshMapType) , DIMENSION(:), ALLOCATABLE  :: AD_L_2_BDED_B      ! Map AeroDyn14 InputMarkers or AeroDyn BladeLoad line2 meshes to ElastoDyn BladePtLoad point meshes or BeamDyn BldMotion line2 meshes [-]
     TYPE(MeshMapType) , DIMENSION(:), ALLOCATABLE  :: BD_L_2_BD_L      ! Map BeamDyn BldMotion output meshes to locations on the BD input DistrLoad mesh stored in MeshMapType%y_BD_BldMotion_4Loads (BD input and output meshes are not siblings and in fact have nodes at different locations [-]
     TYPE(MeshMapType)  :: ED_L_2_AD_L_T      ! Map ElastoDyn TowerLn2Mesh line2 mesh to AeroDyn14 Twr_InputMarkers or AeroDyn TowerMotion line2 mesh [-]
     TYPE(MeshMapType)  :: AD_L_2_ED_P_T      ! Map AeroDyn14 Twr_InputMarkers or AeroDyn TowerLoad line2 mesh to ElastoDyn TowerPtLoads point mesh [-]
@@ -18216,18 +18216,18 @@ IF (ALLOCATED(SrcModuleMapTypeData%BDED_L_2_AD_L_B)) THEN
          IF (ErrStat>=AbortErrLev) RETURN
     ENDDO
 ENDIF
-IF (ALLOCATED(SrcModuleMapTypeData%AD_L_2_BDED_L_B)) THEN
-  i1_l = LBOUND(SrcModuleMapTypeData%AD_L_2_BDED_L_B,1)
-  i1_u = UBOUND(SrcModuleMapTypeData%AD_L_2_BDED_L_B,1)
-  IF (.NOT. ALLOCATED(DstModuleMapTypeData%AD_L_2_BDED_L_B)) THEN 
-    ALLOCATE(DstModuleMapTypeData%AD_L_2_BDED_L_B(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcModuleMapTypeData%AD_L_2_BDED_B)) THEN
+  i1_l = LBOUND(SrcModuleMapTypeData%AD_L_2_BDED_B,1)
+  i1_u = UBOUND(SrcModuleMapTypeData%AD_L_2_BDED_B,1)
+  IF (.NOT. ALLOCATED(DstModuleMapTypeData%AD_L_2_BDED_B)) THEN 
+    ALLOCATE(DstModuleMapTypeData%AD_L_2_BDED_B(i1_l:i1_u),STAT=ErrStat2)
     IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstModuleMapTypeData%AD_L_2_BDED_L_B.', ErrStat, ErrMsg,RoutineName)
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstModuleMapTypeData%AD_L_2_BDED_B.', ErrStat, ErrMsg,RoutineName)
       RETURN
     END IF
   END IF
-    DO i1 = LBOUND(SrcModuleMapTypeData%AD_L_2_BDED_L_B,1), UBOUND(SrcModuleMapTypeData%AD_L_2_BDED_L_B,1)
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%AD_L_2_BDED_L_B(i1), DstModuleMapTypeData%AD_L_2_BDED_L_B(i1), CtrlCode, ErrStat2, ErrMsg2 )
+    DO i1 = LBOUND(SrcModuleMapTypeData%AD_L_2_BDED_B,1), UBOUND(SrcModuleMapTypeData%AD_L_2_BDED_B,1)
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%AD_L_2_BDED_B(i1), DstModuleMapTypeData%AD_L_2_BDED_B(i1), CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
     ENDDO
@@ -18469,11 +18469,11 @@ DO i1 = LBOUND(ModuleMapTypeData%BDED_L_2_AD_L_B,1), UBOUND(ModuleMapTypeData%BD
 ENDDO
   DEALLOCATE(ModuleMapTypeData%BDED_L_2_AD_L_B)
 ENDIF
-IF (ALLOCATED(ModuleMapTypeData%AD_L_2_BDED_L_B)) THEN
-DO i1 = LBOUND(ModuleMapTypeData%AD_L_2_BDED_L_B,1), UBOUND(ModuleMapTypeData%AD_L_2_BDED_L_B,1)
-  CALL NWTC_Library_Destroymeshmaptype( ModuleMapTypeData%AD_L_2_BDED_L_B(i1), ErrStat, ErrMsg )
+IF (ALLOCATED(ModuleMapTypeData%AD_L_2_BDED_B)) THEN
+DO i1 = LBOUND(ModuleMapTypeData%AD_L_2_BDED_B,1), UBOUND(ModuleMapTypeData%AD_L_2_BDED_B,1)
+  CALL NWTC_Library_Destroymeshmaptype( ModuleMapTypeData%AD_L_2_BDED_B(i1), ErrStat, ErrMsg )
 ENDDO
-  DEALLOCATE(ModuleMapTypeData%AD_L_2_BDED_L_B)
+  DEALLOCATE(ModuleMapTypeData%AD_L_2_BDED_B)
 ENDIF
 IF (ALLOCATED(ModuleMapTypeData%BD_L_2_BD_L)) THEN
 DO i1 = LBOUND(ModuleMapTypeData%BD_L_2_BD_L,1), UBOUND(ModuleMapTypeData%BD_L_2_BD_L,1)
@@ -18972,24 +18972,24 @@ ENDIF
       END IF
     END DO
   END IF
-  Int_BufSz   = Int_BufSz   + 1     ! AD_L_2_BDED_L_B allocated yes/no
-  IF ( ALLOCATED(InData%AD_L_2_BDED_L_B) ) THEN
-    Int_BufSz   = Int_BufSz   + 2*1  ! AD_L_2_BDED_L_B upper/lower bounds for each dimension
-    DO i1 = LBOUND(InData%AD_L_2_BDED_L_B,1), UBOUND(InData%AD_L_2_BDED_L_B,1)
-      Int_BufSz   = Int_BufSz + 3  ! AD_L_2_BDED_L_B: size of buffers for each call to pack subtype
-      CALL NWTC_Library_Packmeshmaptype( Re_Buf, Db_Buf, Int_Buf, InData%AD_L_2_BDED_L_B(i1), ErrStat2, ErrMsg2, .TRUE. ) ! AD_L_2_BDED_L_B 
+  Int_BufSz   = Int_BufSz   + 1     ! AD_L_2_BDED_B allocated yes/no
+  IF ( ALLOCATED(InData%AD_L_2_BDED_B) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! AD_L_2_BDED_B upper/lower bounds for each dimension
+    DO i1 = LBOUND(InData%AD_L_2_BDED_B,1), UBOUND(InData%AD_L_2_BDED_B,1)
+      Int_BufSz   = Int_BufSz + 3  ! AD_L_2_BDED_B: size of buffers for each call to pack subtype
+      CALL NWTC_Library_Packmeshmaptype( Re_Buf, Db_Buf, Int_Buf, InData%AD_L_2_BDED_B(i1), ErrStat2, ErrMsg2, .TRUE. ) ! AD_L_2_BDED_B 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
-      IF(ALLOCATED(Re_Buf)) THEN ! AD_L_2_BDED_L_B
+      IF(ALLOCATED(Re_Buf)) THEN ! AD_L_2_BDED_B
          Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
          DEALLOCATE(Re_Buf)
       END IF
-      IF(ALLOCATED(Db_Buf)) THEN ! AD_L_2_BDED_L_B
+      IF(ALLOCATED(Db_Buf)) THEN ! AD_L_2_BDED_B
          Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
          DEALLOCATE(Db_Buf)
       END IF
-      IF(ALLOCATED(Int_Buf)) THEN ! AD_L_2_BDED_L_B
+      IF(ALLOCATED(Int_Buf)) THEN ! AD_L_2_BDED_B
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
@@ -20115,18 +20115,18 @@ ENDIF
       ENDIF
     END DO
   END IF
-  IF ( .NOT. ALLOCATED(InData%AD_L_2_BDED_L_B) ) THEN
+  IF ( .NOT. ALLOCATED(InData%AD_L_2_BDED_B) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
   ELSE
     IntKiBuf( Int_Xferred ) = 1
     Int_Xferred = Int_Xferred + 1
-    IntKiBuf( Int_Xferred    ) = LBOUND(InData%AD_L_2_BDED_L_B,1)
-    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%AD_L_2_BDED_L_B,1)
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%AD_L_2_BDED_B,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%AD_L_2_BDED_B,1)
     Int_Xferred = Int_Xferred + 2
 
-    DO i1 = LBOUND(InData%AD_L_2_BDED_L_B,1), UBOUND(InData%AD_L_2_BDED_L_B,1)
-      CALL NWTC_Library_Packmeshmaptype( Re_Buf, Db_Buf, Int_Buf, InData%AD_L_2_BDED_L_B(i1), ErrStat2, ErrMsg2, OnlySize ) ! AD_L_2_BDED_L_B 
+    DO i1 = LBOUND(InData%AD_L_2_BDED_B,1), UBOUND(InData%AD_L_2_BDED_B,1)
+      CALL NWTC_Library_Packmeshmaptype( Re_Buf, Db_Buf, Int_Buf, InData%AD_L_2_BDED_B(i1), ErrStat2, ErrMsg2, OnlySize ) ! AD_L_2_BDED_B 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -21875,20 +21875,20 @@ ENDIF
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
     END DO
   END IF
-  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! AD_L_2_BDED_L_B not allocated
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! AD_L_2_BDED_B not allocated
     Int_Xferred = Int_Xferred + 1
   ELSE
     Int_Xferred = Int_Xferred + 1
     i1_l = IntKiBuf( Int_Xferred    )
     i1_u = IntKiBuf( Int_Xferred + 1)
     Int_Xferred = Int_Xferred + 2
-    IF (ALLOCATED(OutData%AD_L_2_BDED_L_B)) DEALLOCATE(OutData%AD_L_2_BDED_L_B)
-    ALLOCATE(OutData%AD_L_2_BDED_L_B(i1_l:i1_u),STAT=ErrStat2)
+    IF (ALLOCATED(OutData%AD_L_2_BDED_B)) DEALLOCATE(OutData%AD_L_2_BDED_B)
+    ALLOCATE(OutData%AD_L_2_BDED_B(i1_l:i1_u),STAT=ErrStat2)
     IF (ErrStat2 /= 0) THEN 
-       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%AD_L_2_BDED_L_B.', ErrStat, ErrMsg,RoutineName)
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%AD_L_2_BDED_B.', ErrStat, ErrMsg,RoutineName)
        RETURN
     END IF
-    DO i1 = LBOUND(OutData%AD_L_2_BDED_L_B,1), UBOUND(OutData%AD_L_2_BDED_L_B,1)
+    DO i1 = LBOUND(OutData%AD_L_2_BDED_B,1), UBOUND(OutData%AD_L_2_BDED_B,1)
       Buf_size=IntKiBuf( Int_Xferred )
       Int_Xferred = Int_Xferred + 1
       IF(Buf_size > 0) THEN
@@ -21922,7 +21922,7 @@ ENDIF
         Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
         Int_Xferred = Int_Xferred + Buf_size
       END IF
-      CALL NWTC_Library_Unpackmeshmaptype( Re_Buf, Db_Buf, Int_Buf, OutData%AD_L_2_BDED_L_B(i1), ErrStat2, ErrMsg2 ) ! AD_L_2_BDED_L_B 
+      CALL NWTC_Library_Unpackmeshmaptype( Re_Buf, Db_Buf, Int_Buf, OutData%AD_L_2_BDED_B(i1), ErrStat2, ErrMsg2 ) ! AD_L_2_BDED_B 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 

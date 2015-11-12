@@ -208,7 +208,7 @@ MODULE NWTC_IO
       MODULE PROCEDURE WrMatrix2R8     ! Two dimension matrix of R8Ki
    END INTERFACE
 
-      !> \copydoc nwtc_io:wrr4aryfilenr
+      !> \copydoc nwtc_io::wrr4aryfilenr
    INTERFACE WrNumAryFileNR
       MODULE PROCEDURE WrR4AryFileNR
       MODULE PROCEDURE WrR8AryFileNR
@@ -265,7 +265,7 @@ CONTAINS
 !> This routine allocates an array to the size specified in the AryDim input arguement(s).
 !! Arrays are of type ALLOCATABLE.   
 !! If the array is already allocated on entry to this routine, an error will be generated. \n
-!! Use AllocAry (nwtc_num::allocary) instead of directly calling a specific routine in the generic interface.   
+!! Use AllocAry (nwtc_io::allocary) instead of directly calling a specific routine in the generic interface.   
    SUBROUTINE AllCAry1 ( Ary, AryDim1, Descr, ErrStat, ErrMsg )
 
       ! This routine allocates a 1-D CHARACTER array.
@@ -542,7 +542,7 @@ CONTAINS
 !! Arrays are of type POINTER.   
 !! If the array pointer is already associated on entry to this routine, the array it points to 
 !!  will be deallocated first. \n
-!! Use AllocPAry (nwtc_num::allocpary) instead of directly calling a specific routine in the generic interface.   
+!! Use AllocPAry (nwtc_io::allocpary) instead of directly calling a specific routine in the generic interface.   
    SUBROUTINE AllIPAry1 ( Ary, AryDim1, Descr, ErrStat, ErrMsg )
 
       ! This routine allocates a 1-D INTEGER array.
@@ -4087,7 +4087,7 @@ CONTAINS
    END SUBROUTINE ParseSiVarWDefault
 !=======================================================================
 !> This routine determines if the given file name is absolute or relative.
-!! We'll consider an absolute path one that satisfies one of the
+!! We will consider an absolute path one that satisfies one of the
 !! following four criteria:
 !!     1. It contains ":/"
 !!     2. It contains ":\"
@@ -4102,14 +4102,17 @@ CONTAINS
    CHARACTER(*), INTENT(IN)     :: GivenFil                                            !< The name of the given file.
    LOGICAL                      :: PathIsRelative                                      !< The function return value
 
+   
 
-      ! Determine if file name begins with an absolute path name or if it is relative
+      ! Determine if file name begins with an absolute path name or if it is relative 
+      !    note that Doxygen has serious issues if you use the single quote instead of  
+      !    double quote characters in the strings below:
 
    PathIsRelative = .FALSE.
 
-   IF ( ( INDEX( GivenFil, ':/') == 0 ) .AND. ( INDEX( GivenFil, ':\') == 0 ) ) THEN   ! No drive is specified (by ':\' or ':/')
+   IF ( ( INDEX( GivenFil, ":/") == 0 ) .AND. ( INDEX( GivenFil, ":\") == 0 ) ) THEN   ! No drive is specified (by ":\" or ":/")
 
-      IF ( INDEX( '/\', GivenFil(1:1) ) == 0 ) THEN                                    ! The file name doesn't start with '\' or '/'
+      IF ( INDEX( "/\", GivenFil(1:1) ) == 0 ) THEN                                    ! The file name doesn't start with "\" or "/"
 
          PathIsRelative = .TRUE.
 
@@ -4319,7 +4322,7 @@ CONTAINS
 
       ! Argument declarations.
 
-   REAL(ReKi), INTENT(IN), OPTIONAL       :: TimeWait             !< Tells whether to wait for TimeWait s, or pause if <0.
+   REAL(ReKi), INTENT(IN), OPTIONAL       :: TimeWait             !< Tells whether to wait for TimeWait s, or pause if < 0.
 
    INTEGER(IntKi), INTENT(IN), OPTIONAL   :: ErrLevel             !< The error level to report to the OS.
 
@@ -6741,7 +6744,7 @@ CONTAINS
 !! in the array. If MatName is present, it also preceeds the matrix
 !! with "MatName" and the number of rows (dimension 1 of A) and columns (dimension 2 of A).
 !! It is useful for debugging and/or writing summary files.
-!! Use WrMatrix (nwtc_num::wrmatrix) instead of directly calling a specific routine in the generic interface.
+!! Use WrMatrix (nwtc_io::wrmatrix) instead of directly calling a specific routine in the generic interface.
    SUBROUTINE WrMatrix1R4( A, Un, ReFmt, MatName )
    
       
@@ -6892,7 +6895,7 @@ CONTAINS
    END SUBROUTINE WrPr
 !=======================================================================
 !> This routine writes out a real array to the file connected to Unit without following it with a new line.
-!! Use WrNumAryFileNR (nwtc_num::wrnumaryfilenr) instead of directly calling a specific routine in the generic interface.   
+!! Use WrNumAryFileNR (nwtc_io::wrnumaryfilenr) instead of directly calling a specific routine in the generic interface.   
    SUBROUTINE WrR4AryFileNR ( Unit, Ary, Fmt, ErrStat, ErrMsg  )
 
       ! Argument declarations.
@@ -6932,7 +6935,7 @@ CONTAINS
    RETURN
    END SUBROUTINE WrR4AryFileNR
 !=======================================================================
-!> \copydoc nwtc_io:wrr4aryfilenr
+!> \copydoc nwtc_io::wrr4aryfilenr
    SUBROUTINE WrR8AryFileNR ( Unit, Ary, Fmt, ErrStat, ErrMsg  )
 
       ! Argument declarations.
@@ -6972,7 +6975,7 @@ CONTAINS
    RETURN
    END SUBROUTINE WrR8AryFileNR
 !=======================================================================
-!> \copydoc nwtc_io:wrr4aryfilenr
+!> \copydoc nwtc_io::wrr4aryfilenr
    SUBROUTINE WrR16AryFileNR ( Unit, Ary, Fmt, ErrStat, ErrMsg  )
 
       ! Argument declarations.
