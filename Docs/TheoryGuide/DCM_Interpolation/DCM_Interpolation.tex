@@ -47,13 +47,13 @@ the logarithmic map for the matrix is a skew-symmetric matrix, $\lambda$:
 The angle of rotation for the skew-symmetric matrix, $\lambda$ is
 \begin{equation}
 \label{EqRotationAng}
-\theta = \left|\lambda\right| = \sqrt{{\lambda_1}^2+{\lambda_2}^2+{\lambda_3}^2} 
+\theta = \left\|\lambda\right\| = \sqrt{{\lambda_1}^2+{\lambda_2}^2+{\lambda_3}^2} 
 \end{equation}
 
 The matrix exponential is 
 \begin{equation}
 \label{EqExp}
- \Lambda = \exp(\lambda) 
+ \Lambda = \exp(\lambda) =
  \left\{ 
  \begin{matrix}
 	I                                                                              &  \theta = 0 \\
@@ -65,7 +65,7 @@ The matrix exponential is
 
 \section{Solving for $\lambda$}
 
-If lorarithmic map and matrix exponential are truly inverses, we need 
+If the logarithmic map and matrix exponential are truly inverses, we need 
 \begin{equation}
 \exp(\log(\Lambda)) = \Lambda. 
 \end{equation}
@@ -104,12 +104,12 @@ Doing a little algebra for $\theta > 0$, Equation \ref{EqExpMatrix} becomes
 \end{equation}
 It follows that the trace is 
 \begin{eqnarray*}
-\mathrm{trace}(\Lambda) &=& 3 - 2\frac{1-\cos\theta}{\theta^2}(\lambda_1^2 + \lambda_2^2 + \lambda_3^2) \\
+\mathrm{Tr}(\Lambda) &=& 3 - 2\frac{1-\cos\theta}{\theta^2}(\lambda_1^2 + \lambda_2^2 + \lambda_3^2) \\
                &=& 3 - 2\left(1-\cos\theta\right) \\
                &=& 1 + 2\cos\theta
 \end{eqnarray*} or
 \begin{equation}
-\theta= \begin{matrix} \cos^{-1}\left(\frac{1}{2}\left(\mathrm{trace}(\Lambda)-1\right)\right) & \theta \in \left[0,\pi\right]\end{matrix}
+\theta= \begin{matrix} \cos^{-1}\left(\frac{1}{2}\left(\mathrm{Tr}(\Lambda)-1\right)\right) & \theta \in \left[0,\pi\right]\end{matrix}
 \end{equation}
 It also follows that  
 \begin{equation}
@@ -128,7 +128,7 @@ We need an equation that works when $\sin\theta$ approaches 0, that is, when $\t
 \begin{equation}
 \lim_{\theta \to 0}\frac{\theta}{2\sin\theta} = \frac{1}{2}
 \end{equation}
-and since $\theta$ is the 2-norm of the individual components of $\lambda$, it follows that they approach zero, and we get
+and since $\theta$ is the $l_2$ norm of the individual components of $\lambda$, it follows that they approach zero, and we get
 \begin{equation}
 \label{EqLambdaTheta0}
 \lambda = 0
@@ -139,7 +139,7 @@ However, when $\theta$ approaches $\pi$, $\Lambda - \Lambda^T$ approaches 0, and
 \end{equation}
 We need a different method to find $\lambda$. Going back to Equations \ref{EqExpMatrix} and \ref{EqMatrixAlgebra}, we can compute the following:
 \begin{equation}
-\Lambda_{11}+\Lambda_{22}-\Lambda{33} = 1 - \frac{2\lambda_3^2(1-\cos\theta)}{\theta^2} 
+\Lambda_{11}+\Lambda_{22}-\Lambda_{33} = 1 - \frac{2\lambda_3^2(1-\cos\theta)}{\theta^2} 
 \end{equation}
 %\begin{equation}
 %\Lambda_{11}-\Lambda_{22}+\Lambda{33} = 1 - \frac{1-\cos\theta}{\theta^2}\left( 2\lambda_2^2\right)
@@ -224,7 +224,7 @@ $\lambda_k = \lambda \left( 1 + \frac{2k\pi}{\left\| \lambda \right\|}\right)$ f
 Given a set of $\lambda^j$ to be interpolated, find equivalent $\tilde{\lambda}^j$ for integers $j=1,2,...n$:
 Set $\tilde{\lambda}^1 = \lambda^1$.
 For each $j\in\left[2,n\right]$, 
-check to see if $\tilde{\lambda}^{j-1}$ is closer (in the 2-norm sense) to 
+check to see if $\tilde{\lambda}^{j-1}$ is closer (in the $l_2$-norm sense) to 
 $\lambda^j$ or $\lambda^j \left( 1 + \frac{2\pi}{\left\| \lambda^j \right\|}\right)$. 
 If the latter, set $\tilde{\lambda}^{j}=\lambda^j \left( 1 + \frac{2\pi}{\left\| \lambda^j \right\|}\right)$ and continue checking if we need to add more $2\pi$ periods.
 Otherwise, check to see if $\tilde{\lambda}^{j-1}$ is closer to 
