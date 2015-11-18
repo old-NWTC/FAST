@@ -1,4 +1,4 @@
-%Conversion of FAST v 7.x or FAST v8.10.x files to FAST v8.12.x
+%Conversion of FAST v 7.x or FAST v8.12.x files to FAST v8.13.x
 % by Bonnie Jonkman
 %  based on work by Paul Fleming
 % (c) 2011, 2013-2015 National Renewable Energy Laboratory
@@ -16,21 +16,20 @@ addpath( genpath( FASTSimulationToolbox ) );
 % -------------------------------------------------------------------------
 oldDir = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\CertTest';
 newDir = '.';
-createAD15 = false; true;
 
-for i=1:26
+for i=18 %1:26
    
     baseFileName  = ['Test' num2str(i,'%02.0f')  ]; %'_noHD'
     inputfile = [oldDir filesep baseFileName '.fst'];      
     
     
-    ConvertFAST8_10to12(inputfile,newDir, createAD15);
+    ConvertFAST8_12to13(inputfile,newDir);
         
 end
-
-ConvertFAST8_10to12([oldDir filesep 'Test19_noHD.fst'],newDir, createAD15);
-ConvertFAST8_10to12([oldDir filesep 'Test19_withIce.fst'],newDir, createAD15);
-ConvertFAST8_10to12([oldDir filesep 'Test21_withIce.fst'],newDir, createAD15);
+return
+ConvertFAST8_12to13([oldDir filesep 'Test19_noHD.fst'],newDir);
+ConvertFAST8_12to13([oldDir filesep 'Test19_withIce.fst'],newDir);
+ConvertFAST8_12to13([oldDir filesep 'Test21_withIce.fst'],newDir);
 
 return;
 

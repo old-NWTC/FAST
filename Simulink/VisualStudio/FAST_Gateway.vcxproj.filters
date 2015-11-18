@@ -20,10 +20,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Source\FAST_Library.h">
+    <ClInclude Include="..\..\Source\dependencies\OpenFOAM\OpenFOAM_Types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\dependencies\OpenFOAM\OpenFOAM_Types.h">
+    <ClInclude Include="..\..\Source\FAST_Library.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -23,7 +23,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\dependencies\OpenFOAM\OpenFOAM_Types.h" />
-    <ClInclude Include="..\Source\FAST_Library.h" />
+    <ClInclude Include="..\..\Source\FAST_Library.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F9F69557-DA6F-462F-9760-7ED2C7BA75E7}</ProjectGuid>

@@ -64,8 +64,9 @@ else
 
    UNAME := $(shell uname -s)
 
-   ifeq ($(UNAME), Linux)
-      LDFLAGS     := $(LDFLAGS) -fPIC
+   ifneq ($(UNAME), Darwin)
+      FFLAGS     := $(FFLAGS) -fPIC
+      LDFLAGS    := $(LDFLAGS) -fPIC
    endif
 endif
 
