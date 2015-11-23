@@ -64,6 +64,7 @@
   typedef struct OpFM_UserData {
     OpFM_InitInputType_t           OpFM_InitInput ;
     OpFM_InitOutputType_t          OpFM_InitOutput ;
+    OpFM_MiscVarType_t             OpFM_Misc ;
     OpFM_ParameterType_t           OpFM_Param ;
     OpFM_InputType_t               OpFM_Input ;
     OpFM_OutputType_t              OpFM_Output ;

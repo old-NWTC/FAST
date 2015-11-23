@@ -75,7 +75,7 @@ continue; %bjj: linearization not yet available in FAST 8.
             oldFiles = strcat( oldRoot,  '.AD.out' );
             newFiles = strcat( newRoot,  '.AD.out' );
                                    
-            CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [3, 2, 3], descFiles(plotFiles), [fileRoot ' AeroDyn Time Series'], true, [fileRoot '_elm'] );
+            CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [8, 7, 8], descFiles(plotFiles), [fileRoot ' AeroDyn Time Series'], true, [fileRoot '_ADts'] );
         end % elm files
 %%   bjj: removed block for less plotting     
 continue;            

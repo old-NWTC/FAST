@@ -327,6 +327,7 @@ SD_SOURCES =                   \
 
 ED_SOURCES =                   \
 	ElastoDyn_Types.f90         \
+	ElastoDyn_IO.f90            \
 	ElastoDyn.f90
 
 SrvD_SOURCES =                 \
@@ -654,7 +655,8 @@ OrcaFlexInterface$(OBJ_EXT):       NWTC_Library$(OBJ_EXT)  OrcaFlexInterface_Typ
 
 # ElastoDyn dependency rules:
 ElastoDyn_Types$(OBJ_EXT):        NWTC_Library$(OBJ_EXT)  $(ED_DIR)/ElastoDyn_Types.f90
-ElastoDyn$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  ElastoDyn_Types$(OBJ_EXT)  NWTC_LAPACK$(OBJ_EXT)
+ElastoDyn_IO$(OBJ_EXT):           NWTC_Library$(OBJ_EXT)  ElastoDyn_Types$(OBJ_EXT)
+ElastoDyn$(OBJ_EXT):              ElastoDyn_IO$(OBJ_EXT)  NWTC_LAPACK$(OBJ_EXT)
 
 
 # ServoDyn dependency rules:
