@@ -21,7 +21,7 @@ SET NWTC_Lib_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc
 SET NETLIB_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\branches\NetLib\NWTC_source
 SET ED_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\ElastoDyn\gitHub\trunk\source\ElastoDyn
 SET BD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\BeamDyn\GitforSVN\trunk\source
-SET SrvD_Loc=%FAST_Loc%
+SET SrvD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\ServoDyn\gitHub\trunk\source\ServoDyn
 SET TMD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\TMD\SVNdirectory\Source
 
 SET AD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\WTPerf\SVNdirectory\branches\v4.x\Source\dependencies\AeroDyn
