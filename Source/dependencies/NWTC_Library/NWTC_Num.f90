@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-11-10 14:59:35 -0700 (Tue, 10 Nov 2015) $
-! (File) Revision #: $Rev: 353 $
+! File last committed: $Date: 2015-11-18 13:17:30 -0700 (Wed, 18 Nov 2015) $
+! (File) Revision #: $Rev: 354 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Num.f90 $
 !**********************************************************************************************************************************
 
@@ -886,8 +886,8 @@ CONTAINS
 !! \f$\lambda\f$ is defined as:
 !!
 !! \f{equation}{  \lambda = \begin{bmatrix}
-!!  0          &  \lambda_3 & -\lambda_2 \\ 
-!!  -\lambda_3 &  0         &  \lambda_1 \\ 
+!!  0          &  \lambda_3 & -\lambda_2 \\
+!!  -\lambda_3 &  0         &  \lambda_1 \\
 !!   \lambda_2 & -\lambda_1 &  0          
 !! 	\end{bmatrix}
 !! \f}   
@@ -1057,7 +1057,7 @@ CONTAINS
 !! \f{equation}{
 !!  \lambda = \left\{ \begin{matrix}
 !! 0                                                             &  \theta = 0 \\
-!! \frac{\theta}{2\sin\theta} \left( \Lambda - \Lambda^T\right)  &  \theta \in \left(0,\pi\right) \\ 
+!! \frac{\theta}{2\sin\theta} \left( \Lambda - \Lambda^T\right)  &  \theta \in \left(0,\pi\right) \\
 !! \pm\pi v  &  \theta = \pi 
 !!  \end{matrix}  \right.
 !! \f}
@@ -3816,7 +3816,7 @@ CONTAINS
 !! \f$v = \left(v_1, v_2, \ldots ,v_n\right)\f$. The outer product is defined as
 !! \f{equation}{
 !!   A = u \otimes v = \begin{bmatrix}
-!!   u_1 v_1 & u_1 v_2 & \dots  & u_1 v_n \\ 
+!!   u_1 v_1 & u_1 v_2 & \dots  & u_1 v_n \\
 !!   u_2 v_1 & u_2 v_2 & \dots  & u_2 v_n \\
 !!    \vdots & \vdots  & \ddots & \vdots \\
 !!   u_m v_1 & u_m v_2 & \dots  & u_m v_n
@@ -4990,7 +4990,7 @@ CONTAINS
 !!   matrix to the nonorthonormal, but skew-symmetric, Bernoulli-Euler
 !!   matrix:
 !! \f{equation}{   A =
-!!   \begin{bmatrix}    1      &  \theta_3 & -\theta_2 \\ 
+!!   \begin{bmatrix}    1      &  \theta_3 & -\theta_2 \\
 !!                   -\theta_3 &  1        &  \theta_1 \\
 !!                    \theta_2 & -\theta_1 &  1 \end{bmatrix}   
 !! \f}

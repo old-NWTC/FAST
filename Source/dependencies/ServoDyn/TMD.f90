@@ -16,7 +16,7 @@ MODULE TMD
    PRIVATE
 
   
-   TYPE(ProgDesc), PARAMETER            :: TMD_Ver = ProgDesc( 'TMD', 'v1.02.00-wgl', '24-Nov-2015' )
+   TYPE(ProgDesc), PARAMETER            :: TMD_Ver = ProgDesc( 'TMD', 'v1.02.00-sp', '2-Dec-2015' )
 
     
    
@@ -628,6 +628,7 @@ SUBROUTINE TMD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrM
       TYPE(TMD_MiscVarType),         INTENT(INOUT)  :: m           !< Misc (optimization) variables
       INTEGER(IntKi),                INTENT(  OUT)  :: ErrStat     !< Error status of the operation
       CHARACTER(*),                  INTENT(  OUT)  :: ErrMsg      !< Error message if ErrStat /= ErrID_None
+      
       ! local variables
       REAL(ReKi), dimension(3)                   :: a_G_O
       REAL(ReKi), dimension(3)                   :: a_G_N
@@ -647,6 +648,8 @@ SUBROUTINE TMD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrM
       Real(ReKi)                                 :: F_z_tmdXY_P_N 
       Real(ReKi)                                 :: F_y_tmdXY_P_N 
       
+      TYPE(TMD_ContinuousStateType)              :: dxdt    ! first time derivative of continuous states
+      
 
       ErrStat = ErrID_None         
       ErrMsg  = "" 
@@ -661,8 +664,9 @@ SUBROUTINE TMD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrM
       omega_N_O_N = matmul(u%Mesh%Orientation(:,:,1),u%Mesh%RotationVel(:,1))
       alpha_N_O_N = matmul(u%Mesh%Orientation(:,:,1),u%Mesh%RotationAcc(:,1))
 
-   ! Start of the proposed change : Change the TMD DOF Mode to the specific number {1: TMD_X_DOF; 2: TMD_Y_DOF; 3: TMD_XY_DOF} by sm 2015-0922 
-!bjj: @todo: these m% variables need to be recalculated (or they really ARE other states and can't be linearized)
+         ! calculate the derivative, only to get updated values of m, which are used in the equations below
+      CALL TMD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, m, dxdt, ErrStat, ErrMsg )      
+      
       IF (p%TMD_DOF_MODE == ControlMode_None .OR. p%TMD_DOF_MODE == DOFMode_Indept) THEN
          
          ! tmd external forces of dependent degrees:
@@ -689,7 +693,6 @@ SUBROUTINE TMD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrM
          ! moments in global coordinates
          y%Mesh%Moment(:,1) = matmul(transpose(u%Mesh%Orientation(:,:,1)),M_P_N)
            
-     ! Start of the proposed change : Change EOMs for the omni-directional TMD by sm 2015/10/06
       ELSE IF (p%TMD_DOF_MODE == DOFMode_Omni) THEN
 
          ! tmd external forces of dependent degrees:
@@ -749,15 +752,18 @@ SUBROUTINE TMD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, m, dxdt, Er
       ErrStat = ErrID_None         
       ErrMsg  = ""               
       
+         ! compute stop force (m%F_stop) 
       IF (p%Use_F_TBL) THEN
-         m%F_stop = (/0,0/)
+         m%F_stop = 0.0_ReKi
       ELSE
          CALL TMD_CalcStopForce(x,p,m%F_stop)
       END IF
       
-      ! Compute stiffness
+      ! Compute stiffness 
+!@todo m%F_table or K get set here, but not both
       IF (p%Use_F_TBL) THEN ! use stiffness table
          CALL SpringForceExtrapInterp(x,p,m%F_table)
+         K = 0.0_ReKi
       ELSE ! use preset values
          K(1) = p%K_X
          K(2) = p%K_Y
@@ -769,11 +775,12 @@ SUBROUTINE TMD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, m, dxdt, Er
       a_G_O (3) = -p%Gravity
       
        ! Compute nacelle and gravitational acceleration in nacelle coordinates 
-      a_G_N  = matmul(u%Mesh%Orientation(:,:,1),a_G_O)
-      rddot_N_N =  matmul(u%Mesh%Orientation(:,:,1),u%Mesh%TranslationAcc(:,1))    
+      a_G_N     = matmul(u%Mesh%Orientation(:,:,1),a_G_O)
+      rddot_N_N = matmul(u%Mesh%Orientation(:,:,1),u%Mesh%TranslationAcc(:,1))    
       omega_P_N = matmul(u%Mesh%Orientation(:,:,1),u%Mesh%RotationVel(:,1)) 
       alpha_P_N = matmul(u%Mesh%Orientation(:,:,1),u%Mesh%RotationAcc(:,1))
 
+      ! NOTE: m%F_stop and m%F_table are calculated earlier
       IF (p%TMD_DOF_MODE == ControlMode_None) THEN
          ! Compute inputs
          B_X = - rddot_N_N(1) + a_G_N(1) + 1 / p%M_X * ( m%F_ext(1) + m%F_stop(1) - m%F_table(1) )
@@ -787,56 +794,69 @@ SUBROUTINE TMD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, m, dxdt, Er
          B_Y = - rddot_N_N(2) + a_G_N(2) + 1 / p%M_XY * ( m%F_ext(2) + m%F_stop(2) - m%F_table(2) )
       END IF
       
+            
+      ! Compute the first time derivatives, dxdt%tmd_x(1) and dxdt%tmd_x(3), of the continuous states,:
+         ! Compute elements 1 and 3 of dxdt%tmd_x so that we can compute m%C_ctrl,m%C_Brake, and m%F_fr in TMD_GroundHookDamp if necessary
+      IF (p%TMD_DOF_MODE == ControlMode_None) THEN
+         
+         dxdt%tmd_x = 0.0_ReKi ! Whole array 
+         
+      ELSE
+                  
+         IF (p%TMD_DOF_MODE == DOFMode_Indept .AND. .NOT. p%TMD_X_DOF) THEN
+            dxdt%tmd_x(1) = 0.0_ReKi
+         ELSE
+            dxdt%tmd_x(1) = x%tmd_x(2)
+         END IF
+         
+         IF (p%TMD_DOF_MODE == DOFMode_Indept .AND. .NOT. p%TMD_Y_DOF) THEN
+            dxdt%tmd_x(3) = 0.0_ReKi
+         ELSE
+            dxdt%tmd_x(3) = x%tmd_x(4)
+         END IF
+         
+      END IF
       
-      ! compute damping
+      
+      ! compute damping for dxdt%tmd_x(2) and dxdt%tmd_x(4)
       IF (p%TMD_CMODE == ControlMode_None) THEN
          m%C_ctrl(1) = p%C_X
          m%C_ctrl(2) = p%C_Y
+         
+         m%C_Brake = 0.0_ReKi
+         m%F_fr    = 0.0_ReKi
       ELSE IF (p%TMD_CMODE == CMODE_Semi) THEN ! ground hook control
-!! @todo      bjj: dxdt isn't set, yet, but it's used here!
-         CALL TMD_GroundHookDamp(dxdt,x,u,p,M%C_ctrl,m%C_Brake,m%F_fr)
+         CALL TMD_GroundHookDamp(dxdt,x,u,p,m%C_ctrl,m%C_Brake,m%F_fr)
       END IF
       
-   ! Start of the proposed change : Change the TMD DOF Mode to the specific number {1: TMD_X_DOF; 2: TMD_Y_DOF; 3: TMD_XY_DOF} by sm 2015-0922 
-      ! Compute the first time derivatives of the continuous states here:
+      
+      ! Compute the first time derivatives, dxdt%tmd_x(2) and dxdt%tmd_x(4), of the continuous states,:
        IF (p%TMD_DOF_MODE == DOFMode_Indept) THEN
      
           IF (p%TMD_X_DOF) THEN
-               dxdt%tmd_x(1) = x%tmd_x(2)
-               dxdt%tmd_x(2) = (omega_P_N(2)**2 + omega_P_N(3)**2 - K(1) / p%M_X) * x%tmd_x(1) - ( m%C_ctrl(1)/p%M_X ) * x%tmd_x(2) - ( m%C_Brake(1)/p%M_X ) * x%tmd_x(2) + B_X + 1 / p%M_X * ( m%F_fr(1) )
+               dxdt%tmd_x(2) = (omega_P_N(2)**2 + omega_P_N(3)**2 - K(1) / p%M_X) * x%tmd_x(1) - ( m%C_ctrl(1)/p%M_X ) * x%tmd_x(2) - ( m%C_Brake(1)/p%M_X ) * x%tmd_x(2) + B_X + m%F_fr(1) / p%M_X
           ELSE
-               dxdt%tmd_x(1) = 0.0_ReKi
                dxdt%tmd_x(2) = 0.0_ReKi
           END IF
           IF (p%TMD_Y_DOF) THEN
-               dxdt%tmd_x(3) = x%tmd_x(4)
-               dxdt%tmd_x(4) = (omega_P_N(1)**2 + omega_P_N(3)**2 - K(2) / p%M_Y) * x%tmd_x(3) - ( m%C_ctrl(2)/p%M_Y ) * x%tmd_x(4) - ( m%C_Brake(2)/p%M_Y ) * x%tmd_x(4) + B_Y + 1 / p%M_Y * ( m%F_fr(2) )
+               dxdt%tmd_x(4) = (omega_P_N(1)**2 + omega_P_N(3)**2 - K(2) / p%M_Y) * x%tmd_x(3) - ( m%C_ctrl(2)/p%M_Y ) * x%tmd_x(4) - ( m%C_Brake(2)/p%M_Y ) * x%tmd_x(4) + B_Y + m%F_fr(2) / p%M_Y 
           ELSE
-               dxdt%tmd_x(3) = 0.0_ReKi
                dxdt%tmd_x(4) = 0.0_ReKi
           END IF
 
        ELSE IF (p%TMD_DOF_MODE == DOFMode_Omni) THEN
           ! Compute the first time derivatives of the continuous states of Omnidirectional TMD mode by sm 2015-0904 
-            dxdt%tmd_x(1) = x%tmd_x(2)
             dxdt%tmd_x(2) = (omega_P_N(2)**2 + omega_P_N(3)**2 - K(1) / p%M_XY) * x%tmd_x(1) - ( m%C_ctrl(1)/p%M_XY ) * x%tmd_x(2) - ( m%C_Brake(1)/p%M_XY ) * x%tmd_x(2) + B_X + 1 / p%M_XY * ( m%F_fr(1) ) - ( omega_P_N(1)*omega_P_N(2) - alpha_P_N(3) ) * x%tmd_x(3) + 2 * omega_P_N(3) * x%tmd_x(4)
-            dxdt%tmd_x(3) = x%tmd_x(4)
-            dxdt%tmd_x(4) = (omega_P_N(1)**2 + omega_P_N(3)**2 - K(2) / p%M_XY) * x%tmd_x(3) - ( m%C_ctrl(2)/p%M_XY ) * x%tmd_x(4) - ( m%C_Brake(2)/p%M_XY ) * x%tmd_x(4) + B_Y + 1 / p%M_XY * ( m%F_fr(2) ) - ( omega_P_N(1)*omega_P_N(2) + alpha_P_N(3) ) * x%tmd_x(1) - 2 * omega_P_N(3) * x%tmd_x(2)
-         
-       else ! IF (p%TMD_DOF_MODE == ControlMode_None) or THEN
-            dxdt%tmd_x(1) = 0
-            dxdt%tmd_x(2) = 0
-            dxdt%tmd_x(3) = 0
-            dxdt%tmd_x(4) = 0
+            dxdt%tmd_x(4) = (omega_P_N(1)**2 + omega_P_N(3)**2 - K(2) / p%M_XY) * x%tmd_x(3) - ( m%C_ctrl(2)/p%M_XY ) * x%tmd_x(4) - ( m%C_Brake(2)/p%M_XY ) * x%tmd_x(4) + B_Y + 1 / p%M_XY * ( m%F_fr(2) ) - ( omega_P_N(1)*omega_P_N(2) + alpha_P_N(3) ) * x%tmd_x(1) - 2 * omega_P_N(3) * x%tmd_x(2)         
        END IF
       
       
 END SUBROUTINE TMD_CalcContStateDeriv
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE TMD_CalcStopForce(x,p,F_stop)
-   TYPE(TMD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
-   TYPE(TMD_ParameterType),       INTENT(IN   )  :: p           ! Parameters   
-   Real(ReKi), dimension(2), INTENT(INOUT)       :: F_stop      !stop forces
+   TYPE(TMD_ContinuousStateType), INTENT(IN   )  :: x           !< Continuous states at Time
+   TYPE(TMD_ParameterType),       INTENT(IN   )  :: p           !< Parameters   
+   Real(ReKi), dimension(2),      INTENT(INOUT)  :: F_stop      !< stop forces
 ! local variables
    Real(ReKi), dimension(2)                      :: F_SK      !stop spring forces
    Real(ReKi), dimension(2)                      :: F_SD      !stop damping forces
@@ -864,15 +884,15 @@ SUBROUTINE TMD_CalcStopForce(x,p,F_stop)
       END IF
 END DO
 END SUBROUTINE TMD_CalcStopForce
-   
+!----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE TMD_GroundHookDamp(dxdt,x,u,p,C_ctrl,C_Brake,F_fr)
-   TYPE(TMD_ContinuousStateType),         INTENT(IN   )     :: dxdt        ! Derivative of continuous states at Time
-   TYPE(TMD_ContinuousStateType),         INTENT(IN   )     :: x           ! Continuous states at Time
-   TYPE(TMD_InputType),                   INTENT(IN   )     :: u           ! Inputs at Time 
-   TYPE(TMD_ParameterType),               INTENT(IN)        :: p           ! The module's parameter data
-   REAL(ReKi), dimension(2),              INTENT(INOUT)     :: C_ctrl      ! extrapolated/interpolated stiffness values
-   REAL(ReKi), dimension(2),              INTENT(INOUT)     :: C_Brake     ! extrapolated/interpolated stiffness values
-   REAL(ReKi), dimension(2),              INTENT(INOUT)     :: F_fr        ! Friction forces
+   TYPE(TMD_ContinuousStateType),         INTENT(IN   )     :: dxdt        !< Derivative of continuous states at Time (needs elements 1 and 3 only)
+   TYPE(TMD_ContinuousStateType),         INTENT(IN   )     :: x           !< Continuous states at Time
+   TYPE(TMD_InputType),                   INTENT(IN   )     :: u           !< Inputs at Time 
+   TYPE(TMD_ParameterType),               INTENT(IN)        :: p           !< The module's parameter data
+   REAL(ReKi), dimension(2),              INTENT(INOUT)     :: C_ctrl      !< extrapolated/interpolated stiffness values
+   REAL(ReKi), dimension(2),              INTENT(INOUT)     :: C_Brake     !< extrapolated/interpolated stiffness values
+   REAL(ReKi), dimension(2),              INTENT(INOUT)     :: F_fr        !< Friction forces
       
    IF (p%TMD_CMODE == CMODE_Semi .AND. p%TMD_SA_MODE == SA_CMODE_GH_vel) THEN ! velocity-based ground hook control with high damping for braking
       
@@ -1083,12 +1103,12 @@ END IF
     
        
 END SUBROUTINE TMD_GroundHookDamp
-      
+!----------------------------------------------------------------------------------------------------------------------------------
+!> Extrapolate or interpolate stiffness value based on stiffness table. 
 SUBROUTINE SpringForceExtrapInterp(x, p, F_table)
-   ! extrapolate or interpolate stiffness value based on stiffness table. 
-   TYPE(TMD_ContinuousStateType),         INTENT(IN   )     :: x           ! Continuous states at Time
-   TYPE(TMD_ParameterType),               INTENT(IN)        :: p              ! The module's parameter data
-   REAL(ReKi), dimension(2),              INTENT(INOUT)     :: F_table       ! extrapolated/interpolated stiffness values
+   TYPE(TMD_ContinuousStateType),         INTENT(IN   )     :: x           !< Continuous states at Time
+   TYPE(TMD_ParameterType),               INTENT(IN)        :: p           !< The module's parameter data
+   REAL(ReKi), dimension(2),              INTENT(INOUT)     :: F_table     !< extrapolated/interpolated stiffness values
 
    !INTEGER(IntKi),                        INTENT(OUT)      :: ErrStat        ! The error status code
    !CHARACTER(*),                          INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred
@@ -1132,7 +1152,6 @@ SUBROUTINE SpringForceExtrapInterp(x, p, F_table)
 
    DEALLOCATE(TmpRAry)
 END SUBROUTINE SpringForceExtrapInterp
-
 !----------------------------------------------------------------------------------------------------------------------------------
 !> This subroutine reads the input file and stores all the data in the TMD_InputFile structure.
 !! It does not perform data validation.
@@ -1213,7 +1232,7 @@ CONTAINS
 END SUBROUTINE TMD_ReadInput
 !----------------------------------------------------------------------------------------------------------------------------------
 !> This routine reads in the primary ServoDyn input file and places the values it reads in the InputFileData structure.
-!!   It opens and prints to an echo file if requested.
+!! It opens and prints to an echo file if requested.
 SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat, ErrMsg )
 !..................................................................................................................................
 
@@ -1610,9 +1629,7 @@ SUBROUTINE TMD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
    p%K_Y = InputFileData%TMD_Y_K
    p%C_Y = InputFileData%TMD_Y_C
 
-   ! Start of the proposed change : Add TMD Mass_XY by sm 2015-0922 
    p%M_XY = InputFileData%TMD_XY_M
-   ! End of the proposed change : Add TMD Mass_XY by sm 2015-0922 
    
      ! vector parameters
    ! stop positions

@@ -501,7 +501,20 @@ SUBROUTINE InflowWind_Init( InitData,   InputGuess,    ParamData,               
             InitOutData%WindFileInfo%TI               =  0.0_ReKi
             InitOutData%WindFileInfo%TI_listed        =  .FALSE.
 
-
+            if (ParamData%UniformWind%NumDataLines == 1) then
+               InitOutData%WindFileInfo%MWS = ParamData%UniformWind%V(i)
+            else
+               InitOutData%WindFileInfo%MWS = 0.0_ReKi               
+               do i=2,ParamData%UniformWind%NumDataLines
+                  InitOutData%WindFileInfo%MWS = InitOutData%WindFileInfo%MWS + &
+                                                 0.5_ReKi*(ParamData%UniformWind%V(i)+ParamData%UniformWind%V(i-1))*&
+                                                          (ParamData%UniformWind%Tdata(i)-ParamData%UniformWind%Tdata(i-1))
+               end do
+               InitOutData%WindFileInfo%MWS = InitOutData%WindFileInfo%MWS / &
+                           ( ParamData%UniformWind%Tdata(ParamData%UniformWind%NumDataLines) - ParamData%UniformWind%Tdata(1) )
+            end if
+            
+            
                ! Check if the fist data point from the file is not along the X-axis while applying the windfield rotation
             IF ( ( .NOT. EqualRealNos (ParamData%UniformWind%Delta(1), 0.0_ReKi) ) .AND.  &
                  ( .NOT. EqualRealNos (ParamData%PropagationDir, 0.0_ReKi)       ) ) THEN

@@ -354,8 +354,8 @@ SUBROUTINE ED_End( u, p, x, xd, z, OtherState, y, m, ErrStat, ErrMsg )
 
 END SUBROUTINE ED_End
 !----------------------------------------------------------------------------------------------------------------------------------
-!> Loose coupling routine for solving for constraint states, integrating continuous states, and updating discrete states
-!! Constraint states are solved for input Time t; Continuous and discrete states are updated for t + Interval
+!> This is a loose coupling routine for solving constraint states, integrating continuous states, and updating discrete and other 
+!! states. Continuous, constraint, discrete, and other states are updated to values at t + Interval.
 SUBROUTINE ED_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, m, ErrStat, ErrMsg )
 !..................................................................................................................................
 
@@ -367,10 +367,11 @@ SUBROUTINE ED_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, m, ErrStat
       TYPE(ED_ContinuousStateType),       INTENT(INOUT) :: x          !< Input: Continuous states at t;
                                                                       !!   Output: Continuous states at t + Interval
       TYPE(ED_DiscreteStateType),         INTENT(INOUT) :: xd         !< Input: Discrete states at t;
-                                                                      !!   Output: Discrete states at t  + Interval
-      TYPE(ED_ConstraintStateType),       INTENT(INOUT) :: z          !< Input: Initial guess of constraint states at t+dt;
-                                                                      !!   Output: Constraint states at t+dt
-      TYPE(ED_OtherStateType),            INTENT(INOUT) :: OtherState !< Other states
+                                                                      !!   Output: Discrete states at t + Interval
+      TYPE(ED_ConstraintStateType),       INTENT(INOUT) :: z          !< Input: Constraint states at t;
+                                                                      !!   Output: Constraint states at t + Interval
+      TYPE(ED_OtherStateType),            INTENT(INOUT) :: OtherState !< Other states: Other states at t;
+                                                                      !!   Output: Other states at t + Interval
       TYPE(ED_MiscVarType),               INTENT(INOUT) :: m          !< Misc variables for optimization (not copied in glue code)
       INTEGER(IntKi),                     INTENT(  OUT) :: ErrStat    !< Error status of the operation
       CHARACTER(*),                       INTENT(  OUT) :: ErrMsg     !< Error message if ErrStat /= ErrID_None

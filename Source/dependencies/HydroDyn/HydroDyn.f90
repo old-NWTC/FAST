@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-11-05 17:22:21 -0700 (Thu, 05 Nov 2015) $
-! (File) Revision #: $Rev: 656 $
+! File last committed: $Date: 2015-12-04 13:21:14 -0700 (Fri, 04 Dec 2015) $
+! (File) Revision #: $Rev: 658 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/HydroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn
@@ -1511,13 +1511,6 @@ SUBROUTINE HydroDyn_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Er
       END IF
       
       
-      IF ( u%Morison%LumpedMesh%Committed ) THEN  ! Make sure we are using Morison / there is a valid mesh
-         CALL Morison_CalcOutput( Time, u%Morison, p%Morison, Morison_x, Morison_xd,  &
-                                Morison_z, OtherState%Morison, y%Morison, ErrStat2, ErrMsg2 )
-         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'HydroDyn_CalcOutput' )                  
-      END IF
-
-
          ! Integrate all the mesh loads onto the WAMIT reference Point (WRP) at (0,0,0)
       OtherState%F_Hydro = CalcLoadsAtWRP( y, u, OtherState%y_mapped, OtherState%AllHdroOrigin_position, OtherState%MrsnLumpedMesh_position, OtherState%MrsnDistribMesh_position, OtherState%HD_MeshMap, ErrStat2, ErrMsg2 )
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'HydroDyn_CalcOutput' )                  
@@ -1559,13 +1552,6 @@ SUBROUTINE HydroDyn_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Er
          
          J = p%NumOuts + 1        
          
-         IF (ALLOCATED( p%Waves2%OutParam ) .AND. p%Waves2%NumOuts > 0) THEN
-            DO I=1, p%Waves2%NumOuts
-               y%WriteOutput(J) = y%Waves2%WriteOutput(I)
-               J = J + 1
-            END DO
-         END IF
-
          IF (ALLOCATED( p%WAMIT%OutParam ) .AND. p%WAMIT%NumOuts > 0) THEN
             DO I=1, p%WAMIT%NumOuts
                y%WriteOutput(J) = y%WAMIT%WriteOutput(I)
@@ -1573,6 +1559,13 @@ SUBROUTINE HydroDyn_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Er
             END DO
          END IF
          
+         IF (ALLOCATED( p%Waves2%OutParam ) .AND. p%Waves2%NumOuts > 0) THEN
+            DO I=1, p%Waves2%NumOuts
+               y%WriteOutput(J) = y%Waves2%WriteOutput(I)
+               J = J + 1
+            END DO
+         END IF
+
          IF (ALLOCATED( p%WAMIT2%OutParam ) .AND. p%WAMIT2%NumOuts > 0) THEN
             DO I=1, p%WAMIT2%NumOuts
                y%WriteOutput(J) = y%WAMIT2%WriteOutput(I)

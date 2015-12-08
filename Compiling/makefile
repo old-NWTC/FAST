@@ -366,6 +366,7 @@ IceD_SOURCES =                 \
 FAST_SOURCES =                 \
 	FAST_Types.f90              \
 	FAST_Mods.f90               \
+	FAST_Solver.f90             \
 	FAST_Subs.f90               \
 	$(FAST_driver).f90
 
@@ -709,10 +710,11 @@ FAST_Types$(OBJ_EXT):             NWTC_Library$(OBJ_EXT)  ElastoDyn_Types$(OBJ_E
                                      IceFloe_Types$(OBJ_EXT)  IceDyn_Types$(OBJ_EXT) $(FAST_DIR)/FAST_Types.f90  \
                                      OpenFOAM_Types$(OBJ_EXT) OrcaFlexInterface_Types$(OBJ_EXT)
 FAST_Mods$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Types$(OBJ_EXT)
-FAST_Subs$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Mods$(OBJ_EXT)  NWTC_LAPACK$(OBJ_EXT)  AeroDyn14$(OBJ_EXT) \
+FAST_Solver$(OBJ_EXT):              NWTC_Library$(OBJ_EXT)  FAST_Mods$(OBJ_EXT)  NWTC_LAPACK$(OBJ_EXT)  AeroDyn14$(OBJ_EXT) \
                                      InflowWind$(OBJ_EXT)  ServoDyn$(OBJ_EXT)  ElastoDyn$(OBJ_EXT) SubDyn$(OBJ_EXT)     \
                                      HydroDyn$(OBJ_EXT)  MAP$(OBJ_EXT)  FEAM$(OBJ_EXT)  MoorDyn$(OBJ_EXT)  OpenFOAM$(OBJ_EXT)  \
                                      IceFloe$(OBJ_EXT) IceDyn$(OBJ_EXT)  AeroDyn$(OBJ_EXT)  BeamDyn$(OBJ_EXT) OrcaFlexInterface$(OBJ_EXT)
+FAST_Subs$(OBJ_EXT):              FAST_Solver$(OBJ_EXT)
 $(FAST_driver)$(OBJ_EXT):         NWTC_Library$(OBJ_EXT)  FAST_Subs$(OBJ_EXT)
 
 

@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-10-07 19:26:01 -0600 (Wed, 07 Oct 2015) $
-! (File) Revision #: $Rev: 172 $
+! File last committed: $Date: 2015-12-08 09:33:54 -0700 (Tue, 08 Dec 2015) $
+! (File) Revision #: $Rev: 178 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/AeroDyn/AeroDyn.f90 $
 !**********************************************************************************************************************************
 module AeroDyn
@@ -1233,8 +1233,7 @@ subroutine SetInputsForBEMT(p, u, OtherState, errStat, errMsg)
          tmp_sz   = dot_product( tmp, z_hat_disk )**2
          OtherState%BEMT_u%rLocal(j,k) = sqrt( tmp_sz + tmp_sz_y )
          
-      end do !j=nodes
-      
+      end do !j=nodes      
    end do !k=blades
    
    
@@ -1850,10 +1849,14 @@ SUBROUTINE TwrInfl( p, u, OtherState, ErrStat, ErrMsg )
             v_TwrPotent = 0.0_ReKi
          end if
          
-         denom = sqrt( sqrt( xbar**2 + ybar**2 ) )
-         if ( p%TwrShadow .and. abs(ybar) < denom .and. abs(zbar) < 1.0_ReKi ) then
-            u_TwrShadow = -TwrCd / denom * cos( PiBy2*ybar / denom )**2
-         else
+         if ( p%TwrShadow .and. xbar > 0.0_ReKi .and. abs(zbar) < 1.0_ReKi) then
+            denom = sqrt( sqrt( xbar**2 + ybar**2 ) )
+            if ( abs(ybar) < denom ) then
+               u_TwrShadow = -TwrCd / denom * cos( PiBy2*ybar / denom )**2
+            else
+               u_TwrShadow = 0.0_ReKi
+            end if
+         else            
             u_TwrShadow = 0.0_ReKi
          end if
                      

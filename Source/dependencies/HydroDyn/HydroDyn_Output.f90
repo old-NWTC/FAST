@@ -17,9 +17,9 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-08-11 08:28:58 -0600 (Tue, 11 Aug 2015) $
-! (File) Revision #: $Rev: 622 $
-! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/UserWaves/Source/HydroDyn_Output.f90 $
+! File last committed: $Date: 2015-12-04 13:21:14 -0700 (Fri, 04 Dec 2015) $
+! (File) Revision #: $Rev: 658 $
+! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/HydroDyn_Output.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Output
 
@@ -689,17 +689,19 @@ SUBROUTINE HDOUT_Init( HydroDyn_ProgDesc, InitInp, y,  p, OtherState, InitOut, E
                J = J + 1
             END DO
          END IF
-         IF ( hasWAMIT2Outs ) THEN
-            DO I=1, p%WAMIT2%NumOuts
-               InitOut%WriteOutputHdr(J) = InitOut%WAMIT2%WriteOutputHdr(I)
-               InitOut%WriteOutputUnt(J) = InitOut%WAMIT2%WriteOutputUnt(I)
-               J = J + 1
-            END DO
-         END IF
+         
          IF ( hasWaves2Outs ) THEN
             DO I=1, p%Waves2%NumOuts
                InitOut%WriteOutputHdr(J) = InitOut%Waves2%WriteOutputHdr(I)
                InitOut%WriteOutputUnt(J) = InitOut%Waves2%WriteOutputUnt(I)
+               J = J + 1
+            END DO
+         END IF
+         
+         IF ( hasWAMIT2Outs ) THEN
+            DO I=1, p%WAMIT2%NumOuts
+               InitOut%WriteOutputHdr(J) = InitOut%WAMIT2%WriteOutputHdr(I)
+               InitOut%WriteOutputUnt(J) = InitOut%WAMIT2%WriteOutputUnt(I)
                J = J + 1
             END DO
          END IF

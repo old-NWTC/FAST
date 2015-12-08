@@ -118,6 +118,7 @@
 		<File RelativePath="..\..\Source\FAST_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\FAST_Mods.f90"/>
 		<File RelativePath="..\..\Source\FAST_Prog.f90"/>
+		<File RelativePath="..\..\Source\FAST_Solver.f90"/>
 		<File RelativePath="..\..\Source\FAST_Subs.f90"/></Filter>
 		<Filter Name="HydroDyn">
 		<Filter Name="RegistryFiles">

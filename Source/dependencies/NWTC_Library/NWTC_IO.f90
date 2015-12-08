@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-11-10 14:59:35 -0700 (Tue, 10 Nov 2015) $
-! (File) Revision #: $Rev: 353 $
+! File last committed: $Date: 2015-11-18 13:17:30 -0700 (Wed, 18 Nov 2015) $
+! (File) Revision #: $Rev: 354 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_IO.f90 $
 !**********************************************************************************************************************************
 
@@ -37,8 +37,8 @@ MODULE NWTC_IO
 
       !> This type stores a linked list of file names, used in MLB-style input file parsing (currently used in AirfoilInfo)
    TYPE, PUBLIC   :: FNlist_Type                                
-      CHARACTER(1024)                        :: FileName                         !< A file name.
-      TYPE(FNlist_Type), POINTER             :: Next => NULL()                   !< The pointer to the next file name in the list.
+      CHARACTER(1024)                        :: FileName                         !< A file name
+      TYPE(FNlist_Type), POINTER             :: Next => NULL()                   !< The pointer to the next file name in the list
    END TYPE FNlist_Type
 
 
