@@ -673,7 +673,7 @@ subroutine SetParameters(InitInp, InputFileData, p, ErrStat, ErrMsg)
    
    IF(p%quadrature .EQ. 1) THEN
        ! Number of Gauss points
-       p%ngp = p%node_elem - 1
+       p%ngp = p%node_elem !- 1
    ELSEIF(p%quadrature .EQ. 2) THEN 
        p%refine = InputFileData%refine
        p%ngp = (InputFileData%kp_member(1) - 1)*p%refine + 1
@@ -903,6 +903,7 @@ subroutine Init_y( p, u, y, ErrStat, ErrMsg)
                     ,ErrStat = ErrStat2        &
                     ,ErrMess = ErrMsg2         )
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )   
+      if (ErrStat>=AbortErrLev) RETURN
    
    
       ! initialization (used for initial guess to AeroDyn)

@@ -204,7 +204,7 @@ SUBROUTINE MeshWrBin ( UnIn, M, ErrStat, ErrMsg, FileName)
 
 END SUBROUTINE MeshWrBin
 !----------------------------------------------------------------------------------------------------------------------------------
-!> This routine write the reference position and orientations of a mesh in VTK format.
+!> This routine writes the reference position and orientations of a mesh in VTK format.
 !! see VTK file information format for XML, here: http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf
 SUBROUTINE MeshWrVTKreference ( M, FileRootName, ErrStat, ErrMsg )
    
@@ -282,7 +282,7 @@ SUBROUTINE MeshWrVTKreference ( M, FileRootName, ErrStat, ErrMsg )
       
 END SUBROUTINE MeshWrVTKreference   
 !----------------------------------------------------------------------------------------------------------------------------------
-!> This routine write mesh information in VTK format.
+!> This routine writes mesh information in VTK format.
 !! see VTK file information format for XML, here: http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf
 SUBROUTINE MeshWrVTK ( M, FileRootName, VTKcount, ErrStat, ErrMsg )
       
@@ -861,6 +861,8 @@ END IF
          !........................
          ! Let's make sure that we have all the necessary fields:
          !........................
+      !! This routine will add any required fields that were not explicitly requested.
+      !! If the mesh has motion fields and it is an input mesh, it must always have the following fields: TranslationDisp, TranslationVel, TranslationAcc
       IF ( IsMotion .AND. IOS == COMPONENT_INPUT ) THEN
 
          IF ( .NOT. BlankMesh%FieldMask(MASKID_TRANSLATIONDISP)) THEN
@@ -892,6 +894,7 @@ END IF
                            
       END IF
       
+      !! If the mesh has load fields and it is an input mesh, it must always have the following fields: Moment
       IF ( IsLoad .AND. IOS == COMPONENT_INPUT ) THEN
                
          IF ( .NOT. BlankMesh%FieldMask(MASKID_MOMENT)) THEN
@@ -921,12 +924,12 @@ END IF
      CHARACTER(*),    INTENT(OUT)   :: ErrMess         !< Error message
     ! On a brand new mesh, the pointers to siblings may not be nullified and
     ! thus undefined (which may cause ASSOCIATED to report .true. erroneously)
-    ! This despite use of => NULL in declaration of this fields for MeshType. Sigh.
-    ! So if IgnoreSibling is present and true, don't follow the sibling pointers.
-    ! Instead just unconditionally nullify these.
-    ! Use this carefully, since it can leave dangling memory if used for a
-    ! mesh that already exists and has existing siblings.
-     LOGICAL, INTENT(IN), OPTIONAL :: IgnoreSibling
+    ! This despite use of => NULL in declaration of this fields for MeshType. Sigh. (15-dec-2015 bjj: not sure this is true; some fields didn't use => NULL)
+    ! So ...
+     LOGICAL, INTENT(IN), OPTIONAL :: IgnoreSibling    !< if IgnoreSibling is present and true, don't follow the sibling pointers.
+                                                       !! Instead just unconditionally nullify these.
+                                                       !! Use this carefully, since it can leave dangling memory if used for a
+                                                       !! mesh that already exists and has existing siblings. 
 
     ! Local
       LOGICAL IgSib
@@ -2157,7 +2160,8 @@ END IF
      INTEGER(IntKi),              INTENT(IN)    :: Xelement  !< See Element Names
      INTEGER(IntKi),              INTENT(OUT)   :: ErrStat   !< Error code
      CHARACTER(*),                INTENT(OUT)   :: ErrMess   !< Error message
-     INTEGER,                     INTENT(IN   ) :: P1,  P2   !< points that make a 2-point line element
+     INTEGER,                     INTENT(IN   ) :: P1        !< 1 of 2 points that make a 2-point line element
+     INTEGER,                     INTENT(IN   ) :: P2        !< 1 of 2 points that make a 2-point line element
      
      IF ( mesh_debug ) print*,'Called MeshConstructElement_2PT'
      ErrStat = ErrID_None

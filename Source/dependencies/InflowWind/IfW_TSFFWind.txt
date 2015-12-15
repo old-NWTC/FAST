@@ -3,8 +3,8 @@
 # Module IfW_TSFFWind_Types contains all of the user-defined types needed in IfW_TSFFWind. It also contains copy, destroy, pack, and
 # unpack routines associated with each defined data types.
 ###################################################################################################################################
-# File last committed: $Date: 2015-08-06 11:56:09 -0600 (Thu, 06 Aug 2015) $
-# (File) Revision #: $Rev: 176 $
+# File last committed: $Date: 2015-12-15 08:48:41 -0700 (Tue, 15 Dec 2015) $
+# (File) Revision #: $Rev: 194 $
 # URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization2/Source/Registry/IfW_TSFFWind.txt $
 ###################################################################################################################################
 # Entries are of the form
@@ -24,11 +24,10 @@ typedef  ^                       ^                       IntKi    SumFileUnit   
 typedef  ^                       InitOutputType       ProgDesc    Ver               -     -     -     "Version information off FFWind submodule"                     -
 
 
-# Define any data that are not considered actual states here:
-#   e.g. data used only for efficiency purposes (indices for searching in an array, copies of previous calculations of output
-#   at a given time, etc.)
-typedef  ^                       OtherStateType          IntKi    TimeIndex         -     0     -     "An Index into the TData array"                                -
-typedef  ^                       ^                       Logical  Initialized       -  .FALSE.  -     "Flag to indicate if the module was initialized"               -
+# ..... Misc/Optimization variables.................................................................................................
+# Define any data that are used only for efficiency purposes (these variables are not associated with time):
+#   e.g. indices for searching in an array, large arrays that are local variables in any routine called multiple times, etc.
+typedef  ^                       MiscVarType          IntKi    TimeIndex         -     0     -     "An Index into the TData array"                                -
 
 # ..... Parameters ................................................................................................................
 # Define parameters here:

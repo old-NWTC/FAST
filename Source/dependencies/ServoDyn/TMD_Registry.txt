@@ -7,10 +7,6 @@
 #
 # Use ^ as a shortcut for the value from the previous line.
 ###################################################################################################################################
-# File last committed: $Date: 2015-11-25 22:09:28 -0700 (Wed, 25 Nov 2015) $
-# (File) Revision #: $Rev: 1179 $
-# URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/TMD/Source/TMD_Registry.txt $
-###################################################################################################################################
 
 # ..... Input File data .......................................................................................................
 typedef TMD/TMD TMD_InputFile CHARACTER(1024) TMDFileName - - - "Name of the input file; remove if there is no file" -

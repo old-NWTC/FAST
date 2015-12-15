@@ -2,10 +2,6 @@
 ! WLaCava (WGL) and Matt Lackner (MAL)
 ! Tuned Mass Damper Module
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-11-25 22:09:28 -0700 (Wed, 25 Nov 2015) $
-! (File) Revision #: $Rev: 1179 $
-! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/TMD/Source/TMD.f90 $
-!**********************************************************************************************************************************
 MODULE TMD  
 
    USE TMD_Types   
@@ -760,7 +756,6 @@ SUBROUTINE TMD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, m, dxdt, Er
       END IF
       
       ! Compute stiffness 
-!@todo m%F_table or K get set here, but not both
       IF (p%Use_F_TBL) THEN ! use stiffness table
          CALL SpringForceExtrapInterp(x,p,m%F_table)
          K = 0.0_ReKi
