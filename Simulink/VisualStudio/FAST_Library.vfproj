@@ -128,6 +128,7 @@
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ElastoDyn_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ElastoDyn.f90"/>
+		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ED_UserSubs.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ElastoDyn_IO.f90"/></Filter>
 		<Filter Name="FAST">
 		<Filter Name="RegistryFiles">

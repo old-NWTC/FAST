@@ -623,7 +623,7 @@ SUBROUTINE Waves2_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOu
             !!
             !! For each (x,y) coordinate that a wave elevation is requested at (both from the
             !! (WaveElevxi,WaveElevyi) pairs, and the WaveElevXY pairs), a call is made to the
-            !! subroutine ::WaveElevTimeSeriesAtXY_Diff to calculate the full time series for
+            !! subroutine waves2::waveelevtimeseriesatxy_diff to calculate the full time series for
             !! that point.  The results are added to the wave elevation results from the sum
             !! frequency calculations later in the code.
             !--------------------------------------------------------------------------------
@@ -715,7 +715,7 @@ SUBROUTINE Waves2_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOu
                      B_minus  =  TransFuncB_minus( n, m, k_n, k_m, WaveKinzi0Prime(I) )
 
 
-                        !> Calculate \f$ U^- \f$ terms for the velocity calculations (\f$B^-\f$ provided by ::TransFuncB_minus)
+                        !> Calculate \f$ U^- \f$ terms for the velocity calculations (\f$B^-\f$ provided by waves2::transfuncb_minus)
                         ! NOTE: InitInp%WtrDpth + WaveKinzi0Prime(I) is the height above the ocean floor
                         !> * \f$ _x{U}_{nm}^- = B_{nm}^- \left(k_n \cos \theta_n - k_m \cos \theta_m \right) \f$
                      Ux_nm_minus = B_minus * ( k_n * COS( D2R*InitInp%WaveDirArr(n) ) - k_m * COS( D2R*InitInp%WaveDirArr(m) ) )
@@ -994,7 +994,7 @@ SUBROUTINE Waves2_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOu
          !!
          !! For each (x,y) coordinate that a wave elevation is requested at (both from the
          !! (WaveElevxi,WaveElevyi) pairs, and the WaveElevXY pairs), a call is made to the
-         !! subroutine ::WaveElevTimeSeriesAtXY_Sum to calculate the full time series for
+         !! subroutine waves2::waveelevtimeseriesatxy_sum to calculate the full time series for
          !! that point.  The results are added to the wave elevation results from the diff
          !! frequency calculations earlier in the code.
          !--------------------------------------------------------------------------------
@@ -1101,7 +1101,7 @@ SUBROUTINE Waves2_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOu
                   B_plus  =  TransFuncB_plus( n, n, k_n, k_n, WaveKinzi0Prime(I) )
 
 
-                     !> Calculate \f$ U^+ \f$ terms for the velocity calculations (\f$B^+\f$ provided by ::TransFuncB_plus)
+                     !> Calculate \f$ U^+ \f$ terms for the velocity calculations (\f$B^+\f$ provided by waves2::transfuncb_plus)
                      ! NOTE: InitInp%WtrDpth + WaveKinzi0Prime(I) is the height above the ocean floor
                      !> * \f$ _x{U}_{nn}^+ = B_{nn}^+ 2 k_n \cos \theta_n \f$
                   Ux_nm_plus = B_plus * 2.0_SiKi * k_n * COS( D2R*InitInp%WaveDirArr(n) )
@@ -1203,7 +1203,7 @@ SUBROUTINE Waves2_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOu
                      B_plus  =  TransFuncB_plus( n, m, k_n, k_m, WaveKinzi0Prime(I) )
 
 
-                        !> Calculate \f$ U^+ \f$ terms for the velocity calculations (\f$B^+\f$ provided by ::TransFuncB_plus)
+                        !> Calculate \f$ U^+ \f$ terms for the velocity calculations (\f$B^+\f$ provided by waves2::transfuncb_plus)
                         ! NOTE: InitInp%WtrDpth + WaveKinzi0Prime(I) is the height above the ocean floor
                         !> * \f$ _x{U}_{nm}^+ = B_{nm}^+ \left(k_n \cos \theta_n + k_m \cos \theta_m \right) \f$
                      Ux_nm_plus = B_plus * ( k_n * COS( D2R*InitInp%WaveDirArr(n) ) + k_m * COS( D2R*InitInp%WaveDirArr(m) ) )

@@ -510,7 +510,7 @@ SUBROUTINE WAMIT2_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOu
          !!    data portion should be populated above.  If 3D data is present in it, the subroutine will exit with a
          !!    warning about a programming error.  For the SumQTF method, the data can only be 4D.
          !!
-         !! @note The ::MnDrift_InitCalc routine will be called from the ::DiffQTF_InitCalc.  The first term of the
+         !! @note The wamit2:mndrift_initcalc routine will be called from wamit2::diffqtf_initcalc.  The first term of the
          !!       DiffQTF method is the MnDrift method.
          !!
          !! For the MnDrift and NewmanApp methods, it is possible to convert 4D data where the diagonal is complete but

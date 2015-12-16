@@ -106,6 +106,7 @@
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat ElastoDyn" Description="Running Registry for ElastoDyn" Outputs="..\..\Source\dependencies\ElastoDyn\ElastoDyn_Types.f90"/></FileConfiguration></File>
 		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ElastoDyn_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ED_UserSubs.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ElastoDyn.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ElastoDyn_IO.f90"/></Filter>
 		<Filter Name="FAST">

@@ -29,6 +29,8 @@ MODULE ElastoDyn
    USE ElastoDyn_IO
    USE NWTC_LAPACK
 
+   USE ED_UserSubs         ! <- module not in the FAST Framework! (see ServoDyn source)
+
    IMPLICIT NONE
 
    PRIVATE

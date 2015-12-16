@@ -1681,20 +1681,19 @@ SUBROUTINE Transfer_Motions_Point_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg 
 
 END SUBROUTINE Transfer_Motions_Point_to_Point
 !----------------------------------------------------------------------------------------------------------------------------------
+!> Given a nearest-neighbor mapping, this routine transfers loads between point nodes on the mesh.
 SUBROUTINE Transfer_Loads_Point_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp, DestDisp,LoadsScaleFactor )
-! Given a nearest-neighbor mapping, this routine transfers loads between nodes on the mesh.
-!..................................................................................................................................
 
-   TYPE(MeshType),                 INTENT(IN   )  :: Src        ! The source mesh with loads fields allocated
-   TYPE(MeshType),                 INTENT(INOUT)  :: Dest       ! The destination mesh
-   TYPE(MeshType),                 INTENT(IN   )  :: SrcDisp    ! A mesh that contains the displacements associated with the source mesh
-   TYPE(MeshType),                 INTENT(IN   )  :: DestDisp   ! A mesh that contains the displacements associated with the destination mesh
+   TYPE(MeshType),                 INTENT(IN   )  :: Src                !< The source mesh with loads fields allocated
+   TYPE(MeshType),                 INTENT(INOUT)  :: Dest               !< The destination mesh
+   TYPE(MeshType),                 INTENT(IN   )  :: SrcDisp            !< A mesh that contains the displacements associated with the source mesh
+   TYPE(MeshType),                 INTENT(IN   )  :: DestDisp           !< A mesh that contains the displacements associated with the destination mesh
 
-   TYPE(MeshMapType),              INTENT(INOUT)  :: MeshMap    ! The mapping data structure (from Dest to Src)
-   REAL(ReKi),                     INTENT(IN)     :: LoadsScaleFactor  ! Scaling factor for loads (to help with numerical issues)
+   TYPE(MeshMapType),              INTENT(INOUT)  :: MeshMap            !< The mapping data structure (from Dest to Src)
+   REAL(ReKi),                     INTENT(IN)     :: LoadsScaleFactor   !< Scaling factor for loads (to help with numerical issues)
 
-   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat    ! Error status of the operation
-   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg     ! Error message if ErrStat /= ErrID_None
+   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat            !< Error status of the operation
+   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg             !< Error message if ErrStat /= ErrID_None
 
       ! local variables
 !   REAL(R8Ki)                                     :: RotationMatrix(3,3)
@@ -1718,13 +1717,13 @@ SUBROUTINE Transfer_Loads_Point_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg, S
       do i = 1, Src%NNodes
          !if ( MeshMap%MapLoads(i)%OtherMesh_Element < 1 )  CYCLE ! would only happen if we had non-point elements (or nodes not contained in an element)
          
-         ! F_d += F_s
+         !! F_d += F_s
          Dest%Force(:,MeshMap%MapLoads(i)%OtherMesh_Element) = Dest%Force(:,MeshMap%MapLoads(i)%OtherMesh_Element) + (Src%Force(:,i) / LoadsScaleFactor)
       end do
       Dest%Force  =  Dest%Force  * LoadsScaleFactor
       
       
-      ! M_d += torque
+      !! M_d += torque
       if ( Dest%FieldMask(MASKID_MOMENT) ) then
          
             ! if the distance (which can never be less than zero) is greater than "zero" and there is a
@@ -1747,7 +1746,7 @@ SUBROUTINE Transfer_Loads_Point_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg, S
       
    if (Src%FieldMask(MASKID_MOMENT) ) then
 
-      ! M_d += M_s      
+      !! M_d += M_s      
       do i = 1, Src%NNodes
          !if ( MeshMap%MapLoads(i)%OtherMesh_Element < 1 )  CYCLE ! would only happen if we had non-point elements (or nodes not contained in an element)
 
@@ -1969,20 +1968,19 @@ SUBROUTINE Transfer_Line2_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp
 
 END SUBROUTINE Transfer_Line2_to_Line2
 !----------------------------------------------------------------------------------------------------------------------------------
+!> Given a mapping, this routine transfers the loads from nodes on a point-element mesh to nodes on another Line2 mesh.
 SUBROUTINE Transfer_Loads_Point_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp, DestDisp, LoadsScaleFactor )
-! Given a mapping, this routine transfers the loads from nodes on a point-element mesh to nodes on another Line2 mesh.
-!..................................................................................................................................
 
-   TYPE(MeshType),                 INTENT(IN   )  :: Src       ! The source (Line2) mesh with loads fields allocated
-   TYPE(MeshType),                 INTENT(INOUT)  :: Dest      ! The destination mesh
+   TYPE(MeshType),                 INTENT(IN   )  :: Src       !< The source (Line2) mesh with loads fields allocated
+   TYPE(MeshType),                 INTENT(INOUT)  :: Dest      !< The destination mesh
 
-   TYPE(MeshMapType),              INTENT(INOUT)  :: MeshMap   ! The mapping data
+   TYPE(MeshMapType),              INTENT(INOUT)  :: MeshMap   !< The mapping data
 
-   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat   ! Error status of the operation
-   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
-   TYPE(MeshType),                 INTENT(IN   )  :: SrcDisp   ! The source mesh's cooresponding position mesh
-   TYPE(MeshType),                 INTENT(IN   )  :: DestDisp  ! The destination mesh's cooresponding position mesh
-   REAL(ReKi),                     INTENT(IN)     :: LoadsScaleFactor  ! Scaling factor for loads (to help with numerical issues)
+   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat   !< Error status of the operation
+   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg    !< Error message if ErrStat /= ErrID_None
+   TYPE(MeshType),                 INTENT(IN   )  :: SrcDisp   !< The source mesh's cooresponding position mesh
+   TYPE(MeshType),                 INTENT(IN   )  :: DestDisp  !< The destination mesh's cooresponding position mesh
+   REAL(ReKi),                     INTENT(IN)     :: LoadsScaleFactor  !< Scaling factor for loads (to help with numerical issues)
 
       ! local variables
    REAL(ReKi)                                     :: torque(3), DisplacedPosition(3)
@@ -2094,17 +2092,15 @@ SUBROUTINE Transfer_Loads_Point_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, S
       
 END SUBROUTINE Transfer_Loads_Point_to_Line2
 !----------------------------------------------------------------------------------------------------------------------------------
+!> This routine takes the lumped loads on nodes of a (line2) mesh and converts them to loads distributed across the line2 elements.
 SUBROUTINE Convert_Point_To_Line2_Loads(Dest, MeshMap, ErrStat, ErrMsg, DestDisp)
-! This routine takes the lumped loads on nodes of a (line2) mesh and converts them to loads distributed across the line2 elements
-! 
-! Note that the matrix B is really just taking the cross product of terms.
-!..................................................................................................................................
-   TYPE(MeshType),                 INTENT(INOUT)  :: Dest                            ! The mesh (on input, the nodal loads values are lumped; on output they are distributed along the element)
-   TYPE(MeshType),                 INTENT(IN   )  :: DestDisp                        ! The mesh that contains the translation displacement for these loads
-   TYPE(MeshMapType),              INTENT(INOUT)  :: MeshMap
 
-   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat                         ! Error status of the operation
-   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg                          ! Error message if ErrStat /= ErrID_None
+   TYPE(MeshType),                 INTENT(INOUT)  :: Dest                           !< The mesh (on input, the nodal loads values are lumped; on output they are distributed along the element)
+   TYPE(MeshType),                 INTENT(IN   )  :: DestDisp                       !< The mesh that contains the translation displacement for these loads
+   TYPE(MeshMapType),              INTENT(INOUT)  :: MeshMap                        !< The mapping data
+
+   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat                        !< Error status of the operation
+   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg                         !< Error message if ErrStat /= ErrID_None
 
    INTEGER(IntKi) :: jElem, n, i,j, n1, n2
    REAL(ReKi)     :: a_vec(3), sum_f(3), crossProd(3)
