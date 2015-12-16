@@ -3185,17 +3185,16 @@ RETURN
 
 CONTAINS
 !..................................................................................................................................
+   !> This subroutine is used to interpolate the arrays more efficiently (all arrays have the same X value)
+   !! See InterpStpReal() for comparison. This assumes we already know Ind and that
+   !! x = ( XVal - XAry(Ind) )/( XAry(Ind+1) - XAry(Ind) )
    FUNCTION InterpAry( x, YAry, Ind )
-      ! This subroutine is used to interpolate the arrays more efficiently (all arrays have the same X value)
-      ! See InterpStpReal() for comparison. This assumes we already know Ind and that
-      ! x = ( XVal - XAry(Ind) )/( XAry(Ind+1) - XAry(Ind) )
 
+      REAL(ReKi),      INTENT(IN) :: x                !< the relative distance between Ind and Ind+ 1
+      REAL(ReKi),      INTENT(IN) :: YAry (:)         !< Array of Y values to be interpolated.
+      INTEGER(IntKi) , INTENT(IN) :: Ind              !< the index into the array
 
-      REAL(ReKi),      INTENT(IN) :: x                ! the relative distance between Ind and Ind+ 1
-      REAL(ReKi),      INTENT(IN) :: YAry (:)         ! Array of Y values to be interpolated.
-      INTEGER(IntKi) , INTENT(IN) :: Ind              ! the index into the array
-
-      REAL(ReKi)                  :: InterpAry        ! the value calculated in this function
+      REAL(ReKi)                  :: InterpAry        !< the value calculated in this function
 
       InterpAry = ( YAry(Ind+1) - YAry(Ind) ) * x  + YAry(Ind)
 

@@ -3,8 +3,8 @@
 # Module IfW_TSFFWind_Types contains all of the user-defined types needed in IfW_TSFFWind. It also contains copy, destroy, pack, and
 # unpack routines associated with each defined data types.
 ###################################################################################################################################
-# File last committed: $Date: 2015-12-15 08:48:41 -0700 (Tue, 15 Dec 2015) $
-# (File) Revision #: $Rev: 194 $
+# File last committed: $Date: 2015-12-15 16:44:24 -0700 (Tue, 15 Dec 2015) $
+# (File) Revision #: $Rev: 195 $
 # URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization2/Source/Registry/IfW_TSFFWind.txt $
 ###################################################################################################################################
 # Entries are of the form
