@@ -37,13 +37,24 @@ typedef   ^   ^               CHARACTER(1024)   DirRoot              -  -  -    
 
 
 
-# Define "other" states (any data that are not considered actual states) here:
-typedef  ^  OtherStateType    ReKi              PtfmAM               {6}{6} - -  "Added mass matrix results from OrcaFlex"    -
+
+
+# Define "other" states here:
+# note that some of the "miscVars" are associated with time, but due to the nature of calling the DLL only once per time step, I have
+# chosen not to place them in other states
+typedef  ^  OtherStateType    SiKi              DummyOtherState    - - -  "Remove if you have OtherStates"    -
+
+
+# ..... Misc/Optimization variables.................................................................................................
+# Define any data that are used only for efficiency purposes (these variables are not associated with time):
+#   e.g. indices for searching in an array, large arrays that are local variables in any routine called multiple times, etc.
+typedef  ^  MiscVarType       ReKi              PtfmAM               {6}{6} - -  "Added mass matrix results from OrcaFlex"    -
 typedef  ^  ^                 ReKi              PtfmFt               {6}    - -  "Force/moment results from OrcaFlex"         -
 typedef  ^  ^                 ReKi              F_PtfmAM             {6}   -  -  "Force/moment results calculated from the added mass and accel"   -
 typedef  ^  ^                 LOGICAL           Initialized          -  -  -     "Is the module initialized?"                 -
 typedef  ^  ^                 ReKi              AllOuts              :  -  -     "An array holding the value of all of the calculated (not only selected) output channels" "see OutListParameters.xlsx spreadsheet"
 typedef  ^  ^                 DbKi              LastTimeStep         -  -  -     "The last timestep called"                   -
+
 
 # Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
 typedef  ^  ParameterType     DbKi              DT                   -  -  -     "Time step for continuous state integration & discrete state update"       seconds
