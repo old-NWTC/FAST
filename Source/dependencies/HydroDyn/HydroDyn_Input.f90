@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
 ! LICENSING
-! Copyright (C) 2013  National Renewable Energy Laboratory
+! Copyright (C) 2013-2015  National Renewable Energy Laboratory
 !
 !    This file is part of HydroDyn.
 !
@@ -17,9 +17,9 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-09-17 10:07:51 -0600 (Thu, 17 Sep 2015) $
-! (File) Revision #: $Rev: 639 $
-! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/UserWaves/Source/HydroDyn_Input.f90 $
+! File last committed: $Date: 2015-12-23 13:04:26 -0700 (Wed, 23 Dec 2015) $
+! (File) Revision #: $Rev: 659 $
+! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/HydroDyn_Input.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Input
 

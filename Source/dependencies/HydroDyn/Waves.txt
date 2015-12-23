@@ -9,9 +9,9 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed: $Date: 2015-09-11 13:49:02 -0600 (Fri, 11 Sep 2015) $
-# (File) Revision #: $Rev: 635 $
-# URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/UserWaves/Source/RegistryFiles/Waves.txt $
+# File last committed: $Date: 2015-12-23 13:04:26 -0700 (Wed, 23 Dec 2015) $
+# (File) Revision #: $Rev: 659 $
+# URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/RegistryFiles/Waves.txt $
 ###################################################################################################################################
 
 # ...... Include files (definitions from NWTC Library) ............................................................................
@@ -104,9 +104,13 @@ typedef     ^              DiscreteStateType    SiKi                 DummyDiscSt
 typedef     ^              ConstraintStateType  SiKi                 DummyConstrState  -        -        -        "Remove this variable if you have constraint states"  -
 
 
-# Define any data that are not considered actual states here:
-#   e.g. data used only for efficiency purposes (indices for searching in an array,  copies of previous calculations of output at a given time, etc.)
+# Define any other states, including integer or logical states here:
 typedef     ^              OtherStateType       INTEGER              DummyOtherState   -        -        -        "Remove this variable if you have other states" -
+
+# ..... Misc/Optimization variables.................................................................................................
+# Define any data that are used only for efficiency purposes (these variables are not associated with time):
+#   e.g. indices for searching in an array, large arrays that are local variables in any routine called multiple times, etc.
+typedef     ^              MiscVarType         INTEGER              DummyMiscVar     -        -        -        "Remove this variable if you have misc/optimization variables" -
 
 
 # ..... Parameters ................................................................................................................

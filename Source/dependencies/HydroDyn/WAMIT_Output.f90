@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
 ! LICENSING
-! Copyright (C) 2013  National Renewable Energy Laboratory
+! Copyright (C) 2013-2015  National Renewable Energy Laboratory
 !
 !    This file is part of HydroDyn.
 !
@@ -17,9 +17,9 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-08-11 08:28:58 -0600 (Tue, 11 Aug 2015) $
-! (File) Revision #: $Rev: 622 $
-! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/UserWaves/Source/WAMIT_Output.f90 $
+! File last committed: $Date: 2015-12-23 13:04:26 -0700 (Wed, 23 Dec 2015) $
+! (File) Revision #: $Rev: 659 $
+! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/WAMIT_Output.f90 $
 !**********************************************************************************************************************************
 MODULE WAMIT_Output
 
