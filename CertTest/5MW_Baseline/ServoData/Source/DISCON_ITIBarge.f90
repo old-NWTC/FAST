@@ -11,13 +11,17 @@ SUBROUTINE DISCON ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) BIND (C, N
    ! Modified by B. Jonkman to conform to ISO C Bindings (standard Fortran 2003) and 
    ! compile with either gfortran or Intel Visual Fortran (IVF)
    ! DO NOT REMOVE or MODIFY LINES starting with "!DEC$" or "!GCC$"
-   ! !DEC$ specifies attributes for IVF and !GCC$ specifies attributes for gfortran
+   ! !DEC$ specifies attributes for IVF and !GCC$ specifies attributes for gfortran.
+   !
+   ! Note that gfortran v5.x on Mac produces compiler errors with the DLLEXPORT attribute,
+   ! so I've added the compiler directive IMPLICIT_DLLEXPORT.
    
 USE, INTRINSIC :: ISO_C_Binding
 
 IMPLICIT                        NONE
+#ifndef IMPLICIT_DLLEXPORT
 !GCC$ ATTRIBUTES DLLEXPORT :: DISCON
-
+#endif
 
    ! Passed Variables:
 

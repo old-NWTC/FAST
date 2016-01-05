@@ -1,7 +1,7 @@
 !=======================================================================
-!SUBROUTINE DISCON_Sub ( avrSWAP, from_SC, to_SC, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) BIND (C, NAME='DISCON')
-SUBROUTINE DISCON_Sub ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) BIND (C, NAME='DISCON')
-!DEC$ ATTRIBUTES DLLEXPORT :: DISCON_Sub
+!SUBROUTINE DISCON ( avrSWAP, from_SC, to_SC, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) BIND (C, NAME='DISCON')
+SUBROUTINE DISCON ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) BIND (C, NAME='DISCON')
+!DEC$ ATTRIBUTES DLLEXPORT :: DISCON
 
    ! This Bladed-style DLL controller is used to implement a variable-speed
    ! generator-torque controller and PI collective blade pitch controller for
@@ -13,14 +13,15 @@ SUBROUTINE DISCON_Sub ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) BIND (
    ! DO NOT REMOVE or MODIFY LINES starting with "!DEC$" or "!GCC$"
    ! !DEC$ specifies attributes for IVF and !GCC$ specifies attributes for gfortran
    !
-   ! 25-Aug-2015: Also note that the subroutine is called DISCON_Sub internally because of a  
-   ! gfortran internal compiler error that presents itself when I use DISCON on Mac/Linux.
+   ! Note that gfortran v5.x on Mac produces compiler errors with the DLLEXPORT attribute,
+   ! so I've added the compiler directive IMPLICIT_DLLEXPORT.
    
 USE, INTRINSIC :: ISO_C_Binding
 
 IMPLICIT                        NONE
-!GCC$ ATTRIBUTES DLLEXPORT :: DISCON_Sub
-
+#ifndef IMPLICIT_DLLEXPORT
+!GCC$ ATTRIBUTES DLLEXPORT :: DISCON
+#endif
 
    ! Passed Variables:
 !REAL(C_FLOAT),          INTENT(IN   ) :: from_SC   (*)  ! DATA from the supercontroller
@@ -569,5 +570,5 @@ ENDIF
 avcMSG = TRANSFER( TRIM(ErrMsg)//C_NULL_CHAR, avcMSG )
 
 RETURN
-END SUBROUTINE DISCON_Sub
+END SUBROUTINE DISCON
 !=======================================================================

@@ -53,6 +53,9 @@ ifeq ($(OS),Windows_NT)
    PATH_SEP  = \\
    SYS_FILE  = SysGnuWin
 else
+
+   FFLAGS := $(FFLAGS) -DIMPLICIT_DLLEXPORT
+
       # Linux
    DEL_CMD   = rm -f
    EXE_EXT   = _glin$(BITS).so
