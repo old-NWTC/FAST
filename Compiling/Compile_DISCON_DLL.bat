@@ -67,8 +67,8 @@ REM   larger dll than using /libs:dll)
 
 REM "/iface:cref /names:uppercase" is the same as "iface:default"
 
-SET CompOpts= /nologo /O2 /inline /traceback /libs:static /threads /iface:cref /names:uppercase
-rem SET CompOpts= /nologo /O2 /inline /traceback /libs:dll /threads /iface:cref /names:uppercase
+SET CompOpts= /nologo /O2 /inline /traceback /libs:static /threads /iface:cref /names:uppercase /fpp
+rem SET CompOpts= /nologo /O2 /inline /traceback /libs:dll /threads /iface:cref /names:uppercase /fpp
 
 
 rem SET CompOpts= /nologo /O2 /inline /traceback /libs:dll /threads
