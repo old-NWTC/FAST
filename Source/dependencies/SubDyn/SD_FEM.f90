@@ -16,8 +16,8 @@
 ! See the License for the specific language governing permissions and
 ! limitations under the License.
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-12-03 11:29:12 -0700 (Wed, 03 Dec 2014) $
-! (File) Revision #: $Rev: 337 $
+! File last committed: $Date: 2016-01-06 13:10:00 -0700 (Wed, 06 Jan 2016) $
+! (File) Revision #: $Rev: 364 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/trunk/Source/SD_FEM.f90 $
 !**********************************************************************************************************************************
 MODULE SD_FEM
