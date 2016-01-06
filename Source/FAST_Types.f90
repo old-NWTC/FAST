@@ -265,11 +265,11 @@ IMPLICIT NONE
     TYPE(SD_ContinuousStateType) , DIMENSION(1:2)  :: x      ! Continuous states [-]
     TYPE(SD_DiscreteStateType) , DIMENSION(1:2)  :: xd      ! Discrete states [-]
     TYPE(SD_ConstraintStateType) , DIMENSION(1:2)  :: z      ! Constraint states [-]
-    TYPE(SD_OtherStateType)  :: OtherSt      ! Other/optimization states [-]
+    TYPE(SD_OtherStateType) , DIMENSION(1:2)  :: OtherSt      ! Other states [-]
     TYPE(SD_ParameterType)  :: p      ! Parameters [-]
     TYPE(SD_InputType)  :: u      ! System inputs [-]
     TYPE(SD_OutputType)  :: y      ! System outputs [-]
-    TYPE(SD_OtherStateType)  :: OtherSt_old      ! Other/optimization states (copied for the case of subcycling) [-]
+    TYPE(SD_MiscVarType)  :: m      ! Misc/optimization variables [-]
     TYPE(SD_InputType) , DIMENSION(:), ALLOCATABLE  :: Input      ! Array of inputs associated with InputTimes [-]
     REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: InputTimes      ! Array of times associated with Input Array [-]
   END TYPE SubDyn_Data
@@ -10785,9 +10785,11 @@ ENDIF
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
     ENDDO
-      CALL SD_CopyOtherState( SrcSubDyn_DataData%OtherSt, DstSubDyn_DataData%OtherSt, CtrlCode, ErrStat2, ErrMsg2 )
+    DO i1 = LBOUND(SrcSubDyn_DataData%OtherSt,1), UBOUND(SrcSubDyn_DataData%OtherSt,1)
+      CALL SD_CopyOtherState( SrcSubDyn_DataData%OtherSt(i1), DstSubDyn_DataData%OtherSt(i1), CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
+    ENDDO
       CALL SD_CopyParam( SrcSubDyn_DataData%p, DstSubDyn_DataData%p, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
@@ -10797,7 +10799,7 @@ ENDIF
       CALL SD_CopyOutput( SrcSubDyn_DataData%y, DstSubDyn_DataData%y, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
-      CALL SD_CopyOtherState( SrcSubDyn_DataData%OtherSt_old, DstSubDyn_DataData%OtherSt_old, CtrlCode, ErrStat2, ErrMsg2 )
+      CALL SD_CopyMisc( SrcSubDyn_DataData%m, DstSubDyn_DataData%m, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcSubDyn_DataData%Input)) THEN
@@ -10848,11 +10850,13 @@ ENDDO
 DO i1 = LBOUND(SubDyn_DataData%z,1), UBOUND(SubDyn_DataData%z,1)
   CALL SD_DestroyConstrState( SubDyn_DataData%z(i1), ErrStat, ErrMsg )
 ENDDO
-  CALL SD_DestroyOtherState( SubDyn_DataData%OtherSt, ErrStat, ErrMsg )
+DO i1 = LBOUND(SubDyn_DataData%OtherSt,1), UBOUND(SubDyn_DataData%OtherSt,1)
+  CALL SD_DestroyOtherState( SubDyn_DataData%OtherSt(i1), ErrStat, ErrMsg )
+ENDDO
   CALL SD_DestroyParam( SubDyn_DataData%p, ErrStat, ErrMsg )
   CALL SD_DestroyInput( SubDyn_DataData%u, ErrStat, ErrMsg )
   CALL SD_DestroyOutput( SubDyn_DataData%y, ErrStat, ErrMsg )
-  CALL SD_DestroyOtherState( SubDyn_DataData%OtherSt_old, ErrStat, ErrMsg )
+  CALL SD_DestroyMisc( SubDyn_DataData%m, ErrStat, ErrMsg )
 IF (ALLOCATED(SubDyn_DataData%Input)) THEN
 DO i1 = LBOUND(SubDyn_DataData%Input,1), UBOUND(SubDyn_DataData%Input,1)
   CALL SD_DestroyInput( SubDyn_DataData%Input(i1), ErrStat, ErrMsg )
@@ -10957,8 +10961,9 @@ ENDIF
          DEALLOCATE(Int_Buf)
       END IF
     END DO
+    DO i1 = LBOUND(InData%OtherSt,1), UBOUND(InData%OtherSt,1)
       Int_BufSz   = Int_BufSz + 3  ! OtherSt: size of buffers for each call to pack subtype
-      CALL SD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt, ErrStat2, ErrMsg2, .TRUE. ) ! OtherSt 
+      CALL SD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt(i1), ErrStat2, ErrMsg2, .TRUE. ) ! OtherSt 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -10974,6 +10979,7 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+    END DO
       Int_BufSz   = Int_BufSz + 3  ! p: size of buffers for each call to pack subtype
       CALL SD_PackParam( Re_Buf, Db_Buf, Int_Buf, InData%p, ErrStat2, ErrMsg2, .TRUE. ) ! p 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
@@ -11025,20 +11031,20 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
-      Int_BufSz   = Int_BufSz + 3  ! OtherSt_old: size of buffers for each call to pack subtype
-      CALL SD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt_old, ErrStat2, ErrMsg2, .TRUE. ) ! OtherSt_old 
+      Int_BufSz   = Int_BufSz + 3  ! m: size of buffers for each call to pack subtype
+      CALL SD_PackMisc( Re_Buf, Db_Buf, Int_Buf, InData%m, ErrStat2, ErrMsg2, .TRUE. ) ! m 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
-      IF(ALLOCATED(Re_Buf)) THEN ! OtherSt_old
+      IF(ALLOCATED(Re_Buf)) THEN ! m
          Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
          DEALLOCATE(Re_Buf)
       END IF
-      IF(ALLOCATED(Db_Buf)) THEN ! OtherSt_old
+      IF(ALLOCATED(Db_Buf)) THEN ! m
          Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
          DEALLOCATE(Db_Buf)
       END IF
-      IF(ALLOCATED(Int_Buf)) THEN ! OtherSt_old
+      IF(ALLOCATED(Int_Buf)) THEN ! m
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
@@ -11187,7 +11193,8 @@ ENDIF
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
     END DO
-      CALL SD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt, ErrStat2, ErrMsg2, OnlySize ) ! OtherSt 
+    DO i1 = LBOUND(InData%OtherSt,1), UBOUND(InData%OtherSt,1)
+      CALL SD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt(i1), ErrStat2, ErrMsg2, OnlySize ) ! OtherSt 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -11215,6 +11222,7 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
+    END DO
       CALL SD_PackParam( Re_Buf, Db_Buf, Int_Buf, InData%p, ErrStat2, ErrMsg2, OnlySize ) ! p 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
@@ -11299,7 +11307,7 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
-      CALL SD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt_old, ErrStat2, ErrMsg2, OnlySize ) ! OtherSt_old 
+      CALL SD_PackMisc( Re_Buf, Db_Buf, Int_Buf, InData%m, ErrStat2, ErrMsg2, OnlySize ) ! m 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -11548,6 +11556,9 @@ ENDIF
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
     END DO
+    i1_l = LBOUND(OutData%OtherSt,1)
+    i1_u = UBOUND(OutData%OtherSt,1)
+    DO i1 = LBOUND(OutData%OtherSt,1), UBOUND(OutData%OtherSt,1)
       Buf_size=IntKiBuf( Int_Xferred )
       Int_Xferred = Int_Xferred + 1
       IF(Buf_size > 0) THEN
@@ -11581,13 +11592,14 @@ ENDIF
         Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
         Int_Xferred = Int_Xferred + Buf_size
       END IF
-      CALL SD_UnpackOtherState( Re_Buf, Db_Buf, Int_Buf, OutData%OtherSt, ErrStat2, ErrMsg2 ) ! OtherSt 
+      CALL SD_UnpackOtherState( Re_Buf, Db_Buf, Int_Buf, OutData%OtherSt(i1), ErrStat2, ErrMsg2 ) ! OtherSt 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
       IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+    END DO
       Buf_size=IntKiBuf( Int_Xferred )
       Int_Xferred = Int_Xferred + 1
       IF(Buf_size > 0) THEN
@@ -11741,7 +11753,7 @@ ENDIF
         Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
         Int_Xferred = Int_Xferred + Buf_size
       END IF
-      CALL SD_UnpackOtherState( Re_Buf, Db_Buf, Int_Buf, OutData%OtherSt_old, ErrStat2, ErrMsg2 ) ! OtherSt_old 
+      CALL SD_UnpackMisc( Re_Buf, Db_Buf, Int_Buf, OutData%m, ErrStat2, ErrMsg2 ) ! m 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 

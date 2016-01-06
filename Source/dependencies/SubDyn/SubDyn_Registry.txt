@@ -121,25 +121,30 @@ typedef	^	ContinuousStateType	ReKi	qmdot	{:}	-	-	"Derivative of states, Nmod ele
 typedef	^	DiscreteStateType	ReKi	DummyDiscState	-	-	-	"Remove this variable if you have discrete states"
 # Define constraint states here:
 typedef	^	ConstraintStateType	ReKi	DummyConstrState	-	-	-	"Remove this variable if you have constraint states"
-# Define any data that are not considered actual states here:
-typedef	SubDyn/SD	OtherStateType	SD_ContinuousStateType	xdot	{:}	-	-	"previous state derivs for m-step time integrator"
-typedef	^	^	IntKi	n	-	-	-	"tracks time step for which OtherState was updated last"
-typedef	^	^	ReKi	SDWrOutput	{:}	-	-	"Data from previous step to be written to a SubDyn output file"
-typedef	^	^	DbKi	LastOutTime	-	-	-	"The time of the most recent stored output data"	"s"
-typedef	^	^	IntKi	Decimat	-	-	-	"Current output decimation counter"	"-"
 
-# Miscellaneous variables (optimization/temp storage)
-typedef	^	^	ReKi	qmdotdot	{:}	-	-	"2nd Derivative of states, used only for output-file purposes"
-typedef	^	^	ReKi	u_TP	6	-	-
-typedef	^	^	ReKi	udot_TP	6	-	-
-typedef	^	^	ReKi	udotdot_TP	6	-	-
-typedef	^	^	ReKi	UFL	{:}	-	-
-typedef	^	^	ReKi	UR_bar	{:}	-	-
-typedef	^	^	ReKi	UR_bar_dot	{:}	-	-
-typedef	^	^	ReKi	UR_bar_dotdot	{:}	-	-
-typedef	^	^	ReKi	UL	{:}	-	-
-typedef	^	^	ReKi	UL_dot	{:}	-	-
-typedef	^	^	ReKi	UL_dotdot	{:}	-	-
+# Define any other states, including integer or logical states here:
+typedef	SubDyn/SD	OtherStateType	SD_ContinuousStateType	 xdot       {:} -  -  "previous state derivs for m-step time integrator"
+typedef	^	          ^             IntKi                    n           -  -  -  "tracks time step for which OtherState was updated last"
+
+
+# ..... Misc/Optimization variables.................................................................................................
+# Define any data that are used only for efficiency purposes (these variables are not associated with time):
+#   e.g. indices for searching in an array, large arrays that are local variables in any routine called multiple times, etc.
+typedef  ^           MiscVarType    ReKi                     qmdotdot      {:}  -  -  "2nd Derivative of states, used only for output-file purposes"
+typedef  ^            ^             ReKi                     u_TP           6   -  -  
+typedef  ^            ^             ReKi                     udot_TP        6   -  -  
+typedef  ^            ^             ReKi                     udotdot_TP     6   -  -  
+typedef  ^            ^             ReKi                     UFL           {:}  -  -  
+typedef  ^            ^             ReKi                     UR_bar        {:}  -  -  
+typedef  ^            ^             ReKi                     UR_bar_dot    {:}  -  -  
+typedef  ^            ^             ReKi                     UR_bar_dotdot {:}  -  -  
+typedef  ^            ^             ReKi                     UL            {:}  -  -  
+typedef  ^            ^             ReKi                     UL_dot        {:}  -  -  
+typedef  ^            ^             ReKi                     UL_dotdot     {:}  -  -  
+### data for writing to an output file (this data is associated with time, but saved/written in CalcOutput so not stored as an other state) ###
+typedef	^	          ^             ReKi                     SDWrOutput {:} -  -  "Data from previous step to be written to a SubDyn output file"
+typedef	^	          ^             DbKi                     LastOutTime -  -  -  "The time of the most recent stored output data"	"s"
+typedef	^	          ^             IntKi                    Decimat     -  -  -  "Current output decimation counter"	"-"
 
 
 
