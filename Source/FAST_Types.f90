@@ -157,11 +157,11 @@ IMPLICIT NONE
     TYPE(IceD_ContinuousStateType) , DIMENSION(:,:), ALLOCATABLE  :: x      ! Continuous states [-]
     TYPE(IceD_DiscreteStateType) , DIMENSION(:,:), ALLOCATABLE  :: xd      ! Discrete states [-]
     TYPE(IceD_ConstraintStateType) , DIMENSION(:,:), ALLOCATABLE  :: z      ! Constraint states [-]
-    TYPE(IceD_OtherStateType) , DIMENSION(:), ALLOCATABLE  :: OtherSt      ! Other/optimization states [-]
+    TYPE(IceD_OtherStateType) , DIMENSION(:,:), ALLOCATABLE  :: OtherSt      ! Other states [-]
     TYPE(IceD_ParameterType) , DIMENSION(:), ALLOCATABLE  :: p      ! Parameters [-]
     TYPE(IceD_InputType) , DIMENSION(:), ALLOCATABLE  :: u      ! System inputs [-]
     TYPE(IceD_OutputType) , DIMENSION(:), ALLOCATABLE  :: y      ! System outputs [-]
-    TYPE(IceD_OtherStateType) , DIMENSION(:), ALLOCATABLE  :: OtherSt_old      ! Other/optimization states (copied for the case of subcycling) [-]
+    TYPE(IceD_MiscVarType) , DIMENSION(:), ALLOCATABLE  :: m      ! Misc/optimization variables [-]
     TYPE(IceD_InputType) , DIMENSION(:,:), ALLOCATABLE  :: Input      ! Array of inputs associated with InputTimes [-]
     REAL(DbKi) , DIMENSION(:,:), ALLOCATABLE  :: InputTimes      ! Array of times associated with Input Array [-]
   END TYPE IceDyn_Data
@@ -1597,17 +1597,21 @@ ENDIF
 IF (ALLOCATED(SrcIceDyn_DataData%OtherSt)) THEN
   i1_l = LBOUND(SrcIceDyn_DataData%OtherSt,1)
   i1_u = UBOUND(SrcIceDyn_DataData%OtherSt,1)
+  i2_l = LBOUND(SrcIceDyn_DataData%OtherSt,2)
+  i2_u = UBOUND(SrcIceDyn_DataData%OtherSt,2)
   IF (.NOT. ALLOCATED(DstIceDyn_DataData%OtherSt)) THEN 
-    ALLOCATE(DstIceDyn_DataData%OtherSt(i1_l:i1_u),STAT=ErrStat2)
+    ALLOCATE(DstIceDyn_DataData%OtherSt(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
     IF (ErrStat2 /= 0) THEN 
       CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%OtherSt.', ErrStat, ErrMsg,RoutineName)
       RETURN
     END IF
   END IF
+    DO i2 = LBOUND(SrcIceDyn_DataData%OtherSt,2), UBOUND(SrcIceDyn_DataData%OtherSt,2)
     DO i1 = LBOUND(SrcIceDyn_DataData%OtherSt,1), UBOUND(SrcIceDyn_DataData%OtherSt,1)
-      CALL IceD_CopyOtherState( SrcIceDyn_DataData%OtherSt(i1), DstIceDyn_DataData%OtherSt(i1), CtrlCode, ErrStat2, ErrMsg2 )
+      CALL IceD_CopyOtherState( SrcIceDyn_DataData%OtherSt(i1,i2), DstIceDyn_DataData%OtherSt(i1,i2), CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
+    ENDDO
     ENDDO
 ENDIF
 IF (ALLOCATED(SrcIceDyn_DataData%p)) THEN
@@ -1658,18 +1662,18 @@ IF (ALLOCATED(SrcIceDyn_DataData%y)) THEN
          IF (ErrStat>=AbortErrLev) RETURN
     ENDDO
 ENDIF
-IF (ALLOCATED(SrcIceDyn_DataData%OtherSt_old)) THEN
-  i1_l = LBOUND(SrcIceDyn_DataData%OtherSt_old,1)
-  i1_u = UBOUND(SrcIceDyn_DataData%OtherSt_old,1)
-  IF (.NOT. ALLOCATED(DstIceDyn_DataData%OtherSt_old)) THEN 
-    ALLOCATE(DstIceDyn_DataData%OtherSt_old(i1_l:i1_u),STAT=ErrStat2)
+IF (ALLOCATED(SrcIceDyn_DataData%m)) THEN
+  i1_l = LBOUND(SrcIceDyn_DataData%m,1)
+  i1_u = UBOUND(SrcIceDyn_DataData%m,1)
+  IF (.NOT. ALLOCATED(DstIceDyn_DataData%m)) THEN 
+    ALLOCATE(DstIceDyn_DataData%m(i1_l:i1_u),STAT=ErrStat2)
     IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%OtherSt_old.', ErrStat, ErrMsg,RoutineName)
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%m.', ErrStat, ErrMsg,RoutineName)
       RETURN
     END IF
   END IF
-    DO i1 = LBOUND(SrcIceDyn_DataData%OtherSt_old,1), UBOUND(SrcIceDyn_DataData%OtherSt_old,1)
-      CALL IceD_CopyOtherState( SrcIceDyn_DataData%OtherSt_old(i1), DstIceDyn_DataData%OtherSt_old(i1), CtrlCode, ErrStat2, ErrMsg2 )
+    DO i1 = LBOUND(SrcIceDyn_DataData%m,1), UBOUND(SrcIceDyn_DataData%m,1)
+      CALL IceD_CopyMisc( SrcIceDyn_DataData%m(i1), DstIceDyn_DataData%m(i1), CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
     ENDDO
@@ -1744,8 +1748,10 @@ ENDDO
   DEALLOCATE(IceDyn_DataData%z)
 ENDIF
 IF (ALLOCATED(IceDyn_DataData%OtherSt)) THEN
+DO i2 = LBOUND(IceDyn_DataData%OtherSt,2), UBOUND(IceDyn_DataData%OtherSt,2)
 DO i1 = LBOUND(IceDyn_DataData%OtherSt,1), UBOUND(IceDyn_DataData%OtherSt,1)
-  CALL IceD_DestroyOtherState( IceDyn_DataData%OtherSt(i1), ErrStat, ErrMsg )
+  CALL IceD_DestroyOtherState( IceDyn_DataData%OtherSt(i1,i2), ErrStat, ErrMsg )
+ENDDO
 ENDDO
   DEALLOCATE(IceDyn_DataData%OtherSt)
 ENDIF
@@ -1767,11 +1773,11 @@ DO i1 = LBOUND(IceDyn_DataData%y,1), UBOUND(IceDyn_DataData%y,1)
 ENDDO
   DEALLOCATE(IceDyn_DataData%y)
 ENDIF
-IF (ALLOCATED(IceDyn_DataData%OtherSt_old)) THEN
-DO i1 = LBOUND(IceDyn_DataData%OtherSt_old,1), UBOUND(IceDyn_DataData%OtherSt_old,1)
-  CALL IceD_DestroyOtherState( IceDyn_DataData%OtherSt_old(i1), ErrStat, ErrMsg )
+IF (ALLOCATED(IceDyn_DataData%m)) THEN
+DO i1 = LBOUND(IceDyn_DataData%m,1), UBOUND(IceDyn_DataData%m,1)
+  CALL IceD_DestroyMisc( IceDyn_DataData%m(i1), ErrStat, ErrMsg )
 ENDDO
-  DEALLOCATE(IceDyn_DataData%OtherSt_old)
+  DEALLOCATE(IceDyn_DataData%m)
 ENDIF
 IF (ALLOCATED(IceDyn_DataData%Input)) THEN
 DO i2 = LBOUND(IceDyn_DataData%Input,2), UBOUND(IceDyn_DataData%Input,2)
@@ -1899,10 +1905,11 @@ ENDIF
   END IF
   Int_BufSz   = Int_BufSz   + 1     ! OtherSt allocated yes/no
   IF ( ALLOCATED(InData%OtherSt) ) THEN
-    Int_BufSz   = Int_BufSz   + 2*1  ! OtherSt upper/lower bounds for each dimension
+    Int_BufSz   = Int_BufSz   + 2*2  ! OtherSt upper/lower bounds for each dimension
+    DO i2 = LBOUND(InData%OtherSt,2), UBOUND(InData%OtherSt,2)
     DO i1 = LBOUND(InData%OtherSt,1), UBOUND(InData%OtherSt,1)
       Int_BufSz   = Int_BufSz + 3  ! OtherSt: size of buffers for each call to pack subtype
-      CALL IceD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt(i1), ErrStat2, ErrMsg2, .TRUE. ) ! OtherSt 
+      CALL IceD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt(i1,i2), ErrStat2, ErrMsg2, .TRUE. ) ! OtherSt 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -1918,6 +1925,7 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+    END DO
     END DO
   END IF
   Int_BufSz   = Int_BufSz   + 1     ! p allocated yes/no
@@ -1989,24 +1997,24 @@ ENDIF
       END IF
     END DO
   END IF
-  Int_BufSz   = Int_BufSz   + 1     ! OtherSt_old allocated yes/no
-  IF ( ALLOCATED(InData%OtherSt_old) ) THEN
-    Int_BufSz   = Int_BufSz   + 2*1  ! OtherSt_old upper/lower bounds for each dimension
-    DO i1 = LBOUND(InData%OtherSt_old,1), UBOUND(InData%OtherSt_old,1)
-      Int_BufSz   = Int_BufSz + 3  ! OtherSt_old: size of buffers for each call to pack subtype
-      CALL IceD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt_old(i1), ErrStat2, ErrMsg2, .TRUE. ) ! OtherSt_old 
+  Int_BufSz   = Int_BufSz   + 1     ! m allocated yes/no
+  IF ( ALLOCATED(InData%m) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! m upper/lower bounds for each dimension
+    DO i1 = LBOUND(InData%m,1), UBOUND(InData%m,1)
+      Int_BufSz   = Int_BufSz + 3  ! m: size of buffers for each call to pack subtype
+      CALL IceD_PackMisc( Re_Buf, Db_Buf, Int_Buf, InData%m(i1), ErrStat2, ErrMsg2, .TRUE. ) ! m 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
-      IF(ALLOCATED(Re_Buf)) THEN ! OtherSt_old
+      IF(ALLOCATED(Re_Buf)) THEN ! m
          Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
          DEALLOCATE(Re_Buf)
       END IF
-      IF(ALLOCATED(Db_Buf)) THEN ! OtherSt_old
+      IF(ALLOCATED(Db_Buf)) THEN ! m
          Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
          DEALLOCATE(Db_Buf)
       END IF
-      IF(ALLOCATED(Int_Buf)) THEN ! OtherSt_old
+      IF(ALLOCATED(Int_Buf)) THEN ! m
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
@@ -2216,9 +2224,13 @@ ENDIF
     IntKiBuf( Int_Xferred    ) = LBOUND(InData%OtherSt,1)
     IntKiBuf( Int_Xferred + 1) = UBOUND(InData%OtherSt,1)
     Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%OtherSt,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%OtherSt,2)
+    Int_Xferred = Int_Xferred + 2
 
+    DO i2 = LBOUND(InData%OtherSt,2), UBOUND(InData%OtherSt,2)
     DO i1 = LBOUND(InData%OtherSt,1), UBOUND(InData%OtherSt,1)
-      CALL IceD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt(i1), ErrStat2, ErrMsg2, OnlySize ) ! OtherSt 
+      CALL IceD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt(i1,i2), ErrStat2, ErrMsg2, OnlySize ) ! OtherSt 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -2246,6 +2258,7 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
+    END DO
     END DO
   END IF
   IF ( .NOT. ALLOCATED(InData%p) ) THEN
@@ -2371,18 +2384,18 @@ ENDIF
       ENDIF
     END DO
   END IF
-  IF ( .NOT. ALLOCATED(InData%OtherSt_old) ) THEN
+  IF ( .NOT. ALLOCATED(InData%m) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
   ELSE
     IntKiBuf( Int_Xferred ) = 1
     Int_Xferred = Int_Xferred + 1
-    IntKiBuf( Int_Xferred    ) = LBOUND(InData%OtherSt_old,1)
-    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%OtherSt_old,1)
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%m,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%m,1)
     Int_Xferred = Int_Xferred + 2
 
-    DO i1 = LBOUND(InData%OtherSt_old,1), UBOUND(InData%OtherSt_old,1)
-      CALL IceD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt_old(i1), ErrStat2, ErrMsg2, OnlySize ) ! OtherSt_old 
+    DO i1 = LBOUND(InData%m,1), UBOUND(InData%m,1)
+      CALL IceD_PackMisc( Re_Buf, Db_Buf, Int_Buf, InData%m(i1), ErrStat2, ErrMsg2, OnlySize ) ! m 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -2700,12 +2713,16 @@ ENDIF
     i1_l = IntKiBuf( Int_Xferred    )
     i1_u = IntKiBuf( Int_Xferred + 1)
     Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
     IF (ALLOCATED(OutData%OtherSt)) DEALLOCATE(OutData%OtherSt)
-    ALLOCATE(OutData%OtherSt(i1_l:i1_u),STAT=ErrStat2)
+    ALLOCATE(OutData%OtherSt(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
     IF (ErrStat2 /= 0) THEN 
        CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%OtherSt.', ErrStat, ErrMsg,RoutineName)
        RETURN
     END IF
+    DO i2 = LBOUND(OutData%OtherSt,2), UBOUND(OutData%OtherSt,2)
     DO i1 = LBOUND(OutData%OtherSt,1), UBOUND(OutData%OtherSt,1)
       Buf_size=IntKiBuf( Int_Xferred )
       Int_Xferred = Int_Xferred + 1
@@ -2740,13 +2757,14 @@ ENDIF
         Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
         Int_Xferred = Int_Xferred + Buf_size
       END IF
-      CALL IceD_UnpackOtherState( Re_Buf, Db_Buf, Int_Buf, OutData%OtherSt(i1), ErrStat2, ErrMsg2 ) ! OtherSt 
+      CALL IceD_UnpackOtherState( Re_Buf, Db_Buf, Int_Buf, OutData%OtherSt(i1,i2), ErrStat2, ErrMsg2 ) ! OtherSt 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
       IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+    END DO
     END DO
   END IF
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! p not allocated
@@ -2917,20 +2935,20 @@ ENDIF
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
     END DO
   END IF
-  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! OtherSt_old not allocated
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! m not allocated
     Int_Xferred = Int_Xferred + 1
   ELSE
     Int_Xferred = Int_Xferred + 1
     i1_l = IntKiBuf( Int_Xferred    )
     i1_u = IntKiBuf( Int_Xferred + 1)
     Int_Xferred = Int_Xferred + 2
-    IF (ALLOCATED(OutData%OtherSt_old)) DEALLOCATE(OutData%OtherSt_old)
-    ALLOCATE(OutData%OtherSt_old(i1_l:i1_u),STAT=ErrStat2)
+    IF (ALLOCATED(OutData%m)) DEALLOCATE(OutData%m)
+    ALLOCATE(OutData%m(i1_l:i1_u),STAT=ErrStat2)
     IF (ErrStat2 /= 0) THEN 
-       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%OtherSt_old.', ErrStat, ErrMsg,RoutineName)
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%m.', ErrStat, ErrMsg,RoutineName)
        RETURN
     END IF
-    DO i1 = LBOUND(OutData%OtherSt_old,1), UBOUND(OutData%OtherSt_old,1)
+    DO i1 = LBOUND(OutData%m,1), UBOUND(OutData%m,1)
       Buf_size=IntKiBuf( Int_Xferred )
       Int_Xferred = Int_Xferred + 1
       IF(Buf_size > 0) THEN
@@ -2964,7 +2982,7 @@ ENDIF
         Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
         Int_Xferred = Int_Xferred + Buf_size
       END IF
-      CALL IceD_UnpackOtherState( Re_Buf, Db_Buf, Int_Buf, OutData%OtherSt_old(i1), ErrStat2, ErrMsg2 ) ! OtherSt_old 
+      CALL IceD_UnpackMisc( Re_Buf, Db_Buf, Int_Buf, OutData%m(i1), ErrStat2, ErrMsg2 ) ! m 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
