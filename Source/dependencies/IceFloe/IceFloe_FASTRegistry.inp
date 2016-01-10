@@ -28,18 +28,21 @@ typedef IceFloe InitOutputType   ProgDesc             Ver             -    -  - 
 
 # ..... States ....................................................................................................................
 # Define continuous (differentiable) states here:
-typedef IceFloe ContinuousStateType ReKi DummyContStateVar    - - - "None currently used" -
+typedef IceFloe ContinuousStateType SiKi DummyContStateVar    - - - "None currently used" -
 
 # Define discrete (nondifferentiable) states here:
-typedef IceFloe DiscreteStateType ReKi DummyDiscStateVar   - - - "None currently used" -
+typedef IceFloe DiscreteStateType SiKi DummyDiscStateVar   - - - "None currently used" -
 
 # Define constraint states here:
-typedef IceFloe ConstraintStateType ReKi DummyConstrStateVar   - - - "None currently used" -
+typedef IceFloe ConstraintStateType SiKi DummyConstrStateVar   - - - "None currently used" -
 
-# Define any data that are not considered actual states here:
-# e.g. data used only for efficiency purposes (indices for searching in an array, copies of previous calculations of output
-# at a given time, etc.)
-typedef IceFloe OtherStateType ReKi DummyOtherStateVar   - - - "None currently used" -
+# Define any other states, including integer or logical states here:
+typedef   IceFloe         OtherStateType      IntKi    DummyOtherState - - - "Remove this variable if you have other states" -
+
+# ..... Misc/Optimization variables.................................................................................................
+# Define any data that are used only for efficiency purposes (these variables are not associated with time):
+#   e.g. indices for searching in an array, large arrays that are local variables in any routine called multiple times, etc.
+typedef    IceFloe       MiscVarType          IntKi     DummyMiscVar - - -  "Remove this variable if you have misc/optimization variables" -
 
 # ..... Parameters ................................................................................................................
 # Define parameters here:

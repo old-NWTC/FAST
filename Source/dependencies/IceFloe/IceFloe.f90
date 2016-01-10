@@ -16,29 +16,30 @@
 ! See the License for the specific language governing permissions and
 ! limitations under the License.
 !************************************************************************
+! modified 8-Jan-2016 by B. Jonkman, NREL to conform to changes in FAST Modularization framework (added MiscVars)
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-10-06 22:44:50 -0600 (Tue, 06 Oct 2015) $
-! (File) Revision #: $Rev: 1146 $
+! File last committed: $Date: 2016-01-09 19:06:25 -0700 (Sat, 09 Jan 2016) $
+! (File) Revision #: $Rev: 1203 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFloe.f90 $
 !**********************************************************************************************************************************!
 
 !**********************************************************************************************************************************
-!    IceFloe is a set of routines that calculate ice floe loading on structures and is developed for
-!    use with wind turbine aeroelastic simulation codes.
-!
-!    User manual:   
-!    Theory manual:
-!
-!    This particular file is the interface between the core IceFloe routines and the FAST Framework
-!
-!    References:
-!
-!    Gasmi, A., M. A. Sprague, J. M. Jonkman, and W. B. Jones, Numerical stability and accuracy of temporally coupled
-!    multi-physics modules in wind turbine CAE tools. In proceedings of the 32nd ASME Wind Energy Symposium, 51st AIAA
-!    Aerospace Sciences Meeting including the New Horizons Forum and Aerospace Exposition, Grapevine, TX, January 7-10,
-!    2013.   Also published as NREL Report No. CP-2C00-57298.   Available in pdf format at:
-!    http://www.nrel.gov/docs/fy13osti/57298.pdf
+!>    IceFloe is a set of routines that calculate ice floe loading on structures and is developed for
+!!    use with wind turbine aeroelastic simulation codes.
+!!
+!!    User manual:   
+!!    Theory manual:
+!!
+!!    This particular file is the interface between the core IceFloe routines and the FAST Framework
+!!
+!!    References:
+!!
+!!    Gasmi, A., M. A. Sprague, J. M. Jonkman, and W. B. Jones, Numerical stability and accuracy of temporally coupled
+!!    multi-physics modules in wind turbine CAE tools. In proceedings of the 32nd ASME Wind Energy Symposium, 51st AIAA
+!!    Aerospace Sciences Meeting including the New Horizons Forum and Aerospace Exposition, Grapevine, TX, January 7-10,
+!!    2013.   Also published as NREL Report No. CP-2C00-57298.   Available in pdf format at:
+!!    http://www.nrel.gov/docs/fy13osti/57298.pdf
 !
 !**********************************************************************************************************************************
 MODULE IceFloe 
@@ -59,7 +60,7 @@ MODULE IceFloe
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER  :: IceFloe_Ver = ProgDesc( 'IceFloe', 'v1.00.01', '30-Sep-2015' )
+   TYPE(ProgDesc), PARAMETER  :: IceFloe_Ver = ProgDesc( 'IceFloe', 'v1.01.00', '8-Jan-2016' )
 
 ! ..... Public Subroutines ...................................................................................................
 
@@ -77,7 +78,7 @@ MODULE IceFloe
 CONTAINS
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, ErrStat, ErrMsg )
+SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, m, Interval, InitOut, ErrStat, ErrMsg )
 !
 ! This routine is called at the start of the simulation to perform initialization steps.
 ! The parameters are set here and not changed during the simulation.
@@ -103,7 +104,8 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       TYPE(IceFloe_ContinuousStateType), INTENT(  OUT)  :: x           ! Initial continuous states
       TYPE(IceFloe_DiscreteStateType),   INTENT(  OUT)  :: xd          ! Initial discrete states
       TYPE(IceFloe_ConstraintStateType), INTENT(  OUT)  :: z           ! Initial guess of the constraint states
-      TYPE(IceFloe_OtherStateType),      INTENT(  OUT)  :: OtherState  ! Initial other/optimization states
+      TYPE(IceFloe_OtherStateType),      INTENT(  OUT)  :: OtherState  ! Initial other states
+      TYPE(IceFloe_MiscVarType),         INTENT(  OUT)  :: m           ! Initial misc/optimization variables
 
 ! More (unregistered) IceFloe types
       type(iceInputType)         :: iceInput ! hold list of input names and values from file
@@ -364,7 +366,7 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
 END SUBROUTINE IceFloe_Init
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE IceFloe_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
+SUBROUTINE IceFloe_CalcOutput( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrMsg )
 !
 ! Routine for computing outputs, used in both loose and tight coupling.
 !..................................................................................................................................
@@ -381,7 +383,8 @@ SUBROUTINE IceFloe_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg
       TYPE(IceFloe_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at t
       TYPE(IceFloe_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at t
       TYPE(IceFloe_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at t
-      TYPE(IceFloe_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
+      TYPE(IceFloe_OtherStateType),      INTENT(IN   )  :: OtherState  ! Other states at t
+      TYPE(IceFloe_MiscVarType),         INTENT(INOUT)  :: m           ! misc/optimization variables
 
 ! IceFloe specific types and other internal variables
       type(iceFloe_LoggingType)  :: iceLog                  ! structure with message and error logging variables
@@ -471,7 +474,7 @@ SUBROUTINE IceFloe_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg
 END SUBROUTINE IceFloe_CalcOutput
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE IceFloe_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
+SUBROUTINE IceFloe_End( u, p, x, xd, z, OtherState, y, m, ErrStat, ErrMsg )
 !
 ! This routine is called at the end of the simulation.
 !..................................................................................................................................
@@ -481,8 +484,9 @@ SUBROUTINE IceFloe_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       TYPE(IceFloe_ContinuousStateType), INTENT(INOUT)  :: x           ! Continuous states
       TYPE(IceFloe_DiscreteStateType),   INTENT(INOUT)  :: xd          ! Discrete states
       TYPE(IceFloe_ConstraintStateType), INTENT(INOUT)  :: z           ! Constraint states
-      TYPE(IceFloe_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
+      TYPE(IceFloe_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other states
       TYPE(IceFloe_OutputType),          INTENT(INOUT)  :: y           ! System outputs
+      TYPE(IceFloe_MiscVarType),         INTENT(INOUT)  :: m           ! misc/optimization variables
       INTEGER(IntKi),                    INTENT(  OUT)  :: ErrStat     ! Error status of the operation
       CHARACTER(*),                      INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
@@ -517,6 +521,8 @@ SUBROUTINE IceFloe_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       CALL IceFloe_DestroyOtherState(  OtherState,  ErrStat, ErrMsg )
       call iceErrorHndlr (iceLog, ErrStat, ErrMsg, 1)
 
+      CALL IceFloe_DestroyMisc(  m,  ErrStat, ErrMsg )
+      call iceErrorHndlr (iceLog, ErrStat, ErrMsg, 1)
       ! Destroy the output data:
 
       CALL IceFloe_DestroyOutput( y, ErrStat, ErrMsg )
@@ -538,27 +544,29 @@ SUBROUTINE IceFloe_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 END SUBROUTINE IceFloe_End
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE IceFloe_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
+SUBROUTINE IceFloe_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, m, ErrStat, ErrMsg )
 !
 ! Routine for solving for constraint states, integrating continuous states, and updating discrete states
 ! Constraint states are solved for input t; Continuous and discrete states are updated for t + p%dt
 ! (stepsize dt assumed to be in ModName parameter)
 !..................................................................................................................................
 
-      REAL(DbKi),                         INTENT(IN   ) :: t          ! Current simulation time in seconds
-      INTEGER(IntKi),                     INTENT(IN   ) :: n          ! Current simulation time step n = 0,1,...
+      REAL(DbKi),                          INTENT(IN   ) :: t          ! Current simulation time in seconds
+      INTEGER(IntKi),                      INTENT(IN   ) :: n          ! Current simulation time step n = 0,1,...
       TYPE(IceFloe_InputType),             INTENT(IN   ) :: u(:)       ! Inputs at utimes
-      REAL(DbKi),                         INTENT(IN   ) :: utimes(:)  ! Times associated with u(:), in seconds
+      REAL(DbKi),                          INTENT(IN   ) :: utimes(:)  ! Times associated with u(:), in seconds
       TYPE(IceFloe_ParameterType),         INTENT(IN   ) :: p          ! Parameters
       TYPE(IceFloe_ContinuousStateType),   INTENT(INOUT) :: x          ! Input: Continuous states at t;
-                                                                      !   Output: Continuous states at t + Interval
+                                                                       !   Output: Continuous states at t + dt
       TYPE(IceFloe_DiscreteStateType),     INTENT(INOUT) :: xd         ! Input: Discrete states at t;
-                                                                      !   Output: Discrete states at t  + Interval
+                                                                       !   Output: Discrete states at t  + dt
       TYPE(IceFloe_ConstraintStateType),   INTENT(INOUT) :: z          ! Input: Constraint states at t;
-                                                                      !   Output: Constraint states at t+dt
-      TYPE(IceFloe_OtherStateType),        INTENT(INOUT) :: OtherState ! Other/optimization states
-      INTEGER(IntKi),                     INTENT(  OUT) :: ErrStat    ! Error status of the operation
-      CHARACTER(*),                       INTENT(  OUT) :: ErrMsg     ! Error message if ErrStat /= ErrID_None
+                                                                       !   Output: Constraint states at t+dt
+      TYPE(IceFloe_OtherStateType),        INTENT(INOUT) :: OtherState ! Input: Other states at t;
+                                                                       !   Output: Other states at t+dt
+      TYPE(IceFloe_MiscVarType),           INTENT(INOUT) :: m          ! misc/optimization variables
+      INTEGER(IntKi),                      INTENT(  OUT) :: ErrStat    ! Error status of the operation
+      CHARACTER(*),                        INTENT(  OUT) :: ErrMsg     ! Error message if ErrStat /= ErrID_None
 
       ! local variables
 
@@ -589,7 +597,7 @@ SUBROUTINE IceFloe_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, ErrSt
 END SUBROUTINE IceFloe_UpdateStates
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE IceFloe_UpdateDiscState( t, n, u, p, x, xd, z, OtherState, ErrStat, ErrMsg )
+SUBROUTINE IceFloe_UpdateDiscState( t, n, u, p, x, xd, z, OtherState, m, ErrStat, ErrMsg )
 !
 ! Routine for updating discrete states
 !..................................................................................................................................
@@ -602,7 +610,8 @@ SUBROUTINE IceFloe_UpdateDiscState( t, n, u, p, x, xd, z, OtherState, ErrStat, E
       TYPE(IceFloe_DiscreteStateType),   INTENT(INOUT)  :: xd          ! Input: Discrete states at t;
                                                                     !   Output: Discrete states at t + Interval
       TYPE(IceFloe_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at t
-      TYPE(IceFloe_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
+      TYPE(IceFloe_OtherStateType),      INTENT(IN   )  :: OtherState  ! Other states at t
+      TYPE(IceFloe_MiscVarType),         INTENT(INOUT) :: m          ! misc/optimization variables
       INTEGER(IntKi),                   INTENT(  OUT)  :: ErrStat     ! Error status of the operation
       CHARACTER(*),                     INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
@@ -620,7 +629,7 @@ SUBROUTINE IceFloe_UpdateDiscState( t, n, u, p, x, xd, z, OtherState, ErrStat, E
 
    !  Let the user know if there have been warnings
       if (iceLog%WarnFlag) then
-         call addMessage (iceLog, 'Warning message(s) in routine IceFloe_Init, please see the IceFloe log file')
+         call addMessage (iceLog, 'Warning message(s) in routine IceFloe_UpdateDiscState, please see the IceFloe log file')
       endif
 
    !  return message and error logging data
