@@ -52,7 +52,8 @@ SET MAP_DLL=%MAP_Loc%\bin\MAP_Win32.dll
 SET MAP_DLL64=%MAP_Loc%\bin\MAP_x64.dll
 SET MAP_Include_Lib=%MAP_Loc%\bin\MAP_Win32.lib
 
-SET MD_LOC=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MoorDyn\GitforSVN\trunk\source
+rem SET MD_LOC=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MoorDyn\GitforSVN\trunk\source
+SET MD_LOC=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MoorDyn\GitforSVN\branches\bonnie_MiscVars\source
 
 SET FEAM_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FEAMooring\SVNdirectory\source
 SET FEAM_Reg_Loc=%FEAM_Loc%

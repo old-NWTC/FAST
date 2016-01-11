@@ -715,9 +715,9 @@ fast_interface_type_shortname( char *str )
      retval = "ConstrState" ;
    } else if (  !strcmp(str2, "otherstatetype") ) {
      retval = "OtherState" ;
-   } else if (!strcmp(str2, "miscvartype")) {
+   } else if (  !strcmp(str2, "miscvartype") ) {
       retval = "Misc";
-   } else if (!strcmp(str2, "parametertype")) {
+   } else if (  !strcmp(str2, "parametertype") ) {
      retval = "Param" ;
    } else if (  !strcmp(str2, "partialoutputpinputtype") ) {
      retval = "dYdu" ;
@@ -747,7 +747,8 @@ std_case( char *str )    // returns the name in CamelBack case or just the name 
    else if (  !strcmp(make_lower_temp(str), "discretestatetype"))            {return("DiscreteStateType");}
    else if (  !strcmp(make_lower_temp(str), "constraintstatetype"))          {return("ConstraintStateType");}
    else if (  !strcmp(make_lower_temp(str), "otherstatetype"))               {return("OtherStateType");}
-   else if (  !strcmp(make_lower_temp(str), "parametertype"))                {return("ParameterType");}
+   else if (  !strcmp(make_lower_temp(str), "miscvartype"))                  {return("MiscVarType"); }
+   else if (  !strcmp(make_lower_temp(str), "parametertype"))                {return("ParameterType"); }
    else if (  !strcmp(make_lower_temp(str), "partialoutputpinputtype"))      {return("PartialOutputPInputType");}
    else if (  !strcmp(make_lower_temp(str), "partialcontstatepinputtype"))   {return("PartialConstStatePInputType");}
    else if (  !strcmp(make_lower_temp(str), "partialdiscstatepinputtype"))   {return("PartialDiscStatePInputType");}
