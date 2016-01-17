@@ -1,9 +1,9 @@
 !STARTOFREGISTRYGENERATEDFILE 'ElastoDyn_Types.f90'
 !
-! WARNING This file is generated automatically by the FAST registry
+! WARNING This file is generated automatically by the FAST registry.
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v3.00.00, 13-Nov-2015)
+! FAST Registry (v3.01.00, 11-Jan-2016)
 !*********************************************************************************************************************************
 ! ElastoDyn_Types
 !.................................................................................................................................
@@ -54,6 +54,8 @@ IMPLICIT NONE
     REAL(ReKi)  :: HubHt      ! Height of the hub [meters]
     REAL(ReKi) , DIMENSION(1:6)  :: PlatformPos      ! Initial platform position (6 DOFs) [-]
     REAL(ReKi) , DIMENSION(1:3)  :: TwrBasePos      ! initial position of the tower base (for SrvD) [m]
+    REAL(ReKi)  :: HubRad      ! radius of hub [m]
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: TowerRad      ! radius of tower nodes [m]
   END TYPE ED_InitOutputType
 ! =======================
 ! =========  BladeInputData  =======
@@ -1073,6 +1075,19 @@ ENDIF
     DstInitOutputData%HubHt = SrcInitOutputData%HubHt
     DstInitOutputData%PlatformPos = SrcInitOutputData%PlatformPos
     DstInitOutputData%TwrBasePos = SrcInitOutputData%TwrBasePos
+    DstInitOutputData%HubRad = SrcInitOutputData%HubRad
+IF (ALLOCATED(SrcInitOutputData%TowerRad)) THEN
+  i1_l = LBOUND(SrcInitOutputData%TowerRad,1)
+  i1_u = UBOUND(SrcInitOutputData%TowerRad,1)
+  IF (.NOT. ALLOCATED(DstInitOutputData%TowerRad)) THEN 
+    ALLOCATE(DstInitOutputData%TowerRad(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%TowerRad.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitOutputData%TowerRad = SrcInitOutputData%TowerRad
+ENDIF
  END SUBROUTINE ED_CopyInitOutput
 
  SUBROUTINE ED_DestroyInitOutput( InitOutputData, ErrStat, ErrMsg )
@@ -1093,6 +1108,9 @@ ENDIF
   CALL NWTC_Library_Destroyprogdesc( InitOutputData%Ver, ErrStat, ErrMsg )
 IF (ALLOCATED(InitOutputData%BlPitch)) THEN
   DEALLOCATE(InitOutputData%BlPitch)
+ENDIF
+IF (ALLOCATED(InitOutputData%TowerRad)) THEN
+  DEALLOCATE(InitOutputData%TowerRad)
 ENDIF
  END SUBROUTINE ED_DestroyInitOutput
 
@@ -1170,6 +1188,12 @@ ENDIF
       Re_BufSz   = Re_BufSz   + 1  ! HubHt
       Re_BufSz   = Re_BufSz   + SIZE(InData%PlatformPos)  ! PlatformPos
       Re_BufSz   = Re_BufSz   + SIZE(InData%TwrBasePos)  ! TwrBasePos
+      Re_BufSz   = Re_BufSz   + 1  ! HubRad
+  Int_BufSz   = Int_BufSz   + 1     ! TowerRad allocated yes/no
+  IF ( ALLOCATED(InData%TowerRad) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! TowerRad upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%TowerRad)  ! TowerRad
+  END IF
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -1284,6 +1308,21 @@ ENDIF
       Re_Xferred   = Re_Xferred   + SIZE(InData%PlatformPos)
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TwrBasePos))-1 ) = PACK(InData%TwrBasePos,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%TwrBasePos)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%HubRad
+      Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. ALLOCATED(InData%TowerRad) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%TowerRad,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%TowerRad,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%TowerRad)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TowerRad))-1 ) = PACK(InData%TowerRad,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%TowerRad)
+  END IF
  END SUBROUTINE ED_PackInitOutput
 
  SUBROUTINE ED_UnPackInitOutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1466,6 +1505,31 @@ ENDIF
       OutData%TwrBasePos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TwrBasePos))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%TwrBasePos)
     DEALLOCATE(mask1)
+      OutData%HubRad = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! TowerRad not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%TowerRad)) DEALLOCATE(OutData%TowerRad)
+    ALLOCATE(OutData%TowerRad(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%TowerRad.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%TowerRad)>0) OutData%TowerRad = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TowerRad))-1 ), mask1, 0.0_ReKi ), SiKi)
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%TowerRad)
+    DEALLOCATE(mask1)
+  END IF
  END SUBROUTINE ED_UnPackInitOutput
 
  SUBROUTINE ED_CopyBladeInputData( SrcBladeInputDataData, DstBladeInputDataData, CtrlCode, ErrStat, ErrMsg )

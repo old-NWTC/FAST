@@ -87,6 +87,17 @@ IMPLICIT NONE
     INTEGER(IntKi), PUBLIC, PARAMETER  :: NumModules = 15      ! The number of modules available in FAST [-]
     INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxNBlades = 3      ! Maximum number of blades allowed on a turbine [-]
     INTEGER(IntKi), PUBLIC, PARAMETER  :: IceD_MaxLegs = 4      ! because I don't know how many legs there are before calling IceD_Init and I don't want to copy the data because of sibling mesh issues, I'm going to allocate IceD based on this number [-]
+! =========  FAST_VTK_SurfaceType  =======
+  TYPE, PUBLIC :: FAST_VTK_SurfaceType
+    INTEGER(IntKi)  :: NumSectors      ! number of sectors in which to split circles (higher number gives smoother surface) [-]
+    REAL(SiKi)  :: HubRad      ! Preconed hub radius (distance from the rotor apex to the blade root) [m]
+    REAL(SiKi)  :: GroundRad      ! radius for plotting circle on ground [m]
+    REAL(SiKi) , DIMENSION(1:3,1:8)  :: NacelleBox      ! X-Y-Z locations of 8 points that define the nacelle box, relative to the nacelle position [m]
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: TowerRad      ! radius of each ED tower node [m]
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: BladeShape      ! x,y coordinate for each blade node on each blade (relative to reference [m]
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: SubRad      ! radius of each substructure node (needs to be HD?) [m]
+  END TYPE FAST_VTK_SurfaceType
+! =======================
 ! =========  FAST_ParameterType  =======
   TYPE, PUBLIC :: FAST_ParameterType
     REAL(DbKi)  :: DT      ! Integration time step [global time] [s]
@@ -125,15 +136,17 @@ IMPLICIT NONE
     REAL(DbKi)  :: DT_Out      ! Time step for tabular output [s]
     INTEGER(IntKi)  :: n_SttsTime      ! Number of time steps between screen status messages [-]
     INTEGER(IntKi)  :: n_ChkptTime      ! Number of time steps between writing checkpoint files [-]
+    INTEGER(IntKi)  :: n_VTKTime      ! Number of time steps between writing VTK files [-]
     INTEGER(IntKi)  :: TurbineType      ! Type_LandBased, Type_Offshore_Fixed, or Type_Offshore_Floating [-]
     LOGICAL  :: WrBinOutFile      ! Write a binary output file? (.outb) [-]
     LOGICAL  :: WrTxtOutFile      ! Write a text (formatted) output file? (.out) [-]
     LOGICAL  :: SumPrint      ! Print summary data to file? (.sum) [-]
-    LOGICAL  :: WrGraphics      ! Write binary output files with mesh grahpics information? (.gra, .bin) [-]
+    INTEGER(IntKi)  :: WrVTK      ! Write VTK visualization data? (switch) (0=none;1=position/orientation only;2=all mesh fields) [-]
     CHARACTER(1)  :: Delim      ! Delimiter between columns of text output file (.out): space or tab [-]
     CHARACTER(20)  :: OutFmt      ! Format used for text tabular output (except time); resulting field should be 10 characters [-]
     CHARACTER(1024)  :: OutFileRoot      ! The rootname of the output files [-]
     CHARACTER(1024)  :: FTitle      ! The description line from the FAST (glue-code) input file [-]
+    TYPE(FAST_VTK_SurfaceType)  :: VTK_surface      ! Data for VTK surface visualization [-]
   END TYPE FAST_ParameterType
 ! =======================
 ! =========  FAST_OutputFileType  =======
@@ -150,6 +163,7 @@ IMPLICIT NONE
     CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: ChannelNames      ! Names of the output channels [-]
     CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: ChannelUnits      ! Units for the output channels [-]
     TYPE(ProgDesc) , DIMENSION(NumModules)  :: Module_Ver      ! version information from all modules [-]
+    INTEGER(IntKi)  :: VTK_count      ! Number of VTK files written (for naming output files) [-]
   END TYPE FAST_OutputFileType
 ! =======================
 ! =========  IceDyn_Data  =======
@@ -471,6 +485,338 @@ IMPLICIT NONE
   END TYPE FAST_TurbineType
 ! =======================
 CONTAINS
+ SUBROUTINE FAST_CopyVTK_SurfaceType( SrcVTK_SurfaceTypeData, DstVTK_SurfaceTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(FAST_VTK_SurfaceType), INTENT(IN) :: SrcVTK_SurfaceTypeData
+   TYPE(FAST_VTK_SurfaceType), INTENT(INOUT) :: DstVTK_SurfaceTypeData
+   INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
+   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+! Local 
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(ErrMsgLen)           :: ErrMsg2
+   CHARACTER(*), PARAMETER        :: RoutineName = 'FAST_CopyVTK_SurfaceType'
+! 
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+    DstVTK_SurfaceTypeData%NumSectors = SrcVTK_SurfaceTypeData%NumSectors
+    DstVTK_SurfaceTypeData%HubRad = SrcVTK_SurfaceTypeData%HubRad
+    DstVTK_SurfaceTypeData%GroundRad = SrcVTK_SurfaceTypeData%GroundRad
+    DstVTK_SurfaceTypeData%NacelleBox = SrcVTK_SurfaceTypeData%NacelleBox
+IF (ALLOCATED(SrcVTK_SurfaceTypeData%TowerRad)) THEN
+  i1_l = LBOUND(SrcVTK_SurfaceTypeData%TowerRad,1)
+  i1_u = UBOUND(SrcVTK_SurfaceTypeData%TowerRad,1)
+  IF (.NOT. ALLOCATED(DstVTK_SurfaceTypeData%TowerRad)) THEN 
+    ALLOCATE(DstVTK_SurfaceTypeData%TowerRad(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstVTK_SurfaceTypeData%TowerRad.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstVTK_SurfaceTypeData%TowerRad = SrcVTK_SurfaceTypeData%TowerRad
+ENDIF
+IF (ALLOCATED(SrcVTK_SurfaceTypeData%BladeShape)) THEN
+  i1_l = LBOUND(SrcVTK_SurfaceTypeData%BladeShape,1)
+  i1_u = UBOUND(SrcVTK_SurfaceTypeData%BladeShape,1)
+  IF (.NOT. ALLOCATED(DstVTK_SurfaceTypeData%BladeShape)) THEN 
+    ALLOCATE(DstVTK_SurfaceTypeData%BladeShape(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstVTK_SurfaceTypeData%BladeShape.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstVTK_SurfaceTypeData%BladeShape = SrcVTK_SurfaceTypeData%BladeShape
+ENDIF
+IF (ALLOCATED(SrcVTK_SurfaceTypeData%SubRad)) THEN
+  i1_l = LBOUND(SrcVTK_SurfaceTypeData%SubRad,1)
+  i1_u = UBOUND(SrcVTK_SurfaceTypeData%SubRad,1)
+  IF (.NOT. ALLOCATED(DstVTK_SurfaceTypeData%SubRad)) THEN 
+    ALLOCATE(DstVTK_SurfaceTypeData%SubRad(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstVTK_SurfaceTypeData%SubRad.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstVTK_SurfaceTypeData%SubRad = SrcVTK_SurfaceTypeData%SubRad
+ENDIF
+ END SUBROUTINE FAST_CopyVTK_SurfaceType
+
+ SUBROUTINE FAST_DestroyVTK_SurfaceType( VTK_SurfaceTypeData, ErrStat, ErrMsg )
+  TYPE(FAST_VTK_SurfaceType), INTENT(INOUT) :: VTK_SurfaceTypeData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  CHARACTER(*),    PARAMETER :: RoutineName = 'FAST_DestroyVTK_SurfaceType'
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
+! 
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+IF (ALLOCATED(VTK_SurfaceTypeData%TowerRad)) THEN
+  DEALLOCATE(VTK_SurfaceTypeData%TowerRad)
+ENDIF
+IF (ALLOCATED(VTK_SurfaceTypeData%BladeShape)) THEN
+  DEALLOCATE(VTK_SurfaceTypeData%BladeShape)
+ENDIF
+IF (ALLOCATED(VTK_SurfaceTypeData%SubRad)) THEN
+  DEALLOCATE(VTK_SurfaceTypeData%SubRad)
+ENDIF
+ END SUBROUTINE FAST_DestroyVTK_SurfaceType
+
+ SUBROUTINE FAST_PackVTK_SurfaceType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+  REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
+  REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
+  INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
+  TYPE(FAST_VTK_SurfaceType),  INTENT(IN) :: InData
+  INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
+  CHARACTER(*),     INTENT(  OUT) :: ErrMsg
+  LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
+  LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'FAST_PackVTK_SurfaceType'
+ ! buffers to store subtypes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+
+  OnlySize = .FALSE.
+  IF ( PRESENT(SizeOnly) ) THEN
+    OnlySize = SizeOnly
+  ENDIF
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+      Int_BufSz  = Int_BufSz  + 1  ! NumSectors
+      Re_BufSz   = Re_BufSz   + 1  ! HubRad
+      Re_BufSz   = Re_BufSz   + 1  ! GroundRad
+      Re_BufSz   = Re_BufSz   + SIZE(InData%NacelleBox)  ! NacelleBox
+  Int_BufSz   = Int_BufSz   + 1     ! TowerRad allocated yes/no
+  IF ( ALLOCATED(InData%TowerRad) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! TowerRad upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%TowerRad)  ! TowerRad
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! BladeShape allocated yes/no
+  IF ( ALLOCATED(InData%BladeShape) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! BladeShape upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%BladeShape)  ! BladeShape
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! SubRad allocated yes/no
+  IF ( ALLOCATED(InData%SubRad) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! SubRad upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%SubRad)  ! SubRad
+  END IF
+  IF ( Re_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Db_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Int_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
+
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred = 1
+
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumSectors
+      Int_Xferred   = Int_Xferred   + 1
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%HubRad
+      Re_Xferred   = Re_Xferred   + 1
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%GroundRad
+      Re_Xferred   = Re_Xferred   + 1
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%NacelleBox))-1 ) = PACK(InData%NacelleBox,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%NacelleBox)
+  IF ( .NOT. ALLOCATED(InData%TowerRad) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%TowerRad,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%TowerRad,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%TowerRad)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TowerRad))-1 ) = PACK(InData%TowerRad,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%TowerRad)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%BladeShape) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%BladeShape,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%BladeShape,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%BladeShape)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%BladeShape))-1 ) = PACK(InData%BladeShape,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%BladeShape)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%SubRad) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%SubRad,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%SubRad,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%SubRad)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%SubRad))-1 ) = PACK(InData%SubRad,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%SubRad)
+  END IF
+ END SUBROUTINE FAST_PackVTK_SurfaceType
+
+ SUBROUTINE FAST_UnPackVTK_SurfaceType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+  REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
+  REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
+  INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
+  TYPE(FAST_VTK_SurfaceType), INTENT(INOUT) :: OutData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+    ! Local variables
+  INTEGER(IntKi)                 :: Buf_size
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: i
+  LOGICAL                        :: mask0
+  LOGICAL, ALLOCATABLE           :: mask1(:)
+  LOGICAL, ALLOCATABLE           :: mask2(:,:)
+  LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+  INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'FAST_UnPackVTK_SurfaceType'
+ ! buffers to store meshes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+      OutData%NumSectors = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%HubRad = REAL( ReKiBuf( Re_Xferred ), SiKi) 
+      Re_Xferred   = Re_Xferred + 1
+      OutData%GroundRad = REAL( ReKiBuf( Re_Xferred ), SiKi) 
+      Re_Xferred   = Re_Xferred + 1
+    i1_l = LBOUND(OutData%NacelleBox,1)
+    i1_u = UBOUND(OutData%NacelleBox,1)
+    i2_l = LBOUND(OutData%NacelleBox,2)
+    i2_u = UBOUND(OutData%NacelleBox,2)
+    ALLOCATE(mask2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask2.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask2 = .TRUE. 
+      OutData%NacelleBox = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%NacelleBox))-1 ), mask2, 0.0_ReKi ), SiKi)
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%NacelleBox)
+    DEALLOCATE(mask2)
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! TowerRad not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%TowerRad)) DEALLOCATE(OutData%TowerRad)
+    ALLOCATE(OutData%TowerRad(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%TowerRad.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%TowerRad)>0) OutData%TowerRad = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TowerRad))-1 ), mask1, 0.0_ReKi ), SiKi)
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%TowerRad)
+    DEALLOCATE(mask1)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! BladeShape not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%BladeShape)) DEALLOCATE(OutData%BladeShape)
+    ALLOCATE(OutData%BladeShape(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%BladeShape.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%BladeShape)>0) OutData%BladeShape = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%BladeShape))-1 ), mask1, 0.0_ReKi ), SiKi)
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%BladeShape)
+    DEALLOCATE(mask1)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! SubRad not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%SubRad)) DEALLOCATE(OutData%SubRad)
+    ALLOCATE(OutData%SubRad(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%SubRad.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%SubRad)>0) OutData%SubRad = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%SubRad))-1 ), mask1, 0.0_ReKi ), SiKi)
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%SubRad)
+    DEALLOCATE(mask1)
+  END IF
+ END SUBROUTINE FAST_UnPackVTK_SurfaceType
+
  SUBROUTINE FAST_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )
    TYPE(FAST_ParameterType), INTENT(IN) :: SrcParamData
    TYPE(FAST_ParameterType), INTENT(INOUT) :: DstParamData
@@ -480,7 +826,6 @@ CONTAINS
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
-   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(ErrMsgLen)           :: ErrMsg2
    CHARACTER(*), PARAMETER        :: RoutineName = 'FAST_CopyParam'
@@ -523,15 +868,19 @@ CONTAINS
     DstParamData%DT_Out = SrcParamData%DT_Out
     DstParamData%n_SttsTime = SrcParamData%n_SttsTime
     DstParamData%n_ChkptTime = SrcParamData%n_ChkptTime
+    DstParamData%n_VTKTime = SrcParamData%n_VTKTime
     DstParamData%TurbineType = SrcParamData%TurbineType
     DstParamData%WrBinOutFile = SrcParamData%WrBinOutFile
     DstParamData%WrTxtOutFile = SrcParamData%WrTxtOutFile
     DstParamData%SumPrint = SrcParamData%SumPrint
-    DstParamData%WrGraphics = SrcParamData%WrGraphics
+    DstParamData%WrVTK = SrcParamData%WrVTK
     DstParamData%Delim = SrcParamData%Delim
     DstParamData%OutFmt = SrcParamData%OutFmt
     DstParamData%OutFileRoot = SrcParamData%OutFileRoot
     DstParamData%FTitle = SrcParamData%FTitle
+      CALL FAST_Copyvtk_surfacetype( SrcParamData%VTK_surface, DstParamData%VTK_surface, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE FAST_CopyParam
 
  SUBROUTINE FAST_DestroyParam( ParamData, ErrStat, ErrMsg )
@@ -543,6 +892,7 @@ CONTAINS
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
+  CALL FAST_Destroyvtk_surfacetype( ParamData%VTK_surface, ErrStat, ErrMsg )
  END SUBROUTINE FAST_DestroyParam
 
  SUBROUTINE FAST_PackParam( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -616,15 +966,34 @@ CONTAINS
       Db_BufSz   = Db_BufSz   + 1  ! DT_Out
       Int_BufSz  = Int_BufSz  + 1  ! n_SttsTime
       Int_BufSz  = Int_BufSz  + 1  ! n_ChkptTime
+      Int_BufSz  = Int_BufSz  + 1  ! n_VTKTime
       Int_BufSz  = Int_BufSz  + 1  ! TurbineType
       Int_BufSz  = Int_BufSz  + 1  ! WrBinOutFile
       Int_BufSz  = Int_BufSz  + 1  ! WrTxtOutFile
       Int_BufSz  = Int_BufSz  + 1  ! SumPrint
-      Int_BufSz  = Int_BufSz  + 1  ! WrGraphics
+      Int_BufSz  = Int_BufSz  + 1  ! WrVTK
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%Delim)  ! Delim
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%OutFmt)  ! OutFmt
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%OutFileRoot)  ! OutFileRoot
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%FTitle)  ! FTitle
+   ! Allocate buffers for subtypes, if any (we'll get sizes from these) 
+      Int_BufSz   = Int_BufSz + 3  ! VTK_surface: size of buffers for each call to pack subtype
+      CALL FAST_Packvtk_surfacetype( Re_Buf, Db_Buf, Int_Buf, InData%VTK_surface, ErrStat2, ErrMsg2, .TRUE. ) ! VTK_surface 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN ! VTK_surface
+         Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
+         DEALLOCATE(Re_Buf)
+      END IF
+      IF(ALLOCATED(Db_Buf)) THEN ! VTK_surface
+         Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
+         DEALLOCATE(Db_Buf)
+      END IF
+      IF(ALLOCATED(Int_Buf)) THEN ! VTK_surface
+         Int_BufSz = Int_BufSz + SIZE( Int_Buf )
+         DEALLOCATE(Int_Buf)
+      END IF
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -744,6 +1113,8 @@ CONTAINS
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%n_ChkptTime
       Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%n_VTKTime
+      Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%TurbineType
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%WrBinOutFile , IntKiBuf(1), 1)
@@ -752,7 +1123,7 @@ CONTAINS
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%SumPrint , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
-      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%WrGraphics , IntKiBuf(1), 1)
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%WrVTK
       Int_Xferred   = Int_Xferred   + 1
         DO I = 1, LEN(InData%Delim)
           IntKiBuf(Int_Xferred) = ICHAR(InData%Delim(I:I), IntKi)
@@ -770,6 +1141,34 @@ CONTAINS
           IntKiBuf(Int_Xferred) = ICHAR(InData%FTitle(I:I), IntKi)
           Int_Xferred = Int_Xferred   + 1
         END DO ! I
+      CALL FAST_Packvtk_surfacetype( Re_Buf, Db_Buf, Int_Buf, InData%VTK_surface, ErrStat2, ErrMsg2, OnlySize ) ! VTK_surface 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Re_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Re_Buf) > 0) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Buf)-1 ) = Re_Buf
+        Re_Xferred = Re_Xferred + SIZE(Re_Buf)
+        DEALLOCATE(Re_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Db_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Db_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Db_Buf) > 0) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Buf)-1 ) = Db_Buf
+        Db_Xferred = Db_Xferred + SIZE(Db_Buf)
+        DEALLOCATE(Db_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Int_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Int_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Int_Buf) > 0) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Buf)-1 ) = Int_Buf
+        Int_Xferred = Int_Xferred + SIZE(Int_Buf)
+        DEALLOCATE(Int_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
  END SUBROUTINE FAST_PackParam
 
  SUBROUTINE FAST_UnPackParam( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -792,7 +1191,6 @@ CONTAINS
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
-  INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'FAST_UnPackParam'
@@ -943,6 +1341,8 @@ CONTAINS
       Int_Xferred   = Int_Xferred + 1
       OutData%n_ChkptTime = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
+      OutData%n_VTKTime = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
       OutData%TurbineType = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%WrBinOutFile = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
@@ -951,7 +1351,7 @@ CONTAINS
       Int_Xferred   = Int_Xferred + 1
       OutData%SumPrint = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
-      OutData%WrGraphics = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
+      OutData%WrVTK = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       DO I = 1, LEN(OutData%Delim)
         OutData%Delim(I:I) = CHAR(IntKiBuf(Int_Xferred))
@@ -969,6 +1369,46 @@ CONTAINS
         OutData%FTitle(I:I) = CHAR(IntKiBuf(Int_Xferred))
         Int_Xferred = Int_Xferred   + 1
       END DO ! I
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Re_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Re_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Re_Buf = ReKiBuf( Re_Xferred:Re_Xferred+Buf_size-1 )
+        Re_Xferred = Re_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Db_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Db_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Db_Buf = DbKiBuf( Db_Xferred:Db_Xferred+Buf_size-1 )
+        Db_Xferred = Db_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Int_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Int_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
+        Int_Xferred = Int_Xferred + Buf_size
+      END IF
+      CALL FAST_Unpackvtk_surfacetype( Re_Buf, Db_Buf, Int_Buf, OutData%VTK_surface, ErrStat2, ErrMsg2 ) ! VTK_surface 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
+      IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
+      IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
  END SUBROUTINE FAST_UnPackParam
 
  SUBROUTINE FAST_CopyOutputFileType( SrcOutputFileTypeData, DstOutputFileTypeData, CtrlCode, ErrStat, ErrMsg )
@@ -1049,6 +1489,7 @@ ENDIF
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
     ENDDO
+    DstOutputFileTypeData%VTK_count = SrcOutputFileTypeData%VTK_count
  END SUBROUTINE FAST_CopyOutputFileType
 
  SUBROUTINE FAST_DestroyOutputFileType( OutputFileTypeData, ErrStat, ErrMsg )
@@ -1159,6 +1600,7 @@ ENDDO
          DEALLOCATE(Int_Buf)
       END IF
     END DO
+      Int_BufSz  = Int_BufSz  + 1  ! VTK_count
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -1297,6 +1739,8 @@ ENDDO
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
     END DO
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%VTK_count
+      Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE FAST_PackOutputFileType
 
  SUBROUTINE FAST_UnPackOutputFileType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1516,6 +1960,8 @@ ENDDO
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
     END DO
+      OutData%VTK_count = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
  END SUBROUTINE FAST_UnPackOutputFileType
 
  SUBROUTINE FAST_CopyIceDyn_Data( SrcIceDyn_DataData, DstIceDyn_DataData, CtrlCode, ErrStat, ErrMsg )

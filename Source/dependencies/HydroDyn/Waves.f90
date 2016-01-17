@@ -20,8 +20,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-12-23 13:04:26 -0700 (Wed, 23 Dec 2015) $
-! (File) Revision #: $Rev: 659 $
+! File last committed: $Date: 2016-01-16 22:15:29 -0700 (Sat, 16 Jan 2016) $
+! (File) Revision #: $Rev: 660 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Waves.f90 $
 !**********************************************************************************************************************************
 MODULE Waves
@@ -615,8 +615,7 @@ SUBROUTINE StillWaterWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
 
       InitOut%WaveDOmega = 0.0
       InitOut%WaveTime   = (/ 0.0_DbKi, 1.0_DbKi, 2.0_DbKi /)   ! We must have at least two different time steps in the interpolation
-      InitOut%WaveElevC0(1,0) = 0.0
-      InitOut%WaveElevC0(2,0) = 0.0
+      InitOut%WaveElevC0 = 0.0
       InitOut%WaveElev   = 0.0
       InitOut%WaveDynP0  = 0.0
       InitOut%WaveVel0   = 0.0
