@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-12-23 13:04:26 -0700 (Wed, 23 Dec 2015) $
-! (File) Revision #: $Rev: 659 $
+! File last committed: $Date: 2016-01-26 09:22:12 -0700 (Tue, 26 Jan 2016) $
+! (File) Revision #: $Rev: 661 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/HydroDyn_Input.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Input
@@ -2386,7 +2386,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    END IF ! LEN_TRIM(InitInp%Waves%WaveModChr)
 
    IF ( (WaveModIn == 6) .AND. .NOT. EqualRealNos(InitInp%Morison%MSL2SWL, 0.0_ReKi) ) THEN
-      CALL SetErrStat( ErrID_Fatal,'MSL2SWL must be 0 when WaveMod = 6.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')        
+      CALL SetErrStat( ErrID_Fatal,'MSL2SWL must be 0 when WaveMod = 6.',ErrStat,ErrMsg,RoutineName)        
       RETURN
    END IF
    
@@ -2677,7 +2677,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    IF ( InitInp%Waves%WaveMod == 5 .OR. InitInp%Waves%WaveMod == 6 ) THEN      ! .TRUE if we are to read user-supplied wave elevation or wave kinematics file(s).
 
       IF ( LEN_TRIM( InitInp%Waves%WvKinFile ) == 0 )  THEN
-         CALL SetErrStat( ErrID_Fatal,'WvKinFile must not be an empty string.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
+         CALL SetErrStat( ErrID_Fatal,'WvKinFile must not be an empty string.',ErrStat,ErrMsg,RoutineName)
          RETURN
       END IF
 

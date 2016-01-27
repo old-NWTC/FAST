@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
 ! LICENSING
-! Copyright (C) 2013-2015  National Renewable Energy Laboratory
+! Copyright (C) 2013-2016  National Renewable Energy Laboratory
 !
 !    This file is part of the NWTC Subroutine Library.
 !
@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-11-09 15:01:47 -0700 (Mon, 09 Nov 2015) $
-! (File) Revision #: $Rev: 351 $
+! File last committed: $Date: 2016-01-21 14:33:25 -0700 (Thu, 21 Jan 2016) $
+! (File) Revision #: $Rev: 357 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/SingPrec.f90 $
 !**********************************************************************************************************************************
 

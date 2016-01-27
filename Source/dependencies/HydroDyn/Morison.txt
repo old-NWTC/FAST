@@ -9,8 +9,8 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed: $Date: 2015-12-23 13:04:26 -0700 (Wed, 23 Dec 2015) $
-# (File) Revision #: $Rev: 659 $
+# File last committed: $Date: 2016-01-26 09:22:12 -0700 (Tue, 26 Jan 2016) $
+# (File) Revision #: $Rev: 661 $
 # URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/RegistryFiles/Morison.txt $
 ###################################################################################################################################
 
@@ -247,6 +247,7 @@ typedef   ^                            ^                             LOGICAL    
 #
 typedef   ^                            InitOutputType                MeshType                 DistribMesh                      -          -        -         ""  -
 typedef   ^                            ^                             MeshType                 LumpedMesh                       -          -        -         ""    -
+typedef   ^                            ^                             SiKi                     Morison_Rad                      {:}         -        -         "radius of node (for FAST visualization)" (m)
 typedef   ^                            ^                             CHARACTER(10)            WriteOutputHdr                   {:}        -        -         ""    -
 typedef   ^                            ^                             CHARACTER(10)            WriteOutputUnt                   {:}        -        -         ""    -
 #

@@ -19,8 +19,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-12-23 13:04:26 -0700 (Wed, 23 Dec 2015) $
-! (File) Revision #: $Rev: 659 $
+! File last committed: $Date: 2016-01-26 09:22:12 -0700 (Tue, 26 Jan 2016) $
+! (File) Revision #: $Rev: 661 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Morison.f90 $
 !**********************************************************************************************************************************
 MODULE Morison
@@ -2054,7 +2054,7 @@ SUBROUTINE SetSplitNodeProperties( numNodes, nodes, numElements, elements, ErrSt
       IF ( nodes(I)%NodeType /= 3 ) THEN
          
             ! End point or internal member node
-            ! Super member nodes already have there properties set
+            ! Super member nodes already have their properties set
             
             
          !element = elements(nodes(I)%ConnectionList(1))
@@ -3224,7 +3224,7 @@ end subroutine ComputeDistributedLoadsAtNode
 SUBROUTINE CreateDistributedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, WaveAcc0, WaveDynP0, numNodes, nodes, nodeInWater, numElements, elements, &
                                   numDistribMarkers,  distribMeshIn, distribMeshOut, distribToNodeIndx,        &
                                   D_F_B, D_F_DP, D_F_MG, D_F_BF, D_AM_MG, D_AM_F, D_dragConst, elementWaterStateArr, &
-                                  ErrStat, ErrMsg )
+                                  Morison_Rad, ErrStat, ErrMsg )
 
    REAL(ReKi),                             INTENT( IN    )  ::  densWater
    REAL(ReKi),                             INTENT( IN    )  ::  gravity
@@ -3245,7 +3245,7 @@ SUBROUTINE CreateDistributedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWav
    INTEGER, ALLOCATABLE,                   INTENT(   OUT )  ::  distribToNodeIndx(:)
    
    REAL(ReKi),ALLOCATABLE,                 INTENT(   OUT)   ::  D_F_B(:,:)                      ! Buoyancy force associated with the member
-   REAL(ReKi),ALLOCATABLE,                 INTENT(   OUT)   ::  D_F_DP(:,:,:)                     ! Dynamic pressure force
+   REAL(ReKi),ALLOCATABLE,                 INTENT(   OUT)   ::  D_F_DP(:,:,:)                   ! Dynamic pressure force
    REAL(ReKi),ALLOCATABLE,                 INTENT(   OUT)   ::  D_F_MG(:,:)                     ! Marine growth weight
    REAL(ReKi),ALLOCATABLE,                 INTENT(   OUT)   ::  D_F_BF(:,:)                     ! Flooded buoyancy force
    REAL(ReKi),ALLOCATABLE,                 INTENT(   OUT)   ::  D_AM_MG(:,:,:)                  ! Added mass of marine growth
@@ -3253,6 +3253,7 @@ SUBROUTINE CreateDistributedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWav
    REAL(ReKi),ALLOCATABLE,                 INTENT(   OUT)   ::  D_AM_F(:,:,:)                   ! Added mass of flooded fluid
    REAL(ReKi),ALLOCATABLE,                 INTENT(   OUT)   ::  D_dragConst(:)                   ! 
    INTEGER,ALLOCATABLE,                    INTENT(   OUT)   ::  elementWaterStateArr(:,:)
+   REAL(SiKi), ALLOCATABLE,                INTENT(   OUT )  ::  Morison_Rad(:)       ! radius of each node (for FAST visualization)
    INTEGER,                                INTENT(   OUT )  ::  ErrStat              ! returns a non-zero value when an error occurs  
    CHARACTER(*),                           INTENT(   OUT )  ::  ErrMsg               ! Error message if ErrStat /= ErrID_None
    
@@ -3264,6 +3265,7 @@ SUBROUTINE CreateDistributedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWav
    TYPE(Morison_NodeType)     ::  node1, node2
    REAL(ReKi)                 ::  L
    REAL(ReKi)                 ::  k(3)
+   REAL(R8Ki)                 :: orientation(3,3)
   
   ! REAL(ReKi),ALLOCATABLE     ::  F_DP(:,:)
    REAL(ReKi)                 ::  F_B(6)
@@ -3289,7 +3291,7 @@ SUBROUTINE CreateDistributedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWav
    
       ! Create the input and output meshes associated with distributed loads
       
-   CALL MeshCreate( BlankMesh      = distribMeshIn            &
+   CALL MeshCreate( BlankMesh      = distribMeshIn          &
                      ,IOS          = COMPONENT_INPUT        &
                      ,Nnodes       = numDistribMarkers      &
                      ,ErrStat      = ErrStat                &
@@ -3301,7 +3303,10 @@ SUBROUTINE CreateDistributedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWav
                      ,TranslationAcc  = .TRUE.              &
                      ,RotationAcc     = .TRUE.               )
 
+   IF ( ErrStat >= AbortErrLev ) RETURN
     
+   CALL AllocAry( Morison_Rad, numDistribMarkers, 'Morison_Rad', ErrStat, ErrMsg)
+   IF ( ErrStat >= AbortErrLev ) RETURN
    
    
       ! Allocate the array for the distributed markers
@@ -3533,15 +3538,16 @@ SUBROUTINE CreateDistributedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWav
          
             ! Create the node on the mesh
             
+         orientation = transpose(nodes(I)%R_LToG )
          CALL MeshPositionNode (distribMeshIn           &
                               , count                   &
                               , nodes(I)%JointPos       &  ! this info comes from FAST
                               , ErrStat                 &
-                              , ErrMsg                  &
+                              , ErrMsg                  & ! , orient = orientation  & ! bjj: I need this orientation set for visualization. but, will it mess up calculations (because loads are in different positions?)
                               ) !, transpose(nodes(I)%R_LToG )     )
-         IF ( ErrStat /= 0 ) THEN
-            RETURN
-         END IF 
+         IF ( ErrStat >= AbortErrLev ) RETURN
+         
+         Morison_Rad(count) = nodes(I)%R   ! set this for FAST visualization
          
          distribToNodeIndx(count) = I
          nodeToDistribIndx(I) = count
@@ -4103,7 +4109,7 @@ IF (ALLOCATED(InitInp%JOutLst) ) &
                                   p%NNodes, p%Nodes, p%nodeInWater, InitInp%NElements, InitInp%Elements, &
                                   p%NDistribMarkers, u%DistribMesh, y%DistribMesh, p%distribToNodeIndx, &
                                   p%D_F_B, p%D_F_DP, p%D_F_MG, p%D_F_BF, p%D_AM_MG, p%D_AM_F, p%D_dragConst, p%elementWaterState, &                 ! 
-                                    ErrStat, ErrMsg )
+                                  InitOut%Morison_Rad,  ErrStat, ErrMsg )
                                     
                                  
 

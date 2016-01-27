@@ -303,6 +303,7 @@ IMPLICIT NONE
   TYPE, PUBLIC :: Morison_InitOutputType
     TYPE(MeshType)  :: DistribMesh      !  [-]
     TYPE(MeshType)  :: LumpedMesh      !  [-]
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: Morison_Rad      ! radius of node (for FAST visualization) [(m)]
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      !  [-]
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      !  [-]
   END TYPE Morison_InitOutputType
@@ -5734,6 +5735,18 @@ ENDIF
       CALL MeshCopy( SrcInitOutputData%LumpedMesh, DstInitOutputData%LumpedMesh, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
+IF (ALLOCATED(SrcInitOutputData%Morison_Rad)) THEN
+  i1_l = LBOUND(SrcInitOutputData%Morison_Rad,1)
+  i1_u = UBOUND(SrcInitOutputData%Morison_Rad,1)
+  IF (.NOT. ALLOCATED(DstInitOutputData%Morison_Rad)) THEN 
+    ALLOCATE(DstInitOutputData%Morison_Rad(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%Morison_Rad.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstInitOutputData%Morison_Rad = SrcInitOutputData%Morison_Rad
+ENDIF
 IF (ALLOCATED(SrcInitOutputData%WriteOutputHdr)) THEN
   i1_l = LBOUND(SrcInitOutputData%WriteOutputHdr,1)
   i1_u = UBOUND(SrcInitOutputData%WriteOutputHdr,1)
@@ -5771,6 +5784,9 @@ ENDIF
   ErrMsg  = ""
   CALL MeshDestroy( InitOutputData%DistribMesh, ErrStat, ErrMsg )
   CALL MeshDestroy( InitOutputData%LumpedMesh, ErrStat, ErrMsg )
+IF (ALLOCATED(InitOutputData%Morison_Rad)) THEN
+  DEALLOCATE(InitOutputData%Morison_Rad)
+ENDIF
 IF (ALLOCATED(InitOutputData%WriteOutputHdr)) THEN
   DEALLOCATE(InitOutputData%WriteOutputHdr)
 ENDIF
@@ -5849,6 +5865,11 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+  Int_BufSz   = Int_BufSz   + 1     ! Morison_Rad allocated yes/no
+  IF ( ALLOCATED(InData%Morison_Rad) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! Morison_Rad upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%Morison_Rad)  ! Morison_Rad
+  END IF
   Int_BufSz   = Int_BufSz   + 1     ! WriteOutputHdr allocated yes/no
   IF ( ALLOCATED(InData%WriteOutputHdr) ) THEN
     Int_BufSz   = Int_BufSz   + 2*1  ! WriteOutputHdr upper/lower bounds for each dimension
@@ -5942,6 +5963,19 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
+  IF ( .NOT. ALLOCATED(InData%Morison_Rad) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%Morison_Rad,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%Morison_Rad,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%Morison_Rad)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Morison_Rad))-1 ) = PACK(InData%Morison_Rad,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%Morison_Rad)
+  END IF
   IF ( .NOT. ALLOCATED(InData%WriteOutputHdr) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
@@ -6091,6 +6125,29 @@ ENDIF
       IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! Morison_Rad not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%Morison_Rad)) DEALLOCATE(OutData%Morison_Rad)
+    ALLOCATE(OutData%Morison_Rad(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%Morison_Rad.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%Morison_Rad)>0) OutData%Morison_Rad = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Morison_Rad))-1 ), mask1, 0.0_ReKi ), SiKi)
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%Morison_Rad)
+    DEALLOCATE(mask1)
+  END IF
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WriteOutputHdr not allocated
     Int_Xferred = Int_Xferred + 1
   ELSE

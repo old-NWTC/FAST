@@ -104,6 +104,9 @@ else
    Registry     = $(FAST_DIR)/dependencies/registry.exe
    MAP_lib      = $(BIN_DIR)/libmap-1.10.01.so
 
+     # skip the OrcaFlex interface, which seems to be causing issues with gfortran v5 on Mac (The OrcaFlex DLL is for Windows only, anyway)
+   FFLAGS      := $(FFLAGS) -DNO_LibLoad
+
    UNAME := $(shell uname -s)
 
    ifeq ($(UNAME), Darwin)
@@ -132,10 +135,12 @@ DEST_DIR    = $(BIN_DIR)
 
 ifeq ($(FAST_driver),FAST_Library)
    LDFLAGS := $(LDFLAGS) -shared
+   FFLAGS := $(FFLAGS) -DIMPLICIT_DLLEXPORT
    OUTPUT_NAME = FAST_Library
 
-   ifeq ($(UNAME), Linux)
-      LDFLAGS := $(LDFLAGS) -fPIC
+   ifneq ($(UNAME), Darwin)
+      FFLAGS      := $(FFLAGS) -fPIC
+      LAPACK_LINK := $(LAPACK_LINK) -fPIC
    endif
 else
    OUTPUT_NAME = FAST

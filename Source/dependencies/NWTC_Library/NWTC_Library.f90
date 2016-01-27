@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
 ! LICENSING
-!> Copyright (C) 2013-2015  National Renewable Energy Laboratory
+!> Copyright (C) 2013-2016  National Renewable Energy Laboratory
 !!
 !! Licensed under the Apache License, Version 2.0 (the "License");
 !! you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
 !! limitations under the License.
 !!
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-11-05 14:57:40 -0700 (Thu, 05 Nov 2015) $
-! (File) Revision #: $Rev: 350 $
+! File last committed: $Date: 2016-01-21 14:33:25 -0700 (Thu, 21 Jan 2016) $
+! (File) Revision #: $Rev: 357 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Library.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_Library
