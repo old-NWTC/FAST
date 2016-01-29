@@ -3,7 +3,7 @@ FAST Certification Test #21: NREL 5.0 MW Baseline Offshore Turbine with OC4 Jack
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
 "FATAL"       AbortLevel      - Error level when simulation should abort (string) {"WARNING", "SEVERE", "FATAL"}
-          5   TMax            - Total run time (s)
+         60   TMax            - Total run time (s)
        0.01   DT              - Recommended module time step (s)
           2   InterpOrder     - Interpolation order for input/output time history (-) {1=linear, 2=quadratic}
           1   NumCrctn        - Number of correction iterations (-) {0=explicit calculation, i.e., no corrections}
@@ -34,7 +34,7 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
 True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime        - Amount of time between screen status messages (s)
       99999   ChkptTime       - Amount of time between creating checkpoint files for potential restart (s)
-          2   WrVTK           - Write VTK visualization data? (switch) {0=none; 1=basic (position only); 2=surfaces; 3=all meshes (debug)}
+          0   WrVTK           - Write VTK visualization data? (switch) {0=none; 1=basic (position only); 2=surfaces; 3=all meshes (debug)}
       0.042   DT_VTK          - Amount of time between consecutive visualization output files (s) {frame rate; will use closest integer multiple of DT}
        0.05   DT_Out          - Time step for tabular output (s) (or "default")
           0   TStart          - Time to begin tabular output (s)
