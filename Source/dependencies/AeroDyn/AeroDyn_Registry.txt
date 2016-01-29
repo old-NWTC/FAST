@@ -9,8 +9,8 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed $Date: 2015-10-03 21:17:42 -0600 (Sat, 03 Oct 2015) $
-# (File) Revision #: $Rev: 166 $
+# File last committed $Date: 2016-01-29 14:41:48 -0700 (Fri, 29 Jan 2016) $
+# (File) Revision #: $Rev: 190 $
 # URL: $HeadURL: https://windsvn.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/AeroDyn/AeroDyn_Registry.txt $
 ###################################################################################################################################
 # ...... Include files (definitions from NWTC Library) ............................................................................
@@ -30,10 +30,13 @@ typedef	^	InitInputType	ReKi	BladeRootPosition	{:}{:}	-	-	"X-Y-Z reference posit
 typedef	^	InitInputType	R8Ki	BladeRootOrientation	{:}{:}{:}	-	-	"DCM reference orientation of blade roots (3x3 x NumBlades)"	-
 
 # Define outputs from the initialization routine here:
+typedef	^	AD_BladeShape	SiKi	AirfoilCoords	{:}{:}{:}	-	-	"x-y coordinates for airfoils, relative to node"	m
+# Define outputs from the initialization routine here:
 typedef	^	InitOutputType	CHARACTER(ChanLen)	WriteOutputHdr	{:}	-	-	"Names of the output-to-file channels"	-
 typedef	^	InitOutputType	CHARACTER(ChanLen)	WriteOutputUnt	{:}	-	-	"Units of the output-to-file channels"	-
 typedef	^	InitOutputType	ProgDesc	Ver	-	-	-	"This module's name, version, and date"	-
 typedef	^	InitOutputType	ReKi	AirDens	-	-	-	"Air density"	kg/m^3
+typedef	^	InitOutputType	AD_BladeShape	BladeShape	{:}	-	-	"airfoil coordinates for each blade"	m
 
 # ..... Input file data ...........................................................................................................
 # This is data defined in the Input File for this module (or could otherwise be passed in)

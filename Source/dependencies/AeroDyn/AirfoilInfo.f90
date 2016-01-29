@@ -542,7 +542,7 @@ CONTAINS
          END IF
 
       IF ( AFInfo%NumCoords > 0 )  THEN
-
+         
          ALLOCATE ( AFInfo%X_Coord( AFInfo%NumCoords ) , STAT=ErrStat2 )
          IF ( ErrStat2 /= 0 )  THEN
             CALL SetErrStat ( ErrID_Fatal, 'Error allocating memory for AFInfo%X_Coord.', ErrStat, ErrMsg, RoutineName )
