@@ -4,8 +4,7 @@
 ! note that this file uses Marshall Buhl's new input file processing; start all comment lines with !
 ! ------------------------------------------------------------------------------
           1   NonDimArea        ! The non-dimensional area of the airfoil (area/chord^2) (set to 1.0 if unsure or unneeded)
-          0   NumCoords         ! The number of coordinates in the airfoil shape file.  Set to zero if coordinates not included.
-! ......... x-y coordinates are next if NumCoords > 0 .............
+@"S809_coordinates.txt"   NumCoords  ! The number of coordinates in the airfoil shape file.  Set to zero if coordinates not included. (using the name of the file here)
           1   NumTabs           ! Number of airfoil tables in this file.  Each table must have lines for Re and Ctrl.
 ! ------------------------------------------------------------------------------
 ! data for table 1
