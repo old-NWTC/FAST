@@ -1,9 +1,9 @@
 !STARTOFREGISTRYGENERATEDFILE 'IceDyn_Types.f90'
 !
-! WARNING This file is generated automatically by the FAST registry
+! WARNING This file is generated automatically by the FAST registry.
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v3.00.00, 13-Nov-2015)
+! FAST Registry (v3.01.00, 11-Jan-2016)
 !*********************************************************************************************************************************
 ! IceDyn_Types
 !.................................................................................................................................
@@ -124,12 +124,12 @@ IMPLICIT NONE
 ! =======================
 ! =========  IceD_DiscreteStateType  =======
   TYPE, PUBLIC :: IceD_DiscreteStateType
-    REAL(ReKi)  :: DummyDiscState      ! A variable, Replace if you have discrete states [-]
+    REAL(SiKi)  :: DummyDiscState      ! A variable, Replace if you have discrete states [-]
   END TYPE IceD_DiscreteStateType
 ! =======================
 ! =========  IceD_ConstraintStateType  =======
   TYPE, PUBLIC :: IceD_ConstraintStateType
-    REAL(ReKi)  :: DummyConstrState      ! A variable, Replace if you have constraint states [-]
+    REAL(SiKi)  :: DummyConstrState      ! A variable, Replace if you have constraint states [-]
   END TYPE IceD_ConstraintStateType
 ! =======================
 ! =========  IceD_OtherStateType  =======
@@ -148,7 +148,7 @@ IMPLICIT NONE
 ! =======================
 ! =========  IceD_MiscVarType  =======
   TYPE, PUBLIC :: IceD_MiscVarType
-    REAL(ReKi)  :: DummyMiscVar      ! Remove this variable if you have misc/optimization variables [-]
+    INTEGER(IntKi)  :: DummyMiscVar      ! Remove this variable if you have misc/optimization variables [-]
   END TYPE IceD_MiscVarType
 ! =======================
 ! =========  IceD_ParameterType  =======
@@ -1652,7 +1652,7 @@ ENDIF
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-      OutData%DummyDiscState = ReKiBuf( Re_Xferred )
+      OutData%DummyDiscState = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE IceD_UnPackDiscState
 
@@ -1783,7 +1783,7 @@ ENDIF
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-      OutData%DummyConstrState = ReKiBuf( Re_Xferred )
+      OutData%DummyConstrState = REAL( ReKiBuf( Re_Xferred ), SiKi) 
       Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE IceD_UnPackConstrState
 
@@ -2324,7 +2324,7 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-      Re_BufSz   = Re_BufSz   + 1  ! DummyMiscVar
+      Int_BufSz  = Int_BufSz  + 1  ! DummyMiscVar
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -2352,8 +2352,8 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%DummyMiscVar
-      Re_Xferred   = Re_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%DummyMiscVar
+      Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE IceD_PackMisc
 
  SUBROUTINE IceD_UnPackMisc( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -2388,8 +2388,8 @@ ENDIF
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-      OutData%DummyMiscVar = ReKiBuf( Re_Xferred )
-      Re_Xferred   = Re_Xferred + 1
+      OutData%DummyMiscVar = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
  END SUBROUTINE IceD_UnPackMisc
 
  SUBROUTINE IceD_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )

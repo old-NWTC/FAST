@@ -1,9 +1,9 @@
 !STARTOFREGISTRYGENERATEDFILE 'BeamDyn_Types.f90'
 !
-! WARNING This file is generated automatically by the FAST registry
+! WARNING This file is generated automatically by the FAST registry.
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v3.00.00, 13-Nov-2015)
+! FAST Registry (v3.01.00, 11-Jan-2016)
 !*********************************************************************************************************************************
 ! BeamDyn_Types
 !.................................................................................................................................
@@ -33,6 +33,8 @@ MODULE BeamDyn_Types
 !---------------------------------------------------------------------------------------------------------------------------------
 USE NWTC_Library
 IMPLICIT NONE
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: BD_STATIC_ANALYSIS = 1      ! Constant for static analysis [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: BD_DYNAMIC_ANALYSIS = 2      ! Constant for dynamic analysis [-]
 ! =========  BD_InitInputType  =======
   TYPE, PUBLIC :: BD_InitInputType
     CHARACTER(1024)  :: InputFile      ! Name of the input file; remove if there is no file [-]

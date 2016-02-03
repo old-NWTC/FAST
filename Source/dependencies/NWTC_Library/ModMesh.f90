@@ -206,8 +206,9 @@ END SUBROUTINE MeshWrBin
 !----------------------------------------------------------------------------------------------------------------------------------
 !> This routine writes the reference position and orientations of a mesh in VTK format.
 !! see VTK file information format for XML, here: http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf
-SUBROUTINE MeshWrVTKreference ( M, FileRootName, ErrStat, ErrMsg )
+SUBROUTINE MeshWrVTKreference (RefPoint, M, FileRootName, ErrStat, ErrMsg )
    
+   REAL(SiKi),      INTENT(IN)           :: RefPoint(3)   !< reference location, normally (0,0,0)
    TYPE(MeshType),  INTENT(IN)           :: M             !< mesh to be written
    CHARACTER(*),    INTENT(IN)           :: FileRootName  !< Name of the file to write the output in (excluding extension)
 
@@ -243,7 +244,7 @@ SUBROUTINE MeshWrVTKreference ( M, FileRootName, ErrStat, ErrMsg )
       WRITE(Un,'(A)')         '      <Points>'         
       WRITE(Un,'(A)')         '        <DataArray type="Float32" NumberOfComponents="3" format="ascii">'
       DO i=1,M%Nnodes
-         WRITE(Un,VTK_AryFmt) M%Position(:,i)
+         WRITE(Un,VTK_AryFmt) RefPoint + M%Position(:,i)
       END DO
       WRITE(Un,'(A)')         '        </DataArray>'
       WRITE(Un,'(A)')         '      </Points>'
@@ -253,7 +254,7 @@ SUBROUTINE MeshWrVTKreference ( M, FileRootName, ErrStat, ErrMsg )
    DO j=1,3 
       WRITE(Un,'(A,A,A)')   '        <DataArray type="Float32" Name="', RefOrientation(j), '" NumberOfComponents="3" format="ascii">'
       DO i=1,M%Nnodes
-         WRITE(Un,VTK_AryFmt) M%RefOrientation(j,:,i)
+         WRITE(Un,VTK_AryFmt) RefPoint + M%RefOrientation(j,:,i)
       END DO
       WRITE(Un,'(A)')      '        </DataArray>'
    END DO
@@ -284,8 +285,9 @@ END SUBROUTINE MeshWrVTKreference
 !----------------------------------------------------------------------------------------------------------------------------------
 !> This routine writes mesh information in VTK format.
 !! see VTK file information format for XML, here: http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf
-SUBROUTINE MeshWrVTK ( M, FileRootName, VTKcount, ErrStat, ErrMsg, Sib, PositionOnly )
+SUBROUTINE MeshWrVTK ( RefPoint, M, FileRootName, VTKcount, ErrStat, ErrMsg, Sib, PositionOnly )
       
+   REAL(SiKi),      INTENT(IN)           :: RefPoint(3)   !< reference location, normally (0,0,0)
    TYPE(MeshType),  INTENT(IN)           :: M             !< mesh to be written
    CHARACTER(*),    INTENT(IN)           :: FileRootName  !< Name of the file to write the output in (excluding extension)
    INTEGER(IntKi),  INTENT(IN)           :: VTKcount      !< Indicates number for VTK output file (when 0, the routine will also write reference information)
@@ -324,7 +326,7 @@ SUBROUTINE MeshWrVTK ( M, FileRootName, VTKcount, ErrStat, ErrMsg, Sib, Position
    ! we'll write the mesh reference fields on the first timestep only:
    !.................................................................
    if (VTKcount == 0) then
-      call MeshWrVTKreference(M, FileRootName, ErrStat2, ErrMsg2)
+      call MeshWrVTKreference(RefPoint, M, FileRootName, ErrStat2, ErrMsg2)
          call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
          if (ErrStat >= AbortErrLev) return
    end if
@@ -355,15 +357,15 @@ SUBROUTINE MeshWrVTK ( M, FileRootName, VTKcount, ErrStat, ErrMsg, Sib, Position
       WRITE(Un,'(A)')         '        <DataArray type="Float32" NumberOfComponents="3" format="ascii">'
       IF (ALLOCATED(M%TranslationDisp)) THEN
          DO i=1,M%Nnodes
-            WRITE(Un,VTK_AryFmt) M%Position(:,i) + M%TranslationDisp(:,i)
+            WRITE(Un,VTK_AryFmt) RefPoint + M%Position(:,i) + M%TranslationDisp(:,i)
          END DO
       ELSEIF ( PRESENT(Sib) ) THEN
          DO i=1,M%Nnodes
-            WRITE(Un,VTK_AryFmt) M%Position(:,i) + Sib%TranslationDisp(:,i) ! @note: M%Position and Sib%Position should be the same!
+            WRITE(Un,VTK_AryFmt) RefPoint + M%Position(:,i) + Sib%TranslationDisp(:,i) ! @note: M%Position and Sib%Position should be the same!
          END DO
       ELSE         
          DO i=1,M%Nnodes
-            WRITE(Un,VTK_AryFmt) M%Position(:,i)
+            WRITE(Un,VTK_AryFmt) RefPoint + M%Position(:,i)
          END DO
       END IF
    
@@ -471,8 +473,9 @@ end if !(.not. OnlyPosition)
 !----------------------------------------------------------------------------------------------------------------------------------
 !> This routine writes line2 mesh surface information in VTK format.
 !! see VTK file information format for XML, here: http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf
-SUBROUTINE MeshWrVTK_Ln2Surface ( M, FileRootName, VTKcount, ErrStat, ErrMsg, NumSegments, Radius, verts )
+SUBROUTINE MeshWrVTK_Ln2Surface ( RefPoint, M, FileRootName, VTKcount, ErrStat, ErrMsg, NumSegments, Radius, verts )
       
+   REAL(SiKi),      INTENT(IN)           :: RefPoint(3)   !< reference location, normally (0,0,0)
    TYPE(MeshType),  INTENT(IN)           :: M             !< mesh to be written
    CHARACTER(*),    INTENT(IN)           :: FileRootName  !< Name of the file to write the output in (excluding extension)
    INTEGER(IntKi),  INTENT(IN)           :: VTKcount      !< Indicates number for VTK output file (when 0, the routine will also write reference information)
@@ -548,7 +551,7 @@ SUBROUTINE MeshWrVTK_Ln2Surface ( M, FileRootName, VTKcount, ErrStat, ErrMsg, Nu
          DO i=1,M%Nnodes
             DO j=1,NumSegments1
                xyz(1:2) = verts(1:2,j,i)
-               WRITE(Un,VTK_AryFmt) M%Position(:,i) + M%TranslationDisp(:,i) + matmul(xyz,M%Orientation(:,:,i))
+               WRITE(Un,VTK_AryFmt) RefPoint + M%Position(:,i) + M%TranslationDisp(:,i) + matmul(xyz,M%Orientation(:,:,i))
             END DO
          END DO         
       else               
@@ -557,7 +560,7 @@ SUBROUTINE MeshWrVTK_Ln2Surface ( M, FileRootName, VTKcount, ErrStat, ErrMsg, Nu
                angle = TwoPi*(j-1.0_ReKi)/NumSegments1
                xyz(1) = radius(i)*COS(angle)
                xyz(2) = radius(i)*SIN(angle)
-               WRITE(Un,VTK_AryFmt) M%Position(:,i) + M%TranslationDisp(:,i) + matmul(xyz,M%Orientation(:,:,i))
+               WRITE(Un,VTK_AryFmt) RefPoint + M%Position(:,i) + M%TranslationDisp(:,i) + matmul(xyz,M%Orientation(:,:,i))
             END DO
          END DO
       end if
@@ -616,8 +619,9 @@ SUBROUTINE MeshWrVTK_Ln2Surface ( M, FileRootName, VTKcount, ErrStat, ErrMsg, Nu
 !----------------------------------------------------------------------------------------------------------------------------------
 !> This routine writes point mesh surfaces information in VTK format.
 !! see VTK file information format for XML, here: http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf
-SUBROUTINE MeshWrVTK_PointSurface ( M, FileRootName, VTKcount, ErrStat, ErrMsg, NumSegments, Radius, verts )
+SUBROUTINE MeshWrVTK_PointSurface ( RefPoint, M, FileRootName, VTKcount, ErrStat, ErrMsg, NumSegments, Radius, verts )
       
+   REAL(SiKi),      INTENT(IN)           :: RefPoint(3)   !< reference location, normally (0,0,0)
    TYPE(MeshType),  INTENT(IN)           :: M             !< mesh to be written
    CHARACTER(*),    INTENT(IN)           :: FileRootName  !< Name of the file to write the output in (excluding extension)
    INTEGER(IntKi),  INTENT(IN)           :: VTKcount      !< Indicates number for VTK output file (when 0, the routine will also write reference information)
@@ -723,7 +727,7 @@ SUBROUTINE MeshWrVTK_PointSurface ( M, FileRootName, VTKcount, ErrStat, ErrMsg, 
       if ( present(verts) ) then
          do i=1,M%Nnodes
             do j=1,NumberOfPoints
-               WRITE(Un,VTK_AryFmt) M%Position(:,i) + M%TranslationDisp(:,i) + MATMUL(verts(:,j),M%Orientation(:,:,i))
+               WRITE(Un,VTK_AryFmt) RefPoint + M%Position(:,i) + M%TranslationDisp(:,i) + MATMUL(verts(:,j),M%Orientation(:,:,i))
             end do    
          end do
          
@@ -734,7 +738,7 @@ SUBROUTINE MeshWrVTK_PointSurface ( M, FileRootName, VTKcount, ErrStat, ErrMsg, 
                   ratio  = 2.0_SiKi*REAL(j-1,SiKi)/REAL(NumSegments2-1,SiKi) - 1.0_SiKi  ! where we are in [-1, 1]
                else
                   ratio = 0.0_SiKi
-                  !WRITE(Un,VTK_AryFmt) M%Position(:,i) + M%TranslationDisp(:,i)  ! write center of node
+                  !WRITE(Un,VTK_AryFmt) RefPoint + M%Position(:,i) + M%TranslationDisp(:,i)  ! write center of node
                end if               
                
                xyz(3) = radius*ratio
@@ -747,8 +751,8 @@ SUBROUTINE MeshWrVTK_PointSurface ( M, FileRootName, VTKcount, ErrStat, ErrMsg, 
                   angle = TwoPi*(k-1.0_ReKi)/NumSegments1
                   xyz(1) = r*COS(angle)
                   xyz(2) = r*SIN(angle)
-                  WRITE(Un,VTK_AryFmt) M%Position(:,i) + M%TranslationDisp(:,i) + MATMUL(xyz,M%Orientation(:,:,i))
-                  !WRITE(Un,VTK_AryFmt) M%Position(:,i) + M%TranslationDisp(:,i) + xyz
+                  WRITE(Un,VTK_AryFmt) RefPoint + M%Position(:,i) + M%TranslationDisp(:,i) + MATMUL(xyz,M%Orientation(:,:,i))
+                  !WRITE(Un,VTK_AryFmt) RefPoint + M%Position(:,i) + M%TranslationDisp(:,i) + xyz
                END DO            
             END DO
          END DO         

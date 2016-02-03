@@ -146,12 +146,13 @@ IMPLICIT NONE
     LOGICAL  :: WrBinOutFile      ! Write a binary output file? (.outb) [-]
     LOGICAL  :: WrTxtOutFile      ! Write a text (formatted) output file? (.out) [-]
     LOGICAL  :: SumPrint      ! Print summary data to file? (.sum) [-]
-    INTEGER(IntKi)  :: WrVTK      ! Write VTK visualization data? (switch) (0=none;1=position/orientation only;2=all mesh fields) [-]
+    INTEGER(IntKi)  :: WrVTK      ! Write VTK visualization data? (switch) {0=none; 1=basic (position only); 2=surfaces; 3=all meshes (debug)} [-]
     CHARACTER(1)  :: Delim      ! Delimiter between columns of text output file (.out): space or tab [-]
     CHARACTER(20)  :: OutFmt      ! Format used for text tabular output (except time); resulting field should be 10 characters [-]
     CHARACTER(1024)  :: OutFileRoot      ! The rootname of the output files [-]
     CHARACTER(1024)  :: FTitle      ! The description line from the FAST (glue-code) input file [-]
     TYPE(FAST_VTK_SurfaceType)  :: VTK_surface      ! Data for VTK surface visualization [-]
+    REAL(SiKi) , DIMENSION(1:3)  :: TurbinePos      ! Initial position of turbine base (origin used for graphics) [m]
   END TYPE FAST_ParameterType
 ! =======================
 ! =========  FAST_OutputFileType  =======
@@ -1176,6 +1177,7 @@ ENDIF
       CALL FAST_Copyvtk_surfacetype( SrcParamData%VTK_surface, DstParamData%VTK_surface, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
+    DstParamData%TurbinePos = SrcParamData%TurbinePos
  END SUBROUTINE FAST_CopyParam
 
  SUBROUTINE FAST_DestroyParam( ParamData, ErrStat, ErrMsg )
@@ -1289,6 +1291,7 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+      Re_BufSz   = Re_BufSz   + SIZE(InData%TurbinePos)  ! TurbinePos
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -1464,6 +1467,8 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TurbinePos))-1 ) = PACK(InData%TurbinePos,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%TurbinePos)
  END SUBROUTINE FAST_PackParam
 
  SUBROUTINE FAST_UnPackParam( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1704,6 +1709,17 @@ ENDIF
       IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+    i1_l = LBOUND(OutData%TurbinePos,1)
+    i1_u = UBOUND(OutData%TurbinePos,1)
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      OutData%TurbinePos = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TurbinePos))-1 ), mask1, 0.0_ReKi ), SiKi)
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%TurbinePos)
+    DEALLOCATE(mask1)
  END SUBROUTINE FAST_UnPackParam
 
  SUBROUTINE FAST_CopyOutputFileType( SrcOutputFileTypeData, DstOutputFileTypeData, CtrlCode, ErrStat, ErrMsg )
