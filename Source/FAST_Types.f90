@@ -149,6 +149,8 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: WrVTK      ! Write VTK visualization data? (switch) {0=none; 1=basic (position only); 2=surfaces; 3=all meshes (debug)} [-]
     CHARACTER(1)  :: Delim      ! Delimiter between columns of text output file (.out): space or tab [-]
     CHARACTER(20)  :: OutFmt      ! Format used for text tabular output (except time); resulting field should be 10 characters [-]
+    CHARACTER(20)  :: OutFmt_t      ! Format used for time channel in text tabular output; resulting field should be 10 characters [-]
+    INTEGER(IntKi)  :: TChanLen      ! width of the time channel [-]
     CHARACTER(1024)  :: OutFileRoot      ! The rootname of the output files [-]
     CHARACTER(1024)  :: FTitle      ! The description line from the FAST (glue-code) input file [-]
     TYPE(FAST_VTK_SurfaceType)  :: VTK_surface      ! Data for VTK surface visualization [-]
@@ -1172,6 +1174,8 @@ ENDIF
     DstParamData%WrVTK = SrcParamData%WrVTK
     DstParamData%Delim = SrcParamData%Delim
     DstParamData%OutFmt = SrcParamData%OutFmt
+    DstParamData%OutFmt_t = SrcParamData%OutFmt_t
+    DstParamData%TChanLen = SrcParamData%TChanLen
     DstParamData%OutFileRoot = SrcParamData%OutFileRoot
     DstParamData%FTitle = SrcParamData%FTitle
       CALL FAST_Copyvtk_surfacetype( SrcParamData%VTK_surface, DstParamData%VTK_surface, CtrlCode, ErrStat2, ErrMsg2 )
@@ -1271,6 +1275,8 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1  ! WrVTK
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%Delim)  ! Delim
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%OutFmt)  ! OutFmt
+      Int_BufSz  = Int_BufSz  + 1*LEN(InData%OutFmt_t)  ! OutFmt_t
+      Int_BufSz  = Int_BufSz  + 1  ! TChanLen
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%OutFileRoot)  ! OutFileRoot
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%FTitle)  ! FTitle
    ! Allocate buffers for subtypes, if any (we'll get sizes from these) 
@@ -1431,6 +1437,12 @@ ENDIF
           IntKiBuf(Int_Xferred) = ICHAR(InData%OutFmt(I:I), IntKi)
           Int_Xferred = Int_Xferred   + 1
         END DO ! I
+        DO I = 1, LEN(InData%OutFmt_t)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%OutFmt_t(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%TChanLen
+      Int_Xferred   = Int_Xferred   + 1
         DO I = 1, LEN(InData%OutFileRoot)
           IntKiBuf(Int_Xferred) = ICHAR(InData%OutFileRoot(I:I), IntKi)
           Int_Xferred = Int_Xferred   + 1
@@ -1661,6 +1673,12 @@ ENDIF
         OutData%OutFmt(I:I) = CHAR(IntKiBuf(Int_Xferred))
         Int_Xferred = Int_Xferred   + 1
       END DO ! I
+      DO I = 1, LEN(OutData%OutFmt_t)
+        OutData%OutFmt_t(I:I) = CHAR(IntKiBuf(Int_Xferred))
+        Int_Xferred = Int_Xferred   + 1
+      END DO ! I
+      OutData%TChanLen = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
       DO I = 1, LEN(OutData%OutFileRoot)
         OutData%OutFileRoot(I:I) = CHAR(IntKiBuf(Int_Xferred))
         Int_Xferred = Int_Xferred   + 1
