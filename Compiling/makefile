@@ -138,9 +138,11 @@ ifeq ($(FAST_driver),FAST_Library)
    FFLAGS := $(FFLAGS) -DIMPLICIT_DLLEXPORT
    OUTPUT_NAME = FAST_Library
 
-   ifneq ($(UNAME), Darwin)
-      FFLAGS      := $(FFLAGS) -fPIC
-      LAPACK_LINK := $(LAPACK_LINK) -fPIC
+   ifneq ($(OS),Windows_NT)
+      ifneq ($(UNAME), Darwin)
+         FFLAGS      := $(FFLAGS) -fPIC
+         LAPACK_LINK := $(LAPACK_LINK) -fPIC
+      endif
    endif
 else
    OUTPUT_NAME = FAST
