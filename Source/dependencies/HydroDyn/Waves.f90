@@ -20,8 +20,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-01-16 22:15:29 -0700 (Sat, 16 Jan 2016) $
-! (File) Revision #: $Rev: 660 $
+! File last committed: $Date: 2016-02-25 21:24:52 -0700 (Thu, 25 Feb 2016) $
+! (File) Revision #: $Rev: 662 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Waves.f90 $
 !**********************************************************************************************************************************
 MODULE Waves
@@ -1355,7 +1355,7 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
          !! 6. Cleanup
          !!
 
-         !> ### Code Implimentation order
+         !> ### Code Implementation order
          !! 1. Discretize the spreading function range and calculate the values of the wave spreading function
 
             ! Now that we have the value for _WaveNDir_ found above, we set the value of _WvSpreadNDir_ to be 15x as

@@ -210,6 +210,7 @@ MODULE NWTC_IO
 
       !> \copydoc nwtc_io::wrr4aryfilenr
    INTERFACE WrNumAryFileNR
+      MODULE PROCEDURE WrIAryFileNR
       MODULE PROCEDURE WrR4AryFileNR
       MODULE PROCEDURE WrR8AryFileNR
       MODULE PROCEDURE WrR16AryFileNR
@@ -6942,6 +6943,47 @@ CONTAINS
 
    RETURN
    END SUBROUTINE WrR4AryFileNR
+!=======================================================================
+!> This routine writes out an integer array to the file connected to Unit without following it with a new line.
+!! Use WrNumAryFileNR (nwtc_io::wrnumaryfilenr) instead of directly calling a specific routine in the generic interface.   
+   SUBROUTINE WrIAryFileNR ( Unit, Ary, Fmt, ErrStat, ErrMsg  )
+
+      ! Argument declarations.
+
+   INTEGER,        INTENT(IN)   :: Unit                                         !< I/O unit for input file.
+   INTEGER(IntKi), INTENT(IN)   :: Ary (:)                                      !< Array to be written without a newline at the end.
+   CHARACTER(*),   INTENT(IN)   :: Fmt                                          !< Fmt of one element to be written.
+
+   INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                      !< Error status
+   CHARACTER(*),   INTENT(OUT)  :: ErrMsg                                       !< Error message associated with ErrStat
+
+      ! Local variables:
+   CHARACTER(50)                :: Fmt2                                         ! Fmt of entire array to be written (will be copied).
+
+
+
+   IF ( SIZE(Ary) == 0 ) THEN
+      ErrStat = ErrID_None
+      ErrMsg  = ''
+      RETURN
+   END IF
+   
+
+   WRITE(Fmt2,*) SIZE(Ary)
+   Fmt2 = '('//TRIM(Fmt2)//'('//TRIM(Fmt)//'))'
+
+   WRITE (Unit,Fmt2,ADVANCE='NO',IOSTAT=ErrStat)  Ary
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = 'WrIAryFileNR:Error '//TRIM(Num2LStr(ErrStat))//' occurred while writing to file using this format: '//TRIM(Fmt2)
+   ELSE
+      ErrStat = ErrID_None
+      ErrMsg  = ''
+   END IF
+
+
+   RETURN
+   END SUBROUTINE WrIAryFileNR
 !=======================================================================
 !> \copydoc nwtc_io::wrr4aryfilenr
    SUBROUTINE WrR8AryFileNR ( Unit, Ary, Fmt, ErrStat, ErrMsg  )

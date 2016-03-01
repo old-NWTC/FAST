@@ -45,7 +45,7 @@ MODULE ModMesh
 !   INTEGER :: DEBUG_UNIT = 74
 
    INTEGER,     PARAMETER, PRIVATE :: BUMPUP = 64                !< size element list will be increased when adding an element that does not fit in the currently allocated space; do not set to less than 2
-   CHARACTER(*),PARAMETER, PRIVATE :: VTK_AryFmt = '(3(F20.6))'  !< text format for triplets written to VTK text files
+   CHARACTER(*),PARAMETER, PRIVATE :: VTK_AryFmt = '(3(F30.5))'  !< text format for triplets written to VTK text files
 
 
    INTERFACE MeshConstructElement
@@ -360,9 +360,15 @@ SUBROUTINE MeshWrVTK ( RefPoint, M, FileRootName, VTKcount, ErrStat, ErrMsg, Sib
             WRITE(Un,VTK_AryFmt) RefPoint + M%Position(:,i) + M%TranslationDisp(:,i)
          END DO
       ELSEIF ( PRESENT(Sib) ) THEN
-         DO i=1,M%Nnodes
-            WRITE(Un,VTK_AryFmt) RefPoint + M%Position(:,i) + Sib%TranslationDisp(:,i) ! @note: M%Position and Sib%Position should be the same!
-         END DO
+         if (allocated(Sib%TranslationDisp)) then
+            DO i=1,M%Nnodes
+               WRITE(Un,VTK_AryFmt) RefPoint + M%Position(:,i) + Sib%TranslationDisp(:,i) ! @note: M%Position and Sib%Position should be the same!
+            END DO
+         else
+            DO i=1,M%Nnodes
+               WRITE(Un,VTK_AryFmt) RefPoint + M%Position(:,i)
+            END DO
+         end if         
       ELSE         
          DO i=1,M%Nnodes
             WRITE(Un,VTK_AryFmt) RefPoint + M%Position(:,i)
@@ -372,79 +378,9 @@ SUBROUTINE MeshWrVTK ( RefPoint, M, FileRootName, VTKcount, ErrStat, ErrMsg, Sib
       WRITE(Un,'(A)')         '        </DataArray>'
       WRITE(Un,'(A)')         '      </Points>'
             
-if (.not. OnlyPosition) then      
-! point data for any existing mesh fields:   
-      WRITE(Un,'(A)')         '      <PointData>'
-      
-   IF ( M%fieldmask(MASKID_FORCE) .AND. ALLOCATED(M%Force) ) THEN
-      WRITE(Un,'(A)')         '        <DataArray type="Float32" Name="Force" NumberOfComponents="3" format="ascii">'
-      DO i=1,M%Nnodes
-         WRITE(Un,VTK_AryFmt) M%Force(:,i)
-      END DO
-      WRITE(Un,'(A)')         '        </DataArray>'
-   END IF
-
-   IF ( M%fieldmask(MASKID_MOMENT) .AND. ALLOCATED(M%Moment) ) THEN
-      WRITE(Un,'(A)')         '        <DataArray type="Float32" Name="Moment" NumberOfComponents="3" format="ascii">'
-      DO i=1,M%Nnodes
-         WRITE(Un,VTK_AryFmt) M%Moment(:,i)
-      END DO
-      WRITE(Un,'(A)')         '        </DataArray>'
-   END IF
-
-   IF ( M%fieldmask(MASKID_TRANSLATIONVEL) .AND. ALLOCATED(M%TranslationVel)) THEN
-      WRITE(Un,'(A)')         '        <DataArray type="Float32" Name="TranslationalVelocity" NumberOfComponents="3" format="ascii">'
-      DO i=1,M%Nnodes
-         WRITE(Un,VTK_AryFmt) M%TranslationVel(:,i)
-      END DO
-      WRITE(Un,'(A)')         '        </DataArray>'
-   END IF
-
-   IF ( M%fieldmask(MASKID_ROTATIONVEL) .AND. ALLOCATED(M%RotationVel)) THEN
-      WRITE(Un,'(A)')         '        <DataArray type="Float32" Name="RotationalVelocity" NumberOfComponents="3" format="ascii">'
-      DO i=1,M%Nnodes
-         WRITE(Un,VTK_AryFmt) M%RotationVel(:,i)
-      END DO
-      WRITE(Un,'(A)')         '        </DataArray>'
-   END IF
-
-   IF ( M%fieldmask(MASKID_TRANSLATIONACC) .AND. ALLOCATED(M%TranslationAcc)) THEN
-      WRITE(Un,'(A)')         '        <DataArray type="Float32" Name="TranslationalAcceleration" NumberOfComponents="3" format="ascii">'
-      DO i=1,M%Nnodes
-         WRITE(Un,VTK_AryFmt) M%TranslationAcc(:,i)
-      END DO
-      WRITE(Un,'(A)')         '        </DataArray>'
-   END IF
-
-   IF ( M%fieldmask(MASKID_ROTATIONACC) .AND. ALLOCATED(M%RotationAcc)) THEN
-      WRITE(Un,'(A)')         '        <DataArray type="Float32" Name="RotationalAcceleration" NumberOfComponents="3" format="ascii">'
-      DO i=1,M%Nnodes
-         WRITE(Un,VTK_AryFmt) M%RotationAcc(:,i)
-      END DO
-      WRITE(Un,'(A)')         '        </DataArray>'
-   END IF
-
-IF (M%fieldmask(MASKID_ORIENTATION) .AND. ALLOCATED(M%Orientation)) THEN
-   DO j=1,3 
-      WRITE(Un,'(A,A,A)')   '        <DataArray type="Float32" Name="', Orientation(j), '" NumberOfComponents="3" format="ascii">'
-      DO i=1,M%Nnodes
-         WRITE(Un,VTK_AryFmt) M%Orientation(j,:,i)
-      END DO
-      WRITE(Un,'(A)')      '        </DataArray>'
-   END DO      
-END IF
-
-   IF ( M%fieldmask(MASKID_SCALAR) .AND. ALLOCATED(M%Scalars) .AND. M%nScalars > 0) THEN
-      WRITE(Un,'(A,I7,A)')         '        <DataArray type="Float32" Name="Scalars" NumberOfComponents="', M%nScalars, '" format="ascii">'
-      DO i=1,M%Nnodes
-         WRITE(Un,'('//trim(num2lstr(M%nScalars))//'(F20.6))') M%Scalars(:,i) ! not very efficient, but it's easy and I'm not sure anyone uses this field
-      END DO
-      WRITE(Un,'(A)')         '        </DataArray>'
-   END IF
-
-
-      WRITE(Un,'(A)')         '      </PointData>'
-end if !(.not. OnlyPosition)      
+   if (.not. OnlyPosition) then            ! point data for any existing mesh fields:   
+      call MeshWrVTKfields ( Un, M, 1)      
+   end if !(.not. OnlyPosition)      
 
       
 ! lines (i.e., elements; for line2 meshes only):
@@ -469,7 +405,127 @@ end if !(.not. OnlyPosition)
       CLOSE(Un)         
                
       
-   END SUBROUTINE MeshWrVTK
+END SUBROUTINE MeshWrVTK
+!> This routine writes mesh field information in VTK format.
+!! see VTK file information format for XML, here: http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf
+SUBROUTINE MeshWrVTKfields ( Un, M, n )
+      
+   INTEGER(IntKi),  INTENT(IN)           :: Un            !< unit number of already-open vtk file in which to write the field information
+   TYPE(MeshType),  INTENT(IN)           :: M             !< mesh to be written
+   INTEGER(IntKi),  INTENT(IN)           :: n             !< number of times to write field value for each mesh node (> 1 when added to surface)
+
+
+   ! local variables
+   INTEGER(IntKi)                        :: i,j,k         ! loop counters
+   CHARACTER(1024)                       :: FileName
+      
+   !INTEGER(IntKi)                        :: ErrStat2 
+   !CHARACTER(ErrMsgLen)                  :: ErrMsg2
+   !CHARACTER(*),PARAMETER                :: RoutineName = 'MeshWrVTKfields'
+   CHARACTER(*),PARAMETER                :: Orientation(3) = (/ 'OrientationX','OrientationY','OrientationZ' /)
+
+   
+   
+! point data for any existing mesh fields:   
+      WRITE(Un,'(A)')         '      <PointData>'
+      
+   IF ( M%fieldmask(MASKID_FORCE) .AND. ALLOCATED(M%Force) ) THEN
+      WRITE(Un,'(A)')         '        <DataArray type="Float32" Name="Force" NumberOfComponents="3" format="ascii">'
+      DO i=1,M%Nnodes
+         do k=1,n
+            WRITE(Un,VTK_AryFmt) M%Force(:,i)
+         end do !k         
+      END DO
+      WRITE(Un,'(A)')         '        </DataArray>'
+   END IF
+
+   IF ( M%fieldmask(MASKID_MOMENT) .AND. ALLOCATED(M%Moment) ) THEN
+      WRITE(Un,'(A)')         '        <DataArray type="Float32" Name="Moment" NumberOfComponents="3" format="ascii">'
+      DO i=1,M%Nnodes
+         do k=1,n
+            WRITE(Un,VTK_AryFmt) M%Moment(:,i)
+         end do !k
+      END DO
+      WRITE(Un,'(A)')         '        </DataArray>'
+   END IF
+
+   IF ( M%fieldmask(MASKID_TRANSLATIONDISP) .AND. ALLOCATED(M%TranslationDisp)) THEN
+      WRITE(Un,'(A)')         '        <DataArray type="Float32" Name="TranslationalDisplacement" NumberOfComponents="3" format="ascii">'
+      DO i=1,M%Nnodes
+         do k=1,n
+            WRITE(Un,VTK_AryFmt) M%TranslationDisp(:,i)
+         end do         
+      END DO
+      WRITE(Un,'(A)')         '        </DataArray>'
+   END IF
+   
+   IF ( M%fieldmask(MASKID_TRANSLATIONVEL) .AND. ALLOCATED(M%TranslationVel)) THEN
+      WRITE(Un,'(A)')         '        <DataArray type="Float32" Name="TranslationalVelocity" NumberOfComponents="3" format="ascii">'
+      DO i=1,M%Nnodes
+         do k=1,n
+            WRITE(Un,VTK_AryFmt) M%TranslationVel(:,i)
+         end do         
+      END DO
+      WRITE(Un,'(A)')         '        </DataArray>'
+   END IF
+
+   IF ( M%fieldmask(MASKID_ROTATIONVEL) .AND. ALLOCATED(M%RotationVel)) THEN
+      WRITE(Un,'(A)')         '        <DataArray type="Float32" Name="RotationalVelocity" NumberOfComponents="3" format="ascii">'
+      DO i=1,M%Nnodes
+         do k=1,n
+            WRITE(Un,VTK_AryFmt) M%RotationVel(:,i)
+         end do !k         
+      END DO
+      WRITE(Un,'(A)')         '        </DataArray>'
+   END IF
+
+   IF ( M%fieldmask(MASKID_TRANSLATIONACC) .AND. ALLOCATED(M%TranslationAcc)) THEN
+      WRITE(Un,'(A)')         '        <DataArray type="Float32" Name="TranslationalAcceleration" NumberOfComponents="3" format="ascii">'
+      DO i=1,M%Nnodes
+         do k=1,n
+            WRITE(Un,VTK_AryFmt) M%TranslationAcc(:,i)
+         end do !k
+      END DO
+      WRITE(Un,'(A)')         '        </DataArray>'
+   END IF
+
+   IF ( M%fieldmask(MASKID_ROTATIONACC) .AND. ALLOCATED(M%RotationAcc)) THEN
+      WRITE(Un,'(A)')         '        <DataArray type="Float32" Name="RotationalAcceleration" NumberOfComponents="3" format="ascii">'
+      DO i=1,M%Nnodes
+         do k=1,n
+            WRITE(Un,VTK_AryFmt) M%RotationAcc(:,i)
+         end do         
+      END DO
+      WRITE(Un,'(A)')         '        </DataArray>'
+   END IF
+
+IF (M%fieldmask(MASKID_ORIENTATION) .AND. ALLOCATED(M%Orientation)) THEN
+   DO j=1,3 
+      WRITE(Un,'(A,A,A)')   '        <DataArray type="Float32" Name="', Orientation(j), '" NumberOfComponents="3" format="ascii">'
+      DO i=1,M%Nnodes
+         do k=1,n
+            WRITE(Un,VTK_AryFmt) M%Orientation(j,:,i)
+         end do         
+      END DO
+      WRITE(Un,'(A)')      '        </DataArray>'
+   END DO      
+END IF
+
+   IF ( M%fieldmask(MASKID_SCALAR) .AND. ALLOCATED(M%Scalars) .AND. M%nScalars > 0) THEN
+      WRITE(Un,'(A,I7,A)')         '        <DataArray type="Float32" Name="Scalars" NumberOfComponents="', M%nScalars, '" format="ascii">'
+      DO i=1,M%Nnodes
+         do k=1,n
+            WRITE(Un,'('//trim(num2lstr(M%nScalars))//'(F20.6))') M%Scalars(:,i) ! not very efficient, but it's easy and I'm not sure anyone uses this field
+         end do         
+      END DO
+      WRITE(Un,'(A)')         '        </DataArray>'
+   END IF
+
+      WRITE(Un,'(A)')         '      </PointData>'
+      
+               
+      
+END SUBROUTINE MeshWrVTKfields
 !----------------------------------------------------------------------------------------------------------------------------------
 !> This routine writes line2 mesh surface information in VTK format.
 !! see VTK file information format for XML, here: http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf

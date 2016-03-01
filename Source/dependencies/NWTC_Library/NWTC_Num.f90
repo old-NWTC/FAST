@@ -4036,7 +4036,7 @@ CONTAINS
       
    
    q_norm       = Quaternion_Norm( q )     
-   theta        = acos( q%q0 / q_norm )
+   theta        = acos( max(-1.0_ReKi, min(1.0_ReKi, q%q0 / q_norm)) )
    n            = q%v / TwoNorm(q%v)
    
    greek        = alpha * theta
