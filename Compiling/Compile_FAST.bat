@@ -195,11 +195,7 @@ SET UA_SOURCES=^
 
 SET BEMT_SOURCES=^
  "%BEMT_Loc%\BEMT_Types.f90"^
- "%BEMT_Loc%\BladeElement.f90"^
- "%BEMT_Loc%\BEMTCoupled.f90"^
- "%BEMT_Loc%\nwtc_bemt_minpack.f90"^
  "%BEMT_Loc%\BEMTUncoupled.f90"^
- "%BEMT_Loc%\Brent.f90"^
  "%BEMT_Loc%\fmin_fcn.f90"^
  "%BEMT_Loc%\mod_root1dim.f90"^
  "%BEMT_Loc%\BEMT.f90"

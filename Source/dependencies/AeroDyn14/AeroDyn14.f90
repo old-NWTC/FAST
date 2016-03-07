@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-01-05 14:55:27 -0700 (Tue, 05 Jan 2016) $
-! (File) Revision #: $Rev: 210 $
+! File last committed: $Date: 2016-02-02 11:53:11 -0700 (Tue, 02 Feb 2016) $
+! (File) Revision #: $Rev: 213 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/AeroDyn14.f90 $
 !**********************************************************************************************************************************
 !> Module for the old aerodynamic routines. This module is for loose coupling only, without linearization, because it does not
@@ -422,7 +422,8 @@ SUBROUTINE AD14_Init( InitInp, u, p, x, xd, z, O, y, m, Interval, InitOut, ErrSt
          ! bjj: all this stuff should be put in DWM_Init.....>
       p%DWM%RR              = p%Blade%R
       p%DWM%BNum            = p%NumBl
-      p%DWM%ElementNum      = m%ElOut%NumElOut  !bjj: NumElOut is the number of elements to be printed in an output file. I really think you want the number of blade elements. I guess we should check that NumElOut is the same as p%Element%NElm
+      !p%DWM%ElementNum      = m%ElOut%NumElOut  !bjj: NumElOut is the number of elements to be printed in an output file. I really think you want the number of blade elements. I guess we should check that NumElOut is the same as p%Element%NElm
+      p%DWM%ElementNum      = p%Element%NElm      ! yj: 1/18/2016
       p%DWM%air_density     = p%Wind%Rho
    
       IF (.NOT. ALLOCATED(m%DWM%Nforce    )) ALLOCATE ( m%DWM%Nforce(    p%Element%NElm,p%NumBl),STAT=ErrStatLcl);CALL SetErrStat(ErrStatLcl, 'Error allocating DWM Nforce array', ErrStat,ErrMess,RoutineName )

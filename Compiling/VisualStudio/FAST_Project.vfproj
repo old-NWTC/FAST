@@ -95,13 +95,9 @@
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn_IO.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\AirfoilInfo.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMT.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMTCoupled.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMTUncoupled.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\BladeElement.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\Brent.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\fmin_fcn.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\mod_root1dim.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\nwtc_bemt_minpack.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\UnsteadyAero.f90"/></Filter>
 		<Filter Name="AeroDyn14">
 		<Filter Name="DWM">

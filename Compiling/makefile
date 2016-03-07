@@ -28,6 +28,7 @@ FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
 LDFLAGS = -O2 -m$(BITS) -fbacktrace
 
 #FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -DDOUBLE_PRECISION  -fdefault-real-8 -g -pg
+#FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -g -pg
 #LDFLAGS = -O0 -m$(BITS) -fbacktrace  -g -pg
 
 #.........................................
@@ -43,7 +44,7 @@ LDFLAGS = -O2 -m$(BITS) -fbacktrace
 #  -Wconversion-extra -Wconversion
 #  -fdefault-real-8                       # note this also promotes doubles to 16-bytes if possible
 #  -fcheck=bounds,do,mem,pointer -std=f2003 -O0 -v -Wall
-#  -pg                                    # generate debugging info for debugger
+#  -pg                                    # generate profiling/debugging info for gnu debugger
 # http://gcc.gnu.org/onlinedocs/gfortran/Option-Index.html#Option-Index
 #
 # makefile options:
@@ -259,13 +260,9 @@ UA_SOURCES =                   \
 
 BEMT_SOURCES =                 \
 	BEMT_Types.f90              \
-	BladeElement.f90            \
 	BEMTCoupled.f90             \
-	BEMTUncoupled.f90           \
-	Brent.f90                   \
 	fmin_fcn.f90                \
 	mod_root1dim.f90            \
-	nwtc_bemt_minpack.f90       \
 	BEMT.f90
 
 AD_SOURCES =                   \
@@ -565,16 +562,11 @@ UnsteadyAero$(OBJ_EXT):           AirfoilInfo$(OBJ_EXT)  UnsteadyAero_Types$(OBJ
 
 #AeroDyn/BEMT dependency rules:
 BEMT_Types$(OBJ_EXT):             NWTC_Library$(OBJ_EXT)  AirfoilInfo_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)  $(BEMT_DIR)/BEMT_Types.f90
-BladeElement$(OBJ_EXT):           NWTC_Library$(OBJ_EXT)  UnsteadyAero$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)  AirfoilInfo_Types$(OBJ_EXT)
-BEMTCoupled$(OBJ_EXT):            NWTC_Library$(OBJ_EXT)  BladeElement$(OBJ_EXT)
-nwtc_bemt_minpack$(OBJ_EXT):      NWTC_Library$(OBJ_EXT)  BEMTCoupled$(OBJ_EXT)    AirfoilInfo_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)
-BEMTUncoupled$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  BladeElement$(OBJ_EXT)
-Brent$(OBJ_EXT):                  NWTC_Library$(OBJ_EXT)  BEMTUncoupled$(OBJ_EXT)  BEMT_Types$(OBJ_EXT)
+BEMTCoupled$(OBJ_EXT):            NWTC_Library$(OBJ_EXT)  UnsteadyAero$(OBJ_EXT)   AirfoilInfo_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)
 fmin_fcn$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  BEMTUncoupled$(OBJ_EXT)  AirfoilInfo_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)
 mod_root1dim$(OBJ_EXT):           NWTC_Library$(OBJ_EXT)  fmin_fcn$(OBJ_EXT)
-BEMT$(OBJ_EXT):                   NWTC_Library$(OBJ_EXT)  BEMT_Types$(OBJ_EXT)  BEMTUncoupled$(OBJ_EXT)  BEMTCoupled$(OBJ_EXT)  \
-                                                          Brent$(OBJ_EXT)  UnsteadyAero$(OBJ_EXT)  BladeElement$(OBJ_EXT) \
-                                                          mod_root1dim$(OBJ_EXT) fmin_fcn$(OBJ_EXT) nwtc_bemt_minpack$(OBJ_EXT)
+BEMT$(OBJ_EXT):                   NWTC_Library$(OBJ_EXT)  BEMT_Types$(OBJ_EXT)  BEMTUncoupled$(OBJ_EXT)  UnsteadyAero$(OBJ_EXT)  \
+                                                          mod_root1dim$(OBJ_EXT) fmin_fcn$(OBJ_EXT)
 
 #AeroDyn dependency rules:
 AeroDyn_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  AirfoilInfo_Types$(OBJ_EXT)  BEMT_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)  $(AD_DIR)/AeroDyn_Types.f90
