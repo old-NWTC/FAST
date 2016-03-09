@@ -134,8 +134,13 @@ IMPLICIT NONE
 ! =========  AD_OtherStateType  =======
   TYPE, PUBLIC :: AD_OtherStateType
     TYPE(BEMT_OtherStateType)  :: BEMT      ! OtherStates from the BEMT module [-]
+  END TYPE AD_OtherStateType
+! =======================
+! =========  AD_MiscVarType  =======
+  TYPE, PUBLIC :: AD_MiscVarType
+    TYPE(BEMT_MiscVarType)  :: BEMT      ! MiscVars from the BEMT module [-]
     TYPE(BEMT_OutputType)  :: BEMT_y      ! Outputs from the BEMT module [-]
-    TYPE(BEMT_InputType)  :: BEMT_u      ! Inputs to the BEMT module [-]
+    TYPE(BEMT_InputType) , DIMENSION(1:2)  :: BEMT_u      ! Inputs to the BEMT module [-]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: DisturbedInflow      ! InflowOnBlade values modified by tower influence [m/s]
     REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: WithoutSweepPitchTwist      ! Coordinate system equivalent to BladeMotion Orientation, but without live sweep, blade-pitch, and twist angles [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: AllOuts      ! An array holding the value of all of the calculated (not only selected) output channels [-]
@@ -150,7 +155,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: V_dot_x 
     TYPE(MeshType)  :: HubLoad      ! mesh at hub; used to compute an integral for mapping the output blade loads to a single point (for writing to file only) [-]
     TYPE(MeshMapType) , DIMENSION(:), ALLOCATABLE  :: B_L_2_H_P      ! mapping data structure to map each bladeLoad output mesh to the OtherState%HubLoad mesh [-]
-  END TYPE AD_OtherStateType
+  END TYPE AD_MiscVarType
 ! =======================
 ! =========  AD_ParameterType  =======
   TYPE, PUBLIC :: AD_ParameterType
@@ -3172,17 +3177,13 @@ ENDIF
  END SUBROUTINE AD_UnPackConstrState
 
  SUBROUTINE AD_CopyOtherState( SrcOtherStateData, DstOtherStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(AD_OtherStateType), INTENT(INOUT) :: SrcOtherStateData
+   TYPE(AD_OtherStateType), INTENT(IN) :: SrcOtherStateData
    TYPE(AD_OtherStateType), INTENT(INOUT) :: DstOtherStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
-   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
-   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
-   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
-   INTEGER(IntKi)                 :: i4, i4_l, i4_u  !  bounds (upper/lower) for an array dimension 4
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(ErrMsgLen)           :: ErrMsg2
    CHARACTER(*), PARAMETER        :: RoutineName = 'AD_CopyOtherState'
@@ -3192,171 +3193,6 @@ ENDIF
       CALL BEMT_CopyOtherState( SrcOtherStateData%BEMT, DstOtherStateData%BEMT, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
-      CALL BEMT_CopyOutput( SrcOtherStateData%BEMT_y, DstOtherStateData%BEMT_y, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-      CALL BEMT_CopyInput( SrcOtherStateData%BEMT_u, DstOtherStateData%BEMT_u, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-IF (ALLOCATED(SrcOtherStateData%DisturbedInflow)) THEN
-  i1_l = LBOUND(SrcOtherStateData%DisturbedInflow,1)
-  i1_u = UBOUND(SrcOtherStateData%DisturbedInflow,1)
-  i2_l = LBOUND(SrcOtherStateData%DisturbedInflow,2)
-  i2_u = UBOUND(SrcOtherStateData%DisturbedInflow,2)
-  i3_l = LBOUND(SrcOtherStateData%DisturbedInflow,3)
-  i3_u = UBOUND(SrcOtherStateData%DisturbedInflow,3)
-  IF (.NOT. ALLOCATED(DstOtherStateData%DisturbedInflow)) THEN 
-    ALLOCATE(DstOtherStateData%DisturbedInflow(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%DisturbedInflow.', ErrStat, ErrMsg,RoutineName)
-      RETURN
-    END IF
-  END IF
-    DstOtherStateData%DisturbedInflow = SrcOtherStateData%DisturbedInflow
-ENDIF
-IF (ALLOCATED(SrcOtherStateData%WithoutSweepPitchTwist)) THEN
-  i1_l = LBOUND(SrcOtherStateData%WithoutSweepPitchTwist,1)
-  i1_u = UBOUND(SrcOtherStateData%WithoutSweepPitchTwist,1)
-  i2_l = LBOUND(SrcOtherStateData%WithoutSweepPitchTwist,2)
-  i2_u = UBOUND(SrcOtherStateData%WithoutSweepPitchTwist,2)
-  i3_l = LBOUND(SrcOtherStateData%WithoutSweepPitchTwist,3)
-  i3_u = UBOUND(SrcOtherStateData%WithoutSweepPitchTwist,3)
-  i4_l = LBOUND(SrcOtherStateData%WithoutSweepPitchTwist,4)
-  i4_u = UBOUND(SrcOtherStateData%WithoutSweepPitchTwist,4)
-  IF (.NOT. ALLOCATED(DstOtherStateData%WithoutSweepPitchTwist)) THEN 
-    ALLOCATE(DstOtherStateData%WithoutSweepPitchTwist(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u,i4_l:i4_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%WithoutSweepPitchTwist.', ErrStat, ErrMsg,RoutineName)
-      RETURN
-    END IF
-  END IF
-    DstOtherStateData%WithoutSweepPitchTwist = SrcOtherStateData%WithoutSweepPitchTwist
-ENDIF
-IF (ALLOCATED(SrcOtherStateData%AllOuts)) THEN
-  i1_l = LBOUND(SrcOtherStateData%AllOuts,1)
-  i1_u = UBOUND(SrcOtherStateData%AllOuts,1)
-  IF (.NOT. ALLOCATED(DstOtherStateData%AllOuts)) THEN 
-    ALLOCATE(DstOtherStateData%AllOuts(i1_l:i1_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%AllOuts.', ErrStat, ErrMsg,RoutineName)
-      RETURN
-    END IF
-  END IF
-    DstOtherStateData%AllOuts = SrcOtherStateData%AllOuts
-ENDIF
-IF (ALLOCATED(SrcOtherStateData%W_Twr)) THEN
-  i1_l = LBOUND(SrcOtherStateData%W_Twr,1)
-  i1_u = UBOUND(SrcOtherStateData%W_Twr,1)
-  IF (.NOT. ALLOCATED(DstOtherStateData%W_Twr)) THEN 
-    ALLOCATE(DstOtherStateData%W_Twr(i1_l:i1_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%W_Twr.', ErrStat, ErrMsg,RoutineName)
-      RETURN
-    END IF
-  END IF
-    DstOtherStateData%W_Twr = SrcOtherStateData%W_Twr
-ENDIF
-IF (ALLOCATED(SrcOtherStateData%X_Twr)) THEN
-  i1_l = LBOUND(SrcOtherStateData%X_Twr,1)
-  i1_u = UBOUND(SrcOtherStateData%X_Twr,1)
-  IF (.NOT. ALLOCATED(DstOtherStateData%X_Twr)) THEN 
-    ALLOCATE(DstOtherStateData%X_Twr(i1_l:i1_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%X_Twr.', ErrStat, ErrMsg,RoutineName)
-      RETURN
-    END IF
-  END IF
-    DstOtherStateData%X_Twr = SrcOtherStateData%X_Twr
-ENDIF
-IF (ALLOCATED(SrcOtherStateData%Y_Twr)) THEN
-  i1_l = LBOUND(SrcOtherStateData%Y_Twr,1)
-  i1_u = UBOUND(SrcOtherStateData%Y_Twr,1)
-  IF (.NOT. ALLOCATED(DstOtherStateData%Y_Twr)) THEN 
-    ALLOCATE(DstOtherStateData%Y_Twr(i1_l:i1_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%Y_Twr.', ErrStat, ErrMsg,RoutineName)
-      RETURN
-    END IF
-  END IF
-    DstOtherStateData%Y_Twr = SrcOtherStateData%Y_Twr
-ENDIF
-IF (ALLOCATED(SrcOtherStateData%Curve)) THEN
-  i1_l = LBOUND(SrcOtherStateData%Curve,1)
-  i1_u = UBOUND(SrcOtherStateData%Curve,1)
-  i2_l = LBOUND(SrcOtherStateData%Curve,2)
-  i2_u = UBOUND(SrcOtherStateData%Curve,2)
-  IF (.NOT. ALLOCATED(DstOtherStateData%Curve)) THEN 
-    ALLOCATE(DstOtherStateData%Curve(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%Curve.', ErrStat, ErrMsg,RoutineName)
-      RETURN
-    END IF
-  END IF
-    DstOtherStateData%Curve = SrcOtherStateData%Curve
-ENDIF
-IF (ALLOCATED(SrcOtherStateData%X)) THEN
-  i1_l = LBOUND(SrcOtherStateData%X,1)
-  i1_u = UBOUND(SrcOtherStateData%X,1)
-  i2_l = LBOUND(SrcOtherStateData%X,2)
-  i2_u = UBOUND(SrcOtherStateData%X,2)
-  IF (.NOT. ALLOCATED(DstOtherStateData%X)) THEN 
-    ALLOCATE(DstOtherStateData%X(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%X.', ErrStat, ErrMsg,RoutineName)
-      RETURN
-    END IF
-  END IF
-    DstOtherStateData%X = SrcOtherStateData%X
-ENDIF
-IF (ALLOCATED(SrcOtherStateData%Y)) THEN
-  i1_l = LBOUND(SrcOtherStateData%Y,1)
-  i1_u = UBOUND(SrcOtherStateData%Y,1)
-  i2_l = LBOUND(SrcOtherStateData%Y,2)
-  i2_u = UBOUND(SrcOtherStateData%Y,2)
-  IF (.NOT. ALLOCATED(DstOtherStateData%Y)) THEN 
-    ALLOCATE(DstOtherStateData%Y(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%Y.', ErrStat, ErrMsg,RoutineName)
-      RETURN
-    END IF
-  END IF
-    DstOtherStateData%Y = SrcOtherStateData%Y
-ENDIF
-IF (ALLOCATED(SrcOtherStateData%M)) THEN
-  i1_l = LBOUND(SrcOtherStateData%M,1)
-  i1_u = UBOUND(SrcOtherStateData%M,1)
-  i2_l = LBOUND(SrcOtherStateData%M,2)
-  i2_u = UBOUND(SrcOtherStateData%M,2)
-  IF (.NOT. ALLOCATED(DstOtherStateData%M)) THEN 
-    ALLOCATE(DstOtherStateData%M(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%M.', ErrStat, ErrMsg,RoutineName)
-      RETURN
-    END IF
-  END IF
-    DstOtherStateData%M = SrcOtherStateData%M
-ENDIF
-    DstOtherStateData%V_DiskAvg = SrcOtherStateData%V_DiskAvg
-    DstOtherStateData%V_dot_x = SrcOtherStateData%V_dot_x
-      CALL MeshCopy( SrcOtherStateData%HubLoad, DstOtherStateData%HubLoad, CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-IF (ALLOCATED(SrcOtherStateData%B_L_2_H_P)) THEN
-  i1_l = LBOUND(SrcOtherStateData%B_L_2_H_P,1)
-  i1_u = UBOUND(SrcOtherStateData%B_L_2_H_P,1)
-  IF (.NOT. ALLOCATED(DstOtherStateData%B_L_2_H_P)) THEN 
-    ALLOCATE(DstOtherStateData%B_L_2_H_P(i1_l:i1_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%B_L_2_H_P.', ErrStat, ErrMsg,RoutineName)
-      RETURN
-    END IF
-  END IF
-    DO i1 = LBOUND(SrcOtherStateData%B_L_2_H_P,1), UBOUND(SrcOtherStateData%B_L_2_H_P,1)
-      CALL NWTC_Library_Copymeshmaptype( SrcOtherStateData%B_L_2_H_P(i1), DstOtherStateData%B_L_2_H_P(i1), CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
-         IF (ErrStat>=AbortErrLev) RETURN
-    ENDDO
-ENDIF
  END SUBROUTINE AD_CopyOtherState
 
  SUBROUTINE AD_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
@@ -3369,45 +3205,6 @@ ENDIF
   ErrStat = ErrID_None
   ErrMsg  = ""
   CALL BEMT_DestroyOtherState( OtherStateData%BEMT, ErrStat, ErrMsg )
-  CALL BEMT_DestroyOutput( OtherStateData%BEMT_y, ErrStat, ErrMsg )
-  CALL BEMT_DestroyInput( OtherStateData%BEMT_u, ErrStat, ErrMsg )
-IF (ALLOCATED(OtherStateData%DisturbedInflow)) THEN
-  DEALLOCATE(OtherStateData%DisturbedInflow)
-ENDIF
-IF (ALLOCATED(OtherStateData%WithoutSweepPitchTwist)) THEN
-  DEALLOCATE(OtherStateData%WithoutSweepPitchTwist)
-ENDIF
-IF (ALLOCATED(OtherStateData%AllOuts)) THEN
-  DEALLOCATE(OtherStateData%AllOuts)
-ENDIF
-IF (ALLOCATED(OtherStateData%W_Twr)) THEN
-  DEALLOCATE(OtherStateData%W_Twr)
-ENDIF
-IF (ALLOCATED(OtherStateData%X_Twr)) THEN
-  DEALLOCATE(OtherStateData%X_Twr)
-ENDIF
-IF (ALLOCATED(OtherStateData%Y_Twr)) THEN
-  DEALLOCATE(OtherStateData%Y_Twr)
-ENDIF
-IF (ALLOCATED(OtherStateData%Curve)) THEN
-  DEALLOCATE(OtherStateData%Curve)
-ENDIF
-IF (ALLOCATED(OtherStateData%X)) THEN
-  DEALLOCATE(OtherStateData%X)
-ENDIF
-IF (ALLOCATED(OtherStateData%Y)) THEN
-  DEALLOCATE(OtherStateData%Y)
-ENDIF
-IF (ALLOCATED(OtherStateData%M)) THEN
-  DEALLOCATE(OtherStateData%M)
-ENDIF
-  CALL MeshDestroy( OtherStateData%HubLoad, ErrStat, ErrMsg )
-IF (ALLOCATED(OtherStateData%B_L_2_H_P)) THEN
-DO i1 = LBOUND(OtherStateData%B_L_2_H_P,1), UBOUND(OtherStateData%B_L_2_H_P,1)
-  CALL NWTC_Library_Destroymeshmaptype( OtherStateData%B_L_2_H_P(i1), ErrStat, ErrMsg )
-ENDDO
-  DEALLOCATE(OtherStateData%B_L_2_H_P)
-ENDIF
  END SUBROUTINE AD_DestroyOtherState
 
  SUBROUTINE AD_PackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -3463,6 +3260,433 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+  IF ( Re_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Db_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF ( Int_BufSz  .GT. 0 ) THEN 
+     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
+     IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+     END IF
+  END IF
+  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
+
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred = 1
+
+      CALL BEMT_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%BEMT, ErrStat2, ErrMsg2, OnlySize ) ! BEMT 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Re_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Re_Buf) > 0) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Buf)-1 ) = Re_Buf
+        Re_Xferred = Re_Xferred + SIZE(Re_Buf)
+        DEALLOCATE(Re_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Db_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Db_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Db_Buf) > 0) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Buf)-1 ) = Db_Buf
+        Db_Xferred = Db_Xferred + SIZE(Db_Buf)
+        DEALLOCATE(Db_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+      IF(ALLOCATED(Int_Buf)) THEN
+        IntKiBuf( Int_Xferred ) = SIZE(Int_Buf); Int_Xferred = Int_Xferred + 1
+        IF (SIZE(Int_Buf) > 0) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Buf)-1 ) = Int_Buf
+        Int_Xferred = Int_Xferred + SIZE(Int_Buf)
+        DEALLOCATE(Int_Buf)
+      ELSE
+        IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
+      ENDIF
+ END SUBROUTINE AD_PackOtherState
+
+ SUBROUTINE AD_UnPackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+  REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
+  REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
+  INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
+  TYPE(AD_OtherStateType), INTENT(INOUT) :: OutData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+    ! Local variables
+  INTEGER(IntKi)                 :: Buf_size
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: i
+  LOGICAL                        :: mask0
+  LOGICAL, ALLOCATABLE           :: mask1(:)
+  LOGICAL, ALLOCATABLE           :: mask2(:,:)
+  LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'AD_UnPackOtherState'
+ ! buffers to store meshes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Re_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Re_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Re_Buf = ReKiBuf( Re_Xferred:Re_Xferred+Buf_size-1 )
+        Re_Xferred = Re_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Db_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Db_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Db_Buf = DbKiBuf( Db_Xferred:Db_Xferred+Buf_size-1 )
+        Db_Xferred = Db_Xferred + Buf_size
+      END IF
+      Buf_size=IntKiBuf( Int_Xferred )
+      Int_Xferred = Int_Xferred + 1
+      IF(Buf_size > 0) THEN
+        ALLOCATE(Int_Buf(Buf_size),STAT=ErrStat2)
+        IF (ErrStat2 /= 0) THEN 
+           CALL SetErrStat(ErrID_Fatal, 'Error allocating Int_Buf.', ErrStat, ErrMsg,RoutineName)
+           RETURN
+        END IF
+        Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
+        Int_Xferred = Int_Xferred + Buf_size
+      END IF
+      CALL BEMT_UnpackOtherState( Re_Buf, Db_Buf, Int_Buf, OutData%BEMT, ErrStat2, ErrMsg2 ) ! BEMT 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
+      IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
+      IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+ END SUBROUTINE AD_UnPackOtherState
+
+ SUBROUTINE AD_CopyMisc( SrcMiscData, DstMiscData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(AD_MiscVarType), INTENT(INOUT) :: SrcMiscData
+   TYPE(AD_MiscVarType), INTENT(INOUT) :: DstMiscData
+   INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
+   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+! Local 
+   INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
+   INTEGER(IntKi)                 :: i3, i3_l, i3_u  !  bounds (upper/lower) for an array dimension 3
+   INTEGER(IntKi)                 :: i4, i4_l, i4_u  !  bounds (upper/lower) for an array dimension 4
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(ErrMsgLen)           :: ErrMsg2
+   CHARACTER(*), PARAMETER        :: RoutineName = 'AD_CopyMisc'
+! 
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+      CALL BEMT_CopyMisc( SrcMiscData%BEMT, DstMiscData%BEMT, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL BEMT_CopyOutput( SrcMiscData%BEMT_y, DstMiscData%BEMT_y, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
+    DO i1 = LBOUND(SrcMiscData%BEMT_u,1), UBOUND(SrcMiscData%BEMT_u,1)
+      CALL BEMT_CopyInput( SrcMiscData%BEMT_u(i1), DstMiscData%BEMT_u(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
+    ENDDO
+IF (ALLOCATED(SrcMiscData%DisturbedInflow)) THEN
+  i1_l = LBOUND(SrcMiscData%DisturbedInflow,1)
+  i1_u = UBOUND(SrcMiscData%DisturbedInflow,1)
+  i2_l = LBOUND(SrcMiscData%DisturbedInflow,2)
+  i2_u = UBOUND(SrcMiscData%DisturbedInflow,2)
+  i3_l = LBOUND(SrcMiscData%DisturbedInflow,3)
+  i3_u = UBOUND(SrcMiscData%DisturbedInflow,3)
+  IF (.NOT. ALLOCATED(DstMiscData%DisturbedInflow)) THEN 
+    ALLOCATE(DstMiscData%DisturbedInflow(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMiscData%DisturbedInflow.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstMiscData%DisturbedInflow = SrcMiscData%DisturbedInflow
+ENDIF
+IF (ALLOCATED(SrcMiscData%WithoutSweepPitchTwist)) THEN
+  i1_l = LBOUND(SrcMiscData%WithoutSweepPitchTwist,1)
+  i1_u = UBOUND(SrcMiscData%WithoutSweepPitchTwist,1)
+  i2_l = LBOUND(SrcMiscData%WithoutSweepPitchTwist,2)
+  i2_u = UBOUND(SrcMiscData%WithoutSweepPitchTwist,2)
+  i3_l = LBOUND(SrcMiscData%WithoutSweepPitchTwist,3)
+  i3_u = UBOUND(SrcMiscData%WithoutSweepPitchTwist,3)
+  i4_l = LBOUND(SrcMiscData%WithoutSweepPitchTwist,4)
+  i4_u = UBOUND(SrcMiscData%WithoutSweepPitchTwist,4)
+  IF (.NOT. ALLOCATED(DstMiscData%WithoutSweepPitchTwist)) THEN 
+    ALLOCATE(DstMiscData%WithoutSweepPitchTwist(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u,i4_l:i4_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMiscData%WithoutSweepPitchTwist.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstMiscData%WithoutSweepPitchTwist = SrcMiscData%WithoutSweepPitchTwist
+ENDIF
+IF (ALLOCATED(SrcMiscData%AllOuts)) THEN
+  i1_l = LBOUND(SrcMiscData%AllOuts,1)
+  i1_u = UBOUND(SrcMiscData%AllOuts,1)
+  IF (.NOT. ALLOCATED(DstMiscData%AllOuts)) THEN 
+    ALLOCATE(DstMiscData%AllOuts(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMiscData%AllOuts.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstMiscData%AllOuts = SrcMiscData%AllOuts
+ENDIF
+IF (ALLOCATED(SrcMiscData%W_Twr)) THEN
+  i1_l = LBOUND(SrcMiscData%W_Twr,1)
+  i1_u = UBOUND(SrcMiscData%W_Twr,1)
+  IF (.NOT. ALLOCATED(DstMiscData%W_Twr)) THEN 
+    ALLOCATE(DstMiscData%W_Twr(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMiscData%W_Twr.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstMiscData%W_Twr = SrcMiscData%W_Twr
+ENDIF
+IF (ALLOCATED(SrcMiscData%X_Twr)) THEN
+  i1_l = LBOUND(SrcMiscData%X_Twr,1)
+  i1_u = UBOUND(SrcMiscData%X_Twr,1)
+  IF (.NOT. ALLOCATED(DstMiscData%X_Twr)) THEN 
+    ALLOCATE(DstMiscData%X_Twr(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMiscData%X_Twr.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstMiscData%X_Twr = SrcMiscData%X_Twr
+ENDIF
+IF (ALLOCATED(SrcMiscData%Y_Twr)) THEN
+  i1_l = LBOUND(SrcMiscData%Y_Twr,1)
+  i1_u = UBOUND(SrcMiscData%Y_Twr,1)
+  IF (.NOT. ALLOCATED(DstMiscData%Y_Twr)) THEN 
+    ALLOCATE(DstMiscData%Y_Twr(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMiscData%Y_Twr.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstMiscData%Y_Twr = SrcMiscData%Y_Twr
+ENDIF
+IF (ALLOCATED(SrcMiscData%Curve)) THEN
+  i1_l = LBOUND(SrcMiscData%Curve,1)
+  i1_u = UBOUND(SrcMiscData%Curve,1)
+  i2_l = LBOUND(SrcMiscData%Curve,2)
+  i2_u = UBOUND(SrcMiscData%Curve,2)
+  IF (.NOT. ALLOCATED(DstMiscData%Curve)) THEN 
+    ALLOCATE(DstMiscData%Curve(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMiscData%Curve.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstMiscData%Curve = SrcMiscData%Curve
+ENDIF
+IF (ALLOCATED(SrcMiscData%X)) THEN
+  i1_l = LBOUND(SrcMiscData%X,1)
+  i1_u = UBOUND(SrcMiscData%X,1)
+  i2_l = LBOUND(SrcMiscData%X,2)
+  i2_u = UBOUND(SrcMiscData%X,2)
+  IF (.NOT. ALLOCATED(DstMiscData%X)) THEN 
+    ALLOCATE(DstMiscData%X(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMiscData%X.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstMiscData%X = SrcMiscData%X
+ENDIF
+IF (ALLOCATED(SrcMiscData%Y)) THEN
+  i1_l = LBOUND(SrcMiscData%Y,1)
+  i1_u = UBOUND(SrcMiscData%Y,1)
+  i2_l = LBOUND(SrcMiscData%Y,2)
+  i2_u = UBOUND(SrcMiscData%Y,2)
+  IF (.NOT. ALLOCATED(DstMiscData%Y)) THEN 
+    ALLOCATE(DstMiscData%Y(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMiscData%Y.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstMiscData%Y = SrcMiscData%Y
+ENDIF
+IF (ALLOCATED(SrcMiscData%M)) THEN
+  i1_l = LBOUND(SrcMiscData%M,1)
+  i1_u = UBOUND(SrcMiscData%M,1)
+  i2_l = LBOUND(SrcMiscData%M,2)
+  i2_u = UBOUND(SrcMiscData%M,2)
+  IF (.NOT. ALLOCATED(DstMiscData%M)) THEN 
+    ALLOCATE(DstMiscData%M(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMiscData%M.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstMiscData%M = SrcMiscData%M
+ENDIF
+    DstMiscData%V_DiskAvg = SrcMiscData%V_DiskAvg
+    DstMiscData%V_dot_x = SrcMiscData%V_dot_x
+      CALL MeshCopy( SrcMiscData%HubLoad, DstMiscData%HubLoad, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
+IF (ALLOCATED(SrcMiscData%B_L_2_H_P)) THEN
+  i1_l = LBOUND(SrcMiscData%B_L_2_H_P,1)
+  i1_u = UBOUND(SrcMiscData%B_L_2_H_P,1)
+  IF (.NOT. ALLOCATED(DstMiscData%B_L_2_H_P)) THEN 
+    ALLOCATE(DstMiscData%B_L_2_H_P(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMiscData%B_L_2_H_P.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DO i1 = LBOUND(SrcMiscData%B_L_2_H_P,1), UBOUND(SrcMiscData%B_L_2_H_P,1)
+      CALL NWTC_Library_Copymeshmaptype( SrcMiscData%B_L_2_H_P(i1), DstMiscData%B_L_2_H_P(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
+         IF (ErrStat>=AbortErrLev) RETURN
+    ENDDO
+ENDIF
+ END SUBROUTINE AD_CopyMisc
+
+ SUBROUTINE AD_DestroyMisc( MiscData, ErrStat, ErrMsg )
+  TYPE(AD_MiscVarType), INTENT(INOUT) :: MiscData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  CHARACTER(*),    PARAMETER :: RoutineName = 'AD_DestroyMisc'
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
+! 
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  CALL BEMT_DestroyMisc( MiscData%BEMT, ErrStat, ErrMsg )
+  CALL BEMT_DestroyOutput( MiscData%BEMT_y, ErrStat, ErrMsg )
+DO i1 = LBOUND(MiscData%BEMT_u,1), UBOUND(MiscData%BEMT_u,1)
+  CALL BEMT_DestroyInput( MiscData%BEMT_u(i1), ErrStat, ErrMsg )
+ENDDO
+IF (ALLOCATED(MiscData%DisturbedInflow)) THEN
+  DEALLOCATE(MiscData%DisturbedInflow)
+ENDIF
+IF (ALLOCATED(MiscData%WithoutSweepPitchTwist)) THEN
+  DEALLOCATE(MiscData%WithoutSweepPitchTwist)
+ENDIF
+IF (ALLOCATED(MiscData%AllOuts)) THEN
+  DEALLOCATE(MiscData%AllOuts)
+ENDIF
+IF (ALLOCATED(MiscData%W_Twr)) THEN
+  DEALLOCATE(MiscData%W_Twr)
+ENDIF
+IF (ALLOCATED(MiscData%X_Twr)) THEN
+  DEALLOCATE(MiscData%X_Twr)
+ENDIF
+IF (ALLOCATED(MiscData%Y_Twr)) THEN
+  DEALLOCATE(MiscData%Y_Twr)
+ENDIF
+IF (ALLOCATED(MiscData%Curve)) THEN
+  DEALLOCATE(MiscData%Curve)
+ENDIF
+IF (ALLOCATED(MiscData%X)) THEN
+  DEALLOCATE(MiscData%X)
+ENDIF
+IF (ALLOCATED(MiscData%Y)) THEN
+  DEALLOCATE(MiscData%Y)
+ENDIF
+IF (ALLOCATED(MiscData%M)) THEN
+  DEALLOCATE(MiscData%M)
+ENDIF
+  CALL MeshDestroy( MiscData%HubLoad, ErrStat, ErrMsg )
+IF (ALLOCATED(MiscData%B_L_2_H_P)) THEN
+DO i1 = LBOUND(MiscData%B_L_2_H_P,1), UBOUND(MiscData%B_L_2_H_P,1)
+  CALL NWTC_Library_Destroymeshmaptype( MiscData%B_L_2_H_P(i1), ErrStat, ErrMsg )
+ENDDO
+  DEALLOCATE(MiscData%B_L_2_H_P)
+ENDIF
+ END SUBROUTINE AD_DestroyMisc
+
+ SUBROUTINE AD_PackMisc( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+  REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
+  REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
+  INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
+  TYPE(AD_MiscVarType),  INTENT(IN) :: InData
+  INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
+  CHARACTER(*),     INTENT(  OUT) :: ErrMsg
+  LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
+  LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
+  INTEGER(IntKi)                 :: ErrStat2
+  CHARACTER(ErrMsgLen)           :: ErrMsg2
+  CHARACTER(*), PARAMETER        :: RoutineName = 'AD_PackMisc'
+ ! buffers to store subtypes, if any
+  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
+  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
+  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
+
+  OnlySize = .FALSE.
+  IF ( PRESENT(SizeOnly) ) THEN
+    OnlySize = SizeOnly
+  ENDIF
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+   ! Allocate buffers for subtypes, if any (we'll get sizes from these) 
+      Int_BufSz   = Int_BufSz + 3  ! BEMT: size of buffers for each call to pack subtype
+      CALL BEMT_PackMisc( Re_Buf, Db_Buf, Int_Buf, InData%BEMT, ErrStat2, ErrMsg2, .TRUE. ) ! BEMT 
+        CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+        IF (ErrStat >= AbortErrLev) RETURN
+
+      IF(ALLOCATED(Re_Buf)) THEN ! BEMT
+         Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
+         DEALLOCATE(Re_Buf)
+      END IF
+      IF(ALLOCATED(Db_Buf)) THEN ! BEMT
+         Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
+         DEALLOCATE(Db_Buf)
+      END IF
+      IF(ALLOCATED(Int_Buf)) THEN ! BEMT
+         Int_BufSz = Int_BufSz + SIZE( Int_Buf )
+         DEALLOCATE(Int_Buf)
+      END IF
       Int_BufSz   = Int_BufSz + 3  ! BEMT_y: size of buffers for each call to pack subtype
       CALL BEMT_PackOutput( Re_Buf, Db_Buf, Int_Buf, InData%BEMT_y, ErrStat2, ErrMsg2, .TRUE. ) ! BEMT_y 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
@@ -3480,8 +3704,9 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+    DO i1 = LBOUND(InData%BEMT_u,1), UBOUND(InData%BEMT_u,1)
       Int_BufSz   = Int_BufSz + 3  ! BEMT_u: size of buffers for each call to pack subtype
-      CALL BEMT_PackInput( Re_Buf, Db_Buf, Int_Buf, InData%BEMT_u, ErrStat2, ErrMsg2, .TRUE. ) ! BEMT_u 
+      CALL BEMT_PackInput( Re_Buf, Db_Buf, Int_Buf, InData%BEMT_u(i1), ErrStat2, ErrMsg2, .TRUE. ) ! BEMT_u 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -3497,6 +3722,7 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+    END DO
   Int_BufSz   = Int_BufSz   + 1     ! DisturbedInflow allocated yes/no
   IF ( ALLOCATED(InData%DisturbedInflow) ) THEN
     Int_BufSz   = Int_BufSz   + 2*3  ! DisturbedInflow upper/lower bounds for each dimension
@@ -3616,7 +3842,7 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-      CALL BEMT_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%BEMT, ErrStat2, ErrMsg2, OnlySize ) ! BEMT 
+      CALL BEMT_PackMisc( Re_Buf, Db_Buf, Int_Buf, InData%BEMT, ErrStat2, ErrMsg2, OnlySize ) ! BEMT 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -3672,7 +3898,8 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
-      CALL BEMT_PackInput( Re_Buf, Db_Buf, Int_Buf, InData%BEMT_u, ErrStat2, ErrMsg2, OnlySize ) ! BEMT_u 
+    DO i1 = LBOUND(InData%BEMT_u,1), UBOUND(InData%BEMT_u,1)
+      CALL BEMT_PackInput( Re_Buf, Db_Buf, Int_Buf, InData%BEMT_u(i1), ErrStat2, ErrMsg2, OnlySize ) ! BEMT_u 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -3700,6 +3927,7 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
+    END DO
   IF ( .NOT. ALLOCATED(InData%DisturbedInflow) ) THEN
     IntKiBuf( Int_Xferred ) = 0
     Int_Xferred = Int_Xferred + 1
@@ -3930,13 +4158,13 @@ ENDIF
       ENDIF
     END DO
   END IF
- END SUBROUTINE AD_PackOtherState
+ END SUBROUTINE AD_PackMisc
 
- SUBROUTINE AD_UnPackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE AD_UnPackMisc( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(AD_OtherStateType), INTENT(INOUT) :: OutData
+  TYPE(AD_MiscVarType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -3957,7 +4185,7 @@ ENDIF
   INTEGER(IntKi)                 :: i4, i4_l, i4_u  !  bounds (upper/lower) for an array dimension 4
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(ErrMsgLen)           :: ErrMsg2
-  CHARACTER(*), PARAMETER        :: RoutineName = 'AD_UnPackOtherState'
+  CHARACTER(*), PARAMETER        :: RoutineName = 'AD_UnPackMisc'
  ! buffers to store meshes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
   REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
@@ -4001,7 +4229,7 @@ ENDIF
         Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
         Int_Xferred = Int_Xferred + Buf_size
       END IF
-      CALL BEMT_UnpackOtherState( Re_Buf, Db_Buf, Int_Buf, OutData%BEMT, ErrStat2, ErrMsg2 ) ! BEMT 
+      CALL BEMT_UnpackMisc( Re_Buf, Db_Buf, Int_Buf, OutData%BEMT, ErrStat2, ErrMsg2 ) ! BEMT 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -4048,6 +4276,9 @@ ENDIF
       IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+    i1_l = LBOUND(OutData%BEMT_u,1)
+    i1_u = UBOUND(OutData%BEMT_u,1)
+    DO i1 = LBOUND(OutData%BEMT_u,1), UBOUND(OutData%BEMT_u,1)
       Buf_size=IntKiBuf( Int_Xferred )
       Int_Xferred = Int_Xferred + 1
       IF(Buf_size > 0) THEN
@@ -4081,13 +4312,14 @@ ENDIF
         Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
         Int_Xferred = Int_Xferred + Buf_size
       END IF
-      CALL BEMT_UnpackInput( Re_Buf, Db_Buf, Int_Buf, OutData%BEMT_u, ErrStat2, ErrMsg2 ) ! BEMT_u 
+      CALL BEMT_UnpackInput( Re_Buf, Db_Buf, Int_Buf, OutData%BEMT_u(i1), ErrStat2, ErrMsg2 ) ! BEMT_u 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
       IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+    END DO
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! DisturbedInflow not allocated
     Int_Xferred = Int_Xferred + 1
   ELSE
@@ -4454,7 +4686,7 @@ ENDIF
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
     END DO
   END IF
- END SUBROUTINE AD_UnPackOtherState
+ END SUBROUTINE AD_UnPackMisc
 
  SUBROUTINE AD_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )
    TYPE(AD_ParameterType), INTENT(IN) :: SrcParamData

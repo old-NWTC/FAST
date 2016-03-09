@@ -251,11 +251,11 @@ IMPLICIT NONE
     TYPE(AD_ContinuousStateType) , DIMENSION(1:2)  :: x      ! Continuous states [-]
     TYPE(AD_DiscreteStateType) , DIMENSION(1:2)  :: xd      ! Discrete states [-]
     TYPE(AD_ConstraintStateType) , DIMENSION(1:2)  :: z      ! Constraint states [-]
-    TYPE(AD_OtherStateType)  :: OtherSt      ! Other/optimization states [-]
+    TYPE(AD_OtherStateType) , DIMENSION(1:2)  :: OtherSt      ! Other states [-]
     TYPE(AD_ParameterType)  :: p      ! Parameters [-]
     TYPE(AD_InputType)  :: u      ! System inputs [-]
     TYPE(AD_OutputType)  :: y      ! System outputs [-]
-    TYPE(AD_OtherStateType)  :: OtherSt_old      ! Other/optimization states (copied for the case of subcycling) [-]
+    TYPE(AD_MiscVarType)  :: m      ! Misc/optimization variables [-]
     TYPE(AD_InputType) , DIMENSION(:), ALLOCATABLE  :: Input      ! Array of inputs associated with InputTimes [-]
     REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: InputTimes      ! Array of times associated with Input Array [-]
   END TYPE AeroDyn_Data
@@ -8936,9 +8936,11 @@ ENDIF
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
     ENDDO
-      CALL AD_CopyOtherState( SrcAeroDyn_DataData%OtherSt, DstAeroDyn_DataData%OtherSt, CtrlCode, ErrStat2, ErrMsg2 )
+    DO i1 = LBOUND(SrcAeroDyn_DataData%OtherSt,1), UBOUND(SrcAeroDyn_DataData%OtherSt,1)
+      CALL AD_CopyOtherState( SrcAeroDyn_DataData%OtherSt(i1), DstAeroDyn_DataData%OtherSt(i1), CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
+    ENDDO
       CALL AD_CopyParam( SrcAeroDyn_DataData%p, DstAeroDyn_DataData%p, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
@@ -8948,7 +8950,7 @@ ENDIF
       CALL AD_CopyOutput( SrcAeroDyn_DataData%y, DstAeroDyn_DataData%y, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
-      CALL AD_CopyOtherState( SrcAeroDyn_DataData%OtherSt_old, DstAeroDyn_DataData%OtherSt_old, CtrlCode, ErrStat2, ErrMsg2 )
+      CALL AD_CopyMisc( SrcAeroDyn_DataData%m, DstAeroDyn_DataData%m, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcAeroDyn_DataData%Input)) THEN
@@ -8999,11 +9001,13 @@ ENDDO
 DO i1 = LBOUND(AeroDyn_DataData%z,1), UBOUND(AeroDyn_DataData%z,1)
   CALL AD_DestroyConstrState( AeroDyn_DataData%z(i1), ErrStat, ErrMsg )
 ENDDO
-  CALL AD_DestroyOtherState( AeroDyn_DataData%OtherSt, ErrStat, ErrMsg )
+DO i1 = LBOUND(AeroDyn_DataData%OtherSt,1), UBOUND(AeroDyn_DataData%OtherSt,1)
+  CALL AD_DestroyOtherState( AeroDyn_DataData%OtherSt(i1), ErrStat, ErrMsg )
+ENDDO
   CALL AD_DestroyParam( AeroDyn_DataData%p, ErrStat, ErrMsg )
   CALL AD_DestroyInput( AeroDyn_DataData%u, ErrStat, ErrMsg )
   CALL AD_DestroyOutput( AeroDyn_DataData%y, ErrStat, ErrMsg )
-  CALL AD_DestroyOtherState( AeroDyn_DataData%OtherSt_old, ErrStat, ErrMsg )
+  CALL AD_DestroyMisc( AeroDyn_DataData%m, ErrStat, ErrMsg )
 IF (ALLOCATED(AeroDyn_DataData%Input)) THEN
 DO i1 = LBOUND(AeroDyn_DataData%Input,1), UBOUND(AeroDyn_DataData%Input,1)
   CALL AD_DestroyInput( AeroDyn_DataData%Input(i1), ErrStat, ErrMsg )
@@ -9108,8 +9112,9 @@ ENDIF
          DEALLOCATE(Int_Buf)
       END IF
     END DO
+    DO i1 = LBOUND(InData%OtherSt,1), UBOUND(InData%OtherSt,1)
       Int_BufSz   = Int_BufSz + 3  ! OtherSt: size of buffers for each call to pack subtype
-      CALL AD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt, ErrStat2, ErrMsg2, .TRUE. ) ! OtherSt 
+      CALL AD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt(i1), ErrStat2, ErrMsg2, .TRUE. ) ! OtherSt 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -9125,6 +9130,7 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+    END DO
       Int_BufSz   = Int_BufSz + 3  ! p: size of buffers for each call to pack subtype
       CALL AD_PackParam( Re_Buf, Db_Buf, Int_Buf, InData%p, ErrStat2, ErrMsg2, .TRUE. ) ! p 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
@@ -9176,20 +9182,20 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
-      Int_BufSz   = Int_BufSz + 3  ! OtherSt_old: size of buffers for each call to pack subtype
-      CALL AD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt_old, ErrStat2, ErrMsg2, .TRUE. ) ! OtherSt_old 
+      Int_BufSz   = Int_BufSz + 3  ! m: size of buffers for each call to pack subtype
+      CALL AD_PackMisc( Re_Buf, Db_Buf, Int_Buf, InData%m, ErrStat2, ErrMsg2, .TRUE. ) ! m 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
-      IF(ALLOCATED(Re_Buf)) THEN ! OtherSt_old
+      IF(ALLOCATED(Re_Buf)) THEN ! m
          Re_BufSz  = Re_BufSz  + SIZE( Re_Buf  )
          DEALLOCATE(Re_Buf)
       END IF
-      IF(ALLOCATED(Db_Buf)) THEN ! OtherSt_old
+      IF(ALLOCATED(Db_Buf)) THEN ! m
          Db_BufSz  = Db_BufSz  + SIZE( Db_Buf  )
          DEALLOCATE(Db_Buf)
       END IF
-      IF(ALLOCATED(Int_Buf)) THEN ! OtherSt_old
+      IF(ALLOCATED(Int_Buf)) THEN ! m
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
@@ -9338,7 +9344,8 @@ ENDIF
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
     END DO
-      CALL AD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt, ErrStat2, ErrMsg2, OnlySize ) ! OtherSt 
+    DO i1 = LBOUND(InData%OtherSt,1), UBOUND(InData%OtherSt,1)
+      CALL AD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt(i1), ErrStat2, ErrMsg2, OnlySize ) ! OtherSt 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -9366,6 +9373,7 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
+    END DO
       CALL AD_PackParam( Re_Buf, Db_Buf, Int_Buf, InData%p, ErrStat2, ErrMsg2, OnlySize ) ! p 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
@@ -9450,7 +9458,7 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
-      CALL AD_PackOtherState( Re_Buf, Db_Buf, Int_Buf, InData%OtherSt_old, ErrStat2, ErrMsg2, OnlySize ) ! OtherSt_old 
+      CALL AD_PackMisc( Re_Buf, Db_Buf, Int_Buf, InData%m, ErrStat2, ErrMsg2, OnlySize ) ! m 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
@@ -9699,6 +9707,9 @@ ENDIF
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
     END DO
+    i1_l = LBOUND(OutData%OtherSt,1)
+    i1_u = UBOUND(OutData%OtherSt,1)
+    DO i1 = LBOUND(OutData%OtherSt,1), UBOUND(OutData%OtherSt,1)
       Buf_size=IntKiBuf( Int_Xferred )
       Int_Xferred = Int_Xferred + 1
       IF(Buf_size > 0) THEN
@@ -9732,13 +9743,14 @@ ENDIF
         Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
         Int_Xferred = Int_Xferred + Buf_size
       END IF
-      CALL AD_UnpackOtherState( Re_Buf, Db_Buf, Int_Buf, OutData%OtherSt, ErrStat2, ErrMsg2 ) ! OtherSt 
+      CALL AD_UnpackOtherState( Re_Buf, Db_Buf, Int_Buf, OutData%OtherSt(i1), ErrStat2, ErrMsg2 ) ! OtherSt 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
       IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+    END DO
       Buf_size=IntKiBuf( Int_Xferred )
       Int_Xferred = Int_Xferred + 1
       IF(Buf_size > 0) THEN
@@ -9892,7 +9904,7 @@ ENDIF
         Int_Buf = IntKiBuf( Int_Xferred:Int_Xferred+Buf_size-1 )
         Int_Xferred = Int_Xferred + Buf_size
       END IF
-      CALL AD_UnpackOtherState( Re_Buf, Db_Buf, Int_Buf, OutData%OtherSt_old, ErrStat2, ErrMsg2 ) ! OtherSt_old 
+      CALL AD_UnpackMisc( Re_Buf, Db_Buf, Int_Buf, OutData%m, ErrStat2, ErrMsg2 ) ! m 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
 
