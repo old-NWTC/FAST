@@ -84,11 +84,14 @@ subroutine GetSteadyOutputs(AFInfo, AOA, Cl, Cd, Cm, Cd0, ErrStat, ErrMsg)
    
    real                            :: IntAFCoefs(4)         ! The interpolated airfoil coefficients.
    integer                         :: s1                    ! Number of columns in the AFInfo structure
-   ErrStat = ErrID_None
-   ErrMsg  = ''
+
+   
       ! NOTE:  This subroutine call cannot live in Blade Element because BE module calls UnsteadyAero module.
    
-   IntAFCoefs = 0.0_ReKi  ! Initialize in case all columns are not present in Airfoil tables
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+   IntAFCoefs = 0.0_ReKi ! initialize in case we only don't have 4 columns in the airfoil data (i.e., so cm is zero if not in the file)
+   
       
       ! NOTE: we use Table(1) because the right now we can only interpolate with AOA and not Re or other variables.  If we had multiple tables stored
       ! for changes in other variables (Re, Mach #, etc) then then we would need to interpolate across tables.
@@ -100,7 +103,7 @@ subroutine GetSteadyOutputs(AFInfo, AOA, Cl, Cd, Cm, Cd0, ErrStat, ErrMsg)
    !   return
    !end if
    Cd0 =   AFInfo%Table(1)%UA_BL%Cd0
-   IntAFCoefs(1:s1) = CubicSplineInterpM( real( AOA*180.0/PI, ReKi ) &
+   IntAFCoefs(1:s1) = CubicSplineInterpM( real( AOA*180.0_ReKi/PI, ReKi ) &
                                              , AFInfo%Table(1)%Alpha &
                                              , AFInfo%Table(1)%Coefs &
                                              , AFInfo%Table(1)%SplineCoefs &

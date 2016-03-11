@@ -8744,7 +8744,7 @@ SUBROUTINE ED_AllocOutput( p, m, u, y, ErrStat, ErrMsg )
    !.......................................................
    
    ! -------------- Hub -----------------------------------
-      !BJJ: sibling of u%HubPtLoads
+      !BJJ: sibling of u%HubPtLoad
    CALL MeshCopy (     SrcMesh  = u%HubPtLoad             &
                      , DestMesh = y%HubPtMotion           &
                      , CtrlCode = MESH_SIBLING            &

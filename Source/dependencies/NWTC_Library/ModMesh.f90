@@ -229,17 +229,12 @@ SUBROUTINE MeshWrVTKreference (RefPoint, M, FileRootName, ErrStat, ErrMsg )
    ErrStat = ErrID_None
    ErrMsg  = ""
       
-   ! PolyData (.vtp) — Serial vtkPolyData (unstructured)
-   CALL GetNewUnit( Un, ErrStat2, ErrMsg2 )      
-   CALL OpenFOutFile ( Un, TRIM(FileRootName)//'_Reference.vtp', ErrStat, ErrMsg )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-            
-      WRITE(Un,'(A)')         '<?xml version="1.0"?>'            
-      WRITE(Un,'(A)')         '<VTKFile type="PolyData" version="0.1" byte_order="LittleEndian">'  ! bjj note: we don't have binary data in this file, so byte_order shouldn't matter, right?
-      WRITE(Un,'(A)')         '  <PolyData>'
-      WRITE(Un,'(2(A,i7),A)') '    <Piece NumberOfPoints="', M%Nnodes, '" NumberOfVerts="  0" NumberOfLines="', M%ElemTable(ELEMENT_LINE2)%nelem, '"'
-      WRITE(Un,'(A)')         '           NumberOfStrips="  0" NumberOfPolys="  0">'
       
+   ! PolyData (.vtp) — Serial vtkPolyData (unstructured)
+   call WrVTK_header( TRIM(FileRootName)//'_Reference.vtp', M%Nnodes, M%ElemTable(ELEMENT_LINE2)%nelem, 0, Un, ErrStat2, ErrMsg2 )    
+      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+      if (ErrStat >= AbortErrLev) return
+         
 ! points (i.e., nodes):      
       WRITE(Un,'(A)')         '      <Points>'         
       WRITE(Un,'(A)')         '        <DataArray type="Float32" NumberOfComponents="3" format="ascii">'
@@ -276,33 +271,28 @@ SUBROUTINE MeshWrVTKreference (RefPoint, M, FileRootName, ErrStat, ErrMsg )
       WRITE(Un,'(A)')         '      </Lines>'
    end if
 
-      WRITE(Un,'(A)')         '    </Piece>'
-      WRITE(Un,'(A)')         '  </PolyData>'
-      WRITE(Un,'(A)')         '</VTKFile>'
-      CLOSE(Un)      
+   call WrVTK_footer( Un )
       
 END SUBROUTINE MeshWrVTKreference   
 !----------------------------------------------------------------------------------------------------------------------------------
 !> This routine writes mesh information in VTK format.
 !! see VTK file information format for XML, here: http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf
-SUBROUTINE MeshWrVTK ( RefPoint, M, FileRootName, VTKcount, ErrStat, ErrMsg, Sib, PositionOnly )
+SUBROUTINE MeshWrVTK ( RefPoint, M, FileRootName, VTKcount, OutputFieldData, ErrStat, ErrMsg, Sib )
       
-   REAL(SiKi),      INTENT(IN)           :: RefPoint(3)   !< reference location, normally (0,0,0)
-   TYPE(MeshType),  INTENT(IN)           :: M             !< mesh to be written
-   CHARACTER(*),    INTENT(IN)           :: FileRootName  !< Name of the file to write the output in (excluding extension)
-   INTEGER(IntKi),  INTENT(IN)           :: VTKcount      !< Indicates number for VTK output file (when 0, the routine will also write reference information)
-   INTEGER(IntKi),  INTENT(OUT)          :: ErrStat       !< Indicates whether an error occurred (see NWTC_Library)
-   CHARACTER(*),    INTENT(OUT)          :: ErrMsg        !< Error message associated with the ErrStat
+   REAL(SiKi),      INTENT(IN)           :: RefPoint(3)     !< reference location, normally (0,0,0)
+   TYPE(MeshType),  INTENT(IN)           :: M               !< mesh to be written
+   CHARACTER(*),    INTENT(IN)           :: FileRootName    !< Name of the file to write the output in (excluding extension)
+   INTEGER(IntKi),  INTENT(IN)           :: VTKcount        !< Indicates number for VTK output file (when 0, the routine will also write reference information)
+   LOGICAL,         INTENT(IN)           :: OutputFieldData !< flag to determine if we want to output field data or just the absolute position of this mesh
+   INTEGER(IntKi),  INTENT(OUT)          :: ErrStat         !< Indicates whether an error occurred (see NWTC_Library)
+   CHARACTER(*),    INTENT(OUT)          :: ErrMsg          !< Error message associated with the ErrStat
 
-   TYPE(MeshType),  INTENT(IN), OPTIONAL :: Sib           !< "functional" Sibling of M that contains translational displacement information (used to place forces at displaced positions) 
-                                                          !! (note that I don't check that Sib%TranslationDisp exists before using it, so make sure it's there and has at least as many nodes as M!)
-   LOGICAL,         INTENT(IN), OPTIONAL :: PositionOnly  !< flag to determine if we want to output any fields or just the absolute position of this mesh
+   TYPE(MeshType),  INTENT(IN), OPTIONAL :: Sib             !< "functional" Sibling of M that contains translational displacement information (used to place forces at displaced positions) 
 
    ! local variables
    INTEGER(IntKi)                        :: Un            ! fortran unit number
    INTEGER(IntKi)                        :: i,j           ! loop counters
    CHARACTER(1024)                       :: FileName
-   LOGICAL                               :: OnlyPosition
       
    INTEGER(IntKi)                        :: ErrStat2 
    CHARACTER(ErrMsgLen)                  :: ErrMsg2
@@ -314,14 +304,7 @@ SUBROUTINE MeshWrVTK ( RefPoint, M, FileRootName, VTKcount, ErrStat, ErrMsg, Sib
    ErrMsg  = ""
 
    IF (.NOT. M%Initialized) RETURN
-   
-   if ( PRESENT(PositionOnly) ) then
-      OnlyPosition = PositionOnly
-   else
-      OnlyPosition = .false.
-   end if
-   
-   
+         
    !.................................................................
    ! we'll write the mesh reference fields on the first timestep only:
    !.................................................................
@@ -338,19 +321,13 @@ SUBROUTINE MeshWrVTK ( RefPoint, M, FileRootName, VTKcount, ErrStat, ErrMsg, Sib
    ! PolyData (.vtp) — Serial vtkPolyData (unstructured) file
    FileName = TRIM(FileRootName)//'.t'//TRIM(Num2LStr(VTKcount))//'.vtp'
       
-   CALL GetNewUnit( Un, ErrStat2, ErrMsg2 )      
-   CALL OpenFOutFile ( Un, TRIM(FileName), ErrStat2, ErrMsg2 )
+   call WrVTK_header( trim(FileName), M%Nnodes, M%ElemTable(ELEMENT_LINE2)%nelem, 0, Un, ErrStat2, ErrMsg2 )    
       call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
       if (ErrStat >= AbortErrLev) return
-
-         
+   
+            
       ! Write a VTP mesh file (Polygonal VTK file) with positions, lines, and field information
       ! (note alignment of WRITE statements to make sure spaces are lined up in XML file)
-      WRITE(Un,'(A)')         '<?xml version="1.0"?>'
-      WRITE(Un,'(A)')         '<VTKFile type="PolyData" version="0.1" byte_order="LittleEndian">' ! bjj note: we don't have binary data in this file, so byte_order shouldn't matter, right?
-      WRITE(Un,'(A)')         '  <PolyData>'
-      WRITE(Un,'(2(A,i7),A)') '    <Piece NumberOfPoints="', M%Nnodes, '" NumberOfVerts="  0" NumberOfLines="', M%ElemTable(ELEMENT_LINE2)%nelem, '"'
-      WRITE(Un,'(A)')         '           NumberOfStrips="  0" NumberOfPolys="  0">'
    
 ! points (nodes):   
       WRITE(Un,'(A)')         '      <Points>'
@@ -378,9 +355,17 @@ SUBROUTINE MeshWrVTK ( RefPoint, M, FileRootName, VTKcount, ErrStat, ErrMsg, Sib
       WRITE(Un,'(A)')         '        </DataArray>'
       WRITE(Un,'(A)')         '      </Points>'
             
-   if (.not. OnlyPosition) then            ! point data for any existing mesh fields:   
-      call MeshWrVTKfields ( Un, M, 1)      
-   end if !(.not. OnlyPosition)      
+   if (OutputFieldData) then            ! point data for any existing mesh fields:   
+      WRITE(Un,'(A)')         '      <PointData>'
+      call MeshWrVTKfields ( Un, M, 1)
+      
+      if ( PRESENT(Sib) ) then ! write the sibling fields, too, so we don't have so many output files
+         if (Sib%Nnodes == M%Nnodes .and. Sib%nelemlist == M%nelemlist ) then
+            call MeshWrVTKfields ( Un, Sib, 1)
+         end if         
+      end if
+      WRITE(Un,'(A)')         '      </PointData>'
+   end if !(OutputFieldData)      
 
       
 ! lines (i.e., elements; for line2 meshes only):
@@ -399,11 +384,7 @@ SUBROUTINE MeshWrVTK ( RefPoint, M, FileRootName, VTKcount, ErrStat, ErrMsg, Sib
       WRITE(Un,'(A)')         '      </Lines>'
    end if      
 
-      WRITE(Un,'(A)')         '    </Piece>'
-      WRITE(Un,'(A)')         '  </PolyData>'
-      WRITE(Un,'(A)')         '</VTKFile>'
-      CLOSE(Un)         
-               
+      call WrVTK_footer( Un )               
       
 END SUBROUTINE MeshWrVTK
 !> This routine writes mesh field information in VTK format.
@@ -427,7 +408,7 @@ SUBROUTINE MeshWrVTKfields ( Un, M, n )
    
    
 ! point data for any existing mesh fields:   
-      WRITE(Un,'(A)')         '      <PointData>'
+      !WRITE(Un,'(A)')         '      <PointData>'
       
    IF ( M%fieldmask(MASKID_FORCE) .AND. ALLOCATED(M%Force) ) THEN
       WRITE(Un,'(A)')         '        <DataArray type="Float32" Name="Force" NumberOfComponents="3" format="ascii">'
@@ -449,6 +430,7 @@ SUBROUTINE MeshWrVTKfields ( Un, M, n )
       WRITE(Un,'(A)')         '        </DataArray>'
    END IF
 
+#ifdef VTK_OUTPUT_TRANSLATIONDISP
    IF ( M%fieldmask(MASKID_TRANSLATIONDISP) .AND. ALLOCATED(M%TranslationDisp)) THEN
       WRITE(Un,'(A)')         '        <DataArray type="Float32" Name="TranslationalDisplacement" NumberOfComponents="3" format="ascii">'
       DO i=1,M%Nnodes
@@ -458,7 +440,8 @@ SUBROUTINE MeshWrVTKfields ( Un, M, n )
       END DO
       WRITE(Un,'(A)')         '        </DataArray>'
    END IF
-   
+#endif
+
    IF ( M%fieldmask(MASKID_TRANSLATIONVEL) .AND. ALLOCATED(M%TranslationVel)) THEN
       WRITE(Un,'(A)')         '        <DataArray type="Float32" Name="TranslationalVelocity" NumberOfComponents="3" format="ascii">'
       DO i=1,M%Nnodes
@@ -521,7 +504,7 @@ END IF
       WRITE(Un,'(A)')         '        </DataArray>'
    END IF
 
-      WRITE(Un,'(A)')         '      </PointData>'
+      !WRITE(Un,'(A)')         '      </PointData>'
       
                
       
@@ -529,18 +512,20 @@ END SUBROUTINE MeshWrVTKfields
 !----------------------------------------------------------------------------------------------------------------------------------
 !> This routine writes line2 mesh surface information in VTK format.
 !! see VTK file information format for XML, here: http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf
-SUBROUTINE MeshWrVTK_Ln2Surface ( RefPoint, M, FileRootName, VTKcount, ErrStat, ErrMsg, NumSegments, Radius, verts )
+SUBROUTINE MeshWrVTK_Ln2Surface ( RefPoint, M, FileRootName, VTKcount, OutputFieldData, ErrStat, ErrMsg, NumSegments, Radius, verts, Sib )
       
-   REAL(SiKi),      INTENT(IN)           :: RefPoint(3)   !< reference location, normally (0,0,0)
-   TYPE(MeshType),  INTENT(IN)           :: M             !< mesh to be written
-   CHARACTER(*),    INTENT(IN)           :: FileRootName  !< Name of the file to write the output in (excluding extension)
-   INTEGER(IntKi),  INTENT(IN)           :: VTKcount      !< Indicates number for VTK output file (when 0, the routine will also write reference information)
-   INTEGER(IntKi),  INTENT(IN), OPTIONAL :: NumSegments   !< Number of segments to split the circle into
-   REAL(SiKi),      INTENT(IN), OPTIONAL :: Radius(:)     !< Radius of each node
-   REAL(SiKi),      INTENT(IN), OPTIONAL :: verts(:,:,:)  !< X-Y verticies (2x{NumSegs}xNNodes) of points that define a shape around each node
+   REAL(SiKi),      INTENT(IN)           :: RefPoint(3)     !< reference location, normally (0,0,0)
+   TYPE(MeshType),  INTENT(IN)           :: M               !< mesh to be written
+   CHARACTER(*),    INTENT(IN)           :: FileRootName    !< Name of the file to write the output in (excluding extension)
+   INTEGER(IntKi),  INTENT(IN)           :: VTKcount        !< Indicates number for VTK output file (when 0, the routine will also write reference information)
+   LOGICAL,         INTENT(IN)           :: OutputFieldData !< flag to determine if we want to output field data or just the absolute position of this mesh
+   INTEGER(IntKi),  INTENT(IN), OPTIONAL :: NumSegments     !< Number of segments to split the circle into
+   REAL(SiKi),      INTENT(IN), OPTIONAL :: Radius(:)       !< Radius of each node
+   REAL(SiKi),      INTENT(IN), OPTIONAL :: verts(:,:,:)    !< X-Y verticies (2x{NumSegs}xNNodes) of points that define a shape around each node
+   TYPE(MeshType),  INTENT(IN), OPTIONAL :: Sib             !< Sibling of M that contains more field information (used only if OutputFieldData is true, to minimize number of files being written)
    
-   INTEGER(IntKi),  INTENT(OUT)          :: ErrStat       !< Indicates whether an error occurred (see NWTC_Library)
-   CHARACTER(*),    INTENT(OUT)          :: ErrMsg        !< Error message associated with the ErrStat
+   INTEGER(IntKi),  INTENT(OUT)          :: ErrStat         !< Indicates whether an error occurred (see NWTC_Library)
+   CHARACTER(*),    INTENT(OUT)          :: ErrMsg          !< Error message associated with the ErrStat
 
 
    ! local variables
@@ -583,20 +568,21 @@ SUBROUTINE MeshWrVTK_Ln2Surface ( RefPoint, M, FileRootName, VTKcount, ErrStat, 
       
    ! PolyData (.vtp) — Serial vtkPolyData (unstructured) file
    FileName = TRIM(FileRootName)//'.t'//TRIM(Num2LStr(VTKcount))//'.vtp'
-      
-   CALL GetNewUnit( Un, ErrStat2, ErrMsg2 )      
-   CALL OpenFOutFile ( Un, TRIM(FileName), ErrStat2, ErrMsg2 )
-      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
-      if (ErrStat >= AbortErrLev) return
-         
+       
       ! Write a VTP mesh file (Polygonal VTK file) with positions and polygons (surfaces)
       ! (note alignment of WRITE statements to make sure spaces are lined up in XML file)
-      WRITE(Un,'(A)')         '<?xml version="1.0"?>'
-      WRITE(Un,'(A)')         '<VTKFile type="PolyData" version="0.1" byte_order="LittleEndian">' ! bjj note: we don't have binary data in this file, so byte_order shouldn't matter, right?
-      WRITE(Un,'(A)')         '  <PolyData>'
-      WRITE(Un,'(2(A,i7),A)') '    <Piece NumberOfPoints="', M%Nnodes*NumSegments1, '" NumberOfVerts="  0" NumberOfLines="', M%ElemTable(ELEMENT_LINE2)%nelem, '"'
-      WRITE(Un,'(A,i7,A)')    '           NumberOfStrips="  0" NumberOfPolys="',  M%ElemTable(ELEMENT_LINE2)%nelem*(NumSegments1+2), '">'
-         
+   call WrVTK_header(   FileName=trim(FileName)                                        &
+                      , NumberOfPoints=M%Nnodes*NumSegments1                           &
+                      , NumberOfLines=M%ElemTable(ELEMENT_LINE2)%nelem                 &
+                      , NumberOfPolys=M%ElemTable(ELEMENT_LINE2)%nelem*(NumSegments1+2)& 
+                      , Un=Un                                                          &
+                      , ErrStat=ErrStat2                                               &
+                      , ErrMsg=ErrMsg2                                                 )  
+   
+      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+      if (ErrStat >= AbortErrLev) return
+   
+                     
 ! points (nodes, augmented with NumSegments):   
       WRITE(Un,'(A)')         '      <Points>'
       WRITE(Un,'(A)')         '        <DataArray type="Float32" NumberOfComponents="3" format="ascii">'
@@ -624,6 +610,18 @@ SUBROUTINE MeshWrVTK_Ln2Surface ( RefPoint, M, FileRootName, VTKcount, ErrStat, 
       WRITE(Un,'(A)')         '        </DataArray>'
       WRITE(Un,'(A)')         '      </Points>'
   
+      
+   if (OutputFieldData) then            ! point data for any existing mesh fields:   
+      WRITE(Un,'(A)')         '      <PointData>'
+      call MeshWrVTKfields ( Un, M, NumSegments1)
+      
+      if ( PRESENT(Sib) ) then ! write the sibling fields, too, so we don't have so many output files
+         if (Sib%Nnodes == M%Nnodes .and. Sib%nelemlist == M%nelemlist ) then
+            call MeshWrVTKfields ( Un, Sib, NumSegments1)
+         end if         
+      end if
+      WRITE(Un,'(A)')         '      </PointData>'
+   end if !(OutputFieldData)      
 
    if ( M%ElemTable(ELEMENT_LINE2)%nelem > 0) then   
          ! Using rectangle to render surfaces (for line2 meshes only):
@@ -641,8 +639,8 @@ SUBROUTINE MeshWrVTK_Ln2Surface ( RefPoint, M, FileRootName, VTKcount, ErrStat, 
          END DO
          WRITE(Un,'(4(i7))')  firstPntEnd, firstPntStart, secondPntStart, secondPntEnd
          
-         ! make top and bottom of this element
-         WRITE(Un,'('//trim(num2lstr(NumSegments1))//'(i7))') (j, j=firstPntStart,firstPntEnd)               
+         ! make top and bottom of this element, making sure surface normals point outward
+         WRITE(Un,'('//trim(num2lstr(NumSegments1))//'(i7))') (j, j=firstPntEnd,firstPntStart,-1)               
          WRITE(Un,'('//trim(num2lstr(NumSegments1))//'(i7))') (j, j=secondPntStart,secondPntEnd)              
                   
       END DO      
@@ -666,35 +664,34 @@ SUBROUTINE MeshWrVTK_Ln2Surface ( RefPoint, M, FileRootName, VTKcount, ErrStat, 
             
    end if ! do this only for line2 elements    
 
-      WRITE(Un,'(A)')         '    </Piece>'
-      WRITE(Un,'(A)')         '  </PolyData>'
-      WRITE(Un,'(A)')         '</VTKFile>'
-      CLOSE(Un)         
+      call WrVTK_footer( Un )         
                      
    END SUBROUTINE MeshWrVTK_Ln2Surface
 !----------------------------------------------------------------------------------------------------------------------------------
 !> This routine writes point mesh surfaces information in VTK format.
 !! see VTK file information format for XML, here: http://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf
-SUBROUTINE MeshWrVTK_PointSurface ( RefPoint, M, FileRootName, VTKcount, ErrStat, ErrMsg, NumSegments, Radius, verts )
+SUBROUTINE MeshWrVTK_PointSurface ( RefPoint, M, FileRootName, VTKcount, OutputFieldData, ErrStat, ErrMsg, NumSegments, Radius, verts, Sib )
       
-   REAL(SiKi),      INTENT(IN)           :: RefPoint(3)   !< reference location, normally (0,0,0)
-   TYPE(MeshType),  INTENT(IN)           :: M             !< mesh to be written
-   CHARACTER(*),    INTENT(IN)           :: FileRootName  !< Name of the file to write the output in (excluding extension)
-   INTEGER(IntKi),  INTENT(IN)           :: VTKcount      !< Indicates number for VTK output file (when 0, the routine will also write reference information)
-   INTEGER(IntKi),  INTENT(IN), OPTIONAL :: NumSegments   !< Number of segments to split the circle into
-   REAL(SiKi),      INTENT(IN), OPTIONAL :: Radius        !< Radius of each node
-   REAL(SiKi),      INTENT(IN), OPTIONAL :: verts(:,:)    !< X-Y-Z verticies (3xn) of points that define a volume around each node
+   REAL(SiKi),      INTENT(IN)           :: RefPoint(3)     !< reference location, normally (0,0,0)
+   TYPE(MeshType),  INTENT(IN)           :: M               !< mesh to be written
+   CHARACTER(*),    INTENT(IN)           :: FileRootName    !< Name of the file to write the output in (excluding extension)
+   INTEGER(IntKi),  INTENT(IN)           :: VTKcount        !< Indicates number for VTK output file (when 0, the routine will also write reference information)
+   LOGICAL,         INTENT(IN)           :: OutputFieldData !< flag to determine if we want to output field data or just the absolute position of this mesh
+   INTEGER(IntKi),  INTENT(IN), OPTIONAL :: NumSegments     !< Number of segments to split the circle into
+   REAL(SiKi),      INTENT(IN), OPTIONAL :: Radius          !< Radius of each node
+   REAL(SiKi),      INTENT(IN), OPTIONAL :: verts(:,:)      !< X-Y-Z verticies (3xn) of points that define a volume around each node
    !bjj: we don't need this to be limited to 8, I guess...
+   TYPE(MeshType),  INTENT(IN), OPTIONAL :: Sib             !< Sibling of M that contains more field information (used only if OutputFieldData is true, to minimize number of files being written)
    
-   INTEGER(IntKi),  INTENT(OUT)          :: ErrStat       !< Indicates whether an error occurred (see NWTC_Library)
-   CHARACTER(*),    INTENT(OUT)          :: ErrMsg        !< Error message associated with the ErrStat
+   INTEGER(IntKi),  INTENT(OUT)          :: ErrStat         !< Indicates whether an error occurred (see NWTC_Library)
+   CHARACTER(*),    INTENT(OUT)          :: ErrMsg          !< Error message associated with the ErrStat
 
 
    ! local variables
    INTEGER(IntKi)                        :: Un            ! fortran unit number
    INTEGER(IntKi)                        :: i,j,k         ! loop counters
    INTEGER(IntKi)                        :: offset_cnt    ! counter for offsets (corresponding to number of nodes in polygons written)
-   INTEGER(IntKi)                        :: NumberOfPoints
+   INTEGER(IntKi)                        :: NumberOfPoints, NumberOfPointsPerNode
    INTEGER(IntKi)                        :: NumberOfPolys
    INTEGER(IntKi)                        :: NumSegments1   
    INTEGER(IntKi)                        :: NumSegments2   
@@ -719,7 +716,7 @@ SUBROUTINE MeshWrVTK_PointSurface ( RefPoint, M, FileRootName, VTKcount, ErrStat
    IF (.NOT. ALLOCATED(M%Orientation) ) RETURN
       
    if (present(verts)) then
-      NumberOfPoints = size(verts,2)
+      NumberOfPointsPerNode = size(verts,2)
       if (size(verts,2)==8) then
          NumberOfPolys = 6 ! per node
       elseif (size(verts,2)==4) then
@@ -730,7 +727,6 @@ SUBROUTINE MeshWrVTK_PointSurface ( RefPoint, M, FileRootName, VTKcount, ErrStat
          RETURN
       end if
       
-      NumberOfPoints = M%Nnodes * NumberOfPoints
       NumberOfPolys  = M%Nnodes * NumberOfPolys
       
    elseif (present(Radius) ) then
@@ -739,14 +735,14 @@ SUBROUTINE MeshWrVTK_PointSurface ( RefPoint, M, FileRootName, VTKcount, ErrStat
          NumSegments2 = max(4,NumSegments1)         
          
          NumberOfPolys  = M%Nnodes * max(1,(NumSegments2-1))* NumSegments1
-         NumberOfPoints = M%Nnodes *  NumSegments2 * NumSegments1
+         NumberOfPointsPerNode = NumSegments2 * NumSegments1
          
       else                           ! a plane
          NumSegments1 = 20
          NumSegments2 = 1
          
          NumberOfPolys  = M%Nnodes 
-         NumberOfPoints = M%Nnodes * NumSegments1
+         NumberOfPointsPerNode = NumSegments1
          
       end if
       
@@ -756,6 +752,7 @@ SUBROUTINE MeshWrVTK_PointSurface ( RefPoint, M, FileRootName, VTKcount, ErrStat
       RETURN
    end if
    
+   NumberOfPoints = M%Nnodes*NumberOfPointsPerNode
    !.................................................................
    ! write the data that potentially changes each time step:
    !.................................................................
@@ -763,26 +760,19 @@ SUBROUTINE MeshWrVTK_PointSurface ( RefPoint, M, FileRootName, VTKcount, ErrStat
    ! PolyData (.vtp) — Serial vtkPolyData (unstructured) file
    FileName = TRIM(FileRootName)//'.t'//TRIM(Num2LStr(VTKcount))//'.vtp'
       
-   CALL GetNewUnit( Un, ErrStat2, ErrMsg2 )      
-   CALL OpenFOutFile ( Un, TRIM(FileName), ErrStat2, ErrMsg2 )
-      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
-      if (ErrStat >= AbortErrLev) return
-         
       ! Write a VTP mesh file (Polygonal VTK file) with positions and polygons (surfaces)
       ! (note alignment of WRITE statements to make sure spaces are lined up in XML file)
-      WRITE(Un,'(A)')         '<?xml version="1.0"?>'
-      WRITE(Un,'(A)')         '<VTKFile type="PolyData" version="0.1" byte_order="LittleEndian">' ! bjj note: we don't have binary data in this file, so byte_order shouldn't matter, right?
-      WRITE(Un,'(A)')         '  <PolyData>'
-      WRITE(Un,'(2(A,i7),A)') '    <Piece NumberOfPoints="', NumberOfPoints, '" NumberOfVerts="  0" NumberOfLines="', 0, '"'
-      WRITE(Un,'(A,i7,A)')    '           NumberOfStrips="  0" NumberOfPolys="',  NumberOfPolys, '">'
-         
+   call WrVTK_header( trim(FileName), M%Nnodes*NumberOfPoints, 0, NumberOfPolys, Un, ErrStat2, ErrMsg2 )   
+      call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+      if (ErrStat >= AbortErrLev) return
+                        
 ! points (nodes, augmented with NumSegments):   
       WRITE(Un,'(A)')         '      <Points>'
       WRITE(Un,'(A)')         '        <DataArray type="Float32" NumberOfComponents="3" format="ascii">'
       
       if ( present(verts) ) then
          do i=1,M%Nnodes
-            do j=1,NumberOfPoints
+            do j=1,NumberOfPointsPerNode
                WRITE(Un,VTK_AryFmt) RefPoint + M%Position(:,i) + M%TranslationDisp(:,i) + MATMUL(verts(:,j),M%Orientation(:,:,i))
             end do    
          end do
@@ -817,6 +807,18 @@ SUBROUTINE MeshWrVTK_PointSurface ( RefPoint, M, FileRootName, VTKcount, ErrStat
       WRITE(Un,'(A)')         '        </DataArray>'
       WRITE(Un,'(A)')         '      </Points>'
   
+      
+   if (OutputFieldData) then            ! point data for any existing mesh fields:   
+      WRITE(Un,'(A)')         '      <PointData>'
+      call MeshWrVTKfields ( Un, M, NumberOfPointsPerNode)      
+      
+      if ( PRESENT(Sib) ) then ! write the sibling fields, too, so we don't have so many output files
+         if (Sib%Nnodes == M%Nnodes .and. Sib%nelemlist == M%nelemlist ) then
+            call MeshWrVTKfields ( Un, Sib, NumberOfPointsPerNode)         
+         end if         
+      end if
+      WRITE(Un,'(A)')         '      </PointData>'
+   end if !(OutputFieldData)            
                   
       WRITE(Un,'(A)')         '      <Polys>'
       
@@ -889,10 +891,7 @@ SUBROUTINE MeshWrVTK_PointSurface ( RefPoint, M, FileRootName, VTKcount, ErrStat
       WRITE(Un,'(A)')         '      </Polys>'      
             
 
-      WRITE(Un,'(A)')         '    </Piece>'
-      WRITE(Un,'(A)')         '  </PolyData>'
-      WRITE(Un,'(A)')         '</VTKFile>'
-      CLOSE(Un)         
+      call WrVTK_footer( Un )         
                      
    END SUBROUTINE MeshWrVTK_PointSurface
    
