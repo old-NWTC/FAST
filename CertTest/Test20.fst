@@ -1,4 +1,4 @@
-------- FAST v8.14.* INPUT FILE ------------------------------------------------
+------- FAST v8.15.* INPUT FILE ------------------------------------------------
 FAST Certification Test #20: NREL 5.0 MW Baseline Wind Turbine with OC3 Tripod Configuration, for use in offshore analysis
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
@@ -34,10 +34,13 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
 True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime        - Amount of time between screen status messages (s)
        1000   ChkptTime       - Amount of time between creating checkpoint files for potential restart (s)
-          0   WrVTK           - Write VTK visualization data? (switch) {0=none; 1=basic (position only); 2=surfaces; 3=all meshes (debug)}
-      0.042   DT_VTK          - Amount of time between consecutive visualization output files (s) {frame rate; will use closest integer multiple of DT}
        0.04   DT_Out          - Time step for tabular output (s) (or "default")
           0   TStart          - Time to begin tabular output (s)
           2   OutFileFmt      - Format for tabular (time-marching) output file (switch) {1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both}
 True          TabDelim        - Use tab delimiters in text tabular output file? (flag) {uses spaces if false}
 "ES10.3E2"    OutFmt          - Format used for text tabular output, excluding the time channel.  Resulting field should be 10 characters. (quoted string)
+---------------------- VISUALIZATION ------------------------------------------
+          0   WrVTK           - VTK Visualization data output: (switch) {0=none; 1=initialization data only; 2=animation}
+          2   VTK_type        - Type of VTK visualization data: (switch) {1=surfaces; 2=basic meshes (lines/points); 3=all meshes (debug)} [unused if WrVTK=0]
+false         VTK_fields      - Write mesh fields to VTK data files? (flag) {true/false} [unused if WrVTK=0]
+         15   VTK_fps         - Frame rate for VTK output (frames per second){will use closest integer multiple of DT} [used only if WrVTK=2]

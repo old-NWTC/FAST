@@ -146,7 +146,9 @@ IMPLICIT NONE
     LOGICAL  :: WrBinOutFile      ! Write a binary output file? (.outb) [-]
     LOGICAL  :: WrTxtOutFile      ! Write a text (formatted) output file? (.out) [-]
     LOGICAL  :: SumPrint      ! Print summary data to file? (.sum) [-]
-    INTEGER(IntKi)  :: WrVTK      ! Write VTK visualization data? (switch) {0=none; 1=basic (position only); 2=surfaces; 3=all meshes (debug)} [-]
+    INTEGER(IntKi)  :: WrVTK      ! VTK Visualization data output: (switch) {0=none; 1=initialization data only; 2=animation} [-]
+    INTEGER(IntKi)  :: VTK_Type      ! Type of  VTK visualization data: (switch) {1=surfaces; 2=basic meshes (lines/points); 3=all meshes (debug)} [-]
+    LOGICAL  :: VTK_fields      ! Write mesh fields to VTK data files? (flag) {true/false} [-]
     CHARACTER(1)  :: Delim      ! Delimiter between columns of text output file (.out): space or tab [-]
     CHARACTER(20)  :: OutFmt      ! Format used for text tabular output (except time); resulting field should be 10 characters [-]
     CHARACTER(20)  :: OutFmt_t      ! Format used for time channel in text tabular output; resulting field should be 10 characters [-]
@@ -1172,6 +1174,8 @@ ENDIF
     DstParamData%WrTxtOutFile = SrcParamData%WrTxtOutFile
     DstParamData%SumPrint = SrcParamData%SumPrint
     DstParamData%WrVTK = SrcParamData%WrVTK
+    DstParamData%VTK_Type = SrcParamData%VTK_Type
+    DstParamData%VTK_fields = SrcParamData%VTK_fields
     DstParamData%Delim = SrcParamData%Delim
     DstParamData%OutFmt = SrcParamData%OutFmt
     DstParamData%OutFmt_t = SrcParamData%OutFmt_t
@@ -1273,6 +1277,8 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1  ! WrTxtOutFile
       Int_BufSz  = Int_BufSz  + 1  ! SumPrint
       Int_BufSz  = Int_BufSz  + 1  ! WrVTK
+      Int_BufSz  = Int_BufSz  + 1  ! VTK_Type
+      Int_BufSz  = Int_BufSz  + 1  ! VTK_fields
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%Delim)  ! Delim
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%OutFmt)  ! OutFmt
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%OutFmt_t)  ! OutFmt_t
@@ -1428,6 +1434,10 @@ ENDIF
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%SumPrint , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%WrVTK
+      Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%VTK_Type
+      Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%VTK_fields , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
         DO I = 1, LEN(InData%Delim)
           IntKiBuf(Int_Xferred) = ICHAR(InData%Delim(I:I), IntKi)
@@ -1664,6 +1674,10 @@ ENDIF
       OutData%SumPrint = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
       OutData%WrVTK = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%VTK_Type = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%VTK_fields = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
       DO I = 1, LEN(OutData%Delim)
         OutData%Delim(I:I) = CHAR(IntKiBuf(Int_Xferred))
