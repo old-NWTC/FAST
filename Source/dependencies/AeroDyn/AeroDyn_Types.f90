@@ -148,6 +148,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: X_Twr      ! local x-component of force per unit length of the jth node in the tower [m/s]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Y_Twr      ! local y-component of force per unit length of the jth node in the tower [m/s]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Curve      ! curvature angle, saved for possible output to file [rad]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: TwrClrnc      ! Distance between tower (including tower radius) and blade node (not including blade width), saved for possible output to file [m]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: X      ! normal force per unit length (normal to the plane, not chord) of the jth node in the kth blade [N/m]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Y      ! tangential force per unit length (tangential to the plane, not chord) of the jth node in the kth blade [N/m]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: M      ! pitching moment per unit length of the jth node in the kth blade [Nm/m]
@@ -3516,6 +3517,20 @@ IF (ALLOCATED(SrcMiscData%Curve)) THEN
   END IF
     DstMiscData%Curve = SrcMiscData%Curve
 ENDIF
+IF (ALLOCATED(SrcMiscData%TwrClrnc)) THEN
+  i1_l = LBOUND(SrcMiscData%TwrClrnc,1)
+  i1_u = UBOUND(SrcMiscData%TwrClrnc,1)
+  i2_l = LBOUND(SrcMiscData%TwrClrnc,2)
+  i2_u = UBOUND(SrcMiscData%TwrClrnc,2)
+  IF (.NOT. ALLOCATED(DstMiscData%TwrClrnc)) THEN 
+    ALLOCATE(DstMiscData%TwrClrnc(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMiscData%TwrClrnc.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstMiscData%TwrClrnc = SrcMiscData%TwrClrnc
+ENDIF
 IF (ALLOCATED(SrcMiscData%X)) THEN
   i1_l = LBOUND(SrcMiscData%X,1)
   i1_u = UBOUND(SrcMiscData%X,1)
@@ -3615,6 +3630,9 @@ IF (ALLOCATED(MiscData%Y_Twr)) THEN
 ENDIF
 IF (ALLOCATED(MiscData%Curve)) THEN
   DEALLOCATE(MiscData%Curve)
+ENDIF
+IF (ALLOCATED(MiscData%TwrClrnc)) THEN
+  DEALLOCATE(MiscData%TwrClrnc)
 ENDIF
 IF (ALLOCATED(MiscData%X)) THEN
   DEALLOCATE(MiscData%X)
@@ -3757,6 +3775,11 @@ ENDIF
   IF ( ALLOCATED(InData%Curve) ) THEN
     Int_BufSz   = Int_BufSz   + 2*2  ! Curve upper/lower bounds for each dimension
       Re_BufSz   = Re_BufSz   + SIZE(InData%Curve)  ! Curve
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! TwrClrnc allocated yes/no
+  IF ( ALLOCATED(InData%TwrClrnc) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*2  ! TwrClrnc upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%TwrClrnc)  ! TwrClrnc
   END IF
   Int_BufSz   = Int_BufSz   + 1     ! X allocated yes/no
   IF ( ALLOCATED(InData%X) ) THEN
@@ -4036,6 +4059,22 @@ ENDIF
 
       IF (SIZE(InData%Curve)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Curve))-1 ) = PACK(InData%Curve,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%Curve)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%TwrClrnc) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%TwrClrnc,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%TwrClrnc,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%TwrClrnc,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%TwrClrnc,2)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%TwrClrnc)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TwrClrnc))-1 ) = PACK(InData%TwrClrnc,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%TwrClrnc)
   END IF
   IF ( .NOT. ALLOCATED(InData%X) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -4497,6 +4536,32 @@ ENDIF
     mask2 = .TRUE. 
       IF (SIZE(OutData%Curve)>0) OutData%Curve = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Curve))-1 ), mask2, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%Curve)
+    DEALLOCATE(mask2)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! TwrClrnc not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%TwrClrnc)) DEALLOCATE(OutData%TwrClrnc)
+    ALLOCATE(OutData%TwrClrnc(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%TwrClrnc.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask2.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask2 = .TRUE. 
+      IF (SIZE(OutData%TwrClrnc)>0) OutData%TwrClrnc = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TwrClrnc))-1 ), mask2, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%TwrClrnc)
     DEALLOCATE(mask2)
   END IF
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! X not allocated
