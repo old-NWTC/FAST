@@ -116,7 +116,7 @@ MODULE OrcaFlexInterface
 #endif
          USE, INTRINSIC :: ISO_C_BINDING, ONLY: C_FLOAT
          !DEC$ ATTRIBUTES DEFAULT, STDCALL, DECORATE, ALIAS:'OrcaFlexUserPtfmLdInitialise'::OrcaFlexUserPtfmLdInitialise
-         !GCC$ ATTRIBUTES STDCALL :: OrcaFlexUserPtfmInitialise
+         !GCC$ ATTRIBUTES STDCALL :: OrcaFlexUserPtfmLdInitialise
          REAL(C_FLOAT),             INTENT(IN   )  :: DT
          REAL(C_FLOAT),             INTENT(IN   )  :: TMax
       END SUBROUTINE OrcaFlexUserPtfmLdInitialise
