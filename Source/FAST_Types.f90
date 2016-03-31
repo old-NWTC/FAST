@@ -9,7 +9,7 @@
 !.................................................................................................................................
 ! This file is part of FAST.
 !
-! Copyright (C) 2012-2015 National Renewable Energy Laboratory
+! Copyright (C) 2012-2016 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -99,6 +99,9 @@ IMPLICIT NONE
     REAL(SiKi)  :: GroundRad      ! radius for plotting circle on ground [m]
     REAL(SiKi) , DIMENSION(1:3,1:8)  :: NacelleBox      ! X-Y-Z locations of 8 points that define the nacelle box, relative to the nacelle position [m]
     REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: TowerRad      ! radius of each ED tower node [m]
+    INTEGER(IntKi) , DIMENSION(1:2)  :: NWaveElevPts      ! number of points for wave elevation visualization [-]
+    REAL(SiKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevXY      ! X-Y locations for WaveElev output (for visualization).  First dimension is the X (1) and Y (2) coordinate.  Second dimension is the point number. [m,-]
+    REAL(SiKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev      ! wave elevation at WaveElevXY; first dimension is time step; second dimension is point number [m,-]
     TYPE(FAST_VTK_BLSurfaceType) , DIMENSION(:), ALLOCATABLE  :: BladeShape      ! AirfoilCoords for each blade [m]
     REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: MorisonRad      ! radius of each Morison node [m]
   END TYPE FAST_VTK_SurfaceType
@@ -174,6 +177,7 @@ IMPLICIT NONE
     CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: ChannelUnits      ! Units for the output channels [-]
     TYPE(ProgDesc) , DIMENSION(NumModules)  :: Module_Ver      ! version information from all modules [-]
     INTEGER(IntKi)  :: VTK_count      ! Number of VTK files written (for naming output files) [-]
+    INTEGER(IntKi)  :: VTK_LastWaveIndx      ! last index into wave array [-]
   END TYPE FAST_OutputFileType
 ! =======================
 ! =========  IceDyn_Data  =======
@@ -730,6 +734,35 @@ IF (ALLOCATED(SrcVTK_SurfaceTypeData%TowerRad)) THEN
   END IF
     DstVTK_SurfaceTypeData%TowerRad = SrcVTK_SurfaceTypeData%TowerRad
 ENDIF
+    DstVTK_SurfaceTypeData%NWaveElevPts = SrcVTK_SurfaceTypeData%NWaveElevPts
+IF (ALLOCATED(SrcVTK_SurfaceTypeData%WaveElevXY)) THEN
+  i1_l = LBOUND(SrcVTK_SurfaceTypeData%WaveElevXY,1)
+  i1_u = UBOUND(SrcVTK_SurfaceTypeData%WaveElevXY,1)
+  i2_l = LBOUND(SrcVTK_SurfaceTypeData%WaveElevXY,2)
+  i2_u = UBOUND(SrcVTK_SurfaceTypeData%WaveElevXY,2)
+  IF (.NOT. ALLOCATED(DstVTK_SurfaceTypeData%WaveElevXY)) THEN 
+    ALLOCATE(DstVTK_SurfaceTypeData%WaveElevXY(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstVTK_SurfaceTypeData%WaveElevXY.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstVTK_SurfaceTypeData%WaveElevXY = SrcVTK_SurfaceTypeData%WaveElevXY
+ENDIF
+IF (ALLOCATED(SrcVTK_SurfaceTypeData%WaveElev)) THEN
+  i1_l = LBOUND(SrcVTK_SurfaceTypeData%WaveElev,1)
+  i1_u = UBOUND(SrcVTK_SurfaceTypeData%WaveElev,1)
+  i2_l = LBOUND(SrcVTK_SurfaceTypeData%WaveElev,2)
+  i2_u = UBOUND(SrcVTK_SurfaceTypeData%WaveElev,2)
+  IF (.NOT. ALLOCATED(DstVTK_SurfaceTypeData%WaveElev)) THEN 
+    ALLOCATE(DstVTK_SurfaceTypeData%WaveElev(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstVTK_SurfaceTypeData%WaveElev.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstVTK_SurfaceTypeData%WaveElev = SrcVTK_SurfaceTypeData%WaveElev
+ENDIF
 IF (ALLOCATED(SrcVTK_SurfaceTypeData%BladeShape)) THEN
   i1_l = LBOUND(SrcVTK_SurfaceTypeData%BladeShape,1)
   i1_u = UBOUND(SrcVTK_SurfaceTypeData%BladeShape,1)
@@ -771,6 +804,12 @@ ENDIF
   ErrMsg  = ""
 IF (ALLOCATED(VTK_SurfaceTypeData%TowerRad)) THEN
   DEALLOCATE(VTK_SurfaceTypeData%TowerRad)
+ENDIF
+IF (ALLOCATED(VTK_SurfaceTypeData%WaveElevXY)) THEN
+  DEALLOCATE(VTK_SurfaceTypeData%WaveElevXY)
+ENDIF
+IF (ALLOCATED(VTK_SurfaceTypeData%WaveElev)) THEN
+  DEALLOCATE(VTK_SurfaceTypeData%WaveElev)
 ENDIF
 IF (ALLOCATED(VTK_SurfaceTypeData%BladeShape)) THEN
 DO i1 = LBOUND(VTK_SurfaceTypeData%BladeShape,1), UBOUND(VTK_SurfaceTypeData%BladeShape,1)
@@ -826,6 +865,17 @@ ENDIF
   IF ( ALLOCATED(InData%TowerRad) ) THEN
     Int_BufSz   = Int_BufSz   + 2*1  ! TowerRad upper/lower bounds for each dimension
       Re_BufSz   = Re_BufSz   + SIZE(InData%TowerRad)  ! TowerRad
+  END IF
+      Int_BufSz  = Int_BufSz  + SIZE(InData%NWaveElevPts)  ! NWaveElevPts
+  Int_BufSz   = Int_BufSz   + 1     ! WaveElevXY allocated yes/no
+  IF ( ALLOCATED(InData%WaveElevXY) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*2  ! WaveElevXY upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveElevXY)  ! WaveElevXY
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! WaveElev allocated yes/no
+  IF ( ALLOCATED(InData%WaveElev) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*2  ! WaveElev upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%WaveElev)  ! WaveElev
   END IF
   Int_BufSz   = Int_BufSz   + 1     ! BladeShape allocated yes/no
   IF ( ALLOCATED(InData%BladeShape) ) THEN
@@ -903,6 +953,40 @@ ENDIF
 
       IF (SIZE(InData%TowerRad)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TowerRad))-1 ) = PACK(InData%TowerRad,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%TowerRad)
+  END IF
+      IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%NWaveElevPts))-1 ) = PACK(InData%NWaveElevPts,.TRUE.)
+      Int_Xferred   = Int_Xferred   + SIZE(InData%NWaveElevPts)
+  IF ( .NOT. ALLOCATED(InData%WaveElevXY) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveElevXY,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveElevXY,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveElevXY,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveElevXY,2)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveElevXY)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElevXY))-1 ) = PACK(InData%WaveElevXY,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElevXY)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%WaveElev) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveElev,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveElev,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%WaveElev,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%WaveElev,2)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%WaveElev)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElev))-1 ) = PACK(InData%WaveElev,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElev)
   END IF
   IF ( .NOT. ALLOCATED(InData%BladeShape) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -1035,6 +1119,69 @@ ENDIF
       IF (SIZE(OutData%TowerRad)>0) OutData%TowerRad = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TowerRad))-1 ), mask1, 0.0_ReKi ), SiKi)
       Re_Xferred   = Re_Xferred   + SIZE(OutData%TowerRad)
     DEALLOCATE(mask1)
+  END IF
+    i1_l = LBOUND(OutData%NWaveElevPts,1)
+    i1_u = UBOUND(OutData%NWaveElevPts,1)
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      OutData%NWaveElevPts = UNPACK( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%NWaveElevPts))-1 ), mask1, 0_IntKi )
+      Int_Xferred   = Int_Xferred   + SIZE(OutData%NWaveElevPts)
+    DEALLOCATE(mask1)
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveElevXY not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveElevXY)) DEALLOCATE(OutData%WaveElevXY)
+    ALLOCATE(OutData%WaveElevXY(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveElevXY.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask2.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask2 = .TRUE. 
+      IF (SIZE(OutData%WaveElevXY)>0) OutData%WaveElevXY = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevXY))-1 ), mask2, 0.0_ReKi ), SiKi)
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevXY)
+    DEALLOCATE(mask2)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! WaveElev not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%WaveElev)) DEALLOCATE(OutData%WaveElev)
+    ALLOCATE(OutData%WaveElev(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%WaveElev.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask2.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask2 = .TRUE. 
+      IF (SIZE(OutData%WaveElev)>0) OutData%WaveElev = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev))-1 ), mask2, 0.0_ReKi ), SiKi)
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev)
+    DEALLOCATE(mask2)
   END IF
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! BladeShape not allocated
     Int_Xferred = Int_Xferred + 1
@@ -1833,6 +1980,7 @@ ENDIF
          IF (ErrStat>=AbortErrLev) RETURN
     ENDDO
     DstOutputFileTypeData%VTK_count = SrcOutputFileTypeData%VTK_count
+    DstOutputFileTypeData%VTK_LastWaveIndx = SrcOutputFileTypeData%VTK_LastWaveIndx
  END SUBROUTINE FAST_CopyOutputFileType
 
  SUBROUTINE FAST_DestroyOutputFileType( OutputFileTypeData, ErrStat, ErrMsg )
@@ -1944,6 +2092,7 @@ ENDDO
       END IF
     END DO
       Int_BufSz  = Int_BufSz  + 1  ! VTK_count
+      Int_BufSz  = Int_BufSz  + 1  ! VTK_LastWaveIndx
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -2083,6 +2232,8 @@ ENDDO
       ENDIF
     END DO
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%VTK_count
+      Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%VTK_LastWaveIndx
       Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE FAST_PackOutputFileType
 
@@ -2304,6 +2455,8 @@ ENDDO
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
     END DO
       OutData%VTK_count = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
+      OutData%VTK_LastWaveIndx = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
  END SUBROUTINE FAST_UnPackOutputFileType
 

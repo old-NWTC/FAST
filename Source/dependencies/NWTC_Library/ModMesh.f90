@@ -45,7 +45,7 @@ MODULE ModMesh
 !   INTEGER :: DEBUG_UNIT = 74
 
    INTEGER,     PARAMETER, PRIVATE :: BUMPUP = 64                !< size element list will be increased when adding an element that does not fit in the currently allocated space; do not set to less than 2
-   CHARACTER(*),PARAMETER, PRIVATE :: VTK_AryFmt = '(3(F30.5))'  !< text format for triplets written to VTK text files
+   CHARACTER(*),PARAMETER          :: VTK_AryFmt = '(3(F30.5))'  !< text format for triplets written to VTK text files
 
 
    INTERFACE MeshConstructElement

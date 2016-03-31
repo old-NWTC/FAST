@@ -1,15 +1,15 @@
 !STARTOFREGISTRYGENERATEDFILE 'SubDyn_Types.f90'
 !
-! WARNING This file is generated automatically by the FAST registry
+! WARNING This file is generated automatically by the FAST registry.
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v3.00.00, 13-Nov-2015)
+! FAST Registry (v3.01.00, 11-Jan-2016)
 !*********************************************************************************************************************************
 ! SubDyn_Types
 !.................................................................................................................................
 ! This file is part of SubDyn.
 !
-! Copyright (C) 2012-2015 National Renewable Energy Laboratory
+! Copyright (C) 2012-2016 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
