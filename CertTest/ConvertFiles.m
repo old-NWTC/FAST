@@ -12,10 +12,13 @@ addpath( genpath( FASTSimulationToolbox ) );
 
 
 %% ------------------------------------------------------------------------
-% Convert FAST v8.10.* files to FAST v8.12.*
+% Convert FAST v8.12.* files to FAST v8.15.*
 % -------------------------------------------------------------------------
+
+%% FAST CertTests
 oldDir = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\CertTest';
 newDir = '.';
+
 
 for i= 1:26
    
@@ -27,6 +30,9 @@ for i= 1:26
         
 end
 
+
+
+
 return
 
 ConvertFAST8_12to15([oldDir filesep 'Test19_noHD.fst'],newDir);
@@ -34,7 +40,6 @@ ConvertFAST8_12to15([oldDir filesep 'Test19_withIce.fst'],newDir);
 ConvertFAST8_12to15([oldDir filesep 'Test21_withIce.fst'],newDir);
 
 return;
-
 
 
 %% ------------------------------------------------------------------------

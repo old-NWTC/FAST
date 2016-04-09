@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-03-28 12:43:49 -0600 (Mon, 28 Mar 2016) $
-! (File) Revision #: $Rev: 668 $
+! File last committed: $Date: 2016-04-05 20:02:30 -0600 (Tue, 05 Apr 2016) $
+! (File) Revision #: $Rev: 669 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/HydroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn
@@ -76,7 +76,7 @@ SUBROUTINE WvStretch_Init(WaveStMod, WtrDpth, NStepWave, NNodes,  &
 
  
    INTEGER,          INTENT(IN   )  :: WaveStMod
-   REAL(ReKi),       INTENT(IN   )  :: WtrDpth
+   REAL(SiKi),       INTENT(IN   )  :: WtrDpth
    INTEGER,          INTENT(IN   )  :: NStepWave
    INTEGER,          INTENT(IN   )  :: NNodes              !< TODO: WHY are there both NNodes and NWaveElev ??? GJH 2/1/2016
    INTEGER,          INTENT(IN   )  :: NWaveElev

@@ -9,7 +9,7 @@
 !.................................................................................................................................
 ! This file is part of AirfoilInfo.
 !
-! Copyright (C) 2012-2016 National Renewable Energy Laboratory
+! Copyright (C) 2012-2015 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: k1_hat      !  [=]
     REAL(ReKi)  :: x_cp_bar      !  [=]
     REAL(ReKi)  :: UACutout      !  [=]
+    REAL(ReKi)  :: filtCutOff      ! low pass filter cut-off frequency for the pitching rate and accelerations [Hz]
   END TYPE AFI_UA_BL_Type
 ! =======================
 ! =========  AFI_Table_Type  =======
@@ -84,6 +85,7 @@ IMPLICIT NONE
 ! =======================
 ! =========  AFInfoType  =======
   TYPE, PUBLIC :: AFInfoType
+    INTEGER(IntKi)  :: InterpOrd      ! Interpolation order [-]
     REAL(ReKi)  :: NonDimArea      ! The non-dimensional area of the airfoil (area/chord^2) [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CdAoAknots      ! Spline knots for the angle of attack for Cd [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CdReKnots      ! Spline knots for the Re for Cd [-]
@@ -206,6 +208,7 @@ CONTAINS
     DstUA_BL_TypeData%k1_hat = SrcUA_BL_TypeData%k1_hat
     DstUA_BL_TypeData%x_cp_bar = SrcUA_BL_TypeData%x_cp_bar
     DstUA_BL_TypeData%UACutout = SrcUA_BL_TypeData%UACutout
+    DstUA_BL_TypeData%filtCutOff = SrcUA_BL_TypeData%filtCutOff
  END SUBROUTINE AFI_CopyUA_BL_Type
 
  SUBROUTINE AFI_DestroyUA_BL_Type( UA_BL_TypeData, ErrStat, ErrMsg )
@@ -285,6 +288,7 @@ CONTAINS
       Re_BufSz   = Re_BufSz   + 1  ! k1_hat
       Re_BufSz   = Re_BufSz   + 1  ! x_cp_bar
       Re_BufSz   = Re_BufSz   + 1  ! UACutout
+      Re_BufSz   = Re_BufSz   + 1  ! filtCutOff
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -373,6 +377,8 @@ CONTAINS
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%x_cp_bar
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%UACutout
+      Re_Xferred   = Re_Xferred   + 1
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%filtCutOff
       Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE AFI_PackUA_BL_Type
 
@@ -473,6 +479,8 @@ CONTAINS
       OutData%x_cp_bar = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
       OutData%UACutout = ReKiBuf( Re_Xferred )
+      Re_Xferred   = Re_Xferred + 1
+      OutData%filtCutOff = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE AFI_UnPackUA_BL_Type
 
@@ -1017,6 +1025,7 @@ ENDIF
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
+    DstAFInfoTypeData%InterpOrd = SrcAFInfoTypeData%InterpOrd
     DstAFInfoTypeData%NonDimArea = SrcAFInfoTypeData%NonDimArea
 IF (ALLOCATED(SrcAFInfoTypeData%CdAoAknots)) THEN
   i1_l = LBOUND(SrcAFInfoTypeData%CdAoAknots,1)
@@ -1370,6 +1379,7 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
+      Int_BufSz  = Int_BufSz  + 1  ! InterpOrd
       Re_BufSz   = Re_BufSz   + 1  ! NonDimArea
   Int_BufSz   = Int_BufSz   + 1     ! CdAoAknots allocated yes/no
   IF ( ALLOCATED(InData%CdAoAknots) ) THEN
@@ -1522,6 +1532,8 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
+      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%InterpOrd
+      Int_Xferred   = Int_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%NonDimArea
       Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. ALLOCATED(InData%CdAoAknots) ) THEN
@@ -1858,6 +1870,8 @@ ENDIF
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
+      OutData%InterpOrd = IntKiBuf( Int_Xferred ) 
+      Int_Xferred   = Int_Xferred + 1
       OutData%NonDimArea = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! CdAoAknots not allocated

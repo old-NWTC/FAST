@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-03-14 12:13:10 -0600 (Mon, 14 Mar 2016) $
-! (File) Revision #: $Rev: 201 $
+! File last committed: $Date: 2016-04-07 10:43:27 -0600 (Thu, 07 Apr 2016) $
+! (File) Revision #: $Rev: 211 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/AeroDyn/AeroDyn.f90 $
 !**********************************************************************************************************************************
 !> AeroDyn is a time-domain aerodynamics module for horizontal-axis wind turbines.
@@ -791,7 +791,6 @@ subroutine Init_u( u, p, InputFileData, InitInp, errStat, errMsg )
          u%BladeMotion(k)%Orientation     = u%BladeMotion(k)%RefOrientation
          u%BladeMotion(k)%TranslationDisp = 0.0_R8Ki
          u%BladeMotion(k)%TranslationVel  = 0.0_ReKi
-         u%BladeMotion(k)%RotationVel     = 0.0_ReKi
    
    end do !k=numBlades
    

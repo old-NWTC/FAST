@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
 ! LICENSING
-! Copyright (C) 2015  National Renewable Energy Laboratory
+! Copyright (C) 2015-2016  National Renewable Energy Laboratory
 !
 !    This file is part of AeroDyn.
 !
@@ -39,7 +39,7 @@ MODULE AirfoilInfo
    PUBLIC                                       :: AFI_Init ! routine to initialize AirfoilInfo parameters
    PUBLIC                                       :: AFI_GetAirfoilParams ! routine to calculate Airfoil parameters
 
-   TYPE(ProgDesc), PARAMETER                    :: AFI_Ver = ProgDesc( 'AirfoilInfo', 'v1.00.01a-bjj', '11-May-2015')               ! The name, version, and date of AirfoilInfo.
+   TYPE(ProgDesc), PARAMETER                    :: AFI_Ver = ProgDesc( 'AirfoilInfo', 'v1.01.00a-bjj', '5-Apr-2016')               ! The name, version, and date of AirfoilInfo.
 
 
 CONTAINS
@@ -373,37 +373,39 @@ CONTAINS
             ENDIF
 
             
-#ifdef LINEAR_INTERP
-
-            ! use this for linear interpolation (sets the higher order coeffs to zero):
-
                ! Compute the one set of coefficients of the piecewise polynomials for the irregularly-spaced data.
                ! Unlike the 2-D interpolation in which we use diffent knots for each airfoil coefficient, we can do
                ! the 1-D stuff all at once.
 
-            CALL CubicLinSplineInitM ( p%AFInfo(File)%Table(1)%Alpha &
-                                  , p%AFInfo(File)%Table(1)%Coefs &
-                                  , p%AFInfo(File)%Table(1)%SplineCoefs &
-                                  , ErrStat2, ErrMsg2 )
-               CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+            
+            
+            if ( p%AFInfo(File)%InterpOrd == 3_IntKi ) then
+               
+               ! bjj: what happens at the end points (these are periodic, so we should maybe extend the tables to make sure the end point?) 
 
-#else
-
-          ! use this for cubic splines:
-      
-               ! Compute the one set of coefficients of the piecewise polynomials for the irregularly-spaced data.
-               ! Unlike the 2-D interpolation in which we use diffent knots for each airfoil coefficient, we can do
-               ! the 1-D stuff all at once.
-
-            CALL CubicSplineInitM ( p%AFInfo(File)%Table(1)%Alpha &
-                                  , p%AFInfo(File)%Table(1)%Coefs &
-                                  , p%AFInfo(File)%Table(1)%SplineCoefs &
-                                  , ErrStat2, ErrMsg2 )
+                  ! use this for cubic splines:
+               CALL CubicSplineInitM ( p%AFInfo(File)%Table(1)%Alpha &
+                                     , p%AFInfo(File)%Table(1)%Coefs &
+                                     , p%AFInfo(File)%Table(1)%SplineCoefs &
+                                     , ErrStat2, ErrMsg2 )
                CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
                
-#endif
+            else
+               
+                  ! use this for linear interpolation (sets the higher order coeffs to zero):
+               
+                  ! This is not the greatest way to get linear interpolation, but then we can use the same cubic spline routine
+                  ! later without checking interp order there
+               CALL CubicLinSplineInitM ( p%AFInfo(File)%Table(1)%Alpha &
+                                     , p%AFInfo(File)%Table(1)%Coefs &
+                                     , p%AFInfo(File)%Table(1)%SplineCoefs &
+                                     , ErrStat2, ErrMsg2 )
+               CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
                
                
+            end if
+            
+                              
          ENDIF ! ( p%AFInfo(File)%NumTabs > 1 )
 
 
@@ -504,6 +506,7 @@ CONTAINS
 
       TYPE (FileInfoType)                     :: FileInfo                      ! The derived type for holding the file information.
 
+      INTEGER(IntKi)                          :: DefaultInterpOrd              ! value of default interp order
       INTEGER(IntKi)                          :: ErrStat2                      ! Error status local to this routine.
       CHARACTER(ErrMsgLen)                    :: ErrMsg2
       CHARACTER(*), PARAMETER                 :: RoutineName = 'ReadAFfile'
@@ -529,6 +532,13 @@ CONTAINS
 
       CurLine = 1
 
+   DefaultInterpOrd = 3      
+#ifdef LINEAR_INTERP
+   DefaultInterpOrd = 1      
+#endif
+      
+      CALL ParseVarWDefault ( FileInfo, CurLine, 'InterpOrd', AFInfo%InterpOrd, DefaultInterpOrd, ErrStat2, ErrMsg2, UnEc )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
          ! These first two parameters are optional, so we don't check for errors. ! bjj: huh???? 
       
@@ -736,6 +746,9 @@ CONTAINS
                CALL ParseVarWDefault ( FileInfo, CurLine, 'UACutout', AFInfo%Table(Table)%UA_BL%UACutout, 45.0_ReKi, ErrStat2, ErrMsg2, UnEc )
                   CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
 
+               CALL ParseVarWDefault ( FileInfo, CurLine, 'filtCutOff', AFInfo%Table(Table)%UA_BL%filtCutOff, 100000.0_ReKi, ErrStat2, ErrMsg2, UnEc )
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName )
+                  
                IF (ErrStat >= AbortErrLev) THEN
                   CALL Cleanup()
                   RETURN
@@ -861,13 +874,12 @@ CONTAINS
    END SUBROUTINE ReadAFfile
       
       
-   subroutine AFI_GetAirfoilParams( AFInfo, M, Re, alpha, alpha0, alpha1, alpha2, eta_e, C_nalpha, C_nalpha_circ, T_f0, T_V0, T_p, T_VL, St_sh, &
-                                    b1, b2, b5, A1, A2, A5, S1, S2, S3, S4, Cn1, Cn2, Cd0, Cm0, k0, k1, k2, k3, k1_hat, x_cp_bar, errMsg, errStat )     
+   subroutine AFI_GetAirfoilParams( AFInfo, M, Re, alpha0, alpha1, alpha2, eta_e, C_nalpha, C_nalpha_circ, T_f0, T_V0, T_p, T_VL, St_sh, &
+                                    b1, b2, b5, A1, A2, A5, S1, S2, S3, S4, Cn1, Cn2, Cd0, Cm0, k0, k1, k2, k3, k1_hat, x_cp_bar, filtCutOff, errMsg, errStat )     
 
    type(AFInfoType), intent(in   )       :: AFInfo                        ! The derived type for holding the constant parameters for this airfoil.
    real(ReKi),       intent(in   )       :: M                             ! mach number
    real(ReKi),       intent(in   )       :: Re                            ! Reynold's number
-   real(ReKi),       intent(in   )       :: alpha                         !
    
    real(ReKi),       intent(  out)       :: alpha0                        ! zero lift angle of attack (radians)
    real(ReKi),       intent(  out)       :: alpha1                        ! angle of attack at f = 0.7, approximately the stall angle; for alpha >= alpha0 (radians)
@@ -900,6 +912,7 @@ CONTAINS
    real(ReKi),       intent(  out)       :: k3                            ! airfoil parameter in the x_cp_hat curve best-fit
    real(ReKi),       intent(  out)       :: k1_hat                        !
    real(ReKi),       intent(  out)       :: x_cp_bar                      ! airfoil parameter for calulating x_cp_v
+   real(ReKi),       intent(  out)       :: filtCutOff                    ! airfoil parameter for the low-pass cut-off frequency for pitching rate and accelerations (Hz)
    integer(IntKi),   intent(  out)       :: errStat                       ! Error status. 
    character(*),     intent(  out)       :: errMsg                        ! Error message.
       
@@ -938,7 +951,7 @@ CONTAINS
    k3             =  AFInfo%Table(1)%UA_BL%k3            !0.0_ReKi
    k1_hat         =  AFInfo%Table(1)%UA_BL%k1_hat        !0.0_ReKi
    x_cp_bar       =  AFInfo%Table(1)%UA_BL%x_cp_bar      !0.2_ReKi
-   
+   filtCutOff     =  AFInfo%Table(1)%UA_BL%filtCutOff    ! 5.0_ReKi  Hz
    
    C_nalpha_circ  =  C_nalpha / sqrt(1.0_ReKi-M**2)
      ! Cn1=1.9 Tp=1.7 Tf=3., Tv=6 Tvl=11, Cd0=0.012
