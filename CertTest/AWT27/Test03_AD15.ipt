@@ -50,16 +50,16 @@ False         UseBlCm            - Include aerodynamic pitching moment in calcul
          10   NumTwrNds         - Number of tower nodes used in the analysis  (-) [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
 TwrElev        TwrDiam        TwrCd
 (m)              (m)           (-)
- 0.0            0.822368       0.7296
- 5.0            0.822368       0.7296
-10.0            0.822368       0.7296
-15.0            0.822368       0.7296
-20.0            0.822368       0.7296
-25.0            0.822368       0.7296
-30.0            0.822368       0.7296
-35.0            0.822368       0.7296
-40.0            0.822368       0.7296
-41.98           0.822368       0.7296
+0.0000000E+00  8.2236800E-01  7.2960000E-01  
+5.0000000E+00  8.2236800E-01  7.2960000E-01  
+1.0000000E+01  8.2236800E-01  7.2960000E-01  
+1.5000000E+01  8.2236800E-01  7.2960000E-01  
+2.0000000E+01  8.2236800E-01  7.2960000E-01  
+2.5000000E+01  8.2236800E-01  7.2960000E-01  
+3.0000000E+01  8.2236800E-01  7.2960000E-01  
+3.5000000E+01  8.2236800E-01  7.2960000E-01  
+4.0000000E+01  8.2236800E-01  7.2960000E-01  
+4.1980000E+01  8.2236800E-01  7.2960000E-01  
 ======  Outputs  ====================================================================================
 False         SumPrint            - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
           3   NBlOuts             - Number of blade node outputs [0 - 9] (-)

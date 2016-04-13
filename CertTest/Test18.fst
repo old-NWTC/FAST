@@ -3,8 +3,8 @@ FAST Certification Test #18: NREL 5.0 MW Baseline Wind Turbine (Onshore)
 ---------------------- SIMULATION CONTROL --------------------------------------
 true          Echo            - Echo input data to <RootName>.ech (flag)
 "FATAL"       AbortLevel      - Error level when simulation should abort (string) {"WARNING", "SEVERE", "FATAL"}
-          2   TMax            - Total run time (s)
-     0.0125   DT              - Recommended module time step (s)
+         60   TMax            - Total run time (s)
+    0.00625   DT              - Recommended module time step (s)
           2   InterpOrder     - Interpolation order for input/output time history (-) {1=linear, 2=quadratic}
           0   NumCrctn        - Number of correction iterations (-) {0=explicit calculation, i.e., no corrections}
       99999   DT_UJac         - Time between calls to get Jacobians (s)
@@ -40,7 +40,7 @@ True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
 True          TabDelim        - Use tab delimiters in text tabular output file? (flag) {uses spaces if false}
 "ES10.3E2"    OutFmt          - Format used for text tabular output, excluding the time channel.  Resulting field should be 10 characters. (quoted string)
 ---------------------- VISUALIZATION ------------------------------------------
-          0   WrVTK           - VTK Visualization data output: (switch) {0=none; 1=initialization data only; 2=animation}
+          0   WrVTK           - VTK visualization data output: (switch) {0=none; 1=initialization data only; 2=animation}
           1   VTK_type        - Type of VTK visualization data: (switch) {1=surfaces; 2=basic meshes (lines/points); 3=all meshes (debug)} [unused if WrVTK=0]
 true          VTK_fields      - Write mesh fields to VTK data files? (flag) {true/false} [unused if WrVTK=0]
          15   VTK_fps         - Frame rate for VTK output (frames per second){will use closest integer multiple of DT} [used only if WrVTK=2]
