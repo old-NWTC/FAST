@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-01-06 13:10:00 -0700 (Wed, 06 Jan 2016) $
-! (File) Revision #: $Rev: 364 $
+! File last committed: $Date: 2016-04-12 10:49:50 -0600 (Tue, 12 Apr 2016) $
+! (File) Revision #: $Rev: 366 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/trunk/Source/SubDyn.f90 $
 !**********************************************************************************************************************************
 !> SubDyn is a time-domain structural-dynamics module for multi-member fixed-bottom substructures.
@@ -42,7 +42,7 @@ Module SubDyn
    !       this will add additional matrices to the SubDyn summary file.
    !............................
 
-   TYPE(ProgDesc), PARAMETER  :: SD_ProgDesc = ProgDesc( 'SubDyn', 'v1.03.00a-bjj', '6-Jan-2016' )
+   TYPE(ProgDesc), PARAMETER  :: SD_ProgDesc = ProgDesc( 'SubDyn', 'v1.03.00', '11-Apr-2016' )
       
    ! ..... Public Subroutines ...................................................................................................
 

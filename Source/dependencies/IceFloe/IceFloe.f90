@@ -19,8 +19,8 @@
 ! modified 8-Jan-2016 by B. Jonkman, NREL to conform to changes in FAST Modularization framework (added MiscVars)
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-01-09 19:06:25 -0700 (Sat, 09 Jan 2016) $
-! (File) Revision #: $Rev: 1203 $
+! File last committed: $Date: 2016-04-12 21:16:48 -0600 (Tue, 12 Apr 2016) $
+! (File) Revision #: $Rev: 1251 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFloe.f90 $
 !**********************************************************************************************************************************!
 
@@ -126,9 +126,14 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, m, Interval, In
       InitOut%Ver = IceFloe_Ver
       p%initFlag = .false.
       
-    ! Define initial system states here:
-
+   ! dummy variables for the FAST framework:
+   ! (initialized to prevent compiler warnings about INTENT(OUT) variables)
       x%DummyContStateVar = 0.
+      m%DummyMiscVar = 0
+      OtherState%DummyOtherState = 0
+      z%DummyConstrStateVar = 0.0_SiKi
+      xd%DummyDiscStateVar = 0.0_SiKi      
+      
 
       ! Display the module information
       CALL DispNVD( IceFloe_Ver )

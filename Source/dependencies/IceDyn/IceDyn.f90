@@ -97,7 +97,7 @@ SUBROUTINE IceD_Init( InitInp, u, p, x, xd, z, OtherState, y, m, Interval, InitO
 
    ErrStat = ErrID_None
    ErrMsg  = ""
-
+   
 
       ! Initialize the NWTC Subroutine Library
 

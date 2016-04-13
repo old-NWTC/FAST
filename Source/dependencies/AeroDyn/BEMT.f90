@@ -41,7 +41,7 @@ module BEMT
    
    private
    
-   type(ProgDesc), parameter  :: BEMT_Ver = ProgDesc( 'BEM', 'v1.00.00a-gjh', '8-March-2016' )
+   type(ProgDesc), parameter  :: BEMT_Ver = ProgDesc( 'BEM', 'v1.01.00a', '12-Apr-2016' )
    character(*),   parameter  :: BEMT_Nickname = 'BEM'
    
    ! ..... Public Subroutines ...................................................................................................
@@ -1541,7 +1541,7 @@ subroutine BEMT_UnCoupledSolve( phiIn, numBlades, airDens, mu, AFInfo, rlocal, c
    
    
    !# ------ BEM solution method see (Ning, doi:10.1002/we.1636) ------
-#ifndef CHECK_UA_STATE_DIFF
+   
       ! See if the previous value of phi still satisfies the residual equation
    if ( .NOT. EqualRealNos(phiIn, 0.0_ReKi) ) then  ! If the previous phi was 0.0, then we need to perform the solve, because we simply bail if phi is 0.0!
       AOA = phiIn - theta
@@ -1556,7 +1556,7 @@ subroutine BEMT_UnCoupledSolve( phiIn, numBlades, airDens, mu, AFInfo, rlocal, c
          return
       end if
    end if
-#endif   
+   
    
       
       ! Find out what bracketed region we are going to look for the solution to the residual equation

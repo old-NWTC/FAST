@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-02-02 11:53:11 -0700 (Tue, 02 Feb 2016) $
-! (File) Revision #: $Rev: 213 $
+! File last committed: $Date: 2016-04-11 21:31:44 -0600 (Mon, 11 Apr 2016) $
+! (File) Revision #: $Rev: 219 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/AeroDyn14.f90 $
 !**********************************************************************************************************************************
 !> Module for the old aerodynamic routines. This module is for loose coupling only, without linearization, because it does not
@@ -34,7 +34,7 @@ MODULE AeroDyn14
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: AD14_Ver = ProgDesc( 'AeroDyn14', 'v14.05.00a-bjj', '5-Jan-2016' )
+   TYPE(ProgDesc), PARAMETER            :: AD14_Ver = ProgDesc( 'AeroDyn14', 'v14.05.00a-bjj', '11-Apr-2016' )
 
       ! ..... Public Subroutines ............
 

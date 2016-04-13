@@ -146,7 +146,13 @@ real(ReKi) function Get_f_from_Lookup( UAMod, Re, alpha, alpha0, C_nalpha_circ, 
    Cn =  Cl*cos(alpha) + (Cd-Cd0)*sin(alpha)
    denom = (C_nalpha_circ*(alpha-alpha0))
    
+   
+! #ifndef CHECK_DENOM_DIFF
    if (abs(denom) < .01) then
+!#else
+!   if (EqualRealNos(denom,0.0_ReKi)) then
+!#endif   
+
        Get_f_from_Lookup = 1.0_ReKi
        return
    end if
@@ -1458,6 +1464,8 @@ subroutine UA_CalcOutput( u, p, xd, OtherState, AFInfo, y, misc, ErrStat, ErrMsg
       Cm_temp         = 0.0_ReKi
       T_f               = 0.0_ReKi
       T_V               = 0.0_ReKi
+      alpha_filt_cur    = 0.0_ReKi
+      Cm_alpha_nc       = 0.0_ReKi
    else
       M           = u%U / p%a_s
       
@@ -1537,6 +1545,11 @@ subroutine UA_CalcOutput( u, p, xd, OtherState, AFInfo, y, misc, ErrStat, ErrMsg
       s1 = size(AFInfo%Table(1)%Coefs,2)
       if (s1 < 3) then      
          y%Cm = 0.0_ReKi
+         Cm_alpha_nc = 0.0_ReKi        
+         Cm_temp     = 0.0_ReKi
+         Cm_v        = 0.0_ReKi
+         alpha_prime_f = 0.0_ReKi
+     
       else
             ! Eqn 1.55
             ! Compute Cn_FS using Eqn 1.35 or 1.36 depending on option selected
@@ -1552,7 +1565,11 @@ subroutine UA_CalcOutput( u, p, xd, OtherState, AFInfo, y, misc, ErrStat, ErrMsg
             call GetSteadyOutputs(AFInfo, alpha_f, Cl_temp, Cd_temp, Cm_temp, Cd0, ErrStat2, ErrMsg2)
                call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
             Cn_temp = Cl_temp*cos(alpha_f) + (Cd_temp-Cd0)*sin(alpha_f)
+!#ifndef CHECK_DENOM_DIFF
             if (abs(Cn_temp) < 0.01 ) then
+!#else
+!            if (EqualRealNos(Cn_temp,0.0_ReKi)) then
+!#endif   
                fprimeprime_m = 1.0
             else            
                fprimeprime_m = (Cm_temp - Cm0) / Cn_temp 
@@ -1564,8 +1581,8 @@ subroutine UA_CalcOutput( u, p, xd, OtherState, AFInfo, y, misc, ErrStat, ErrMsg
       
             ! Eqn 1.21 + 1.23 + 1.25a
          Cm_alpha_nc = - Cn_alpha_nc / 4.0_ReKi 
-         Cm_common = Cm_q_circ + Cm_alpha_nc + Cm_q_nc
-         Cm_Lookup = 0.0_ReKi
+         Cm_common   = Cm_q_circ + Cm_alpha_nc + Cm_q_nc
+         Cm_temp     = 0.0_ReKi
    
          if ( p%UAMod == 1 ) then
                ! Eqn 1.40
@@ -1636,7 +1653,7 @@ subroutine UA_CalcOutput( u, p, xd, OtherState, AFInfo, y, misc, ErrStat, ErrMsg
       y%WriteOutput(iOffset+23)    = Cm_v
       y%WriteOutput(iOffset+24)    = alpha_prime_f
       y%WriteOutput(iOffset+25)    = Dalphaf
-      y%WriteOutput(iOffset+26)    = Cm_Lookup
+      y%WriteOutput(iOffset+26)    = Cm_temp
       y%WriteOutput(iOffset+27)    = T_f
       y%WriteOutput(iOffset+28)    = T_V
       y%WriteOutput(iOffset+29)    = 2.0_ReKi*u%U*p%dt/p%c(misc%iBladeNode, misc%iBlade)   

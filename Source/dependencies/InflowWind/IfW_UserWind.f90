@@ -1,13 +1,13 @@
-MODULE IfW_UserWind
 !> This module is a placeholder for any user defined wind types.  The end user can use this as a template for their code.
 !! @note  This module does not need to exactly conform to the FAST Modularization Framework standards.  Three routines are required
 !! though:
 !!    -- IfW_UserWind_Init          -- Load or create any wind data.  Only called at the start of FAST.
 !!    -- IfW_UserWind_CalcOutput    -- This will be called at each timestep with a series of data points to give wind velocities at.
 !!    -- IfW_UserWind_End           -- clear out any stored stuff.  Only called at the end of FAST.
+MODULE IfW_UserWind
 !**********************************************************************************************************************************
 ! LICENSING
-! Copyright (C) 2015  National Renewable Energy Laboratory
+! Copyright (C) 2015-2016  National Renewable Energy Laboratory
 !
 !    This file is part of InflowWind.
 !
@@ -48,7 +48,7 @@ CONTAINS
 !----------------------------------------------------------------------------------------------------
 !> A subroutine to initialize the UserWind module. This routine will initialize the module. 
 !----------------------------------------------------------------------------------------------------
-SUBROUTINE IfW_UserWind_Init(InitData, PositionXYZ, ParamData, OutData, MiscVars, Interval, InitOutData, ErrStat, ErrMsg)
+SUBROUTINE IfW_UserWind_Init(InitData, ParamData, MiscVars, Interval, InitOutData, ErrStat, ErrMsg)
 
 
    IMPLICIT                                                       NONE
@@ -61,12 +61,8 @@ SUBROUTINE IfW_UserWind_Init(InitData, PositionXYZ, ParamData, OutData, MiscVars
             !  Anything this code needs to be able to generate or read its data in should be passed into here through InitData.
    TYPE(IfW_UserWind_InitInputType),            INTENT(IN   )  :: InitData          !< Input data for initialization.
 
-   REAL(ReKi),       ALLOCATABLE,               INTENT(INOUT)  :: PositionXYZ(:,:)  !< Array of positions to find wind speed at.  Can be empty for now.
-
             !  Store all data that does not change during the simulation in here (including the wind data field).  This cannot be changed later.
    TYPE(IfW_UserWind_ParameterType),            INTENT(  OUT)  :: ParamData         !< Parameters.
-
-   TYPE(IfW_UserWind_OutputType),               INTENT(  OUT)  :: OutData           !< Initial output.  This can be empty at this point.
 
             !  Store things that change during the simulation (indices to arrays for quicker searching etc).
    TYPE(IfW_UserWind_MiscVarType),              INTENT(  OUT)  :: MiscVars          !< Misc variables for optimization (not copied in glue code)
@@ -102,25 +98,6 @@ SUBROUTINE IfW_UserWind_Init(InitData, PositionXYZ, ParamData, OutData, MiscVars
    TmpErrMsg   = ""
 
 
-      ! Check that the PositionXYZ array has been allocated.  The OutData%Velocity does not need to be allocated yet.
-   IF ( .NOT. ALLOCATED(PositionXYZ) ) THEN
-      CALL SetErrStat(ErrID_Fatal,' Programming error: The PositionXYZ array has not been allocated prior to call to '//RoutineName//'.',   &
-                  ErrStat,ErrMsg,'')
-   ENDIF
-
-   IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! Check that the PositionXYZ and OutData%Velocity arrays are the same size.
-   IF ( ALLOCATED(OutData%Velocity) .AND. & 
-        ( (SIZE( PositionXYZ, DIM = 1 ) /= SIZE( OutData%Velocity, DIM = 1 )) .OR. &
-          (SIZE( PositionXYZ, DIM = 2 ) /= SIZE( OutData%Velocity, DIM = 2 ))      )  ) THEN
-      CALL SetErrStat(ErrID_Fatal,' Programming error: Different number of XYZ coordinates and expected output velocities.', &
-                  ErrStat,ErrMsg,RoutineName)
-      RETURN
-   ENDIF
-
-
       ! Get a unit number to use
 
    CALL GetNewUnit(UnitWind, TmpErrStat, TmpErrMsg)
@@ -136,7 +113,7 @@ SUBROUTINE IfW_UserWind_Init(InitData, PositionXYZ, ParamData, OutData, MiscVars
 !   ParamData%RefHt            =  InitData%ReferenceHeight
 !   ParamData%RefLength        =  InitData%RefLength
 !   ParamData%WindFileName     =  InitData%WindFileName
-
+    ParamData%WindFileName     = ""
 
       !-------------------------------------------------------------------------------------------------
       ! Open the file for reading.  Proceed with file parsing etc.  Populate your wind field here.
@@ -147,6 +124,11 @@ SUBROUTINE IfW_UserWind_Init(InitData, PositionXYZ, ParamData, OutData, MiscVars
 !   IF ( ErrStat >= AbortErrLev ) RETURN
 
 
+      !-------------------------------------------------------------------------------------------------
+      ! Set the MiscVars:
+      !-------------------------------------------------------------------------------------------------
+      
+    MiscVars%DummyMiscVar = 0
 
 
       !-------------------------------------------------------------------------------------------------
