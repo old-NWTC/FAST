@@ -16,7 +16,7 @@
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|Win32" OutputDirectory="..\..\bin\" ConfigurationType="typeDynamicLibrary">
 				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Preprocess="preprocessYes" PreprocessorDefinitions="COMPILE_SIMULINK" UseMkl="mklSequential"/>
-				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\$(ProjectName)_$(PlatformName).dll" SuppressStartupBanner="true" GenerateManifest="false" SubSystem="subSystemWindows" StackReserveSize="999999999" LargeAddressAware="addrAwareLarge" LinkDLL="true" AdditionalDependencies="..\..\Source\dependencies\MAP\MAP_$(PlatformName).lib &quot;C:\Program Files (x86)\MATLAB\R2014b\extern\lib\win32\microsoft\libmex.lib&quot;"/>
+				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\$(ProjectName)_$(PlatformName).dll" SuppressStartupBanner="true" GenerateManifest="false" SubSystem="subSystemWindows" LargeAddressAware="addrAwareLarge" LinkDLL="true" AdditionalDependencies="..\..\Source\dependencies\MAP\MAP_$(PlatformName).lib &quot;C:\Program Files (x86)\MATLAB\R2014b\extern\lib\win32\microsoft\libmex.lib&quot;"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
@@ -99,13 +99,9 @@
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn_IO.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\AirfoilInfo.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMT.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMTCoupled.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMTUncoupled.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\BladeElement.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\Brent.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\fmin_fcn.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\mod_root1dim.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\nwtc_bemt_minpack.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\UnsteadyAero.f90"/></Filter>
 		<Filter Name="AeroDyn14">
 		<Filter Name="DWM">
@@ -127,8 +123,8 @@
 		<Filter Name="ElastoDyn">
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ElastoDyn_Types.f90"/></Filter>
-		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ElastoDyn.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ED_UserSubs.f90"/>
+		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ElastoDyn.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ElastoDyn\ElastoDyn_IO.f90"/></Filter>
 		<Filter Name="FAST">
 		<Filter Name="RegistryFiles">
