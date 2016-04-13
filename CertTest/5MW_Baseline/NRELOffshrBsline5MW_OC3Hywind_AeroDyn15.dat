@@ -1,16 +1,16 @@
 ------- AERODYN v15.00.* INPUT FILE ------------------------------------------------
-AOC aerodynamic parameters for FAST Certification Test #6.
+NREL 5.0 MW offshore baseline aerodynamic input properties.
 ======  General Options  ============================================================================
 False         Echo               - Echo the input to "<rootname>.AD.ech"?  (flag)
-"DEFAULT"     DTAero             - Time interval for aerodynamic calculations {or "default"} (s)
+"default"     DTAero             - Time interval for aerodynamic calculations {or "default"} (s)
           1   WakeMod            - Type of wake/induction model (switch) {0=none, 1=BEMT}
-          1   AFAeroMod          - Type of blade airfoil aerodynamics model (switch) {1=steady model, 2=Beddoes-Leishman unsteady model}
-          0   TwrPotent          - Type tower influence on wind based on potential flow around the tower (switch) {0=none, 1=baseline potential flow, 2=potential flow with Bak correction}
-True          TwrShadow          – Calculate tower influence on wind based on downstream tower shadow? (flag)
-False         TwrAero            - Calculate tower aerodynamic loads? (flag)
+          2   AFAeroMod          - Type of blade airfoil aerodynamics model (switch) {1=steady model, 2=Beddoes-Leishman unsteady model}
+          1   TwrPotent          - Type tower influence on wind based on potential flow around the tower (switch) {0=none, 1=baseline potential flow, 2=potential flow with Bak correction}
+False         TwrShadow          – Calculate tower influence on wind based on downstream tower shadow? (flag)
+True          TwrAero            - Calculate tower aerodynamic loads? (flag)
 ======  Environmental Conditions  ===================================================================
-     0.9526   AirDens            - Air density (kg/m^3)
- 1.4639E-05   KinVisc            - Kinematic air viscosity (m^2/s)
+      1.225   AirDens            - Air density (kg/m^3)
+  1.464E-05   KinVisc            - Kinematic air viscosity (m^2/s)
         335   SpdSound           - Speed of sound (m/s)
 ======  Blade-Element/Momentum Theory Options  ====================================================== [used only when WakeMod=1]
           2   SkewMod            - Type of skewed-wake correction model (switch) {1=uncoupled, 2=Pitt/Peters, 3=coupled} [used only when WakeMod=1]
@@ -28,39 +28,45 @@ True          FLookup            - Flag to indicate whether a lookup for f' will
           1   InCol_Alfa         - The column in the airfoil tables that contains the angle of attack (-)
           2   InCol_Cl           - The column in the airfoil tables that contains the lift coefficient (-)
           3   InCol_Cd           - The column in the airfoil tables that contains the drag coefficient (-)
-          0   InCol_Cm           - The column in the airfoil tables that contains the pitching-moment coefficient; use zero if there is no Cm column (-)
+          4   InCol_Cm           - The column in the airfoil tables that contains the pitching-moment coefficient; use zero if there is no Cm column (-)
           0   InCol_Cpmin        - The column in the airfoil tables that contains the drag coefficient; use zero if there is no Cpmin column (-)
-          5   NumAFfiles         - Number of airfoil files used (-)
-"Airfoils/S814_1.dat"    AFNames            - Airfoil file names (NumAFfiles lines) (quoted strings)
-"Airfoils/S814_15.dat"
-"Airfoils/S812_15.dat"
-"Airfoils/S812_2.dat"
-"Airfoils/S813_15.dat"
+          8   NumAFfiles         - Number of airfoil files used (-)
+"Airfoils/Cylinder1.dat"    AFNames            - Airfoil file names (NumAFfiles lines) (quoted strings)
+"Airfoils/Cylinder2.dat"
+"Airfoils/DU40_A17.dat"
+"Airfoils/DU35_A17.dat"
+"Airfoils/DU30_A17.dat"
+"Airfoils/DU25_A17.dat"
+"Airfoils/DU21_A17.dat"
+"Airfoils/NACA64_A17.dat"
 ======  Rotor/Blade Properties  =====================================================================
-False         UseBlCm            - Include aerodynamic pitching moment in calculations?  (flag)
-"AOC_AeroDyn_blade.dat"    ADBlFile(1)        - Name of file containing distributed aerodynamic properties for Blade #1 (-)
-"AOC_AeroDyn_blade.dat"    ADBlFile(2)        - Name of file containing distributed aerodynamic properties for Blade #2 (-)
-"AOC_AeroDyn_blade.dat"    ADBlFile(3)        - Name of file containing distributed aerodynamic properties for Blade #3 (-) [unused if NumBl < 3]
+True          UseBlCm            - Include aerodynamic pitching moment in calculations?  (flag)
+"NRELOffshrBsline5MW_AeroDyn_blade.dat"    ADBlFile(1)        - Name of file containing distributed aerodynamic properties for Blade #1 (-)
+"NRELOffshrBsline5MW_AeroDyn_blade.dat"    ADBlFile(2)        - Name of file containing distributed aerodynamic properties for Blade #2 (-)
+"NRELOffshrBsline5MW_AeroDyn_blade.dat"    ADBlFile(3)        - Name of file containing distributed aerodynamic properties for Blade #3 (-) [unused if NumBl < 3]
 ======  Tower Influence and Aerodynamics ============================================================= [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
-         10   NumTwrNds         - Number of tower nodes used in the analysis  (-) [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
+    11        NumTwrNds          - Number of tower nodes used in the analysis  (-) [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
 TwrElev        TwrDiam        TwrCd
 (m)              (m)           (-)
-16.0            0.059656972    2.0115
-17.0            0.059656972    2.0115
-18.0            0.059656972    2.0115
-19.0            0.059656972    2.0115
-20.0            0.059656972    2.0115
-21.0            0.059656972    2.0115
-22.0            0.059656972    2.0115
-23.0            0.059656972    2.0115
-24.0            0.059656972    2.0115
-24.40           0.059656972    2.0115
+10.00          6.50           1.0
+17.76          6.24           1.0
+25.52          5.97           1.0
+33.28          5.71           1.0
+41.04          5.45           1.0
+48.80          5.18           1.0
+56.56          4.92           1.0
+64.32          4.66           1.0
+72.08          4.40           1.0
+79.84          4.13           1.0
+87.60          3.87           1.0
 ======  Outputs  ====================================================================================
-False         SumPrint            - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
-          3   NBlOuts             - Number of blade node outputs [0 - 9] (-)
- 1, 7, 12     BlOutNd             - Blade nodes whose values will be output  (-)
-          0   NTwOuts             - Number of tower node outputs [0 - 9]  (-)
- 1, 2, 3, 4, 5     TwOutNd             - Tower nodes whose values will be output  (-)
-                   OutList             - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
+True          SumPrint           - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
+         3    NBlOuts            - Number of blade node outputs [0 - 9] (-)
+ 1, 9, 19     BlOutNd            - Blade nodes whose values will be output  (-)
+         0    NTwOuts            - Number of tower node outputs [0 - 9]  (-)
+ 1, 2, 6      TwOutNd            - Tower nodes whose values will be output  (-)
+              OutList            - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
+"RtArea"
+"B1N3Clrnc, B2N3Clrnc, B3N3Clrnc"
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------

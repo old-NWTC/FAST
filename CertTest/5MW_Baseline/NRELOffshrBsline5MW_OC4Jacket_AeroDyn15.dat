@@ -4,10 +4,10 @@ NREL 5.0 MW offshore baseline aerodynamic input properties with OC4 jacket tower
 False         Echo               - Echo the input to "<rootname>.AD.ech"?  (flag)
 "DEFAULT"     DTAero             - Time interval for aerodynamic calculations {or "default"} (s)
           1   WakeMod            - Type of wake/induction model (switch) {0=none, 1=BEMT}
-2          1   AFAeroMod          - Type of blade airfoil aerodynamics model (switch) {1=steady model, 2=Beddoes-Leishman unsteady model}
+          2   AFAeroMod          - Type of blade airfoil aerodynamics model (switch) {1=steady model, 2=Beddoes-Leishman unsteady model}
           1   TwrPotent          - Type tower influence on wind based on potential flow around the tower (switch) {0=none, 1=baseline potential flow, 2=potential flow with Bak correction}
 False         TwrShadow          – Calculate tower influence on wind based on downstream tower shadow? (flag)
-False         TwrAero            - Calculate tower aerodynamic loads? (flag)
+True          TwrAero            - Calculate tower aerodynamic loads? (flag)
 ======  Environmental Conditions  ===================================================================
       1.225   AirDens            - Air density (kg/m^3)
   1.464E-05   KinVisc            - Kinematic air viscosity (m^2/s)
@@ -45,20 +45,18 @@ True          UseBlCm            - Include aerodynamic pitching moment in calcul
 "NRELOffshrBsline5MW_AeroDyn_blade.dat"    ADBlFile(2)        - Name of file containing distributed aerodynamic properties for Blade #2 (-)
 "NRELOffshrBsline5MW_AeroDyn_blade.dat"    ADBlFile(3)        - Name of file containing distributed aerodynamic properties for Blade #3 (-) [unused if NumBl < 3]
 ======  Tower Influence and Aerodynamics ============================================================= [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
-     11       NumTwrNds          - Number of tower nodes used in the analysis  (-) [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
+          9   NumTwrNds          - Number of tower nodes used in the analysis  (-) [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
 TwrElev        TwrDiam        TwrCd
 (m)              (m)           (-)
-20.15000       5.6000          1.0
-35.37452       5.6000          1.0
-36.13000       5.5770          1.0
-44.44096       5.3180          1.0
-51.99644       5.0820          1.0
-61.06356       4.8000          1.0
-68.61904       4.5650          1.0
-76.17452       4.3290          1.0
-82.97452       4.1180          1.0
-86.75192       4.0             1.0
-88.15000       4.0             1.0
+20.15          5.600           1.0
+21.15          5.577           1.0
+32.15          5.318           1.0
+42.15          5.082           1.0
+54.15          4.800           1.0
+64.15          4.565           1.0
+74.15          4.329           1.0
+83.15          4.118           1.0
+88.15          4.000           1.0
 ======  Outputs  ====================================================================================
 False         SumPrint            - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
           3   NBlOuts             - Number of blade node outputs [0 - 9] (-)
@@ -66,16 +64,5 @@ False         SumPrint            - Generate a summary file listing input option
           0   NTwOuts             - Number of tower node outputs [0 - 9]  (-)
  1, 2, 3, 4, 5     TwOutNd             - Tower nodes whose values will be output  (-)
                    OutList             - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
-"RtSpeed, RtSkew, B1Azimuth"
-"B1N1Theta, B1N2Theta, B1N3Theta"
-"B1N1VDisx, B1N1VDisy, B1N1VDisz"   ! disturbed wind velocity at Blade 1, Node 1
-"B1N2VDisx, B1N2VDisy, B1N2VDisz"   ! disturbed wind velocity at Blade 1, Node 2
-"B1N3VDisx, B1N3VDisy, B1N3VDisz"   ! disturbed wind velocity at Blade 1, Node 3
-"B1N1STVx,  B1N1STVy,  B1N1STVz"    ! structural translational velocity at Blade 1, Node 1
-"B1N2STVx,  B1N2STVy,  B1N2STVz"    ! structural translational velocity at Blade 1, Node 2
-"B1N3STVx,  B1N3STVy,  B1N3STVz"    ! structural translational velocity at Blade 1, Node 2
-"B1N1AxInd, B1N2AxInd, B1N3AxInd"
-"B1N1Alpha, B1N2Alpha, B1N3Alpha"
-
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------

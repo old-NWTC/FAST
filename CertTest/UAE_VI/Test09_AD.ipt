@@ -1,7 +1,7 @@
 --------- AeroDyn v14.04.* INPUT FILE -------------------------------------------------------------------------
 UAE Phase VI (Ames) aerodynamic parameters for FAST certification test #9.
 "STEADY"      StallMod     - Dynamic stall included [BEDDOES or STEADY] (unquoted string)
-"NO_CM"       UseCm        - Use aerodynamic pitching moment model? [USE_CM or NO_CM] (unquoted string)
+"USE_CM"      UseCm        - Use aerodynamic pitching moment model? [USE_CM or NO_CM] (unquoted string)
 "EQUIL"       InfModel     - Inflow model [DYNIN or EQUIL] (unquoted string)
 "SWIRL"       IndModel     - Induction-factor model [NONE or WAKE or SWIRL] (unquoted string)
       0.005   AToler       - Induction-factor tolerance (convergence criteria) (-)

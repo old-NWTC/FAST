@@ -2,7 +2,7 @@
 NREL 5.0 MW offshore baseline aerodynamic input properties with OC4 jacket tower
 "BEDDOES"     StallMod     - Dynamic stall included [BEDDOES or STEADY] (unquoted string)
 "USE_CM"      UseCm        - Use aerodynamic pitching moment model? [USE_CM or NO_CM] (unquoted string)
-"DYNIN"       InfModel     - Inflow model [DYNIN or EQUIL] (unquoted string)
+"EQUIL"       InfModel     - Inflow model [DYNIN or EQUIL] (unquoted string)
 "SWIRL"       IndModel     - Induction-factor model [NONE or WAKE or SWIRL] (unquoted string)
       0.005   AToler       - Induction-factor tolerance (convergence criteria) (-)
 "PRANDtl"     TLModel      - Tip-loss model (EQUIL only) [PRANDtl, GTECH, or NONE] (unquoted string)
@@ -11,7 +11,7 @@ NREL 5.0 MW offshore baseline aerodynamic input properties with OC4 jacket tower
 True          TwrPotent      - Calculate tower potential flow (flag)  INSTEAD OF  9999.9      ShadHWid    - Tower-shadow half width (m)
 False         TwrShadow      - Calculate tower shadow (flag)          INSTEAD OF  9999.9      T_Shad_Refpt- Tower-shadow reference point (m)
 "NRELOffshrBsline5MW_OC4Jacket_AeroDyn_Tower.dat"    TwrFile        - Tower drag file name (quoted string)
-False         CalcTwrAero    - Calculate aerodynamic drag of the tower at the ElastoDyn nodes.  TwrPotent must be true.
+True          CalcTwrAero    - Calculate aerodynamic drag of the tower at the ElastoDyn nodes.  TwrPotent must be true.
       1.225   AirDens        - Air density (kg/m^3)
   1.464E-05   KinVisc      - Kinematic air viscosity [CURRENTLY IGNORED] (m^2/sec)
 "DEFAULT"     DTAero       - Time interval for aerodynamic calculations (sec)
