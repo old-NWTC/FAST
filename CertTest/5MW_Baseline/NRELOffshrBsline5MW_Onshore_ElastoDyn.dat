@@ -132,12 +132,12 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
 "TTDspTwst"               - Tower fore-aft and side-to-side displacements and top twist
 "Spn2MLxb1"               - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50% span)
 "Spn2MLyb1"               - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50% span)
-"RootFxc1"                - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
-"RootFyc1"                - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
-"RootFzc1"                - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
-"RootMxc1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
-"RootMyc1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
-"RootMzc1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
+"RootFxb1"                - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
+"RootFyb1"                - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
+"RootFzb1"                - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
+"RootMxb1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
+"RootMyb1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
+"RootMzb1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
 "RotTorq"                 - Rotor torque and low-speed shaft 0- and 90-bending moments at the main bearing
 "LSSGagMya"               - Rotor torque and low-speed shaft 0- and 90-bending moments at the main bearing
 "LSSGagMza"               - Rotor torque and low-speed shaft 0- and 90-bending moments at the main bearing
