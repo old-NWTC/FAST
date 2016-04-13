@@ -1,4 +1,4 @@
-------- AERODYN v15.00.* INPUT FILE ------------------------------------------------
+------- AERODYN v15.02.* INPUT FILE ------------------------------------------------
 AWT-27CR aerodynamic parameters for FAST certification test #1.
 ======  General Options  ============================================================================
 False         Echo               - Echo the input to "<rootname>.AD.ech"?  (flag)
@@ -19,7 +19,7 @@ False         HubLoss            - Use the Prandtl hub-loss model? (flag) [used 
 true          TanInd             - Include tangential induction in BEMT calculations? (flag) [used only when WakeMod=1]
 False         AIDrag             - Include the drag term in the axial-induction calculation? (flag) [used only when WakeMod=1]
 False         TIDrag             - Include the drag term in the tangential-induction calculation? (flag) [used only when WakeMod=1 and TanInd=TRUE]
-     0.0001   IndToler           - Convergence tolerance for BEM induction factors (radians) [used only when WakeMod=1]
+"Default"     IndToler           - Convergence tolerance for BEMT nonlinear solve residual equation {or "default"} (-) [used only when WakeMod=1]
         100   MaxIter            - Maximum number of iteration steps (-) [used only when WakeMod=1]
 ======  Beddoes-Leishman Unsteady Airfoil Aerodynamics Options  ===================================== [used only when AFAeroMod=2]
           3   UAMod              - Unsteady Aero Model Switch (switch) {1=Baseline model (Original), 2=Gonzalez’s variant (changes in Cn,Cc,Cm), 3=Minemma/Pierce variant (changes in Cc and Cm)} [used only when AFAeroMod=2]
@@ -29,7 +29,7 @@ True          FLookup            - Flag to indicate whether a lookup for f' will
           2   InCol_Cl           - The column in the airfoil tables that contains the lift coefficient (-)
           3   InCol_Cd           - The column in the airfoil tables that contains the drag coefficient (-)
           0   InCol_Cm           - The column in the airfoil tables that contains the pitching-moment coefficient; use zero if there is no Cm column (-)
-          0   InCol_Cpmin        - The column in the airfoil tables that contains the drag coefficient; use zero if there is no Cpmin column (-)
+          0   InCol_Cpmin        - The column in the airfoil tables that contains the Cpmin coefficient; use zero if there is no Cpmin column (-)
          10   NumAFfiles         - Number of airfoil files used (-)
 "Airfoils/AWT27_05.dat"    AFNames            - Airfoil file names (NumAFfiles lines) (quoted strings)
 "Airfoils/AWT27_15.dat"
@@ -44,7 +44,7 @@ True          FLookup            - Flag to indicate whether a lookup for f' will
 ======  Rotor/Blade Properties  =====================================================================
 False         UseBlCm            - Include aerodynamic pitching moment in calculations?  (flag)
 "AWT27_AeroDyn_blade.dat"    ADBlFile(1)        - Name of file containing distributed aerodynamic properties for Blade #1 (-)
-"AWT27_AeroDyn_blade.dat"    ADBlFile(2)        - Name of file containing distributed aerodynamic properties for Blade #2 (-)
+"AWT27_AeroDyn_blade.dat"    ADBlFile(2)        - Name of file containing distributed aerodynamic properties for Blade #2 (-) [unused if NumBl < 2]
 "AWT27_AeroDyn_blade.dat"    ADBlFile(3)        - Name of file containing distributed aerodynamic properties for Blade #3 (-) [unused if NumBl < 3]
 ======  Tower Influence and Aerodynamics ============================================================= [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
          10   NumTwrNds         - Number of tower nodes used in the analysis  (-) [used only when TwrPotent/=0, TwrShadow=True, or TwrAero=True]
@@ -62,10 +62,10 @@ TwrElev        TwrDiam        TwrCd
 41.98           0.822368       0.7296
 ======  Outputs  ====================================================================================
 False         SumPrint            - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
-          9   NBlOuts             - Number of blade node outputs [0 - 9] (-)
- 1, 7, 12, 2, 3, 4, 5, 6, 8, 9     BlOutNd             - Blade nodes whose values will be output  (-)
+          0   NBlOuts             - Number of blade node outputs [0 - 9] (-)
+          4   BlOutNd             - Blade nodes whose values will be output  (-)
           0   NTwOuts             - Number of tower node outputs [0 - 9]  (-)
- 1, 2, 3, 4, 5     TwOutNd             - Tower nodes whose values will be output  (-)
+          1,          2,          3,          4,          5    TwOutNd             - Tower nodes whose values will be output  (-)
                    OutList             - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------
