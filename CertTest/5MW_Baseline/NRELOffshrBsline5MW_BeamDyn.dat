@@ -14,7 +14,7 @@ DEFAULT       stop_tol       - Tolerance for stopping criterion
 1             member_total   - Total number of member (-)
 49            kp_total       - Total number of key point (-)
 1    49                      - Member number; Number of key points in this member
-    kp_xb      kp_yb     kp_zb    initial_twist
+    kp_xr      kp_yr     kp_zr    initial_twist
     (m)         (m)       (m)      (deg)
   0.000000   0.000000   0.000000  13.308000
   0.000000   0.000000   0.199875  13.308000
