@@ -2,6 +2,7 @@
 ! Cylinder
 ! note that this file uses Marshall Buhl's new input file processing; start all comment lines with !
 ! ------------------------------------------------------------------------------
+! ------------------------------------------------------------------------------
 "DEFAULT"     InterpOrd         ! Interpolation order to use for quasi-steady table lookup {1=linear; 3=cubic spline; "default"} [default=3]
           1   NonDimArea        ! The non-dimensional area of the airfoil (area/chord^2) (set to 1.0 if unsure or unneeded)
           0   NumCoords         ! The number of coordinates in the airfoil shape file.  Set to zero if coordinates not included.
@@ -12,7 +13,7 @@
 ! ------------------------------------------------------------------------------
        0.75   Re                ! Reynolds number in millions
           0   Ctrl              ! Control setting (must be 0 for current AirfoilInfo)
-true          InclUAdata        ! Is unsteady aerodynamics data included in this table? If TRUE, then include 30 UA coefficients below this line
+true          InclUAdata        ! Is unsteady aerodynamics data included in this table? If TRUE, then include 32 UA coefficients below this line
 !........................................
           0   alpha0            ! 0-lift angle of attack, depends on airfoil.
         150   alpha1            ! Angle of attack at f=0.7, (approximately the stall angle) for AOA>alpha0. (deg)
@@ -45,13 +46,15 @@ true          InclUAdata        ! Is unsteady aerodynamics data included in this
           0   k1_hat            ! Constant in the expression of Cc due to leading edge vortex effects.  [ignored if UAMod<>1]
 "Default"     x_cp_bar          ! Constant in the expression of \hat(x)_cp^v. [ignored if UAMod<>1, default = 0.2]
 "Default"     UACutout          ! Angle of attack above which unsteady aerodynamics are disabled (deg). [Specifying the string "Default" sets UACutout to 45 degrees]
-"DEFAULT"     filtCutOff        ! Cut-off frequency (-3 dB corner frequency) for low-pass filtering the AoA input to UA, as well as the 1st and 2nd derivatives (Hz) [default = 10]
+"DEFAULT"     filtCutOff        ! Cut-off frequency (-3 dB corner frequency) for low-pass filtering the AoA input to UA, as well as the 1st and 2nd derivatives (Hz) [default = 20]
 !........................................
 ! Table of aerodynamics coefficients
           3   NumAlf            ! Number of data lines in the following table
-!    Alpha      Cl      Cd    Cm
-!    (deg)      (-)     (-)   (-)
-  -180.00      0.0    0.3000  0.0
-     0.00      0.0    0.3000  0.0
-   180.00      0.0    0.3000  0.0
-
+!    Alpha      Cl      Cd        Cm
+!    (deg)      (-)     (-)       (-)
+-1.8000000E+02  0.0000000E+00  3.0000000E-01  0.0000000E+00  
+0.0000000E+00  0.0000000E+00  3.0000000E-01  0.0000000E+00  
+1.8000000E+02  0.0000000E+00  3.0000000E-01  0.0000000E+00  
+! ------------------------------------------------------------------------------
+! data for table 2
+! ------------------------------------------------------------------------------
