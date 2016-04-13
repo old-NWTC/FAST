@@ -8,9 +8,9 @@ true          TMD_Y_DOF    - DOF on or off (flag) {Used only when TMD_DOF_MODE i
           1   TMD_X_DSP    - TMD_X initial displacement (m)
           1   TMD_Y_DSP    - TMD_Y initial displacement (m)
 ---------------------- TMD CONFIGURATION --------------------------------------
-          0   TMD_P_X      - At rest position of TMDs (X) (m)
-          0   TMD_P_Y      - At rest position of TMDs (Y) (m)
-          0   TMD_P_Z      - At rest position of TMDs (Z) (m)
+          0   TMD_P_X      - At rest position of TMDs (X) (m) [relative to the nacelle (NTMD) or tower base (TTMD)]
+          0   TMD_P_Y      - At rest position of TMDs (Y) (m) [relative to the nacelle (NTMD) or tower base (TTMD)]
+          0   TMD_P_Z      - At rest position of TMDs (Z) (m) [relative to the nacelle (NTMD) or tower base (TTMD)]
          10   TMD_X_DWSP   - DW stop position (maximum X mass displacement) (m)
         -10   TMD_X_UWSP   - UW stop position (minimum X mass displacement) (m)
          10   TMD_Y_PLSP   - Positive lateral stop position (maximum Y mass displacement) (m)
