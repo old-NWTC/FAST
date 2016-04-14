@@ -1,15 +1,15 @@
 
 FAST Summary File
 
-Predictions were generated on 08-Oct-2015 at 00:16:14 using FAST (v8.12.00a-bjj, 6-Oct-2015), compiled as a 32-bit application using single precision
+Predictions were generated on 13-Apr-2016 at 14:11:23 using FAST (v8.15.00a-bjj, 12-Apr-2016), compiled as a 32-bit application using single precision
   compiled with
-    NWTC Subroutine Library (v2.06.05a-bjj, 5-Oct-2015)
-    ElastoDyn (v1.03.00a-bjj, 5-Oct-2015)
+    NWTC Subroutine Library (v2.08.00, 5-Apr-2016)
+    ElastoDyn (v1.03.02a-bjj, 8-Apr-2016)
     BeamDyn (unknown version, unknown date) [not called]
-    InflowWind (v3.01.00a-adp, 5-Oct-2015)
-    AeroDyn14 (v14.04.00a-bjj, 6-Oct-2015)
-    AeroDyn (unknown version, unknown date) [not called]
-    ServoDyn (v1.03.01a-bjj, 5-Oct-2015)
+    InflowWind (v3.02.00a-bjj, 11-Apr-2016)
+    AeroDyn14 (unknown version, unknown date) [not called]
+    AeroDyn (v15.02.03, 12-Apr-2016)
+    ServoDyn (v1.05.00a-bjj, 11-Mar-2016)
     HydroDyn (unknown version, unknown date) [not called]
     SubDyn (unknown version, unknown date) [not called]
     MAP (unknown version, unknown date) [not called]
@@ -32,12 +32,12 @@ Number of correction iterations:  0
   -------------------------------------------------
   Component          Time Step (s)    Subcycles (-)
   -----------------  ---------------  -------------
-  FAST (glue code)    1.250E-02
-  InflowWind          1.250E-02              1
-  ElastoDyn           1.250E-02              1
-  AeroDyn14           1.250E-02              1
-  ServoDyn            1.250E-02              1
-  FAST output files   1.250E-02              1
+  FAST (glue code)    6.250E-03
+  InflowWind          6.250E-03              1
+  ElastoDyn           6.250E-03              1
+  AeroDyn             6.250E-03              1
+  ServoDyn            6.250E-03              1
+  FAST output files   6.250E-03              1
 
 
    Requested Channels in FAST Output File(s)  
@@ -60,12 +60,12 @@ Number of correction iterations:  0
       14  TTDspTwst   (deg)       ElastoDyn
       15  Spn2MLxb1   (kN·m)      ElastoDyn
       16  Spn2MLyb1   (kN·m)      ElastoDyn
-      17  RootFxc1    (kN)        ElastoDyn
-      18  RootFyc1    (kN)        ElastoDyn
-      19  RootFzc1    (kN)        ElastoDyn
-      20  RootMxc1    (kN·m)      ElastoDyn
-      21  RootMyc1    (kN·m)      ElastoDyn
-      22  RootMzc1    (kN·m)      ElastoDyn
+      17  RootFxb1    (kN)        ElastoDyn
+      18  RootFyb1    (kN)        ElastoDyn
+      19  RootFzb1    (kN)        ElastoDyn
+      20  RootMxb1    (kN·m)      ElastoDyn
+      21  RootMyb1    (kN·m)      ElastoDyn
+      22  RootMzb1    (kN·m)      ElastoDyn
       23  RotTorq     (kN·m)      ElastoDyn
       24  LSSGagMya   (kN·m)      ElastoDyn
       25  LSSGagMza   (kN·m)      ElastoDyn

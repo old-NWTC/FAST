@@ -1,17 +1,17 @@
 
 FAST Summary File
 
-Predictions were generated on 08-Oct-2015 at 00:19:27 using FAST (v8.12.00a-bjj, 6-Oct-2015), compiled as a 32-bit application using single precision
+Predictions were generated on 13-Apr-2016 at 14:13:54 using FAST (v8.15.00a-bjj, 12-Apr-2016), compiled as a 32-bit application using single precision
   compiled with
-    NWTC Subroutine Library (v2.06.05a-bjj, 5-Oct-2015)
-    ElastoDyn (v1.03.00a-bjj, 5-Oct-2015)
+    NWTC Subroutine Library (v2.08.00, 5-Apr-2016)
+    ElastoDyn (v1.03.02a-bjj, 8-Apr-2016)
     BeamDyn (unknown version, unknown date) [not called]
-    InflowWind (v3.01.00a-adp, 5-Oct-2015)
-    AeroDyn14 (v14.04.00a-bjj, 6-Oct-2015)
-    AeroDyn (unknown version, unknown date) [not called]
-    ServoDyn (v1.03.01a-bjj, 5-Oct-2015)
-    HydroDyn (v2.03.00c-adp, 05-Oct-2015)
-    SubDyn (v1.02.00a-rrd, 5-Oct-2015)
+    InflowWind (v3.02.00a-bjj, 11-Apr-2016)
+    AeroDyn14 (unknown version, unknown date) [not called]
+    AeroDyn (v15.02.03, 12-Apr-2016)
+    ServoDyn (v1.05.00a-bjj, 11-Mar-2016)
+    HydroDyn (v2.05.00, 15-Mar-2016)
+    SubDyn (v1.03.00, 11-Apr-2016)
     MAP (unknown version, unknown date) [not called]
     FEAMooring (unknown version, unknown date) [not called]
     MoorDyn (unknown version, unknown date) [not called]
@@ -36,7 +36,7 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, HydroDyn,
   FAST (glue code)    5.000E-03
   InflowWind          5.000E-03              1
   ElastoDyn           5.000E-03              1
-  AeroDyn14           5.000E-03              1
+  AeroDyn             5.000E-03              1
   ServoDyn            5.000E-03              1
   HydroDyn            5.000E-03              1
   SubDyn              5.000E-03              1
@@ -82,16 +82,22 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, HydroDyn,
       33  YawBrMxp    (kN·m)      ElastoDyn
       34  YawBrMyp    (kN·m)      ElastoDyn
       35  YawBrMzp    (kN·m)      ElastoDyn
-      36  GenPwr      (kW)        ServoDyn
-      37  GenTq       (kN·m)      ServoDyn
-      38  Wave1Elev   (m)         HydroDyn
-      39  M2N1MKxe    (N*m)       SubDyn
-      40  M2N1MKye    (N*m)       SubDyn
-      41  M1N1MKxe    (N*m)       SubDyn
-      42  M1N1MKye    (N*m)       SubDyn
-      43  -ReactFXss  (N)         SubDyn
-      44  -ReactFYss  (N)         SubDyn
-      45  -ReactFZss  (N)         SubDyn
-      46  -ReactMXss  (Nm)        SubDyn
-      47  -ReactMYss  (Nm)        SubDyn
-      48  -ReactMZss  (Nm)        SubDyn
+      36  RtAeroFxh   (N)         AeroDyn
+      37  RtAeroFyh   (N)         AeroDyn
+      38  RtAeroFzh   (N)         AeroDyn
+      39  RtAeroMxh   (N·m)       AeroDyn
+      40  RtAeroMyh   (N·m)       AeroDyn
+      41  RtAeroMzh   (N·m)       AeroDyn
+      42  GenPwr      (kW)        ServoDyn
+      43  GenTq       (kN·m)      ServoDyn
+      44  Wave1Elev   (m)         HydroDyn
+      45  M2N1MKxe    (N*m)       SubDyn
+      46  M2N1MKye    (N*m)       SubDyn
+      47  M1N1MKxe    (N*m)       SubDyn
+      48  M1N1MKye    (N*m)       SubDyn
+      49  -ReactFXss  (N)         SubDyn
+      50  -ReactFYss  (N)         SubDyn
+      51  -ReactFZss  (N)         SubDyn
+      52  -ReactMXss  (Nm)        SubDyn
+      53  -ReactMYss  (Nm)        SubDyn
+      54  -ReactMZss  (Nm)        SubDyn

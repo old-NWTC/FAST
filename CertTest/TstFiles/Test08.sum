@@ -1,15 +1,15 @@
 
 FAST Summary File
 
-Predictions were generated on 08-Oct-2015 at 00:12:32 using FAST (v8.12.00a-bjj, 6-Oct-2015), compiled as a 32-bit application using single precision
+Predictions were generated on 13-Apr-2016 at 14:08:12 using FAST (v8.15.00a-bjj, 12-Apr-2016), compiled as a 32-bit application using single precision
   compiled with
-    NWTC Subroutine Library (v2.06.05a-bjj, 5-Oct-2015)
-    ElastoDyn (v1.03.00a-bjj, 5-Oct-2015)
+    NWTC Subroutine Library (v2.08.00, 5-Apr-2016)
+    ElastoDyn (v1.03.02a-bjj, 8-Apr-2016)
     BeamDyn (unknown version, unknown date) [not called]
-    InflowWind (v3.01.00a-adp, 5-Oct-2015)
-    AeroDyn14 (v14.04.00a-bjj, 6-Oct-2015)
-    AeroDyn (unknown version, unknown date) [not called]
-    ServoDyn (v1.03.01a-bjj, 5-Oct-2015)
+    InflowWind (v3.02.00a-bjj, 11-Apr-2016)
+    AeroDyn14 (unknown version, unknown date) [not called]
+    AeroDyn (v15.02.03, 12-Apr-2016)
+    ServoDyn (v1.05.00a-bjj, 11-Mar-2016)
     HydroDyn (unknown version, unknown date) [not called]
     SubDyn (unknown version, unknown date) [not called]
     MAP (unknown version, unknown date) [not called]
@@ -35,7 +35,7 @@ Number of correction iterations:  0
   FAST (glue code)    5.000E-03
   InflowWind          5.000E-03              1
   ElastoDyn           5.000E-03              1
-  AeroDyn14           5.000E-03              1
+  AeroDyn             5.000E-03              1
   ServoDyn            5.000E-03              1
   FAST output files   5.000E-02             10^-1
 
@@ -74,3 +74,33 @@ Number of correction iterations:  0
       28  LSShftFza   (kN)        ElastoDyn
       29  YawBrFxn    (kN)        ElastoDyn
       30  YawBrFyn    (kN)        ElastoDyn
+      31  RtSpeed     (rpm)       AeroDyn
+      32  RtSkew      (deg)       AeroDyn
+      33  B1N1Theta   (deg)       AeroDyn
+      34  B1N2Theta   (deg)       AeroDyn
+      35  B1N3Theta   (deg)       AeroDyn
+      36  B1N4Theta   (deg)       AeroDyn
+      37  B1N1AxInd   (-)         AeroDyn
+      38  B1N2AxInd   (-)         AeroDyn
+      39  B1N3AxInd   (-)         AeroDyn
+      40  B1N4AxInd   (-)         AeroDyn
+      41  B1N1Alpha   (deg)       AeroDyn
+      42  B1N2Alpha   (deg)       AeroDyn
+      43  B1N3Alpha   (deg)       AeroDyn
+      44  B1N4Alpha   (deg)       AeroDyn
+      45  B1N1Vrel    (m/s)       AeroDyn
+      46  B1N2Vrel    (m/s)       AeroDyn
+      47  B1N3Vrel    (m/s)       AeroDyn
+      48  B1N4Vrel    (m/s)       AeroDyn
+      49  B1N1Cl      (-)         AeroDyn
+      50  B1N2Cl      (-)         AeroDyn
+      51  B1N3Cl      (-)         AeroDyn
+      52  B1N4Cl      (-)         AeroDyn
+      53  B1N1Cd      (-)         AeroDyn
+      54  B1N2Cd      (-)         AeroDyn
+      55  B1N3Cd      (-)         AeroDyn
+      56  B1N4Cd      (-)         AeroDyn
+      57  B1N1Cm      (-)         AeroDyn
+      58  B1N2Cm      (-)         AeroDyn
+      59  B1N3Cm      (-)         AeroDyn
+      60  B1N4Cm      (-)         AeroDyn

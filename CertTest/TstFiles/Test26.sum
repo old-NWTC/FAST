@@ -1,15 +1,15 @@
 
 FAST Summary File
 
-Predictions were generated on 08-Oct-2015 at 00:48:48 using FAST (v8.12.00a-bjj, 6-Oct-2015), compiled as a 32-bit application using single precision
+Predictions were generated on 13-Apr-2016 at 14:31:48 using FAST (v8.15.00a-bjj, 12-Apr-2016), compiled as a 32-bit application using single precision
   compiled with
-    NWTC Subroutine Library (v2.06.05a-bjj, 5-Oct-2015)
-    ElastoDyn (v1.03.00a-bjj, 5-Oct-2015)
-    BeamDyn (v1.00.00, 5-Oct-2015)
-    InflowWind (v3.01.00a-adp, 5-Oct-2015)
+    NWTC Subroutine Library (v2.08.00, 5-Apr-2016)
+    ElastoDyn (v1.03.02a-bjj, 8-Apr-2016)
+    BeamDyn (v1.01.03, 12-Apr-2016)
+    InflowWind (v3.02.00a-bjj, 11-Apr-2016)
     AeroDyn14 (unknown version, unknown date) [not called]
-    AeroDyn (v15.00.00b-bjj, 6-Oct-2015)
-    ServoDyn (v1.03.01a-bjj, 5-Oct-2015)
+    AeroDyn (v15.02.03, 12-Apr-2016)
+    ServoDyn (v1.05.00a-bjj, 11-Mar-2016)
     HydroDyn (unknown version, unknown date) [not called]
     SubDyn (unknown version, unknown date) [not called]
     MAP (unknown version, unknown date) [not called]
@@ -108,35 +108,5 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, HydroDyn,
       60  B3TipRDxr   (-)         BeamDyn
       61  B3TipRDyr   (-)         BeamDyn
       62  B3TipRDzr   (-)         BeamDyn
-      63  RtSpeed     (rpm)       AeroDyn
-      64  RtSkew      (deg)       AeroDyn
-      65  B1Azimuth   (deg)       AeroDyn
-      66  B1N1Theta   (deg)       AeroDyn
-      67  B1N2Theta   (deg)       AeroDyn
-      68  B1N3Theta   (deg)       AeroDyn
-      69  B1N1VDisx   (m/s)       AeroDyn
-      70  B1N1VDisy   (m/s)       AeroDyn
-      71  B1N1VDisz   (m/s)       AeroDyn
-      72  B1N2VDisx   (m/s)       AeroDyn
-      73  B1N2VDisy   (m/s)       AeroDyn
-      74  B1N2VDisz   (m/s)       AeroDyn
-      75  B1N3VDisx   (m/s)       AeroDyn
-      76  B1N3VDisy   (m/s)       AeroDyn
-      77  B1N3VDisz   (m/s)       AeroDyn
-      78  B1N1STVx    (m/s)       AeroDyn
-      79  B1N1STVy    (m/s)       AeroDyn
-      80  B1N1STVz    (m/s)       AeroDyn
-      81  B1N2STVx    (m/s)       AeroDyn
-      82  B1N2STVy    (m/s)       AeroDyn
-      83  B1N2STVz    (m/s)       AeroDyn
-      84  B1N3STVx    (m/s)       AeroDyn
-      85  B1N3STVy    (m/s)       AeroDyn
-      86  B1N3STVz    (m/s)       AeroDyn
-      87  B1N1AxInd   (-)         AeroDyn
-      88  B1N2AxInd   (-)         AeroDyn
-      89  B1N3AxInd   (-)         AeroDyn
-      90  B1N1Alpha   (deg)       AeroDyn
-      91  B1N2Alpha   (deg)       AeroDyn
-      92  B1N3Alpha   (deg)       AeroDyn
-      93  GenPwr      (kW)        ServoDyn
-      94  GenTq       (kN·m)      ServoDyn
+      63  GenPwr      (kW)        ServoDyn
+      64  GenTq       (kN·m)      ServoDyn

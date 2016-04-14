@@ -1,18 +1,18 @@
 
 FAST Summary File
 
-Predictions were generated on 08-Oct-2015 at 00:46:41 using FAST (v8.12.00a-bjj, 6-Oct-2015), compiled as a 32-bit application using single precision
+Predictions were generated on 13-Apr-2016 at 14:30:25 using FAST (v8.15.00a-bjj, 12-Apr-2016), compiled as a 32-bit application using single precision
   compiled with
-    NWTC Subroutine Library (v2.06.05a-bjj, 5-Oct-2015)
-    ElastoDyn (v1.03.00a-bjj, 5-Oct-2015)
+    NWTC Subroutine Library (v2.08.00, 5-Apr-2016)
+    ElastoDyn (v1.03.02a-bjj, 8-Apr-2016)
     BeamDyn (unknown version, unknown date) [not called]
-    InflowWind (v3.01.00a-adp, 5-Oct-2015)
-    AeroDyn14 (v14.04.00a-bjj, 6-Oct-2015)
-    AeroDyn (unknown version, unknown date) [not called]
-    ServoDyn (v1.03.01a-bjj, 5-Oct-2015)
-    HydroDyn (v2.03.00c-adp, 05-Oct-2015)
+    InflowWind (v3.02.00a-bjj, 11-Apr-2016)
+    AeroDyn14 (unknown version, unknown date) [not called]
+    AeroDyn (v15.02.03, 12-Apr-2016)
+    ServoDyn (v1.05.00a-bjj, 11-Mar-2016)
+    HydroDyn (v2.05.00, 15-Mar-2016)
     SubDyn (unknown version, unknown date) [not called]
-    MAP++ (<1.10.01>, <Oct-06-2015>)
+    MAP++ (<1.20.10>, <Apr-11-2016>)
     FEAMooring (unknown version, unknown date) [not called]
     MoorDyn (unknown version, unknown date) [not called]
     OrcaFlexInterface (unknown version, unknown date) [not called]
@@ -36,7 +36,7 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn to HydroDyn:     1
   FAST (glue code)    1.250E-02
   InflowWind          1.250E-02              1
   ElastoDyn           1.250E-02              1
-  AeroDyn14           1.250E-02              1
+  AeroDyn             1.250E-02              1
   ServoDyn            1.250E-02              1
   HydroDyn            1.250E-02              1
   MAP++               1.250E-02              1
@@ -133,12 +133,16 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn to HydroDyn:     1
       84  TwHt1MLxt   (kN·m)      ElastoDyn
       85  TwHt1MLyt   (kN·m)      ElastoDyn
       86  TwHt1MLzt   (kN·m)      ElastoDyn
-      87  GenPwr      (kW)        ServoDyn
-      88  GenTq       (kN·m)      ServoDyn
-      89  Wave1Elev   (m)         HydroDyn
-      90  T[1]        [N]         MAP++
-      91  T_a[1]      [N]         MAP++
-      92  T[2]        [N]         MAP++
-      93  T_a[2]      [N]         MAP++
-      94  T[3]        [N]         MAP++
-      95  T_a[3]      [N]         MAP++
+      87  RtArea      (m^2)       AeroDyn
+      88  B1N3Clrnc   (m)         AeroDyn
+      89  B2N3Clrnc   (m)         AeroDyn
+      90  B3N3Clrnc   (m)         AeroDyn
+      91  GenPwr      (kW)        ServoDyn
+      92  GenTq       (kN·m)      ServoDyn
+      93  Wave1Elev   (m)         HydroDyn
+      94  T[1]        [N]         MAP++
+      95  T_a[1]      [N]         MAP++
+      96  T[2]        [N]         MAP++
+      97  T_a[2]      [N]         MAP++
+      98  T[3]        [N]         MAP++
+      99  T_a[3]      [N]         MAP++

@@ -1,20 +1,20 @@
 
 FAST Summary File
 
-Predictions were generated on 08-Oct-2015 at 00:47:23 using FAST (v8.12.00a-bjj, 6-Oct-2015), compiled as a 32-bit application using single precision
+Predictions were generated on 13-Apr-2016 at 14:31:09 using FAST (v8.15.00a-bjj, 12-Apr-2016), compiled as a 32-bit application using single precision
   compiled with
-    NWTC Subroutine Library (v2.06.05a-bjj, 5-Oct-2015)
-    ElastoDyn (v1.03.00a-bjj, 5-Oct-2015)
+    NWTC Subroutine Library (v2.08.00, 5-Apr-2016)
+    ElastoDyn (v1.03.02a-bjj, 8-Apr-2016)
     BeamDyn (unknown version, unknown date) [not called]
-    InflowWind (v3.01.00a-adp, 5-Oct-2015)
-    AeroDyn14 (v14.04.00a-bjj, 6-Oct-2015)
-    AeroDyn (unknown version, unknown date) [not called]
-    ServoDyn (v1.03.01a-bjj, 5-Oct-2015)
-    HydroDyn (v2.03.00c-adp, 05-Oct-2015)
+    InflowWind (v3.02.00a-bjj, 11-Apr-2016)
+    AeroDyn14 (unknown version, unknown date) [not called]
+    AeroDyn (v15.02.03, 12-Apr-2016)
+    ServoDyn (v1.05.00a-bjj, 11-Mar-2016)
+    HydroDyn (v2.05.00, 15-Mar-2016)
     SubDyn (unknown version, unknown date) [not called]
     MAP (unknown version, unknown date) [not called]
     FEAMooring (unknown version, unknown date) [not called]
-    MoorDyn (v1.00.00F-mth, 30-Sep-2015)
+    MoorDyn (v1.01.02F, 8-Apr-2016)
     OrcaFlexInterface (unknown version, unknown date) [not called]
     IceFloe (unknown version, unknown date) [not called]
     IceDyn (unknown version, unknown date) [not called]
@@ -36,7 +36,7 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn to HydroDyn:     1
   FAST (glue code)    1.250E-02
   InflowWind          1.250E-02              1
   ElastoDyn           1.250E-02              1
-  AeroDyn14           1.250E-02              1
+  AeroDyn             1.250E-02              1
   ServoDyn            1.250E-02              1
   HydroDyn            1.250E-02              1
   MoorDyn             1.250E-02              1
@@ -88,12 +88,16 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn to HydroDyn:     1
       39  TwrBsMxt    (kN·m)      ElastoDyn
       40  TwrBsMyt    (kN·m)      ElastoDyn
       41  TwrBsMzt    (kN·m)      ElastoDyn
-      42  GenPwr      (kW)        ServoDyn
-      43  GenTq       (kN·m)      ServoDyn
-      44  Wave1Elev   (m)         HydroDyn
-      45  FAIRTEN1    (N)         MoorDyn
-      46  FAIRTEN2    (N)         MoorDyn
-      47  FAIRTEN3    (N)         MoorDyn
-      48  ANCHTEN1    (N)         MoorDyn
-      49  ANCHTEN2    (N)         MoorDyn
-      50  ANCHTEN3    (N)         MoorDyn
+      42  RtArea      (m^2)       AeroDyn
+      43  B1N3Clrnc   (m)         AeroDyn
+      44  B2N3Clrnc   (m)         AeroDyn
+      45  B3N3Clrnc   (m)         AeroDyn
+      46  GenPwr      (kW)        ServoDyn
+      47  GenTq       (kN·m)      ServoDyn
+      48  Wave1Elev   (m)         HydroDyn
+      49  FAIRTEN1    (N)         MoorDyn
+      50  FAIRTEN2    (N)         MoorDyn
+      51  FAIRTEN3    (N)         MoorDyn
+      52  ANCHTEN1    (N)         MoorDyn
+      53  ANCHTEN2    (N)         MoorDyn
+      54  ANCHTEN3    (N)         MoorDyn
