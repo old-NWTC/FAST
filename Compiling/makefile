@@ -34,6 +34,7 @@ LDFLAGS = -O2 -m$(BITS) -fbacktrace
 #.........................................
 # preprocessor definitions:
 #  -DDOUBLE_PRECISION
+#  -DLINEAR_INTERP                       # uses linear interpolation in AirfoilInfo (making AD15 more like AD14); otherwise use cubic spline
 #
 # some useful gfortran options:
 # -Wl,--stack=999999999,--large-address-aware
@@ -103,7 +104,7 @@ ifeq ($(OS),Windows_NT)
 else
 
    Registry     = $(FAST_DIR)/dependencies/registry.exe
-   MAP_lib      = $(BIN_DIR)/libmap-1.10.01.so
+   MAP_lib      = $(BIN_DIR)/libmap-1.20.10.so
 
      # skip the OrcaFlex interface, which seems to be causing issues with gfortran v5 on Mac (The OrcaFlex DLL is for Windows only, anyway)
    FFLAGS      := $(FFLAGS) -DNO_LibLoad
@@ -260,7 +261,7 @@ UA_SOURCES =                   \
 
 BEMT_SOURCES =                 \
 	BEMT_Types.f90              \
-	BEMTCoupled.f90             \
+	BEMTUncoupled.f90             \
 	fmin_fcn.f90                \
 	mod_root1dim.f90            \
 	BEMT.f90
@@ -562,7 +563,7 @@ UnsteadyAero$(OBJ_EXT):           AirfoilInfo$(OBJ_EXT)  UnsteadyAero_Types$(OBJ
 
 #AeroDyn/BEMT dependency rules:
 BEMT_Types$(OBJ_EXT):             NWTC_Library$(OBJ_EXT)  AirfoilInfo_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)  $(BEMT_DIR)/BEMT_Types.f90
-BEMTCoupled$(OBJ_EXT):            NWTC_Library$(OBJ_EXT)  UnsteadyAero$(OBJ_EXT)   AirfoilInfo_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)
+BEMTUncoupled$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  UnsteadyAero$(OBJ_EXT)   AirfoilInfo_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)
 fmin_fcn$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  BEMTUncoupled$(OBJ_EXT)  AirfoilInfo_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)
 mod_root1dim$(OBJ_EXT):           NWTC_Library$(OBJ_EXT)  fmin_fcn$(OBJ_EXT)
 BEMT$(OBJ_EXT):                   NWTC_Library$(OBJ_EXT)  BEMT_Types$(OBJ_EXT)  BEMTUncoupled$(OBJ_EXT)  UnsteadyAero$(OBJ_EXT)  \
@@ -570,7 +571,7 @@ BEMT$(OBJ_EXT):                   NWTC_Library$(OBJ_EXT)  BEMT_Types$(OBJ_EXT)  
 
 #AeroDyn dependency rules:
 AeroDyn_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  AirfoilInfo_Types$(OBJ_EXT)  BEMT_Types$(OBJ_EXT)  UnsteadyAero_Types$(OBJ_EXT)  $(AD_DIR)/AeroDyn_Types.f90
-AeroDyn_IO$(OBJ_EXT):             NWTC_Library$(OBJ_EXT)  AeroDyn_Types$(OBJ_EXT) BladeElement$(OBJ_EXT)
+AeroDyn_IO$(OBJ_EXT):             NWTC_Library$(OBJ_EXT)  AeroDyn_Types$(OBJ_EXT) BEMTUncoupled$(OBJ_EXT)
 AeroDyn$(OBJ_EXT):                NWTC_Library$(OBJ_EXT)  AeroDyn_IO$(OBJ_EXT)  AirfoilInfo$(OBJ_EXT)  BEMT$(OBJ_EXT)
 
 

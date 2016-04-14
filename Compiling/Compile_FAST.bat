@@ -114,11 +114,11 @@ REM ----------------------------------------------------------------------------
 SET ROOT_NAME=..\bin\FAST_iwin%BITS%
 SET INTER_DIR=Obj_iwin%BITS%
 
-:: /nologo /fpp /stand:f03 /Qdiag-disable:5268 /traceback /libs:static /threads /Qmkl:sequential /c
+:: /nologo /fpp /stand:f03 /Qdiag-disable:5268 /traceback /libs:static /threads /Qmkl:sequential /c /DLINEAR_INTERP
 :: /Qmkl:sequential used to include the intel math kernel library
 
 SET COMPOPTS=/threads  /O2 /inline:speed /traceback /real_size:32 /fpp
-SET LINKOPTS=/link %MAP_Include_Lib% /LARGEADDRESSAWARE /STACK:999999999
+SET LINKOPTS=/link %MAP_Include_Lib% /LARGEADDRESSAWARE /STACK:9999999
 
 SET LINES=++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -214,6 +214,8 @@ SET BD_SOURCES=^
 
 SET ED_SOURCES=^
  "%ED_Loc%\ElastoDyn_Types.f90" ^
+ "%ED_Loc%\ED_UserSubs.f90" ^
+ "%ED_Loc%\ElastoDyn_IO.f90" ^
  "%ED_Loc%\ElastoDyn.f90"
 
 
@@ -222,10 +224,10 @@ SET SrvD_SOURCES=^
  "%TMD_Loc%\TMD.f90" ^
  "%SrvD_Loc%\ServoDyn_Types.f90" ^
  "%SrvD_Loc%\BladedInterface.f90" ^
- "%SrvD_Loc%\ServoDyn.f90" ^
  "%SrvD_Loc%\PitchCntrl_ACH.f90" ^
  "%SrvD_Loc%\UserSubs.f90" ^
- "%SrvD_Loc%\UserVSCont_KP.f90"
+ "%SrvD_Loc%\UserVSCont_KP.f90" ^
+ "%SrvD_Loc%\ServoDyn.f90"
 
 
 SET HD_SOURCES=^
@@ -308,6 +310,7 @@ SET FAST_SOURCES=^
  "%FAST_LOC%\FAST_Types.f90" ^
  "%OpFM_Loc%\OpenFOAM.f90" ^
  "%FAST_LOC%\FAST_Mods.f90" ^
+ "%FAST_LOC%\FAST_Solver.f90" ^
  "%FAST_LOC%\FAST_Subs.f90" ^
  "%FAST_LOC%\FAST_Prog.f90"
 
