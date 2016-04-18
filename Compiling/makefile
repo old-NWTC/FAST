@@ -1,6 +1,6 @@
 #================================================================================#
 # This makefile created by B. Jonkman.                                           #
-# (c) 2013-2015 National Renewable Energy Laboratory                             #
+# (c) 2013-2016 National Renewable Energy Laboratory                             #
 #                                                                                #
 # It has been tested on                                                          #
 #     Windows 7 with gfortran using mingw32-make.exe.                            #
