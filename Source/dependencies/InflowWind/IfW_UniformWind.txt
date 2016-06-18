@@ -3,9 +3,9 @@
 # Module IfW_UniformWind_Types contains all of the user-defined types needed in IfW_UniformWind. It also contains copy, destroy, pack, and
 # unpack routines associated with each defined data types.
 ###################################################################################################################################
-# File last committed: $Date: 2015-12-15 08:48:41 -0700 (Tue, 15 Dec 2015) $
-# (File) Revision #: $Rev: 194 $
-# URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization2/Source/Registry/IfW_UniformWind.txt $
+# File last committed: $Date: 2016-06-17 18:08:19 -0600 (Fri, 17 Jun 2016) $
+# (File) Revision #: $Rev: 205 $
+# URL: $HeadURL: https://windsvn2.nrel.gov/InflowWind/branches/modularization2/Source/Registry/IfW_UniformWind.txt $
 ###################################################################################################################################
 # Entries are of the form
 # keyword <IfW_UniformWind[/ModuleAbvr]> <TypeName>   <FieldType>    <FieldName>  <Dims>  <Ctrl> <DNAME> <DESCRIP> <UNITS>
@@ -53,11 +53,5 @@ typedef  ^                       ^                       ReKi     RefHt         
 typedef  ^                       ^                       ReKi     RefLength         -     -     -     "reference length used to scale the linear shear"              meters
 typedef  ^                       ^                       IntKi    NumDataLines      -     -     -     ""                                                             -
 
-
-
-# ..... Outputs ...................................................................................................................
-# Define outputs that are contained on the mesh here:
-typedef  ^                    OutputType                 ReKi     Velocity          ::    -     -     "Array holding the U,V,W velocity for a given timestep"        meters/sec
-typedef  ^                       ^                       ReKi     DiskVel           {3}   -     -     "Vector holding the U,V,W average velocity of the disk"        meters/sec
 
 

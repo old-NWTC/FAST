@@ -29,7 +29,7 @@ MODULE ElastoDyn
    USE ElastoDyn_IO
    USE NWTC_LAPACK
 
-   USE ED_UserSubs         ! <- module not in the FAST Framework! (see ServoDyn source)
+   USE ED_UserSubs         ! <- module not in the FAST Framework!
 
    IMPLICIT NONE
 
@@ -49,17 +49,17 @@ MODULE ElastoDyn
    PUBLIC :: ED_CalcContStateDeriv             ! Tight coupling routine for computing derivatives of continuous states
    PUBLIC :: ED_UpdateDiscState                ! Tight coupling routine for updating discrete states
 
-   !PUBLIC :: ED_JacobianPInput                 ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
-   !                                            !   (Xd), and constraint-state (Z) equations all with respect to the inputs (u)
-   !PUBLIC :: ED_JacobianPContState             ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
-   !                                            !   (Xd), and constraint-state (Z) equations all with respect to the continuous
-   !                                            !   states (x)
-   !PUBLIC :: ED_JacobianPDiscState             ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
-   !                                            !   (Xd), and constraint-state (Z) equations all with respect to the discrete
-   !                                            !   states (xd)
-   !PUBLIC :: ED_JacobianPConstrState           ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
-   !                                            !   (Xd), and constraint-state (Z) equations all with respect to the constraint
-   !                                            !   states (z)
+   PUBLIC :: ED_JacobianPInput                 ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
+                                               !   (Xd), and constraint-state (Z) equations all with respect to the inputs (u)
+   PUBLIC :: ED_JacobianPContState             ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
+                                               !   (Xd), and constraint-state (Z) equations all with respect to the continuous
+                                               !   states (x)
+   PUBLIC :: ED_JacobianPDiscState             ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
+                                               !   (Xd), and constraint-state (Z) equations all with respect to the discrete
+                                               !   states (xd)
+   PUBLIC :: ED_JacobianPConstrState           ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
+                                               !   (Xd), and constraint-state (Z) equations all with respect to the constraint
+                                               !   states (z)
 
 
 CONTAINS
@@ -1765,7 +1765,8 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, m, dxdt, ErrSta
        !OtherState%BlPitch = u%BlPitchCom
        
          ! set the coordinate system variables:
-      CALL SetCoordSy( t, m%CoordSys, m%RtHS, u%BlPitchCom, p, x, ErrStat, ErrMsg )
+      CALL SetCoordSy( t, m%CoordSys, m%RtHS, u%BlPitchCom, p, x, ErrStat2, ErrMsg2 )
+         call setErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
          IF (ErrStat >= AbortErrLev) RETURN
    
       CALL CalculatePositions(        p, x, m%CoordSys,    m%RtHS ) ! calculate positions
@@ -10408,6 +10409,289 @@ SUBROUTINE FixHSSBrTq ( Integrator, p, x, OtherState, m, ErrStat, ErrMsg )
    RETURN
 END SUBROUTINE FixHSSBrTq
 !----------------------------------------------------------------------------------------------------------------------------------
+
+!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+! ###### The following four routines are Jacobian routines for linearization capabilities #######
+! If the module does not implement them, set ErrStat = ErrID_Fatal in ED_Init() when InitInp%Linearize is .true.
+!----------------------------------------------------------------------------------------------------------------------------------
+!> Routine to compute the Jacobians of the output (Y), continuous- (X), discrete- (Xd), and constraint-state (Z) functions
+!! with respect to the inputs (u). The partial derivatives dY/du, dX/du, dXd/du, and DZ/du are returned.
+SUBROUTINE ED_JacobianPInput( t, u, p, x, xd, z, OtherState, m, dYdu, dXdu, dXddu, dZdu, ErrStat, ErrMsg )
+!..................................................................................................................................
+
+   REAL(DbKi),                           INTENT(IN   )           :: t          !< Current simulation time in seconds
+   TYPE(ED_InputType),                   INTENT(IN   )           :: u          !< Inputs at t
+   TYPE(ED_ParameterType),               INTENT(IN   )           :: p          !< Parameters
+   TYPE(ED_ContinuousStateType),         INTENT(IN   )           :: x          !< Continuous states at t
+   TYPE(ED_DiscreteStateType),           INTENT(IN   )           :: xd         !< Discrete states at t
+   TYPE(ED_ConstraintStateType),         INTENT(IN   )           :: z          !< Constraint states at t
+   TYPE(ED_OtherStateType),              INTENT(IN   )           :: OtherState !< Other states at t
+   TYPE(ED_MiscVarType),                 INTENT(INOUT)           :: m          !< Misc/optimization variables
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,    INTENT(INOUT)           :: dYdu(:,:)  !< Partial derivatives of output functions
+                                                                               !!   (Y) with respect to the inputs (u)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,    INTENT(INOUT)           :: dXdu(:,:)  !< Partial derivatives of continuous state
+                                                                               !!   functions (X) with respect to inputs (u)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,    INTENT(INOUT)           :: dXddu(:,:) !< Partial derivatives of discrete state
+                                                                               !!   functions (Xd) with respect to inputs (u)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,    INTENT(INOUT)           :: dZdu(:,:)  !< Partial derivatives of constraint state
+                                                                               !!   functions (Z) with respect to inputs (u)
+   INTEGER(IntKi),                       INTENT(  OUT)           :: ErrStat    !< Error status of the operation
+   CHARACTER(*),                         INTENT(  OUT)           :: ErrMsg     !< Error message if ErrStat /= ErrID_None
+
+
+      ! Initialize ErrStat
+
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+
+
+   IF ( PRESENT( dYdu ) ) THEN
+
+      ! Calculate the partial derivative of the output functions (Y) with respect to the inputs (u) here:
+
+      ! allocate and set dYdu
+
+   END IF
+
+   IF ( PRESENT( dXdu ) ) THEN
+
+      ! Calculate the partial derivative of the continuous state functions (X) with respect to the inputs (u) here:
+
+      ! allocate and set dXdu
+
+   END IF
+
+   IF ( PRESENT( dXddu ) ) THEN
+
+      ! Calculate the partial derivative of the discrete state functions (Xd) with respect to the inputs (u) here:
+
+      ! allocate and set dXddu
+
+   END IF
+
+   IF ( PRESENT( dZdu ) ) THEN
+
+      ! Calculate the partial derivative of the constraint state functions (Z) with respect to the inputs (u) here:
+
+      ! allocate and set dZdu
+
+   END IF
+
+
+END SUBROUTINE ED_JacobianPInput
+!----------------------------------------------------------------------------------------------------------------------------------
+!> Routine to compute the Jacobians of the output (Y), continuous- (X), discrete- (Xd), and constraint-state (Z) functions
+!! with respect to the continuous states (x). The partial derivatives dY/dx, dX/dx, dXd/dx, and DZ/dx are returned.
+SUBROUTINE ED_JacobianPContState( t, u, p, x, xd, z, OtherState, m, dYdx, dXdx, dXddx, dZdx, ErrStat, ErrMsg )
+!..................................................................................................................................
+
+   REAL(DbKi),                           INTENT(IN   )           :: t          !< Current simulation time in seconds
+   TYPE(ED_InputType),                   INTENT(IN   )           :: u          !< Inputs at t
+   TYPE(ED_ParameterType),               INTENT(IN   )           :: p          !< Parameters
+   TYPE(ED_ContinuousStateType),         INTENT(IN   )           :: x          !< Continuous states at t
+   TYPE(ED_DiscreteStateType),           INTENT(IN   )           :: xd         !< Discrete states at t
+   TYPE(ED_ConstraintStateType),         INTENT(IN   )           :: z          !< Constraint states at t
+   TYPE(ED_OtherStateType),              INTENT(IN   )           :: OtherState !< Other states at t
+   TYPE(ED_MiscVarType),                 INTENT(INOUT)           :: m          !< Misc/optimization variables
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,    INTENT(INOUT)           :: dYdx       !< Partial derivatives of output functions
+                                                                               !!   (Y) with respect to the continuous
+                                                                               !!   states (x)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,    INTENT(INOUT)           :: dXdx       !< Partial derivatives of continuous state
+                                                                               !!   functions (X) with respect to
+                                                                               !!   the continuous states (x)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,    INTENT(INOUT)           :: dXddx      !< Partial derivatives of discrete state
+                                                                               !!   functions (Xd) with respect to
+                                                                               !!   the continuous states (x)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,    INTENT(INOUT)           :: dZdx       !< Partial derivatives of constraint state
+                                                                               !!   functions (Z) with respect to
+                                                                               !!   the continuous states (x)
+   INTEGER(IntKi),                       INTENT(  OUT)           :: ErrStat    !< Error status of the operation
+   CHARACTER(*),                         INTENT(  OUT)           :: ErrMsg     !< Error message if ErrStat /= ErrID_None
+
+
+      ! Initialize ErrStat
+
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+
+
+
+   IF ( PRESENT( dYdx ) ) THEN
+
+      ! Calculate the partial derivative of the output functions (Y) with respect to the continuous states (x) here:
+
+      ! allocate and set dYdx
+
+   END IF
+
+   IF ( PRESENT( dXdx ) ) THEN
+
+      ! Calculate the partial derivative of the continuous state functions (X) with respect to the continuous states (x) here:
+
+      ! allocate and set dXdx
+
+   END IF
+
+   IF ( PRESENT( dXddx ) ) THEN
+
+      ! Calculate the partial derivative of the discrete state functions (Xd) with respect to the continuous states (x) here:
+
+      ! allocate and set dXddx
+
+   END IF
+
+   IF ( PRESENT( dZdx ) ) THEN
+
+
+      ! Calculate the partial derivative of the constraint state functions (Z) with respect to the continuous states (x) here:
+
+      ! allocate and set dZdx
+
+   END IF
+
+
+END SUBROUTINE ED_JacobianPContState
+!----------------------------------------------------------------------------------------------------------------------------------
+!> Routine to compute the Jacobians of the output (Y), continuous- (X), discrete- (Xd), and constraint-state (Z) functions
+!! with respect to the discrete states (xd). The partial derivatives dY/dxd, dX/dxd, dXd/dxd, and DZ/dxd are returned.
+SUBROUTINE ED_JacobianPDiscState( t, u, p, x, xd, z, OtherState, m, dYdxd, dXdxd, dXddxd, dZdxd, ErrStat, ErrMsg )
+!..................................................................................................................................
+
+   REAL(DbKi),                           INTENT(IN   )           :: t          !< Current simulation time in seconds
+   TYPE(ED_InputType),                   INTENT(IN   )           :: u          !< Inputs at t
+   TYPE(ED_ParameterType),               INTENT(IN   )           :: p          !< Parameters
+   TYPE(ED_ContinuousStateType),         INTENT(IN   )           :: x          !< Continuous states at t
+   TYPE(ED_DiscreteStateType),           INTENT(IN   )           :: xd         !< Discrete states at t
+   TYPE(ED_ConstraintStateType),         INTENT(IN   )           :: z          !< Constraint states at t
+   TYPE(ED_OtherStateType),              INTENT(IN   )           :: OtherState !< Other states at t
+   TYPE(ED_MiscVarType),                 INTENT(INOUT)           :: m          !< Misc/optimization variables
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,    INTENT(INOUT)           :: dYdxd      !< Partial derivatives of output functions
+                                                                               !!  (Y) with respect to the discrete
+                                                                               !!  states (xd)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,    INTENT(INOUT)           :: dXdxd      !< Partial derivatives of continuous state
+                                                                               !!   functions (X) with respect to the
+                                                                               !!   discrete states (xd)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,    INTENT(INOUT)           :: dXddxd     !< Partial derivatives of discrete state
+                                                                               !!   functions (Xd) with respect to the
+                                                                               !!   discrete states (xd)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,    INTENT(INOUT)           :: dZdxd      !< Partial derivatives of constraint state
+                                                                               !!   functions (Z) with respect to the
+                                                                               !!   discrete states (xd)
+   INTEGER(IntKi),                       INTENT(  OUT)           :: ErrStat    !< Error status of the operation
+   CHARACTER(*),                         INTENT(  OUT)           :: ErrMsg     !< Error message if ErrStat /= ErrID_None
+
+
+      ! Initialize ErrStat
+
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+
+
+   IF ( PRESENT( dYdxd ) ) THEN
+
+      ! Calculate the partial derivative of the output functions (Y) with respect to the discrete states (xd) here:
+
+      ! allocate and set dYdxd
+
+   END IF
+
+   IF ( PRESENT( dXdxd ) ) THEN
+
+      ! Calculate the partial derivative of the continuous state functions (X) with respect to the discrete states (xd) here:
+
+      ! allocate and set dXdxd
+
+   END IF
+
+   IF ( PRESENT( dXddxd ) ) THEN
+
+      ! Calculate the partial derivative of the discrete state functions (Xd) with respect to the discrete states (xd) here:
+
+      ! allocate and set dXddxd
+
+   END IF
+
+   IF ( PRESENT( dZdxd ) ) THEN
+
+      ! Calculate the partial derivative of the constraint state functions (Z) with respect to the discrete states (xd) here:
+
+      ! allocate and set dZdxd
+
+   END IF
+
+
+END SUBROUTINE ED_JacobianPDiscState
+!----------------------------------------------------------------------------------------------------------------------------------
+!> Routine to compute the Jacobians of the output (Y), continuous- (X), discrete- (Xd), and constraint-state (Z) functions
+!! with respect to the constraint states (z). The partial derivatives dY/dz, dX/dz, dXd/dz, and DZ/dz are returned.
+SUBROUTINE ED_JacobianPConstrState( t, u, p, x, xd, z, OtherState, m, dYdz, dXdz, dXddz, dZdz, ErrStat, ErrMsg )
+!..................................................................................................................................
+
+   REAL(DbKi),                           INTENT(IN   )           :: t          !< Current simulation time in seconds
+   TYPE(ED_InputType),                   INTENT(IN   )           :: u          !< Inputs at t
+   TYPE(ED_ParameterType),               INTENT(IN   )           :: p          !< Parameters
+   TYPE(ED_ContinuousStateType),         INTENT(IN   )           :: x          !< Continuous states at t
+   TYPE(ED_DiscreteStateType),           INTENT(IN   )           :: xd         !< Discrete states at t
+   TYPE(ED_ConstraintStateType),         INTENT(IN   )           :: z          !< Constraint states at t
+   TYPE(ED_OtherStateType),              INTENT(IN   )           :: OtherState !< Other states at t
+   TYPE(ED_MiscVarType),                 INTENT(INOUT)           :: m          !< Misc/optimization variables
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,    INTENT(INOUT)           :: dYdz       !< Partial derivatives of output
+                                                                               !!  functions (Y) with respect to the
+                                                                               !!  constraint states (z)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,    INTENT(INOUT)           :: dXdz       !< Partial derivatives of continuous
+                                                                               !!  state functions (X) with respect to
+                                                                               !!  the constraint states (z)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,    INTENT(INOUT)           :: dXddz      !< Partial derivatives of discrete state
+                                                                               !!  functions (Xd) with respect to the
+                                                                               !!  constraint states (z)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,    INTENT(INOUT)           :: dZdz       !< Partial derivatives of constraint
+                                                                               !! state functions (Z) with respect to
+                                                                               !!  the constraint states (z)
+   INTEGER(IntKi),                       INTENT(  OUT)           :: ErrStat    !< Error status of the operation
+   CHARACTER(*),                         INTENT(  OUT)           :: ErrMsg     !< Error message if ErrStat /= ErrID_None
+
+
+      ! Initialize ErrStat
+
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+
+   IF ( PRESENT( dYdz ) ) THEN
+
+         ! Calculate the partial derivative of the output functions (Y) with respect to the constraint states (z) here:
+
+      ! allocate and set dYdz
+
+   END IF
+
+   IF ( PRESENT( dXdz ) ) THEN
+
+         ! Calculate the partial derivative of the continuous state functions (X) with respect to the constraint states (z) here:
+
+      ! allocate and set dXdz
+
+   END IF
+
+   IF ( PRESENT( dXddz ) ) THEN
+
+         ! Calculate the partial derivative of the discrete state functions (Xd) with respect to the constraint states (z) here:
+
+      ! allocate and set dXddz
+
+   END IF
+
+   IF ( PRESENT( dZdz ) ) THEN
+
+         ! Calculate the partial derivative of the constraint state functions (Z) with respect to the constraint states (z) here:
+
+      ! allocate and set dZdz
+
+   END IF
+
+
+END SUBROUTINE ED_JacobianPConstrState
+!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
 END MODULE ElastoDyn
 !**********************************************************************************************************************************

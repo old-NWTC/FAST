@@ -217,7 +217,7 @@
 		<Filter Name="OrcaFlex">
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\OrcaFlex\OrcaFlexInterface_Types.f90"/></Filter>
-		<File RelativePath="..\..\Source\dependencies\OrcaFlex\OrcaFlexInterface.f90"/></Filter></Filter>
+		<File RelativePath="..\..\Source\dependencies\OrcaFlex\OrcaFlexInterface.F90"/></Filter></Filter>
 		<Filter Name="NWTC_Library">
 		<Filter Name="NetLib">
 		<Filter Name="FFTPACK">
@@ -321,7 +321,7 @@
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\ServoDyn_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\TMD_Types.f90"/></Filter>
-		<File RelativePath="..\..\Source\dependencies\ServoDyn\BladedInterface.f90"/>
+		<File RelativePath="..\..\Source\dependencies\ServoDyn\BladedInterface.F90"/>
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\PitchCntrl_ACH.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\ServoDyn.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\TMD.f90"/>

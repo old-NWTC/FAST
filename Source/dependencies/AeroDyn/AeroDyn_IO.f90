@@ -2554,13 +2554,18 @@ SUBROUTINE AD_PrintSum( InputFileData, p, u, y, ErrStat, ErrMsg )
    end if
    
    
+#ifndef DBG_OUTS
+! p%OutParam isn't allocated when DBG_OUTS is defined
+
    OutPFmt =  '( 15x, I4, 2X, A '//TRIM(Num2LStr(ChanLen))//',1 X, A'//TRIM(Num2LStr(ChanLen))//' )'
    WRITE (UnSu,'(15x,A)')  'Requested Output Channels:'
    WRITE (UnSu,'(15x,A)')  'Col   Parameter  Units'
    WRITE (UnSu,'(15x,A)')  '----  ---------  -----'
+
    DO I = 0,p%NumOuts
       WRITE (UnSu,OutPFmt)  I, p%OutParam(I)%Name, p%OutParam(I)%Units
    END DO             
+#endif
 
    CLOSE(UnSu)
 

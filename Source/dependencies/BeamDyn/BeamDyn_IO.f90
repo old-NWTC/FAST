@@ -23,7 +23,7 @@ MODULE BeamDyn_IO
 
    IMPLICIT NONE
 
-   TYPE(ProgDesc), PARAMETER:: BeamDyn_Ver = ProgDesc('BeamDyn', 'v1.01.03','12-Apr-2016')
+   TYPE(ProgDesc), PARAMETER:: BeamDyn_Ver = ProgDesc('BeamDyn', 'v1.01.04','5-May-2016')
 
 
 ! ===================================================================================================
@@ -1573,8 +1573,13 @@ SUBROUTINE Calc_WriteOutput( p, AllOuts, y, m, ErrStat, ErrMsg )
           elem_no = 1
           node_no = j
       ELSE
-          elem_no = INT((j+1)/(p%node_elem-1))
-          node_no = j - (elem_no - 1)*(p%node_elem-1)
+!bjj: FIX ME: Qi has this:         
+          !elem_no = INT((j+1)/(p%node_elem-1))
+          !node_no = j - (elem_no - 1)*(p%node_elem-1)
+! Johannes has this:    (i changed CEILING to NINT)     
+          elem_no = NINT( float(j_BldMotion) / float(p%node_elem) )
+          node_no = j_BldMotion - (elem_no - 1)*p%node_elem
+          
       ENDIF
       temp_id = (elem_no-1)*p%node_elem+node_no
       temp33 = y%BldMotion%Orientation(1:3,1:3,temp_id)

@@ -8,9 +8,9 @@
    !                    correct type (to avoid having wSave too small)
    ! ADP: 07/28/2014: Added in the complex FFT routines from fftpack v. 4.1
 !=======================================================================
-! File last committed: $Date: 2015-09-28 22:21:59 -0600 (Mon, 28 Sep 2015) $
-! (File) Revision #: $Rev: 336 $
-! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/branches/NetLib/NWTC_source/NWTC_FFTPACK.f90 $
+! File last committed: $Date: 2016-06-15 11:12:21 -0600 (Wed, 15 Jun 2016) $
+! (File) Revision #: $Rev: 387 $
+! URL: $HeadURL: https://windsvn2.nrel.gov/NWTC_Library/branches/NetLib/NWTC_source/NWTC_FFTPACK.f90 $
 !=======================================================================
 MODULE NWTC_FFTPACK
 !-----------------------------------------------------------------------
@@ -228,17 +228,27 @@ CONTAINS
       ENDDO
 
 
-      CALL AllocAry( TRH, 2*size(TRH_complex_return,1), 'ApplyCFFT:TRH', ErrStat, ErrMsg  )
+      CALL AllocAry( TRH, 2*size(TRH_complex_return,1), 'ApplyCFFT:TRH', ErrStat, ErrMsg  ) !allocate two real for each complex variable
          IF (ErrStat >= AbortErrLev) THEN
             CALL WrScr( TRIM(ErrMsg) )
             RETURN
          END IF
-      TRH = TRANSFER(TRH_complex_return, TRH)
+
+         !TRH = TRANSFER(TRH_complex_return, TRH)  ! this function apparently uses stack space and is causing stack overflow on large models
+      do i=1,size(TRH_complex_return,1)
+         TRH(2*i-1)   = REAL(TRH_complex_return(i))
+         TRH(2*i  ) = AIMAG(TRH_complex_return(i))
+      end do
+      
 
       CALL CFFTB(FFT_Data%N, TRH, FFT_Data%wSave)
 
       ! put real values back into complex array
-      TRH_complex_return = TRANSFER(TRH, TRH_complex)      
+         !TRH = TRH_complex_return = TRANSFER(TRH, TRH_complex)  ! this function apparently uses stack space and is causing stack overflow on large models
+      do i=1,size(TRH_complex_return,1)
+         TRH_complex_return(i) = CMPLX(TRH(2*i-1),TRH(2*i))
+      end do
+      
       DEALLOCATE(TRH)
 
 

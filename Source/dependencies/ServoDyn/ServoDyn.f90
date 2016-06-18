@@ -33,7 +33,7 @@ MODULE ServoDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.05.00a-bjj', '11-Mar-2016' )
+   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.06.00a-bjj', '17-Jun-2016' )
    CHARACTER(*),   PARAMETER            :: SrvD_Nickname = 'SrvD'
    
 #ifdef COMPILE_SIMULINK
@@ -143,17 +143,17 @@ MODULE ServoDyn
    PUBLIC :: SrvD_CalcContStateDeriv             ! Tight coupling routine for computing derivatives of continuous states
    PUBLIC :: SrvD_UpdateDiscState                ! Tight coupling routine for updating discrete states
 
-   !PUBLIC :: SrvD_JacobianPInput                 ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
-   !                                              !   (Xd), and constraint-state (Z) equations all with respect to the inputs (u)
-   !PUBLIC :: SrvD_JacobianPContState             ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
-   !                                              !   (Xd), and constraint-state (Z) equations all with respect to the continuous
-   !                                              !   states (x)
-   !PUBLIC :: SrvD_JacobianPDiscState             ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
-   !                                              !   (Xd), and constraint-state (Z) equations all with respect to the discrete
-   !                                              !   states (xd)
-   !PUBLIC :: SrvD_JacobianPConstrState           ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
-   !                                              !   (Xd), and constraint-state (Z) equations all with respect to the constraint
-   !                                              !   states (z)
+   PUBLIC :: SrvD_JacobianPInput                 ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
+                                                 !   (Xd), and constraint-state (Z) equations all with respect to the inputs (u)
+   PUBLIC :: SrvD_JacobianPContState             ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
+                                                 !   (Xd), and constraint-state (Z) equations all with respect to the continuous
+                                                 !   states (x)
+   PUBLIC :: SrvD_JacobianPDiscState             ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
+                                                 !   (Xd), and constraint-state (Z) equations all with respect to the discrete
+                                                 !   states (xd)
+   PUBLIC :: SrvD_JacobianPConstrState           ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
+                                                 !   (Xd), and constraint-state (Z) equations all with respect to the constraint
+                                                 !   states (z)
    
    
 CONTAINS
@@ -1104,9 +1104,284 @@ SUBROUTINE SrvD_CalcConstrStateResidual( t, u, p, x, xd, z, OtherState, m, z_res
 
       
 END SUBROUTINE SrvD_CalcConstrStateResidual
+
+
 !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! WE ARE NOT YET IMPLEMENTING THE JACOBIANS...
+! ###### The following four routines are Jacobian routines for linearization capabilities #######
+! If the module does not implement them, set ErrStat = ErrID_Fatal in SrvD_Init() when InitInp%Linearize is .true.
+!----------------------------------------------------------------------------------------------------------------------------------
+!> Routine to compute the Jacobians of the output (Y), continuous- (X), discrete- (Xd), and constraint-state (Z) functions
+!! with respect to the inputs (u). The partial derivatives dY/du, dX/du, dXd/du, and DZ/du are returned.
+SUBROUTINE SrvD_JacobianPInput( t, u, p, x, xd, z, OtherState, m, dYdu, dXdu, dXddu, dZdu, ErrStat, ErrMsg )
+!..................................................................................................................................
+
+   REAL(DbKi),                             INTENT(IN   )           :: t          !< Current simulation time in seconds
+   TYPE(SrvD_InputType),                   INTENT(IN   )           :: u          !< Inputs at t
+   TYPE(SrvD_ParameterType),               INTENT(IN   )           :: p          !< Parameters
+   TYPE(SrvD_ContinuousStateType),         INTENT(IN   )           :: x          !< Continuous states at t
+   TYPE(SrvD_DiscreteStateType),           INTENT(IN   )           :: xd         !< Discrete states at t
+   TYPE(SrvD_ConstraintStateType),         INTENT(IN   )           :: z          !< Constraint states at t
+   TYPE(SrvD_OtherStateType),              INTENT(IN   )           :: OtherState !< Other states at t
+   TYPE(SrvD_MiscVarType),                 INTENT(INOUT)           :: m          !< Misc/optimization variables
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,      INTENT(INOUT)           :: dYdu(:,:)  !< Partial derivatives of output functions
+                                                                                 !!   (Y) with respect to the inputs (u)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,      INTENT(INOUT)           :: dXdu(:,:)  !< Partial derivatives of continuous state
+                                                                                 !!   functions (X) with respect to inputs (u)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,      INTENT(INOUT)           :: dXddu(:,:) !< Partial derivatives of discrete state
+                                                                                 !!   functions (Xd) with respect to inputs (u)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,      INTENT(INOUT)           :: dZdu(:,:)  !< Partial derivatives of constraint state
+                                                                                 !!   functions (Z) with respect to inputs (u)
+   INTEGER(IntKi),                         INTENT(  OUT)           :: ErrStat    !< Error status of the operation
+   CHARACTER(*),                           INTENT(  OUT)           :: ErrMsg     !< Error message if ErrStat /= ErrID_None
+
+      ! local variables
+   INTEGER(IntKi)                                                  :: ErrStat2   ! Error status of the operation
+   CHARACTER(ErrMsgLen)                                            :: ErrMsg2    ! Error message if ErrStat /= ErrID_None
+   CHARACTER(*), PARAMETER                                         :: RoutineName = 'SrvD_JacobianPInput'
+
+      ! Initialize ErrStat
+
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+
+      ! Calculate the partial derivative of the output functions (Y) with respect to the inputs (u) here:
+
+   IF ( PRESENT( dYdu ) ) THEN
+      if (.not. allocated(dYdu)) then
+         call allocAry(dYdu, 6+p%NumOuts, 3, 'dYdu', ErrStat2, ErrMsg2)
+         call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+      end if
+      
+   END IF
+
+   IF ( PRESENT( dXdu ) ) THEN
+      if (allocated(dXdu)) deallocate(dXdu)
+   END IF
+
+   IF ( PRESENT( dXddu ) ) THEN
+      if (allocated(dXddu)) deallocate(dXddu)
+   END IF
+
+   IF ( PRESENT( dZdu ) ) THEN
+      if (allocated(dZdu)) deallocate(dZdu)
+   END IF
+
+
+END SUBROUTINE SrvD_JacobianPInput
+!----------------------------------------------------------------------------------------------------------------------------------
+!> Routine to compute the Jacobians of the output (Y), continuous- (X), discrete- (Xd), and constraint-state (Z) functions
+!! with respect to the continuous states (x). The partial derivatives dY/dx, dX/dx, dXd/dx, and DZ/dx are returned.
+SUBROUTINE SrvD_JacobianPContState( t, u, p, x, xd, z, OtherState, m, dYdx, dXdx, dXddx, dZdx, ErrStat, ErrMsg )
+!..................................................................................................................................
+
+   REAL(DbKi),                             INTENT(IN   )           :: t          !< Current simulation time in seconds
+   TYPE(SrvD_InputType),                   INTENT(IN   )           :: u          !< Inputs at t
+   TYPE(SrvD_ParameterType),               INTENT(IN   )           :: p          !< Parameters
+   TYPE(SrvD_ContinuousStateType),         INTENT(IN   )           :: x          !< Continuous states at t
+   TYPE(SrvD_DiscreteStateType),           INTENT(IN   )           :: xd         !< Discrete states at t
+   TYPE(SrvD_ConstraintStateType),         INTENT(IN   )           :: z          !< Constraint states at t
+   TYPE(SrvD_OtherStateType),              INTENT(IN   )           :: OtherState !< Other states at t
+   TYPE(SrvD_MiscVarType),                 INTENT(INOUT)           :: m          !< Misc/optimization variables
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,      INTENT(INOUT)           :: dYdx       !< Partial derivatives of output functions
+                                                                                 !!   (Y) with respect to the continuous
+                                                                                 !!   states (x)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,      INTENT(INOUT)           :: dXdx       !< Partial derivatives of continuous state
+                                                                                 !!   functions (X) with respect to
+                                                                                 !!   the continuous states (x)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,      INTENT(INOUT)           :: dXddx      !< Partial derivatives of discrete state
+                                                                                 !!   functions (Xd) with respect to
+                                                                                 !!   the continuous states (x)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,      INTENT(INOUT)           :: dZdx       !< Partial derivatives of constraint state
+                                                                                 !!   functions (Z) with respect to
+                                                                                 !!   the continuous states (x)
+   INTEGER(IntKi),                         INTENT(  OUT)           :: ErrStat    !< Error status of the operation
+   CHARACTER(*),                           INTENT(  OUT)           :: ErrMsg     !< Error message if ErrStat /= ErrID_None
+
+
+      ! Initialize ErrStat
+
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+
+
+
+   IF ( PRESENT( dYdx ) ) THEN
+
+      ! Calculate the partial derivative of the output functions (Y) with respect to the continuous states (x) here:
+
+      ! allocate and set dYdx
+
+   END IF
+
+   IF ( PRESENT( dXdx ) ) THEN
+
+      ! Calculate the partial derivative of the continuous state functions (X) with respect to the continuous states (x) here:
+
+      ! allocate and set dXdx
+
+   END IF
+
+   IF ( PRESENT( dXddx ) ) THEN
+
+      ! Calculate the partial derivative of the discrete state functions (Xd) with respect to the continuous states (x) here:
+
+      ! allocate and set dXddx
+
+   END IF
+
+   IF ( PRESENT( dZdx ) ) THEN
+
+
+      ! Calculate the partial derivative of the constraint state functions (Z) with respect to the continuous states (x) here:
+
+      ! allocate and set dZdx
+
+   END IF
+
+
+END SUBROUTINE SrvD_JacobianPContState
+!----------------------------------------------------------------------------------------------------------------------------------
+!> Routine to compute the Jacobians of the output (Y), continuous- (X), discrete- (Xd), and constraint-state (Z) functions
+!! with respect to the discrete states (xd). The partial derivatives dY/dxd, dX/dxd, dXd/dxd, and DZ/dxd are returned.
+SUBROUTINE SrvD_JacobianPDiscState( t, u, p, x, xd, z, OtherState, m, dYdxd, dXdxd, dXddxd, dZdxd, ErrStat, ErrMsg )
+!..................................................................................................................................
+
+   REAL(DbKi),                             INTENT(IN   )           :: t          !< Current simulation time in seconds
+   TYPE(SrvD_InputType),                   INTENT(IN   )           :: u          !< Inputs at t
+   TYPE(SrvD_ParameterType),               INTENT(IN   )           :: p          !< Parameters
+   TYPE(SrvD_ContinuousStateType),         INTENT(IN   )           :: x          !< Continuous states at t
+   TYPE(SrvD_DiscreteStateType),           INTENT(IN   )           :: xd         !< Discrete states at t
+   TYPE(SrvD_ConstraintStateType),         INTENT(IN   )           :: z          !< Constraint states at t
+   TYPE(SrvD_OtherStateType),              INTENT(IN   )           :: OtherState !< Other states at t
+   TYPE(SrvD_MiscVarType),                 INTENT(INOUT)           :: m          !< Misc/optimization variables
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,      INTENT(INOUT)           :: dYdxd      !< Partial derivatives of output functions
+                                                                                 !!  (Y) with respect to the discrete
+                                                                                 !!  states (xd)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,      INTENT(INOUT)           :: dXdxd      !< Partial derivatives of continuous state
+                                                                                 !!   functions (X) with respect to the
+                                                                                 !!   discrete states (xd)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,      INTENT(INOUT)           :: dXddxd     !< Partial derivatives of discrete state
+                                                                                 !!   functions (Xd) with respect to the
+                                                                                 !!   discrete states (xd)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,      INTENT(INOUT)           :: dZdxd      !< Partial derivatives of constraint state
+                                                                                 !!   functions (Z) with respect to the
+                                                                                 !!   discrete states (xd)
+   INTEGER(IntKi),                         INTENT(  OUT)           :: ErrStat    !< Error status of the operation
+   CHARACTER(*),                           INTENT(  OUT)           :: ErrMsg     !< Error message if ErrStat /= ErrID_None
+
+
+      ! Initialize ErrStat
+
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+
+
+   IF ( PRESENT( dYdxd ) ) THEN
+
+      ! Calculate the partial derivative of the output functions (Y) with respect to the discrete states (xd) here:
+
+      ! allocate and set dYdxd
+
+   END IF
+
+   IF ( PRESENT( dXdxd ) ) THEN
+
+      ! Calculate the partial derivative of the continuous state functions (X) with respect to the discrete states (xd) here:
+
+      ! allocate and set dXdxd
+
+   END IF
+
+   IF ( PRESENT( dXddxd ) ) THEN
+
+      ! Calculate the partial derivative of the discrete state functions (Xd) with respect to the discrete states (xd) here:
+
+      ! allocate and set dXddxd
+
+   END IF
+
+   IF ( PRESENT( dZdxd ) ) THEN
+
+      ! Calculate the partial derivative of the constraint state functions (Z) with respect to the discrete states (xd) here:
+
+      ! allocate and set dZdxd
+
+   END IF
+
+
+END SUBROUTINE SrvD_JacobianPDiscState
+!----------------------------------------------------------------------------------------------------------------------------------
+!> Routine to compute the Jacobians of the output (Y), continuous- (X), discrete- (Xd), and constraint-state (Z) functions
+!! with respect to the constraint states (z). The partial derivatives dY/dz, dX/dz, dXd/dz, and DZ/dz are returned.
+SUBROUTINE SrvD_JacobianPConstrState( t, u, p, x, xd, z, OtherState, m, dYdz, dXdz, dXddz, dZdz, ErrStat, ErrMsg )
+!..................................................................................................................................
+
+   REAL(DbKi),                             INTENT(IN   )           :: t          !< Current simulation time in seconds
+   TYPE(SrvD_InputType),                   INTENT(IN   )           :: u          !< Inputs at t
+   TYPE(SrvD_ParameterType),               INTENT(IN   )           :: p          !< Parameters
+   TYPE(SrvD_ContinuousStateType),         INTENT(IN   )           :: x          !< Continuous states at t
+   TYPE(SrvD_DiscreteStateType),           INTENT(IN   )           :: xd         !< Discrete states at t
+   TYPE(SrvD_ConstraintStateType),         INTENT(IN   )           :: z          !< Constraint states at t
+   TYPE(SrvD_OtherStateType),              INTENT(IN   )           :: OtherState !< Other states at t
+   TYPE(SrvD_MiscVarType),                 INTENT(INOUT)           :: m          !< Misc/optimization variables
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,      INTENT(INOUT)           :: dYdz       !< Partial derivatives of output
+                                                                                 !!  functions (Y) with respect to the
+                                                                                 !!  constraint states (z)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,      INTENT(INOUT)           :: dXdz       !< Partial derivatives of continuous
+                                                                                 !!  state functions (X) with respect to
+                                                                                 !!  the constraint states (z)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,      INTENT(INOUT)           :: dXddz      !< Partial derivatives of discrete state
+                                                                                 !!  functions (Xd) with respect to the
+                                                                                 !!  constraint states (z)
+   REAL(ReKi), ALLOCATABLE, OPTIONAL,      INTENT(INOUT)           :: dZdz       !< Partial derivatives of constraint
+                                                                                 !! state functions (Z) with respect to
+                                                                                 !!  the constraint states (z)
+   INTEGER(IntKi),                         INTENT(  OUT)           :: ErrStat    !< Error status of the operation
+   CHARACTER(*),                           INTENT(  OUT)           :: ErrMsg     !< Error message if ErrStat /= ErrID_None
+
+
+      ! Initialize ErrStat
+
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+
+   IF ( PRESENT( dYdz ) ) THEN
+
+         ! Calculate the partial derivative of the output functions (Y) with respect to the constraint states (z) here:
+
+      ! allocate and set dYdz
+
+   END IF
+
+   IF ( PRESENT( dXdz ) ) THEN
+
+         ! Calculate the partial derivative of the continuous state functions (X) with respect to the constraint states (z) here:
+
+      ! allocate and set dXdz
+
+   END IF
+
+   IF ( PRESENT( dXddz ) ) THEN
+
+         ! Calculate the partial derivative of the discrete state functions (Xd) with respect to the constraint states (z) here:
+
+      ! allocate and set dXddz
+
+   END IF
+
+   IF ( PRESENT( dZdz ) ) THEN
+
+         ! Calculate the partial derivative of the constraint state functions (Z) with respect to the constraint states (z) here:
+
+      ! allocate and set dZdz
+
+   END IF
+
+
+END SUBROUTINE SrvD_JacobianPConstrState
 !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
 !----------------------------------------------------------------------------------------------------------------------------------
 !> This subroutine reads the input file and stores all the data in the SrvD_InputFile structure.
 !! It does not perform data validation.
@@ -3008,6 +3283,7 @@ SUBROUTINE Torque_CalcOutput( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrM
    
    IF ( OtherState%GenOnLine .and. .not. OtherState%Off4Good )  THEN    ! Generator is on line.
       CALL CalculateTorque( t, u, p, m, y%GenTrq, y%ElecPwr, ErrStat, ErrMsg )
+      if (ErrStat >= AbortErrLev) return
    ELSE                                                                 ! Generator is off line.
       y%GenTrq  = 0.0_ReKi
       y%ElecPwr = 0.0_ReKi
@@ -3044,7 +3320,7 @@ SUBROUTINE Torque_CalcOutput( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrM
 
          IF ( ( HSSBrFrac < 0.0_ReKi ) .OR. ( HSSBrFrac > 1.0_ReKi ) )  THEN   ! 0 (off) <= HSSBrFrac <= 1 (full); else Abort.
             ErrStat = ErrID_Fatal
-            ErrMsg  = 'HSSBrFrac must be between 0.0 (off) and 1.0 (full) (inclusive).  Fix logic in routine UserHSSBr().'
+            ErrMsg  = 'HSSBrFrac must be between 0.0 (off) and 1.0 (full) (inclusive). Fix logic in routine UserHSSBr().'
             RETURN
          END IF
 
@@ -3140,6 +3416,8 @@ SUBROUTINE Torque_UpdateStates( t, u, p, x, xd, z, OtherState, m, ErrStat, ErrMs
       IF ( ( .NOT. p%GenTiStp ) ) then
          
          CALL CalculateTorque( t, u, p, m, GenTrq, ElecPwr, ErrStat, ErrMsg ) 
+         if (ErrStat >= AbortErrLev) return
+         
          IF ( ElecPwr <= 0.0_ReKi ) THEN   ! Shut-down of generator determined by generator power = 0
             OtherState%Off4Good = .true.
          END IF
@@ -3178,7 +3456,7 @@ SUBROUTINE CalculateTorque( t, u, p, m, GenTrq, ElecPwr, ErrStat, ErrMsg )
    REAL(ReKi)                                     :: Slip        ! Generator slip.
    REAL(ReKi)                                     :: SlipRat     ! Generator slip ratio.
                                                   
-
+   character(*), parameter                        :: RoutineName = 'CalculateTorque'
 
       ! Initialize variables
    ErrStat = ErrID_None
@@ -3244,6 +3522,14 @@ SUBROUTINE CalculateTorque( t, u, p, m, GenTrq, ElecPwr, ErrStat, ErrMsg )
          CASE ( ControlMode_SIMPLE )              ! Simple variable-speed control.
 
 
+            if ( u%HSS_Spd < 0.0_ReKi) then
+               if (.not. equalRealNos(u%HSS_Spd, 0.0_ReKi) ) then
+                  call SetErrStat( ErrID_Fatal, "u%HSS_Spd is negative. Simple variable-speed control model "//&
+                                   "is not valid for motoring situations.", ErrStat, ErrMsg, RoutineName)
+                  return
+               end if               
+            end if
+            
          ! Compute the generator torque, which depends on which region we are in:
 
             IF ( u%HSS_Spd >= p%VS_RtGnSp )  THEN      ! We are in region 3 - torque is constant
@@ -3322,6 +3608,8 @@ REAL(ReKi)                             :: CalculateElecPwr     !< The result of 
    
 END FUNCTION CalculateElecPwr
 !----------------------------------------------------------------------------------------------------------------------------------
+
+
 
 END MODULE ServoDyn
 !**********************************************************************************************************************************

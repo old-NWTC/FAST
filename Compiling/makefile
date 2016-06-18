@@ -320,7 +320,7 @@ MD_SOURCES =                   \
 
 Orca_SOURCES =                 \
 	OrcaFlexInterface_Types.f90 \
-	OrcaFlexInterface.f90
+	OrcaFlexInterface.F90
 
 SD_SOURCES =                   \
 	qsort_c_module.f90          \
@@ -342,7 +342,7 @@ SrvD_SOURCES =                 \
 	ServoDyn_Types.f90          \
 	ServoDyn.f90                \
 	PitchCntrl_ACH.f90          \
-	BladedInterface.f90         \
+	BladedInterface.F90         \
 	UserSubs.f90                \
 	UserVSCont_KP.f90
 
@@ -386,8 +386,9 @@ vpath %.txt       $(FAST_DIR) $(AD14_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR)
                   $(DWM_DIR) $(FEAM_DIR) $(MD_DIR) $(MAP_DIR) $(AFI_DIR) $(UA_DIR) $(BEMT_DIR) $(AD_DIR) $(BD_DIR) $(OpFM_DIR)
 vpath %.inp       $(IceF_DIR) $(Orca_DIR_Reg)
 #apparently vpath doesn't work as expected if I use %.F90 (is it not case sensitive???)
-#vpath %.F90      $(IceF_DIR)
-vpath %           $(IceF_DIR)
+#.F90 extension is required for some preprocessor directives (can get around this when compiling, but apparently not when using Doxygen)
+#vpath %.F90      $(IceF_DIR) $(SrvD_DIR) $(Orca_DIR)
+vpath %           $(IceF_DIR) $(SrvD_DIR) $(Orca_DIR)
 
 
 ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD14_SOURCES) $(DWM_SOURCES) \

@@ -14,10 +14,13 @@
 !! See the License for the specific language governing permissions and
 !! limitations under the License.
 !!
+!> \author Bonnie Jonkman
+!> \author Marshall Buhl
+!> \author John Michalakes
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-01-21 14:33:25 -0700 (Thu, 21 Jan 2016) $
-! (File) Revision #: $Rev: 357 $
-! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Library.f90 $
+! File last committed: $Date: 2016-05-23 15:06:37 -0600 (Mon, 23 May 2016) $
+! (File) Revision #: $Rev: 382 $
+! URL: $HeadURL: https://windsvn2.nrel.gov/NWTC_Library/trunk/source/NWTC_Library.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_Library
 
@@ -25,7 +28,7 @@ MODULE NWTC_Library
          ! Compiling Notes:
          ! -----------------------------------
          ! Your project must include the following files:
-         !     SingPrec.f90        - for single-precision arithmetic for floating-points variables. Use preprocessor definition DOUBLE_PRECISION to use double-precision arithemitic 
+         !     SingPrec.f90        - Use preprocessor definition DOUBLE_PRECISION to use double-precision arithemitic 
          !     NWTC_Base.f90
          !     NWTC_IO.f90
          !     NWTC_Library.f90
@@ -58,20 +61,20 @@ MODULE NWTC_Library
          !     ModMesh_Mapping.f90  (remove if compiling with -DNO_MESHMAPPING)
          !     NWTC_Library.f90
          !
-         ! This software uses preprocessor directives, some lines exceed 132 characters, and ModMesh_Mapping.f90 depends on lapack routines.
-         !    so, you must compile with these options: \n
-         !              Intel:   /fpp /Qmkl:sequential \n
-         !              Gnu:     -x f95-cpp-input -ffree-line-length-none -llapack -lblas
-         !  note that lapack and blas [binary] libraries must be installed for you to compile the ModMesh_Mapping.f90 file. 
-         !     if you do not wish to use lapack, you can compile using the NO_MESHMAPPING compiler directive:
-         !                       -DNO_MESHMAPPING
+         !> This software uses preprocessor directives, some lines exceed 132 characters, and ModMesh_Mapping.f90 depends on lapack routines.
+         !!    so, you must compile with these options: \n
+         !!              Intel:   /fpp /Qmkl:sequential \n
+         !!              Gnu:     -x f95-cpp-input -ffree-line-length-none -llapack -lblas
+         !!  note that lapack and blas [binary] libraries must be installed for you to compile the ModMesh_Mapping.f90 file. 
+         !!     if you do not wish to use lapack, you can compile using the NO_MESHMAPPING compiler directive:
+         !!                       -DNO_MESHMAPPING
          !
-         ! Usage notes:
-         ! -----------------------------------
-         ! Invoking programs should call NWTC_Init() to initialize data important to the use of the library.  Currently,
-         !  this is used for the NaN, Inf, and Pi-based constants. NWTC_Init also opens the console for writing to the screen. 
-         !  (without this, it is possible [depending on the Sys*.f90 file used] that the screen output will be written to a 
-         !  file called "fort.7")
+         !> Usage notes:
+         !! -----------------------------------
+         !! Invoking programs should call NWTC_Init() to initialize data important to the use of the library.  Currently,
+         !!  this is used for the NaN, Inf, and Pi-based constants. NWTC_Init also opens the console for writing to the screen. 
+         !!  (without this, it is possible [depending on the Sys*.f90 file used] that the screen output will be written to a 
+         !!  file called "fort.7")
 
 
 

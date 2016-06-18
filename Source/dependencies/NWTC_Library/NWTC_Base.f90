@@ -32,6 +32,8 @@ MODULE NWTC_Base
 
 !=======================================================================
 
+   logical :: debug_print = .false.
+   
       ! General constants:
 
    INTEGER, PARAMETER            :: BITS_IN_ADDR  = C_INTPTR_T*8                  !< The number of bits in an address (32-bit or 64-bit).

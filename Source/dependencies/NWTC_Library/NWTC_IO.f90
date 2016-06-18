@@ -17,9 +17,9 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-04-05 21:43:14 -0600 (Tue, 05 Apr 2016) $
-! (File) Revision #: $Rev: 368 $
-! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_IO.f90 $
+! File last committed: $Date: 2016-06-10 12:07:10 -0600 (Fri, 10 Jun 2016) $
+! (File) Revision #: $Rev: 386 $
+! URL: $HeadURL: https://windsvn2.nrel.gov/NWTC_Library/trunk/source/NWTC_IO.f90 $
 !**********************************************************************************************************************************
 
 !> This module contains I/O-related variables and routines with non-system-specific logic.
@@ -33,7 +33,7 @@ MODULE NWTC_IO
 !=======================================================================
 
    TYPE(ProgDesc), PARAMETER    :: NWTC_Ver = &                               
-          ProgDesc( 'NWTC Subroutine Library', 'v2.08.00', '5-Apr-2016')    !< The name, version, and date of the NWTC Subroutine Library
+          ProgDesc( 'NWTC Subroutine Library', 'v2.09.00a-bjj', '25-Apr-2016')    !< The name, version, and date of the NWTC Subroutine Library
 
       !> This type stores a linked list of file names, used in MLB-style input file parsing (currently used in AirfoilInfo)
    TYPE, PUBLIC   :: FNlist_Type                                
@@ -206,6 +206,8 @@ MODULE NWTC_IO
       MODULE PROCEDURE WrMatrix2R4     ! Two dimension matrix of SiKi
       MODULE PROCEDURE WrMatrix1R8     ! Single dimension matrix (Ary) of R8Ki
       MODULE PROCEDURE WrMatrix2R8     ! Two dimension matrix of R8Ki
+      MODULE PROCEDURE WrMatrix1R16    ! Single dimension matrix (Ary) of QuKi
+      MODULE PROCEDURE WrMatrix2R16    ! Two dimension matrix of QuKi
    END INTERFACE
 
       !> \copydoc nwtc_io::wrr4aryfilenr
@@ -542,7 +544,7 @@ CONTAINS
 !> This routine allocates an array to the size specified in the AryDim input arguement(s).
 !! Arrays are of type POINTER.   
 !! If the array pointer is already associated on entry to this routine, the array it points to 
-!!  will be deallocated first. \n
+!! will be deallocated first. \n
 !! Use AllocPAry (nwtc_io::allocpary) instead of directly calling a specific routine in the generic interface.   
    SUBROUTINE AllIPAry1 ( Ary, AryDim1, Descr, ErrStat, ErrMsg )
 
@@ -6815,6 +6817,36 @@ CONTAINS
    END SUBROUTINE WrMatrix1R8
 !=======================================================================
 !> \copydoc nwtc_io::wrmatrix1r4
+   SUBROUTINE WrMatrix1R16( A, Un, ReFmt, MatName )
+   
+      REAL(QuKi),             INTENT(IN) :: A(:)
+      INTEGER,                INTENT(IN) :: Un
+      CHARACTER(*),           INTENT(IN) :: ReFmt   ! Format for printing ReKi numbers
+      CHARACTER(*), OPTIONAL, INTENT(IN) :: MatName
+
+      INTEGER        :: ErrStat
+      INTEGER                            :: nr  ! size (rows and columns) of A
+      CHARACTER(256)                     :: Fmt
+   
+   
+      nr = SIZE(A,1)
+
+      IF ( PRESENT(MatName) ) THEN
+         WRITE( Un, '(A,": ",A," x ",A)', IOSTAT=ErrStat ) TRIM(MatName), TRIM(Num2LStr(nr)), "1"
+      END IF
+      
+      Fmt = "(2x, "//TRIM(Num2LStr(nr))//"(1x,"//ReFmt//"))"   
+   
+      WRITE( Un, Fmt, IOSTAT=ErrStat ) A(:)
+      IF (ErrStat /= 0) THEN
+         CALL WrScr('Error '//TRIM(Num2LStr(ErrStat))//' writing matrix in WrMatrix1R16().')
+         RETURN
+      END IF
+
+   RETURN
+   END SUBROUTINE WrMatrix1R16
+!=======================================================================
+!> \copydoc nwtc_io::wrmatrix1r4
    SUBROUTINE WrMatrix2R4( A, Un, ReFmt, MatName )
       
       REAL(SiKi),             INTENT(IN) :: A(:,:)
@@ -6885,6 +6917,42 @@ CONTAINS
 
    RETURN
    END SUBROUTINE WrMatrix2R8
+!=======================================================================  
+!> \copydoc nwtc_io::wrmatrix1r4
+   SUBROUTINE WrMatrix2R16( A, Un, ReFmt, MatName )
+   
+      REAL(QuKi),             INTENT(IN) :: A(:,:)
+      INTEGER,                INTENT(IN) :: Un
+      CHARACTER(*),           INTENT(IN) :: ReFmt   ! Format for printing ReKi numbers  
+      CHARACTER(*), OPTIONAL, INTENT(IN) :: MatName
+
+      INTEGER                            :: ErrStat
+      INTEGER                            :: nr, nc  ! size (rows and columns) of A
+      INTEGER                            :: i       ! indices into A
+      CHARACTER(256)                     :: Fmt
+   
+   
+      nr = SIZE(A,1)
+      nc = SIZE(A,2)
+
+      IF ( PRESENT(MatName) ) THEN
+         WRITE( Un, '(A,": ",A," x ",A)', IOSTAT=ErrStat ) TRIM(MatName), TRIM(Num2LStr(nr)), TRIM(Num2LStr(nc))
+      END IF
+      
+      Fmt = "(2x, "//TRIM(Num2LStr(nc))//"(1x,"//ReFmt//"))"   
+
+      DO i=1,nr
+         WRITE( Un, Fmt, IOSTAT=ErrStat ) A(i,:)
+         IF (ErrStat /= 0) THEN
+            CALL WrScr('Error '//TRIM(Num2LStr(ErrStat))//' writing matrix in WrMatrix2R16().')
+            RETURN
+         END IF
+         
+         
+      END DO
+
+   RETURN
+   END SUBROUTINE WrMatrix2R16
 !=======================================================================  
 !> This routine writes out a prompt to the screen without
 !! following it with a new line, though a new line precedes it.

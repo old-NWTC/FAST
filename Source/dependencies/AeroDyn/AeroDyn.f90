@@ -1084,7 +1084,7 @@ subroutine AD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, m, z_re
    TYPE(AD_ContinuousStateType), INTENT(IN   )   :: x           !< Continuous states at Time
    TYPE(AD_DiscreteStateType),   INTENT(IN   )   :: xd          !< Discrete states at Time
    TYPE(AD_ConstraintStateType), INTENT(IN   )   :: z           !< Constraint states at Time (possibly a guess)
-   TYPE(AD_OtherStateType),      INTENT(INOUT)   :: OtherState  !< Other states at Time
+   TYPE(AD_OtherStateType),      INTENT(IN   )   :: OtherState  !< Other states at Time
    type(AD_MiscVarType),         intent(inout)   :: m           !< Misc/optimization variables
    TYPE(AD_ConstraintStateType), INTENT(  OUT)   :: z_residual  !< Residual of the constraint state equations using
                                                                 !!     the input values described above

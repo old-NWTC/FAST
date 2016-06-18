@@ -154,7 +154,7 @@ ENDIF
 
    ! Transfer the character string back to C character array (null-terminated)
    
-avcMSG = TRANSFER( TRIM(ErrMsg)//C_NULL_CHAR, avcMSG )
+avcMSG = TRANSFER( TRIM(ErrMsg)//C_NULL_CHAR, avcMSG, SIZE(avcMSG) )
 
 
 RETURN

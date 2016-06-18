@@ -894,7 +894,7 @@ subroutine Init_y( p, x, u, y, ErrStat, ErrMsg)
    indx = 2
    DO i=1,NNodes-1
       
-      if (.not. equalRealNos( TwoNorm( y%BldMotion%Position(:,i)-y%BldMotion%Position(:,i+1) ), 0.0_ReKi ) ) then
+      if (.not. equalRealNos( REAL( TwoNorm( y%BldMotion%Position(:,i)-y%BldMotion%Position(:,i+1) ), SiKi ), 0.0_SiKi ) ) then
          p%NdIndx(indx) = i + 1
          indx = indx + 1;
          ! do not connect nodes that are collocated
@@ -4636,6 +4636,7 @@ SUBROUTINE BD_CalcIC( u, p, x, ErrStat, ErrMsg)
    INTEGER(IntKi)                             :: j
    INTEGER(IntKi)                             :: k
    INTEGER(IntKi)                             :: temp_id
+   INTEGER(IntKi)                             :: temp_id2
    REAL(BDKi)                                 :: temp3(3)
    REAL(BDKi)                                 :: temp_p0(3)
    REAL(BDKi)                                 :: temp_rv(3)
@@ -4693,12 +4694,13 @@ SUBROUTINE BD_CalcIC( u, p, x, ErrStat, ErrMsg)
    DO i=1,p%elem_total
       DO j=k,p%node_elem
          temp_id = (j-1)*p%dof_node
-         temp3 = MATMUL(p%GlbRot,p%uuN0(temp_id+1:temp_id+3,i))
+         temp_id2 = ((i-1)*(p%node_elem-1)+j-1)*p%dof_node
+         
+         temp3 = MATMUL(p%GlbRot, p%uuN0(temp_id+1:temp_id+3,i) + x%q(temp_id2+1:temp_id2+3) )
          temp3 = GlbRot_TransVel + MATMUL(GlbRot_RotVel_tilde,temp3)
          
-         temp_id = ((i-1)*(p%node_elem-1)+j-1)*p%dof_node
-         x%dqdt(temp_id+1:temp_id+3) = MATMUL(temp3,p%GlbRot) ! = transpose(MATMUL(transpose(temp3),p%GlbRot)) = MATMUL(TRANSPOSE(p%GlbRot),temp3)  because temp3 is 1-dimension
-         x%dqdt(temp_id+4:temp_id+6) = u%RootMotion%RotationVel(1:3,1)
+         x%dqdt(temp_id2+1:temp_id2+3) = MATMUL(temp3,p%GlbRot) ! = transpose(MATMUL(transpose(temp3),p%GlbRot)) = MATMUL(TRANSPOSE(p%GlbRot),temp3)  because temp3 is 1-dimension
+         x%dqdt(temp_id2+4:temp_id2+6) = u%RootMotion%RotationVel(1:3,1)
       ENDDO
       k = 2 ! start j loop at k=2 for remaining elements (i>1)
    ENDDO
