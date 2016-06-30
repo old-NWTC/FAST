@@ -4552,6 +4552,8 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, m, ErrStat, 
                m%D_F_B(I,J) = elementWaterState * p%D_F_B(I,J)
                y%DistribMesh%Force(I,J) = m%D_F_AM(I,J) + m%D_F_D(I,J)  + m%D_F_I(I,J) + m%D_F_B(I,J) +  p%D_F_MG(I,J) + p%D_F_BF(I,J)
             ELSE
+               m%D_F_AM(I,J) = 0 !bjj: added this to prevent uninitialized variables from causing issues
+               
                m%D_F_B(I,J) = elementWaterState * p%D_F_B(I,J)
                y%DistribMesh%Moment(I-3,J) =   m%D_F_AM(I,J) + m%D_F_B(I,J) + p%D_F_BF(I,J)     
             END IF
