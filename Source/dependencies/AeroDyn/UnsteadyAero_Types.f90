@@ -89,8 +89,6 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: tau_V_minus1      ! time variable, tracking the travel of the LE vortex over the airfoil suction surface [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Cn_v_minus1      ! normal force coefficient due to the presence of LE vortex, previous time step [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C_V_minus1      ! contribution to the normal force coefficient due to accumulated vorticity in the LE vortex, previous time step [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Dfalpha_minus1      ! deficiency function used in the development of alpha_f_prime, previous time step [rad]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Cn_prime_diff_minus1      ! difference between Cn_prime and Cn_prime_minus1, previous time step [rad]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Cn_prime_minus1      ! difference between Cn_prime and Cn_prime_minus1, previous time step [rad]
   END TYPE UA_DiscreteStateType
 ! =======================
@@ -1281,34 +1279,6 @@ IF (ALLOCATED(SrcDiscStateData%C_V_minus1)) THEN
   END IF
     DstDiscStateData%C_V_minus1 = SrcDiscStateData%C_V_minus1
 ENDIF
-IF (ALLOCATED(SrcDiscStateData%Dfalpha_minus1)) THEN
-  i1_l = LBOUND(SrcDiscStateData%Dfalpha_minus1,1)
-  i1_u = UBOUND(SrcDiscStateData%Dfalpha_minus1,1)
-  i2_l = LBOUND(SrcDiscStateData%Dfalpha_minus1,2)
-  i2_u = UBOUND(SrcDiscStateData%Dfalpha_minus1,2)
-  IF (.NOT. ALLOCATED(DstDiscStateData%Dfalpha_minus1)) THEN 
-    ALLOCATE(DstDiscStateData%Dfalpha_minus1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstDiscStateData%Dfalpha_minus1.', ErrStat, ErrMsg,RoutineName)
-      RETURN
-    END IF
-  END IF
-    DstDiscStateData%Dfalpha_minus1 = SrcDiscStateData%Dfalpha_minus1
-ENDIF
-IF (ALLOCATED(SrcDiscStateData%Cn_prime_diff_minus1)) THEN
-  i1_l = LBOUND(SrcDiscStateData%Cn_prime_diff_minus1,1)
-  i1_u = UBOUND(SrcDiscStateData%Cn_prime_diff_minus1,1)
-  i2_l = LBOUND(SrcDiscStateData%Cn_prime_diff_minus1,2)
-  i2_u = UBOUND(SrcDiscStateData%Cn_prime_diff_minus1,2)
-  IF (.NOT. ALLOCATED(DstDiscStateData%Cn_prime_diff_minus1)) THEN 
-    ALLOCATE(DstDiscStateData%Cn_prime_diff_minus1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstDiscStateData%Cn_prime_diff_minus1.', ErrStat, ErrMsg,RoutineName)
-      RETURN
-    END IF
-  END IF
-    DstDiscStateData%Cn_prime_diff_minus1 = SrcDiscStateData%Cn_prime_diff_minus1
-ENDIF
 IF (ALLOCATED(SrcDiscStateData%Cn_prime_minus1)) THEN
   i1_l = LBOUND(SrcDiscStateData%Cn_prime_minus1,1)
   i1_u = UBOUND(SrcDiscStateData%Cn_prime_minus1,1)
@@ -1417,12 +1387,6 @@ IF (ALLOCATED(DiscStateData%Cn_v_minus1)) THEN
 ENDIF
 IF (ALLOCATED(DiscStateData%C_V_minus1)) THEN
   DEALLOCATE(DiscStateData%C_V_minus1)
-ENDIF
-IF (ALLOCATED(DiscStateData%Dfalpha_minus1)) THEN
-  DEALLOCATE(DiscStateData%Dfalpha_minus1)
-ENDIF
-IF (ALLOCATED(DiscStateData%Cn_prime_diff_minus1)) THEN
-  DEALLOCATE(DiscStateData%Cn_prime_diff_minus1)
 ENDIF
 IF (ALLOCATED(DiscStateData%Cn_prime_minus1)) THEN
   DEALLOCATE(DiscStateData%Cn_prime_minus1)
@@ -1603,16 +1567,6 @@ ENDIF
   IF ( ALLOCATED(InData%C_V_minus1) ) THEN
     Int_BufSz   = Int_BufSz   + 2*2  ! C_V_minus1 upper/lower bounds for each dimension
       Re_BufSz   = Re_BufSz   + SIZE(InData%C_V_minus1)  ! C_V_minus1
-  END IF
-  Int_BufSz   = Int_BufSz   + 1     ! Dfalpha_minus1 allocated yes/no
-  IF ( ALLOCATED(InData%Dfalpha_minus1) ) THEN
-    Int_BufSz   = Int_BufSz   + 2*2  ! Dfalpha_minus1 upper/lower bounds for each dimension
-      Re_BufSz   = Re_BufSz   + SIZE(InData%Dfalpha_minus1)  ! Dfalpha_minus1
-  END IF
-  Int_BufSz   = Int_BufSz   + 1     ! Cn_prime_diff_minus1 allocated yes/no
-  IF ( ALLOCATED(InData%Cn_prime_diff_minus1) ) THEN
-    Int_BufSz   = Int_BufSz   + 2*2  ! Cn_prime_diff_minus1 upper/lower bounds for each dimension
-      Re_BufSz   = Re_BufSz   + SIZE(InData%Cn_prime_diff_minus1)  ! Cn_prime_diff_minus1
   END IF
   Int_BufSz   = Int_BufSz   + 1     ! Cn_prime_minus1 allocated yes/no
   IF ( ALLOCATED(InData%Cn_prime_minus1) ) THEN
@@ -2093,38 +2047,6 @@ ENDIF
 
       IF (SIZE(InData%C_V_minus1)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%C_V_minus1))-1 ) = PACK(InData%C_V_minus1,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%C_V_minus1)
-  END IF
-  IF ( .NOT. ALLOCATED(InData%Dfalpha_minus1) ) THEN
-    IntKiBuf( Int_Xferred ) = 0
-    Int_Xferred = Int_Xferred + 1
-  ELSE
-    IntKiBuf( Int_Xferred ) = 1
-    Int_Xferred = Int_Xferred + 1
-    IntKiBuf( Int_Xferred    ) = LBOUND(InData%Dfalpha_minus1,1)
-    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%Dfalpha_minus1,1)
-    Int_Xferred = Int_Xferred + 2
-    IntKiBuf( Int_Xferred    ) = LBOUND(InData%Dfalpha_minus1,2)
-    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%Dfalpha_minus1,2)
-    Int_Xferred = Int_Xferred + 2
-
-      IF (SIZE(InData%Dfalpha_minus1)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Dfalpha_minus1))-1 ) = PACK(InData%Dfalpha_minus1,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%Dfalpha_minus1)
-  END IF
-  IF ( .NOT. ALLOCATED(InData%Cn_prime_diff_minus1) ) THEN
-    IntKiBuf( Int_Xferred ) = 0
-    Int_Xferred = Int_Xferred + 1
-  ELSE
-    IntKiBuf( Int_Xferred ) = 1
-    Int_Xferred = Int_Xferred + 1
-    IntKiBuf( Int_Xferred    ) = LBOUND(InData%Cn_prime_diff_minus1,1)
-    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%Cn_prime_diff_minus1,1)
-    Int_Xferred = Int_Xferred + 2
-    IntKiBuf( Int_Xferred    ) = LBOUND(InData%Cn_prime_diff_minus1,2)
-    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%Cn_prime_diff_minus1,2)
-    Int_Xferred = Int_Xferred + 2
-
-      IF (SIZE(InData%Cn_prime_diff_minus1)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Cn_prime_diff_minus1))-1 ) = PACK(InData%Cn_prime_diff_minus1,.TRUE.)
-      Re_Xferred   = Re_Xferred   + SIZE(InData%Cn_prime_diff_minus1)
   END IF
   IF ( .NOT. ALLOCATED(InData%Cn_prime_minus1) ) THEN
     IntKiBuf( Int_Xferred ) = 0
@@ -2904,58 +2826,6 @@ ENDIF
     mask2 = .TRUE. 
       IF (SIZE(OutData%C_V_minus1)>0) OutData%C_V_minus1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%C_V_minus1))-1 ), mask2, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%C_V_minus1)
-    DEALLOCATE(mask2)
-  END IF
-  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! Dfalpha_minus1 not allocated
-    Int_Xferred = Int_Xferred + 1
-  ELSE
-    Int_Xferred = Int_Xferred + 1
-    i1_l = IntKiBuf( Int_Xferred    )
-    i1_u = IntKiBuf( Int_Xferred + 1)
-    Int_Xferred = Int_Xferred + 2
-    i2_l = IntKiBuf( Int_Xferred    )
-    i2_u = IntKiBuf( Int_Xferred + 1)
-    Int_Xferred = Int_Xferred + 2
-    IF (ALLOCATED(OutData%Dfalpha_minus1)) DEALLOCATE(OutData%Dfalpha_minus1)
-    ALLOCATE(OutData%Dfalpha_minus1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%Dfalpha_minus1.', ErrStat, ErrMsg,RoutineName)
-       RETURN
-    END IF
-    ALLOCATE(mask2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask2.', ErrStat, ErrMsg,RoutineName)
-       RETURN
-    END IF
-    mask2 = .TRUE. 
-      IF (SIZE(OutData%Dfalpha_minus1)>0) OutData%Dfalpha_minus1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Dfalpha_minus1))-1 ), mask2, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%Dfalpha_minus1)
-    DEALLOCATE(mask2)
-  END IF
-  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! Cn_prime_diff_minus1 not allocated
-    Int_Xferred = Int_Xferred + 1
-  ELSE
-    Int_Xferred = Int_Xferred + 1
-    i1_l = IntKiBuf( Int_Xferred    )
-    i1_u = IntKiBuf( Int_Xferred + 1)
-    Int_Xferred = Int_Xferred + 2
-    i2_l = IntKiBuf( Int_Xferred    )
-    i2_u = IntKiBuf( Int_Xferred + 1)
-    Int_Xferred = Int_Xferred + 2
-    IF (ALLOCATED(OutData%Cn_prime_diff_minus1)) DEALLOCATE(OutData%Cn_prime_diff_minus1)
-    ALLOCATE(OutData%Cn_prime_diff_minus1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%Cn_prime_diff_minus1.', ErrStat, ErrMsg,RoutineName)
-       RETURN
-    END IF
-    ALLOCATE(mask2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
-    IF (ErrStat2 /= 0) THEN 
-       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask2.', ErrStat, ErrMsg,RoutineName)
-       RETURN
-    END IF
-    mask2 = .TRUE. 
-      IF (SIZE(OutData%Cn_prime_diff_minus1)>0) OutData%Cn_prime_diff_minus1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Cn_prime_diff_minus1))-1 ), mask2, 0.0_ReKi )
-      Re_Xferred   = Re_Xferred   + SIZE(OutData%Cn_prime_diff_minus1)
     DEALLOCATE(mask2)
   END IF
   IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! Cn_prime_minus1 not allocated

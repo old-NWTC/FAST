@@ -17,9 +17,9 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-01-21 14:33:25 -0700 (Thu, 21 Jan 2016) $
-! (File) Revision #: $Rev: 357 $
-! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Base.f90 $
+! File last committed: $Date: 2016-07-04 18:45:48 -0600 (Mon, 04 Jul 2016) $
+! (File) Revision #: $Rev: 389 $
+! URL: $HeadURL: https://windsvn2.nrel.gov/NWTC_Library/trunk/source/NWTC_Base.f90 $
 !**********************************************************************************************************************************
 !> This module stores basic constants and routines that are not system-specific, but may be used in the system-specific routines.
 MODULE NWTC_Base
@@ -32,14 +32,15 @@ MODULE NWTC_Base
 
 !=======================================================================
 
-   logical :: debug_print = .false.
+   !logical :: debug_print = .false.
    
       ! General constants:
 
    INTEGER, PARAMETER            :: BITS_IN_ADDR  = C_INTPTR_T*8                  !< The number of bits in an address (32-bit or 64-bit).
    INTEGER, PARAMETER            :: ErrMsgLen = 1024                              !< The maximum number of characters in an error message in the FAST framework
    
-   INTEGER(IntKi), PARAMETER     :: ChanLen   = 10                                !< The allowable length of channel names (i.e., width of output columns) in the FAST framework
+   INTEGER(IntKi), PARAMETER     :: ChanLen    = 10                               !< The allowable length of channel names (i.e., width of output columns) in the FAST framework
+   INTEGER(IntKi), PARAMETER     :: LinChanLen = 200                              !< The allowable length of row/column names in linearization files
 
    INTEGER(IntKi), PARAMETER     :: NWTC_Verbose = 10                             !< The maximum level of verbosity
    INTEGER(IntKi), PARAMETER     :: NWTC_VerboseLevel = 5                         !< a number in [0, NWTC_Verbose]: 0 = no output; NWTC_Verbose=verbose; 

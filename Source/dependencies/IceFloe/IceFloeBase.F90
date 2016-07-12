@@ -17,12 +17,6 @@
 ! limitations under the License.
 !************************************************************************
 
-!**********************************************************************************************************************************
-! File last committed: $Date: 2015-10-06 22:44:50 -0600 (Tue, 06 Oct 2015) $
-! (File) Revision #: $Rev: 1146 $
-! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFloeBase.F90 $
-!**********************************************************************************************************************************
-
 !****************************************************************
 ! base type for ice floes, contains generic
 ! initialization, update, and utility routines

@@ -366,7 +366,6 @@ typedef	^	ParameterType	LOGICAL	Echo	-	.FALSE.	-
 typedef	^	ParameterType	LOGICAL	MultiTab	-
 typedef	^	ParameterType	LOGICAL	LinearizeFlag
 typedef	^	ParameterType	LOGICAL	OutputPlottingInfo	-	.FALSE.
-typedef	^	ParameterType	LOGICAL	Initialized	-	.FALSE.	-		-
 typedef	^	ParameterType	LOGICAL	UseDWM	-	.FALSE.	-	"flag to determine if DWM module should be used"	-
 typedef	^	ParameterType	ReKi	TwoPiNB	-	-	-	"2*pi/num of blades"	-
 typedef	^	ParameterType	INTEGER	NumBl	-	-	-	"Number of Blades"

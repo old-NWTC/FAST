@@ -1,10 +1,6 @@
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-01-08 11:40:28 -0700 (Fri, 08 Jan 2016) $
-! (File) Revision #: $Rev: 1201 $
-! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceDyn/source/IceDyn.f90 $
-!..................................................................................................................................
 ! LICENSING
-! Copyright (C) 2013-2016  National Renewable Energy Laboratory
+! Copyright (C) 2013-2016  Univeristy of Michigan and National Renewable Energy Laboratory 
 !
 !    This file is part of module IceDyn.
 !
@@ -97,7 +93,7 @@ SUBROUTINE IceD_Init( InitInp, u, p, x, xd, z, OtherState, y, m, Interval, InitO
 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   
+
 
       ! Initialize the NWTC Subroutine Library
 
@@ -111,7 +107,7 @@ SUBROUTINE IceD_Init( InitInp, u, p, x, xd, z, OtherState, y, m, Interval, InitO
       !............................................................................................
       ! Read the input file and validate the data
       !............................................................................................
-   p%RootName = TRIM(InitInp%RootName)//'.IceD' ! all of the output file names from this module will end with '.IceD'
+   p%RootName = TRIM(InitInp%RootName) ! FAST makes all of the output file names from this module end contain '.IceD' before the file extension
 
    CALL IceD_ReadInput( InitInp, InputFileData, ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )

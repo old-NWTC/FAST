@@ -16,12 +16,6 @@
 ! See the License for the specific language governing permissions and
 ! limitations under the License.
 !************************************************************************
-
-!**********************************************************************************************************************************
-! File last committed: $Date: 2015-10-06 22:44:50 -0600 (Tue, 06 Oct 2015) $
-! (File) Revision #: $Rev: 1146 $
-! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/crushingISO.F90 $
-!**********************************************************************************************************************************!
  
 !  Module for common calculations of loads induced by ice crushing against vertical surfaces
 !  Using the method in ISO 19906:2010, section A.8.2.4.3.3

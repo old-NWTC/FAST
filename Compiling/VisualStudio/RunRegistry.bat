@@ -46,8 +46,6 @@ SET Orca_Loc=%FAST_Loc%\dependencies\OrcaFlex
 
 SET HD_Reg_Loc=%HD_Loc%
 SET IfW_Reg_Loc=%IfW_Loc%
-SET FEAM_Reg_Loc=%FEAM_Loc%
-SET Orca_Reg_Loc=%Orca_Loc%
 
 SET MAP_Loc_R=%MAP_Loc%
 
@@ -66,8 +64,8 @@ ECHO on
 SET CURR_LOC=%FAST_Loc%
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
  "%AD_Loc%" -I "%BEMT_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -I "%BD_Loc%" -I^
- "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Reg_Loc%"  -I^
- "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -I "%Orca_Reg_Loc%" -noextrap -O "%CURR_LOC%"
+ "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Loc%"  -I^
+ "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -I "%Orca_Loc%" -noextrap -O "%CURR_LOC%"
 
 echo off
 GOTO checkError
@@ -115,7 +113,7 @@ GOTO checkError
 
 :OpenFOAM
 SET CURR_LOC=%OpFM_Loc%
-%REGISTRY% "%CURR_LOC%\OpenFOAM_Registry.txt" -I "%NWTC_Lib_Loc%" -ccode -O "%CURR_LOC%"
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%" -ccode -O "%CURR_LOC%"
 GOTO checkError
 
 
@@ -178,18 +176,18 @@ GOTO checkError
 
 :FEAMooring
 SET CURR_LOC=%FEAM_Loc%
-%REGISTRY% "%FEAM_Reg_LOC%\FEAM_Registry.txt" -I "%NWTC_Lib_Loc%"  -O "%CURR_LOC%"
+%REGISTRY% "%CURR_LOC%\FEAM_Registry.txt" -I "%NWTC_Lib_Loc%"  -O "%CURR_LOC%"
 GOTO checkError
 
 :MoorDyn
 SET CURR_LOC=%MD_Loc%
-%REGISTRY% "%CURR_LOC%\MoorDyn_Registry.txt" -I "%NWTC_Lib_Loc%"  -O "%CURR_LOC%"
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%"  -O "%CURR_LOC%"
 GOTO checkError
 
 
 :IceFloe
 SET CURR_LOC=%IceF_Loc%
-%REGISTRY% "%CURR_LOC%\IceFloe_FASTRegistry.inp" -I "%NWTC_Lib_Loc%"  -O "%CURR_LOC%"
+%REGISTRY% "%CURR_LOC%\%ModuleName%_FASTRegistry.inp" -I "%NWTC_Lib_Loc%"  -O "%CURR_LOC%"
 GOTO checkError
 
 
@@ -201,7 +199,7 @@ GOTO checkError
 
 :OrcaFlexInterface
 SET CURR_LOC=%Orca_Loc%
-%REGISTRY% "%Orca_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%Orca_Reg_Loc%"  -O "%CURR_LOC%"
+%REGISTRY% "%CURR_LOC%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
 GOTO checkError
 
 
@@ -247,11 +245,9 @@ SET FAST_Loc=
 SET MAP_Include_Lib=
 SET HD_Reg_Loc=
 SET IfW_Reg_Loc=
-SET FEAM_Reg_Loc=
 SET MD_Loc=
 SET OpFM_Loc=
 SET Orca_Loc=
-SET Orca_Reg_Loc=
 
 SET ModuleName=
 SET CURR_LOC=

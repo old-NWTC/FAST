@@ -20,13 +20,13 @@ oldDir = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirect
 newDir = '.';
 
 
-for i= 1:26
+for i=1:26
    
     baseFileName  = ['Test' num2str(i,'%02.0f')  ]; %'_noHD'
     inputfile = [oldDir filesep baseFileName '.fst'];      
     
     
-    ConvertFAST8_12to15(inputfile,newDir);
+    ConvertFAST8_15to16(inputfile,newDir);
         
 end
 
@@ -35,9 +35,9 @@ end
 
 return
 
-ConvertFAST8_12to15([oldDir filesep 'Test19_noHD.fst'],newDir);
-ConvertFAST8_12to15([oldDir filesep 'Test19_withIce.fst'],newDir);
-ConvertFAST8_12to15([oldDir filesep 'Test21_withIce.fst'],newDir);
+ConvertFAST8_15to16([oldDir filesep 'Test19_noHD.fst'],newDir);
+ConvertFAST8_15to16([oldDir filesep 'Test19_withIce.fst'],newDir);
+ConvertFAST8_15to16([oldDir filesep 'Test21_withIce.fst'],newDir);
 
 return;
 

@@ -9,7 +9,7 @@
 !.................................................................................................................................
 ! This file is part of BEMT.
 !
-! Copyright (C) 2012-2016 National Renewable Energy Laboratory
+! Copyright (C) 2012-2015 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -93,6 +93,9 @@ IMPLICIT NONE
     LOGICAL  :: FirstWarn_M      ! flag so Mach number warning doesn't get repeated forever [-]
     TYPE(UA_MiscVarType)  :: UA      ! misc vars for UnsteadyAero [-]
     TYPE(UA_OutputType)  :: y_UA      ! outputs from UnsteadyAero [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: TnInd_op      ! tangential induction at the operating point (for linearization with frozen wake assumption) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AxInd_op      ! axial induction at the operating point (for linearization) with frozen wake assumption [-]
+    LOGICAL  :: UseFrozenWake      ! flag set to determine if frozen values of TnInd_op and AxInd_op should be used for this calculation in the linearization process [-]
   END TYPE BEMT_MiscVarType
 ! =======================
 ! =========  BEMT_ParameterType  =======
@@ -1735,6 +1738,8 @@ ENDIF
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
 ! Local 
    INTEGER(IntKi)                 :: i,j,k
+   INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+   INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(ErrMsgLen)           :: ErrMsg2
    CHARACTER(*), PARAMETER        :: RoutineName = 'BEMT_CopyMisc'
@@ -1748,6 +1753,35 @@ ENDIF
       CALL UA_CopyOutput( SrcMiscData%y_UA, DstMiscData%y_UA, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
+IF (ALLOCATED(SrcMiscData%TnInd_op)) THEN
+  i1_l = LBOUND(SrcMiscData%TnInd_op,1)
+  i1_u = UBOUND(SrcMiscData%TnInd_op,1)
+  i2_l = LBOUND(SrcMiscData%TnInd_op,2)
+  i2_u = UBOUND(SrcMiscData%TnInd_op,2)
+  IF (.NOT. ALLOCATED(DstMiscData%TnInd_op)) THEN 
+    ALLOCATE(DstMiscData%TnInd_op(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMiscData%TnInd_op.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstMiscData%TnInd_op = SrcMiscData%TnInd_op
+ENDIF
+IF (ALLOCATED(SrcMiscData%AxInd_op)) THEN
+  i1_l = LBOUND(SrcMiscData%AxInd_op,1)
+  i1_u = UBOUND(SrcMiscData%AxInd_op,1)
+  i2_l = LBOUND(SrcMiscData%AxInd_op,2)
+  i2_u = UBOUND(SrcMiscData%AxInd_op,2)
+  IF (.NOT. ALLOCATED(DstMiscData%AxInd_op)) THEN 
+    ALLOCATE(DstMiscData%AxInd_op(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMiscData%AxInd_op.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstMiscData%AxInd_op = SrcMiscData%AxInd_op
+ENDIF
+    DstMiscData%UseFrozenWake = SrcMiscData%UseFrozenWake
  END SUBROUTINE BEMT_CopyMisc
 
  SUBROUTINE BEMT_DestroyMisc( MiscData, ErrStat, ErrMsg )
@@ -1761,6 +1795,12 @@ ENDIF
   ErrMsg  = ""
   CALL UA_DestroyMisc( MiscData%UA, ErrStat, ErrMsg )
   CALL UA_DestroyOutput( MiscData%y_UA, ErrStat, ErrMsg )
+IF (ALLOCATED(MiscData%TnInd_op)) THEN
+  DEALLOCATE(MiscData%TnInd_op)
+ENDIF
+IF (ALLOCATED(MiscData%AxInd_op)) THEN
+  DEALLOCATE(MiscData%AxInd_op)
+ENDIF
  END SUBROUTINE BEMT_DestroyMisc
 
  SUBROUTINE BEMT_PackMisc( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -1834,6 +1874,17 @@ ENDIF
          Int_BufSz = Int_BufSz + SIZE( Int_Buf )
          DEALLOCATE(Int_Buf)
       END IF
+  Int_BufSz   = Int_BufSz   + 1     ! TnInd_op allocated yes/no
+  IF ( ALLOCATED(InData%TnInd_op) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*2  ! TnInd_op upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%TnInd_op)  ! TnInd_op
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! AxInd_op allocated yes/no
+  IF ( ALLOCATED(InData%AxInd_op) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*2  ! AxInd_op upper/lower bounds for each dimension
+      Re_BufSz   = Re_BufSz   + SIZE(InData%AxInd_op)  ! AxInd_op
+  END IF
+      Int_BufSz  = Int_BufSz  + 1  ! UseFrozenWake
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -1919,6 +1970,40 @@ ENDIF
       ELSE
         IntKiBuf( Int_Xferred ) = 0; Int_Xferred = Int_Xferred + 1
       ENDIF
+  IF ( .NOT. ALLOCATED(InData%TnInd_op) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%TnInd_op,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%TnInd_op,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%TnInd_op,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%TnInd_op,2)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%TnInd_op)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%TnInd_op))-1 ) = PACK(InData%TnInd_op,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%TnInd_op)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%AxInd_op) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%AxInd_op,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%AxInd_op,1)
+    Int_Xferred = Int_Xferred + 2
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%AxInd_op,2)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%AxInd_op,2)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%AxInd_op)>0) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AxInd_op))-1 ) = PACK(InData%AxInd_op,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%AxInd_op)
+  END IF
+      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%UseFrozenWake , IntKiBuf(1), 1)
+      Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE BEMT_PackMisc
 
  SUBROUTINE BEMT_UnPackMisc( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1940,6 +2025,8 @@ ENDIF
   LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+  INTEGER(IntKi)                 :: i1, i1_l, i1_u  !  bounds (upper/lower) for an array dimension 1
+  INTEGER(IntKi)                 :: i2, i2_l, i2_u  !  bounds (upper/lower) for an array dimension 2
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(ErrMsgLen)           :: ErrMsg2
   CHARACTER(*), PARAMETER        :: RoutineName = 'BEMT_UnPackMisc'
@@ -2035,6 +2122,60 @@ ENDIF
       IF(ALLOCATED(Re_Buf )) DEALLOCATE(Re_Buf )
       IF(ALLOCATED(Db_Buf )) DEALLOCATE(Db_Buf )
       IF(ALLOCATED(Int_Buf)) DEALLOCATE(Int_Buf)
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! TnInd_op not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%TnInd_op)) DEALLOCATE(OutData%TnInd_op)
+    ALLOCATE(OutData%TnInd_op(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%TnInd_op.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask2.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask2 = .TRUE. 
+      IF (SIZE(OutData%TnInd_op)>0) OutData%TnInd_op = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TnInd_op))-1 ), mask2, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%TnInd_op)
+    DEALLOCATE(mask2)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! AxInd_op not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    i2_l = IntKiBuf( Int_Xferred    )
+    i2_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%AxInd_op)) DEALLOCATE(OutData%AxInd_op)
+    ALLOCATE(OutData%AxInd_op(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%AxInd_op.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask2.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask2 = .TRUE. 
+      IF (SIZE(OutData%AxInd_op)>0) OutData%AxInd_op = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AxInd_op))-1 ), mask2, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%AxInd_op)
+    DEALLOCATE(mask2)
+  END IF
+      OutData%UseFrozenWake = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
+      Int_Xferred   = Int_Xferred + 1
  END SUBROUTINE BEMT_UnPackMisc
 
  SUBROUTINE BEMT_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )

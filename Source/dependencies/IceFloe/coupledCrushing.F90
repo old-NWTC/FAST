@@ -17,12 +17,6 @@
 ! limitations under the License.
 !************************************************************************
 
-!**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-14 14:30:21 -0600 (Tue, 14 Apr 2015) $
-! (File) Revision #: $Rev: 975 $
-! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/coupledCrushing.F90 $
-!**********************************************************************************************************************************!
- 
 !  Module for calculations of loads induced by ice crushing against vertical surfaces
 !  Using a coupled model from Maattanen, M. (1998) "Numerical Model for Ice Induced 
 !     vibration load lock-in and Synchronization".  Proceedings of the 14th Int. Symp.

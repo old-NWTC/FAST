@@ -17,9 +17,9 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2015-11-05 14:57:40 -0700 (Thu, 05 Nov 2015) $
-! (File) Revision #: $Rev: 350 $
-! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/SysGnuLinux.f90 $
+! File last committed: $Date: 2016-07-11 10:36:47 -0600 (Mon, 11 Jul 2016) $
+! (File) Revision #: $Rev: 390 $
+! URL: $HeadURL: https://windsvn2.nrel.gov/NWTC_Library/trunk/source/SysGnuLinux.f90 $
 !**********************************************************************************************************************************
 MODULE SysSubs
 
@@ -566,7 +566,7 @@ SUBROUTINE LoadDynamicLib ( DLL, ErrStat, ErrMsg )
 #else
 
    ErrStat = ErrID_Fatal
-   ErrMsg = ' LoadDynamicLib: Not implemented for '//TRIM(OS_Desc)
+   ErrMsg = ' LoadDynamicLib: Not compiled with -DUSE_DLL_INTERFACE for '//TRIM(OS_Desc)
       
 #endif
    
@@ -629,7 +629,7 @@ SUBROUTINE LoadDynamicLibProc ( DLL, ErrStat, ErrMsg )
 #else
 
    ErrStat = ErrID_Fatal
-   ErrMsg = ' LoadDynamicLibProc: Not implemented for '//TRIM(OS_Desc)
+   ErrMsg = ' LoadDynamicLibProc: Not compiled with -DUSE_DLL_INTERFACE for '//TRIM(OS_Desc)
       
 #endif
    
@@ -687,7 +687,7 @@ SUBROUTINE FreeDynamicLib ( DLL, ErrStat, ErrMsg )
 #else
 
    ErrStat = ErrID_Fatal
-   ErrMsg = ' FreeDynamicLib: Not implemented for '//TRIM(OS_Desc)
+   ErrMsg = ' FreeDynamicLib: Not compiled with -DUSE_DLL_INTERFACE for '//TRIM(OS_Desc)
          
 #endif
    

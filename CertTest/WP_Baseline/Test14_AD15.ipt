@@ -1,13 +1,14 @@
-------- AERODYN v15.02.* INPUT FILE ------------------------------------------------
+------- AERODYN v15.03.* INPUT FILE ------------------------------------------------
 1.5 MW baseline aerodynamic parameters for FAST certification test #14.
 ======  General Options  ============================================================================
 False         Echo               - Echo the input to "<rootname>.AD.ech"?  (flag)
 "default"     DTAero             - Time interval for aerodynamic calculations {or "default"} (s)
           1   WakeMod            - Type of wake/induction model (switch) {0=none, 1=BEMT}
-          0   AFAeroMod          - Type of blade airfoil aerodynamics model (switch) {1=steady model, 2=Beddoes-Leishman unsteady model}
+          1   AFAeroMod          - Type of blade airfoil aerodynamics model (switch) {1=steady model, 2=Beddoes-Leishman unsteady model}
           0   TwrPotent          - Type tower influence on wind based on potential flow around the tower (switch) {0=none, 1=baseline potential flow, 2=potential flow with Bak correction}
 False         TwrShadow          – Calculate tower influence on wind based on downstream tower shadow? (flag)
 False         TwrAero            - Calculate tower aerodynamic loads? (flag)
+False         FrozenWake         - Assume frozen wake during linearization? (flag) [used only when WakeMod=1 and when linearizing]
 ======  Environmental Conditions  ===================================================================
       1.225   AirDens            - Air density (kg/m^3)
  1.4639E-05   KinVisc            - Kinematic air viscosity (m^2/s)
@@ -47,7 +48,7 @@ TwrElev        TwrDiam        TwrCd
  0.0            5.62           0.0
 82.390          2.82           0.0
 ======  Outputs  ====================================================================================
-False         SumPrint            - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
+True          SumPrint            - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
           0   NBlOuts             - Number of blade node outputs [0 - 9] (-)
           1,          3,          4,          6    BlOutNd             - Blade nodes whose values will be output  (-)
           0   NTwOuts             - Number of tower node outputs [0 - 9]  (-)

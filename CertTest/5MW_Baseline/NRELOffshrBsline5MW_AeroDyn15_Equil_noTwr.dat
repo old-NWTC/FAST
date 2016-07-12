@@ -51,7 +51,7 @@ TwrElev        TwrDiam        TwrCd
  0.0            6.0            0.0
 87.600          3.870           0
 ======  Outputs  ====================================================================================
-False         SumPrint            - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
+True          SumPrint            - Generate a summary file listing input options and interpolated properties to "<rootname>.AD.sum"?  (flag)
           0   NBlOuts             - Number of blade node outputs [0 - 9] (-)
  1, 9, 19     BlOutNd             - Blade nodes whose values will be output  (-)
           0   NTwOuts             - Number of tower node outputs [0 - 9]  (-)

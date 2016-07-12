@@ -17,12 +17,6 @@
 ! limitations under the License.
 !************************************************************************
 
-!**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-14 14:30:21 -0600 (Tue, 14 Apr 2015) $
-! (File) Revision #: $Rev: 975 $
-! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/crushingIEC.F90 $
-!**********************************************************************************************************************************!
- 
 !  Module for calculations of loads induced by ice crushing against vertical surfaces
 !  As suggested in IEC 61400-3, Ed 1 Annex E
 !  This is effectively a lock in condition where the ice loads are 

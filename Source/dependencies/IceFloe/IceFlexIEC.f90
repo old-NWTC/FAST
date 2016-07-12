@@ -17,12 +17,6 @@
 ! limitations under the License.
 !************************************************************************
 
-!**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-14 14:30:21 -0600 (Tue, 14 Apr 2015) $
-! (File) Revision #: $Rev: 975 $
-! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFlexIEC.f90 $
-!**********************************************************************************************************************************!
-
 !*****************************************************************************************
 !  Special type of loading due to ice sheet flexural failure using the Ralston method
 !  Ralston, T, "Ice Force Design Considerations for Conical Offshore Structures", POAC, 1977

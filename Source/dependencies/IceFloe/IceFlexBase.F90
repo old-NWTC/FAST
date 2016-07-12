@@ -17,12 +17,6 @@
 ! limitations under the License.
 !************************************************************************
 
-!**********************************************************************************************************************************
-! File last committed: $Date: 2014-09-18 10:40:05 -0600 (Thu, 18 Sep 2014) $
-! (File) Revision #: $Rev: 775 $
-! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFlexBase.F90 $
-!**********************************************************************************************************************************!
-
 !****************************************************************
 ! Routines for ice floes that apply loads to the structure
 ! via flexural failure of the ice sheet

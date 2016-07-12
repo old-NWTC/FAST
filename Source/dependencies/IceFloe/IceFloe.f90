@@ -19,12 +19,6 @@
 ! modified 8-Jan-2016 by B. Jonkman, NREL to conform to changes in FAST Modularization framework (added MiscVars)
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-04-12 21:16:48 -0600 (Tue, 12 Apr 2016) $
-! (File) Revision #: $Rev: 1251 $
-! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFloe.f90 $
-!**********************************************************************************************************************************!
-
-!**********************************************************************************************************************************
 !>    IceFloe is a set of routines that calculate ice floe loading on structures and is developed for
 !!    use with wind turbine aeroelastic simulation codes.
 !!
@@ -138,7 +132,7 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, m, Interval, In
       ! Display the module information
       CALL DispNVD( IceFloe_Ver )
 
-      logFile = trim(InitInp%RootName)//'.IceF.log'  !BJJ: we decided output files should have two dots (and because there will be another ice module, I called this one IceF)
+      logFile = trim(InitInp%RootName)//'.log'  !BJJ: we decided output files should have two dots
 
 !   Set up error logging
       iceLog%warnFlag = .false.

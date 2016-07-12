@@ -17,12 +17,6 @@
 ! limitations under the License.
 !************************************************************************
 
-!**********************************************************************************************************************************
-! File last committed: $Date: 2014-09-18 10:40:05 -0600 (Thu, 18 Sep 2014) $
-! (File) Revision #: $Rev: 775 $
-! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/randomCrushing.F90 $
-!**********************************************************************************************************************************
-
 !  Module to calculate a time series of random loads due to continuous ice crushing
 !  
 !  Based on a spectral method from:

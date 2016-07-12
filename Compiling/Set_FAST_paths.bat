@@ -13,7 +13,6 @@ SET Crunch=C:\Users\bjonkman\Documents\DATA\DesignCodes\postprocessors\Crunch\SV
 
 SET REG_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\FAST_Registry\source
 SET Registry=%REG_Loc%\..\bin\Registry_Win32.exe
-:: SET Registry=%REG_Loc%\Registry.exe
 
 SET FAST_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
 
@@ -38,7 +37,6 @@ SET IfW_Reg_Loc=%IfW_Loc%\Registry
 
 SET OpFM_Loc=%FAST_Loc%\dependencies\OpenFOAM
 SET Orca_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\OrcaFlex\SVNdirectory\trunk\Source
-SET Orca_Reg_Loc=%Orca_Loc%\Registry
 
 SET SD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\SubDyn\SVNdirectory\trunk\Source
 
@@ -55,13 +53,13 @@ SET MAP_Include_Lib=%MAP_Loc%\bin\MAP_Win32.lib
 SET MD_LOC=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MoorDyn\GitforSVN\trunk\source
 rem SET MD_LOC=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MoorDyn\GitforSVN\branches\bonnie_MiscVars\source
 
-SET FEAM_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FEAMooring\SVNdirectory\source
-SET FEAM_Reg_Loc=%FEAM_Loc%
+SET FEAM_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FEAMooring\gitHub\source
 
-SET IceF_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\IceFloe\SVNDirectory\IceFloe\source
-SET IceF_RanLux_Loc=%IceF_Loc%\ranlux
+SET IceF_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\IceFloe\gitHub\source\interfaces\FAST
+SET IceF_RanLux_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\IceFloe\gitHub\source\ranlux
+SET IceF_Loc2=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\IceFloe\gitHub\source\IceFloe
 
-SET IceD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\IceDyn\SVNDirectory\source
+SET IceD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\IceDyn\gitHub\source
 
 
 GOTO End

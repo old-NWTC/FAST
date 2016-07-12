@@ -311,6 +311,7 @@ SET FAST_SOURCES=^
  "%OpFM_Loc%\OpenFOAM.f90" ^
  "%FAST_LOC%\FAST_Mods.f90" ^
  "%FAST_LOC%\FAST_Solver.f90" ^
+ "%FAST_LOC%\FAST_Lin.f90" ^
  "%FAST_LOC%\FAST_Subs.f90" ^
  "%FAST_LOC%\FAST_Prog.f90"
 

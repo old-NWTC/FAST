@@ -4,8 +4,8 @@
 # a NWTC_Library_Types.f90 file
 #
 #.............................................................
-# File last committed: $Date: 2016-05-23 15:06:37 -0600 (Mon, 23 May 2016) $
-# (File) Revision #: $Rev: 382 $
+# File last committed: $Date: 2016-07-04 18:45:48 -0600 (Mon, 04 Jul 2016) $
+# (File) Revision #: $Rev: 389 $
 # URL: $HeadURL: https://windsvn2.nrel.gov/NWTC_Library/trunk/source/Registry_NWTC_Library.txt $
 #.............................................................
 
@@ -47,9 +47,11 @@ usefrom     ^             ^                 ReKi                     shape_fn   
 
 usefrom   NWTC_Library  MeshMapLinearizationType ReKi                mi        {:}{:}
 usefrom     ^             ^                 ReKi                     fx_p      {:}{:}
-usefrom     ^             ^                 ReKi                     tv        {:}{:}
-usefrom     ^             ^                 ReKi                     ta1       {:}{:}
-usefrom     ^             ^                 ReKi                     ta2       {:}{:}
+usefrom     ^             ^                 ReKi                     tv_uD     {:}{:}
+usefrom     ^             ^                 ReKi                     tv_uS     {:}{:}
+usefrom     ^             ^                 ReKi                     ta_uD     {:}{:}
+usefrom     ^             ^                 ReKi                     ta_uS     {:}{:}
+usefrom     ^             ^                 ReKi                     ta_rv     {:}{:}
 usefrom     ^             ^                 ReKi                     li        {:}{:}
 usefrom     ^             ^                 ReKi                     M_u       {:}{:}
 usefrom     ^             ^                 ReKi                     M_t       {:}{:}

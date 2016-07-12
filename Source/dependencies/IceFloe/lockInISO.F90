@@ -17,12 +17,6 @@
 ! limitations under the License.
 !************************************************************************
 
-!**********************************************************************************************************************************
-! File last committed: $Date: 2015-04-14 14:30:21 -0600 (Tue, 14 Apr 2015) $
-! (File) Revision #: $Rev: 975 $
-! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/lockInISO.F90 $
-!**********************************************************************************************************************************
-
 !****************************************************************
 !  Loads from ice crushing at the specified structural frequency
 !  per the ISO 19906:2010 with a sawtooth wave form

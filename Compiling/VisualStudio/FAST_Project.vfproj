@@ -170,6 +170,7 @@
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat FAST" Description="Running Registry for FAST" Outputs="..\..\Source\FAST_Types.f90"/></FileConfiguration></File>
 		<File RelativePath="..\..\Source\FAST_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\FAST_Lin.f90"/>
 		<File RelativePath="..\..\Source\FAST_Mods.f90"/>
 		<File RelativePath="..\..\Source\FAST_Prog.f90"/>
 		<File RelativePath="..\..\Source\FAST_Solver.f90"/>

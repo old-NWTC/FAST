@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry.
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v3.01.01, 19-Apr-2016)
+! FAST Registry (v3.02.00, 22-Jun-2016)
 !*********************************************************************************************************************************
 ! IfW_BladedFFWind_Types
 !.................................................................................................................................
@@ -55,7 +55,6 @@ IMPLICIT NONE
   TYPE, PUBLIC :: IfW_BladedFFWind_ParameterType
     CHARACTER(1024)  :: WindFileName      !< Name of the wind file to use [-]
     LOGICAL  :: Periodic = .FALSE.      !< Flag to indicate if the wind file is periodic [-]
-    LOGICAL  :: Linearize = .FALSE.      !< If this is true, we are linearizing [-]
     LOGICAL  :: TowerDataExist = .FALSE.      !< If true, we specified a tower file [-]
     REAL(DbKi)  :: DT      !< Time step for cont. state integration & disc. state update [seconds]
     REAL(SiKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: FFData      !< Array of FF data [-]
@@ -619,7 +618,6 @@ CONTAINS
    ErrMsg  = ""
     DstParamData%WindFileName = SrcParamData%WindFileName
     DstParamData%Periodic = SrcParamData%Periodic
-    DstParamData%Linearize = SrcParamData%Linearize
     DstParamData%TowerDataExist = SrcParamData%TowerDataExist
     DstParamData%DT = SrcParamData%DT
 IF (ALLOCATED(SrcParamData%FFData)) THEN
@@ -730,7 +728,6 @@ ENDIF
   Int_BufSz  = 0
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%WindFileName)  ! WindFileName
       Int_BufSz  = Int_BufSz  + 1  ! Periodic
-      Int_BufSz  = Int_BufSz  + 1  ! Linearize
       Int_BufSz  = Int_BufSz  + 1  ! TowerDataExist
       Db_BufSz   = Db_BufSz   + 1  ! DT
   Int_BufSz   = Int_BufSz   + 1     ! FFData allocated yes/no
@@ -793,8 +790,6 @@ ENDIF
           Int_Xferred = Int_Xferred   + 1
         END DO ! I
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%Periodic , IntKiBuf(1), 1)
-      Int_Xferred   = Int_Xferred   + 1
-      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%Linearize , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%TowerDataExist , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
@@ -920,8 +915,6 @@ ENDIF
         Int_Xferred = Int_Xferred   + 1
       END DO ! I
       OutData%Periodic = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
-      Int_Xferred   = Int_Xferred + 1
-      OutData%Linearize = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
       OutData%TowerDataExist = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
