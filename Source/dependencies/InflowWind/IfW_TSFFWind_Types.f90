@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry.
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v3.01.01, 19-Apr-2016)
+! FAST Registry (v3.02.00, 22-Jun-2016)
 !*********************************************************************************************************************************
 ! IfW_TSFFWind_Types
 !.................................................................................................................................
@@ -51,7 +51,6 @@ IMPLICIT NONE
 ! =======================
 ! =========  IfW_TSFFWind_ParameterType  =======
   TYPE, PUBLIC :: IfW_TSFFWind_ParameterType
-    CHARACTER(1024)  :: WindFileName      !< Name of the wind file to use [-]
     REAL(DbKi)  :: DT      !< Time step for cont. state integration & disc. state update [seconds]
     LOGICAL  :: TowerDataExist = .FALSE.      !< Data exists for the tower [-]
     LOGICAL  :: Periodic = .FALSE.      !< Flag to indicate if the wind file is periodic [-]
@@ -591,7 +590,6 @@ CONTAINS
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-    DstParamData%WindFileName = SrcParamData%WindFileName
     DstParamData%DT = SrcParamData%DT
     DstParamData%TowerDataExist = SrcParamData%TowerDataExist
     DstParamData%Periodic = SrcParamData%Periodic
@@ -701,7 +699,6 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-      Int_BufSz  = Int_BufSz  + 1*LEN(InData%WindFileName)  ! WindFileName
       Db_BufSz   = Db_BufSz   + 1  ! DT
       Int_BufSz  = Int_BufSz  + 1  ! TowerDataExist
       Int_BufSz  = Int_BufSz  + 1  ! Periodic
@@ -760,10 +757,6 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-        DO I = 1, LEN(InData%WindFileName)
-          IntKiBuf(Int_Xferred) = ICHAR(InData%WindFileName(I:I), IntKi)
-          Int_Xferred = Int_Xferred   + 1
-        END DO ! I
       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%DT
       Db_Xferred   = Db_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%TowerDataExist , IntKiBuf(1), 1)
@@ -885,10 +878,6 @@ ENDIF
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-      DO I = 1, LEN(OutData%WindFileName)
-        OutData%WindFileName(I:I) = CHAR(IntKiBuf(Int_Xferred))
-        Int_Xferred = Int_Xferred   + 1
-      END DO ! I
       OutData%DT = DbKiBuf( Db_Xferred ) 
       Db_Xferred   = Db_Xferred + 1
       OutData%TowerDataExist = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )

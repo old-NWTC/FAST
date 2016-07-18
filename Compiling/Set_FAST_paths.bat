@@ -16,8 +16,8 @@ SET Registry=%REG_Loc%\..\bin\Registry_Win32.exe
 
 SET FAST_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
 
-SET NWTC_Lib_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\trunk\source
-SET NETLIB_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\branches\NetLib\NWTC_source
+SET NWTC_Lib_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc_subs\gitHub\source
+SET NETLIB_Loc=%NWTC_Lib_Loc%
 SET ED_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\ElastoDyn\gitHub\trunk\source\ElastoDyn
 SET BD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\BeamDyn\GitforSVN\trunk\source
 SET SrvD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\ServoDyn\gitHub\trunk\source\ServoDyn
@@ -32,7 +32,7 @@ SET AFI_Loc=%AD_Loc%\..\Airfoil_Info
 SET AD14_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\trunk\Source
 SET DWM_Loc=%AD14_Loc%\DWM
 
-SET IfW_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\InflowWind\SVNdirectory\branches\modularization2\Source
+SET IfW_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\InflowWind\gitHub\Source
 SET IfW_Reg_Loc=%IfW_Loc%\Registry
 
 SET OpFM_Loc=%FAST_Loc%\dependencies\OpenFOAM

@@ -94,7 +94,6 @@ SET HD_Reg_Loc=%HD_Loc%
 SET IfW_Reg_Loc=%IfW_Loc%
 SET IceF_RanLux_Loc=%IceF_Loc%
 SET FEAM_Reg_Loc=%FEAM_Loc%
-SET Orca_Reg_Loc=%Orca_Loc%
 
 SET MAP_Loc_R=%MAP_Loc%
 SET MAP_Loc_F=%MAP_Loc%
@@ -331,7 +330,7 @@ SET CURR_LOC=%FAST_Loc%
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
  "%AD_Loc%" -I "%BEMT_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -I "%BD_Loc%" -I^
  "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Reg_Loc%"  -I^
- "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -I "%Orca_Reg_Loc%" -noextrap -O "%CURR_LOC%"
+ "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -I "%Orca_Loc%" -noextrap -O "%CURR_LOC%"
 
 
 ECHO %Lines%
@@ -357,7 +356,7 @@ SET CURR_LOC=%IfW_Loc%
 CALL :RunRegistry_IfW IfW_BladedFFWind -noextrap
 CALL :RunRegistry_IfW IfW_TSFFWind -noextrap
 CALL :RunRegistry_IfW IfW_HAWCWind -noextrap
-CALL :RunRegistry_IfW IfW_UniformWind -noextrap
+CALL :RunRegistry_IfW IfW_UniformWind
 CALL :RunRegistry_IfW IfW_UserWind -noextrap
 CALL :RunRegistry_IfW Lidar
 CALL :RunRegistry_IfW InflowWind
@@ -399,7 +398,7 @@ CALL ::RunRegistry_fmt1 MoorDyn
 
 ECHO %Lines%
 SET CURR_LOC=%Orca_Loc%
-%REGISTRY% "%Orca_Reg_Loc%\OrcaFlexInterface.txt" -I "%NWTC_Lib_Loc%" -I "%Orca_Reg_Loc%" -O "%CURR_LOC%"
+%REGISTRY% "%Orca_Loc%\OrcaFlexInterface.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
 
 
 ECHO %Lines%
@@ -642,7 +641,6 @@ SET MD_Loc=
 SET IceF_Loc=
 SET IceF_RanLux_Loc=
 SET Orca_Loc=
-SET Orca_Reg_Loc=
 
 SET NWTC_SOURCES=
 SET IfW_SOURCES=

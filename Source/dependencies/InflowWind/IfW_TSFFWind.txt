@@ -3,10 +3,6 @@
 # Module IfW_TSFFWind_Types contains all of the user-defined types needed in IfW_TSFFWind. It also contains copy, destroy, pack, and
 # unpack routines associated with each defined data types.
 ###################################################################################################################################
-# File last committed: $Date: 2016-06-30 22:48:56 -0600 (Thu, 30 Jun 2016) $
-# (File) Revision #: $Rev: 207 $
-# URL: $HeadURL: https://windsvn2.nrel.gov/InflowWind/branches/modularization2/Source/Registry/IfW_TSFFWind.txt $
-###################################################################################################################################
 # Entries are of the form
 # keyword <IfW_TSFFWind[/ModuleAbvr]> <TypeName>   <FieldType>    <FieldName>  <Dims>  <Ctrl> <DNAME> <DESCRIP> <UNITS>
 ###################################################################################################################################
@@ -32,8 +28,7 @@ typedef  ^                       MiscVarType          IntKi    TimeIndex        
 # ..... Parameters ................................................................................................................
 # Define parameters here:
 # Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
-typedef  ^                    ParameterType       CHARACTER(1024) WindFileName      -     -     -     "Name of the wind file to use"                                 -
-typedef  ^                       ^                       DbKi     DT                -     -     -     "Time step for cont. state integration & disc. state update"   seconds
+typedef  ^                    ParameterType              DbKi     DT                -     -     -     "Time step for cont. state integration & disc. state update"   seconds
 typedef  ^                       ^                       Logical  TowerDataExist    -  .FALSE.  -     "Data exists for the tower"                                    -
 typedef  ^                       ^                       Logical  Periodic          -  .FALSE.  -     "Flag to indicate if the wind file is periodic"                -
 typedef  ^                       ^                       SiKi     FFData            ::::  -     -     "Array of FF data"                                             -

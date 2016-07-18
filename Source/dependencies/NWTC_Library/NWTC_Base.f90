@@ -17,9 +17,9 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-07-04 18:45:48 -0600 (Mon, 04 Jul 2016) $
-! (File) Revision #: $Rev: 389 $
-! URL: $HeadURL: https://windsvn2.nrel.gov/NWTC_Library/trunk/source/NWTC_Base.f90 $
+! File last committed: $Date$
+! (File) Revision #: $Rev$
+! URL: $HeadURL$
 !**********************************************************************************************************************************
 !> This module stores basic constants and routines that are not system-specific, but may be used in the system-specific routines.
 MODULE NWTC_Base

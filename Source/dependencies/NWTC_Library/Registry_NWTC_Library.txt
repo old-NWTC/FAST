@@ -4,9 +4,9 @@
 # a NWTC_Library_Types.f90 file
 #
 #.............................................................
-# File last committed: $Date: 2016-07-04 18:45:48 -0600 (Mon, 04 Jul 2016) $
-# (File) Revision #: $Rev: 389 $
-# URL: $HeadURL: https://windsvn2.nrel.gov/NWTC_Library/trunk/source/Registry_NWTC_Library.txt $
+# File last committed: $Date$
+# (File) Revision #: $Rev$
+# URL: $HeadURL$
 #.............................................................
 
 

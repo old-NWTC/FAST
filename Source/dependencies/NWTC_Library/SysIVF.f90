@@ -17,9 +17,9 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-01-21 14:33:25 -0700 (Thu, 21 Jan 2016) $
-! (File) Revision #: $Rev: 357 $
-! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/SysIVF.f90 $
+! File last committed: $Date$
+! (File) Revision #: $Rev$
+! URL: $HeadURL$
 !**********************************************************************************************************************************
 !> This module contains routines with system-specific logic and references, including all references to the console unit, CU.
 !! It also contains standard (but not system-specific) routines it uses.

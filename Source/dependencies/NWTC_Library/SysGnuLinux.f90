@@ -17,9 +17,9 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-07-11 10:36:47 -0600 (Mon, 11 Jul 2016) $
-! (File) Revision #: $Rev: 390 $
-! URL: $HeadURL: https://windsvn2.nrel.gov/NWTC_Library/trunk/source/SysGnuLinux.f90 $
+! File last committed: $Date$
+! (File) Revision #: $Rev$
+! URL: $HeadURL$
 !**********************************************************************************************************************************
 MODULE SysSubs
 

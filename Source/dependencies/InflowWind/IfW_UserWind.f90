@@ -24,10 +24,6 @@ MODULE IfW_UserWind
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-10-29 16:28:35 -0600 (Wed, 29 Oct 2014) $
-! (File) Revision #: $Rev: 125 $
-! URL: $HeadURL: https://windsvn2.nrel.gov/InflowWind/branches/modularization2/Source/IfW_UserWind.f90 $
-!**********************************************************************************************************************************
 
    USE                                       NWTC_Library
    USE                                       IfW_UserWind_Types
@@ -109,8 +105,6 @@ SUBROUTINE IfW_UserWind_Init(InitData, ParamData, MiscVars, Interval, InitOutDat
 
 !   ParamData%RefHt            =  InitData%ReferenceHeight
 !   ParamData%RefLength        =  InitData%RefLength
-!   ParamData%WindFileName     =  InitData%WindFileName
-    ParamData%WindFileName     = ""
 
       !-------------------------------------------------------------------------------------------------
       ! Open the file for reading.  Proceed with file parsing etc.  Populate your wind field here.

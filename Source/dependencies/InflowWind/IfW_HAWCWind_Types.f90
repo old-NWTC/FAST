@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry.
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v3.01.01, 19-Apr-2016)
+! FAST Registry (v3.02.00, 22-Jun-2016)
 !*********************************************************************************************************************************
 ! IfW_HAWCWind_Types
 !.................................................................................................................................

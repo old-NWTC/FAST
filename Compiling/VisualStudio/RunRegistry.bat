@@ -96,6 +96,7 @@ GOTO checkError
 
 :InflowWind
 :Lidar
+:IfW_UniformWind
 SET CURR_LOC=%IfW_Loc%
 %REGISTRY% "%IfW_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -O "%CURR_LOC%"
 GOTO checkError
@@ -104,7 +105,6 @@ GOTO checkError
 :IfW_TSFFWind
 :IfW_HAWCWind
 :IfW_BladedFFWind
-:IfW_UniformWind
 :IfW_UserWind
 SET CURR_LOC=%IfW_Loc%
 %REGISTRY% "%IfW_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -noextrap  -O "%CURR_LOC%"

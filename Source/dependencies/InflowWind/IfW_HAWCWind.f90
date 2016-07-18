@@ -29,11 +29,6 @@ MODULE IfW_HAWCWind
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-07-29 13:30:04 -0600 (Tue, 29 Jul 2014) $
-! (File) Revision #: $Rev: 125 $
-! URL: $HeadURL: https://windsvn2.nrel.gov/InflowWind/branches/modularization2/Source/IfW_HAWCWind.f90 $
-!**********************************************************************************************************************************
-
    USE                                          NWTC_Library
    USE                                          IfW_HAWCWind_Types
 

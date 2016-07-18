@@ -18,9 +18,9 @@
 !> \author Marshall Buhl
 !> \author John Michalakes
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-05-23 15:06:37 -0600 (Mon, 23 May 2016) $
-! (File) Revision #: $Rev: 382 $
-! URL: $HeadURL: https://windsvn2.nrel.gov/NWTC_Library/trunk/source/NWTC_Library.f90 $
+! File last committed: $Date$
+! (File) Revision #: $Rev$
+! URL: $HeadURL$
 !**********************************************************************************************************************************
 MODULE NWTC_Library
 

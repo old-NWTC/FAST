@@ -17,10 +17,6 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-10-29 16:28:35 -0600 (Wed, 29 Oct 2014) $
-! (File) Revision #: $Rev: 125 $
-! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization2/Source/InflowWind.f90 $
-!**********************************************************************************************************************************
 MODULE InflowWind_Subs
 
    USE                              InflowWind_Types
@@ -929,8 +925,8 @@ SUBROUTINE InflowWind_ValidateInput( InitInp, InputFileData, ErrStat, ErrMsg )
 
    if (InitInp%Linearize) then
       
-      if (InputFileData%WindType /= Steady_WindNumber) then
-         call SetErrStat(ErrID_Fatal, 'InflowWind can perform linearization on only steady wind types.', ErrStat, ErrMsg, RoutineName)
+      if (InputFileData%WindType /= Steady_WindNumber .and. InputFileData%WindType /= Uniform_WindNumber) then
+         call SetErrStat(ErrID_Fatal, 'InflowWind can perform linearization on only steady or uniform wind types.', ErrStat, ErrMsg, RoutineName)
          return
       end if
       
@@ -1872,8 +1868,8 @@ SUBROUTINE CalculateOutput( Time, InputData, p, x, xd, z, OtherStates, y, m, Fil
          CASE (Steady_WindNumber, Uniform_WindNumber)
 
                ! InputData only contains the Position array, so we can pass that directly.
-            CALL  IfW_UniformWind_CalcOutput(  Time, PositionXYZprime, p%UniformWind, &
-                                          y%VelocityUVW, DiskVel, m%UniformWind, TmpErrStat, TmpErrMsg)
+            CALL  IfW_UniformWind_CalcOutput(  Time, PositionXYZprime, p%UniformWind, y%VelocityUVW, &
+                                          DiskVel, m%UniformWind, y%UniformWind, TmpErrStat, TmpErrMsg)
 
             CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, RoutineName )
             IF ( ErrStat >= AbortErrLev ) RETURN
@@ -1881,8 +1877,8 @@ SUBROUTINE CalculateOutput( Time, InputData, p, x, xd, z, OtherStates, y, m, Fil
                ! Call IfW_UniformWind_CalcOutput again in order to get the values needed for the OutList -- note that we do not report errors from this
             IF ( p%NWindVel >= 1_IntKi .AND. FillWrOut ) THEN
                   ! Move the arrays for the Velocity information
-               CALL  IfW_UniformWind_CalcOutput(  Time, p%WindViXYZprime, p%UniformWind, &
-                                             m%WindViUVW, DiskVel, m%UniformWind, TmpErrStat, TmpErrMsg)
+               CALL  IfW_UniformWind_CalcOutput(  Time, p%WindViXYZprime, p%UniformWind, m%WindViUVW, &
+                                             DiskVel, m%UniformWind, y%UniformWind, TmpErrStat, TmpErrMsg)
             ENDIF
 
          CASE (TSFF_WindNumber)

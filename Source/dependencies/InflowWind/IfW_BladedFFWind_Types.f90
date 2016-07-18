@@ -53,7 +53,6 @@ IMPLICIT NONE
 ! =======================
 ! =========  IfW_BladedFFWind_ParameterType  =======
   TYPE, PUBLIC :: IfW_BladedFFWind_ParameterType
-    CHARACTER(1024)  :: WindFileName      !< Name of the wind file to use [-]
     LOGICAL  :: Periodic = .FALSE.      !< Flag to indicate if the wind file is periodic [-]
     LOGICAL  :: TowerDataExist = .FALSE.      !< If true, we specified a tower file [-]
     REAL(DbKi)  :: DT      !< Time step for cont. state integration & disc. state update [seconds]
@@ -616,7 +615,6 @@ CONTAINS
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-    DstParamData%WindFileName = SrcParamData%WindFileName
     DstParamData%Periodic = SrcParamData%Periodic
     DstParamData%TowerDataExist = SrcParamData%TowerDataExist
     DstParamData%DT = SrcParamData%DT
@@ -726,7 +724,6 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-      Int_BufSz  = Int_BufSz  + 1*LEN(InData%WindFileName)  ! WindFileName
       Int_BufSz  = Int_BufSz  + 1  ! Periodic
       Int_BufSz  = Int_BufSz  + 1  ! TowerDataExist
       Db_BufSz   = Db_BufSz   + 1  ! DT
@@ -785,10 +782,6 @@ ENDIF
   Db_Xferred  = 1
   Int_Xferred = 1
 
-        DO I = 1, LEN(InData%WindFileName)
-          IntKiBuf(Int_Xferred) = ICHAR(InData%WindFileName(I:I), IntKi)
-          Int_Xferred = Int_Xferred   + 1
-        END DO ! I
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%Periodic , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%TowerDataExist , IntKiBuf(1), 1)
@@ -910,10 +903,6 @@ ENDIF
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-      DO I = 1, LEN(OutData%WindFileName)
-        OutData%WindFileName(I:I) = CHAR(IntKiBuf(Int_Xferred))
-        Int_Xferred = Int_Xferred   + 1
-      END DO ! I
       OutData%Periodic = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
       OutData%TowerDataExist = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )

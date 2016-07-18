@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry.
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v3.01.01, 19-Apr-2016)
+! FAST Registry (v3.02.00, 22-Jun-2016)
 !*********************************************************************************************************************************
 ! IfW_UserWind_Types
 !.................................................................................................................................
@@ -50,7 +50,7 @@ IMPLICIT NONE
 ! =======================
 ! =========  IfW_UserWind_ParameterType  =======
   TYPE, PUBLIC :: IfW_UserWind_ParameterType
-    CHARACTER(1024)  :: WindFileName      !< Name of the wind file to use [-]
+    REAL(SiKi)  :: dummy      !< remove if you have parameters [-]
   END TYPE IfW_UserWind_ParameterType
 ! =======================
 CONTAINS
@@ -549,7 +549,7 @@ CONTAINS
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-    DstParamData%WindFileName = SrcParamData%WindFileName
+    DstParamData%dummy = SrcParamData%dummy
  END SUBROUTINE IfW_UserWind_CopyParam
 
  SUBROUTINE IfW_UserWind_DestroyParam( ParamData, ErrStat, ErrMsg )
@@ -598,7 +598,7 @@ CONTAINS
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-      Int_BufSz  = Int_BufSz  + 1*LEN(InData%WindFileName)  ! WindFileName
+      Re_BufSz   = Re_BufSz   + 1  ! dummy
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -626,10 +626,8 @@ CONTAINS
   Db_Xferred  = 1
   Int_Xferred = 1
 
-        DO I = 1, LEN(InData%WindFileName)
-          IntKiBuf(Int_Xferred) = ICHAR(InData%WindFileName(I:I), IntKi)
-          Int_Xferred = Int_Xferred   + 1
-        END DO ! I
+      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%dummy
+      Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE IfW_UserWind_PackParam
 
  SUBROUTINE IfW_UserWind_UnPackParam( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -664,10 +662,8 @@ CONTAINS
   Re_Xferred  = 1
   Db_Xferred  = 1
   Int_Xferred  = 1
-      DO I = 1, LEN(OutData%WindFileName)
-        OutData%WindFileName(I:I) = CHAR(IntKiBuf(Int_Xferred))
-        Int_Xferred = Int_Xferred   + 1
-      END DO ! I
+      OutData%dummy = REAL( ReKiBuf( Re_Xferred ), SiKi) 
+      Re_Xferred   = Re_Xferred + 1
  END SUBROUTINE IfW_UserWind_UnPackParam
 
 END MODULE IfW_UserWind_Types
