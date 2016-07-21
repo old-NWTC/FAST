@@ -1456,9 +1456,12 @@ SUBROUTINE InflowWind_GetOP( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrMs
    ErrMsg  = ''
 
    IF ( PRESENT( u_op ) ) THEN
-      call AllocAry(u_op, size(u%PositionXYZ), 'u_op', ErrStat2, ErrMsg2)
-         call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
-         if (ErrStat >= AbortErrLev) return
+      if (.not. allocated(u_op)) then
+         call AllocAry(u_op, size(u%PositionXYZ), 'u_op', ErrStat2, ErrMsg2)
+            call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+            if (ErrStat >= AbortErrLev) return
+      end if
+      
          
       index = 0
       do i=1,size(u%PositionXYZ,2)
@@ -1471,9 +1474,12 @@ SUBROUTINE InflowWind_GetOP( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrMs
    END IF
 
    IF ( PRESENT( y_op ) ) THEN
-      call AllocAry(y_op, size(u%PositionXYZ)+p%NumOuts, 'y_op', ErrStat2, ErrMsg2)
-         call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
-         if (ErrStat >= AbortErrLev) return
+      if (.not. allocated(y_op)) then
+         call AllocAry(y_op, size(u%PositionXYZ)+p%NumOuts, 'y_op', ErrStat2, ErrMsg2)
+            call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
+            if (ErrStat >= AbortErrLev) return
+      end if
+      
 
       index = 0
       do i=1,size(u%PositionXYZ,2)

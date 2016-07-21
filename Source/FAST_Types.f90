@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry.
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v3.02.00, 22-Jun-2016)
+! FAST Registry (v3.02.00, 7-Jul-2016)
 !*********************************************************************************************************************************
 ! FAST_Types
 !.................................................................................................................................
@@ -199,6 +199,7 @@ IMPLICIT NONE
     LOGICAL , DIMENSION(:), ALLOCATABLE  :: RotFrame_u      !< Whether corresponding input is in rotating frame [-]
     LOGICAL , DIMENSION(:), ALLOCATABLE  :: RotFrame_y      !< Whether corresponding output is in rotating frame [-]
     LOGICAL , DIMENSION(:), ALLOCATABLE  :: RotFrame_x      !< Whether corresponding continuous state is in rotating frame [-]
+    LOGICAL , DIMENSION(:), ALLOCATABLE  :: RotFrame_z      !< Whether corresponding constraint state is in rotating frame [-]
   END TYPE FAST_LinType
 ! =======================
 ! =========  FAST_LinFileType  =======
@@ -2421,6 +2422,18 @@ IF (ALLOCATED(SrcLinTypeData%RotFrame_x)) THEN
   END IF
     DstLinTypeData%RotFrame_x = SrcLinTypeData%RotFrame_x
 ENDIF
+IF (ALLOCATED(SrcLinTypeData%RotFrame_z)) THEN
+  i1_l = LBOUND(SrcLinTypeData%RotFrame_z,1)
+  i1_u = UBOUND(SrcLinTypeData%RotFrame_z,1)
+  IF (.NOT. ALLOCATED(DstLinTypeData%RotFrame_z)) THEN 
+    ALLOCATE(DstLinTypeData%RotFrame_z(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+      CALL SetErrStat(ErrID_Fatal, 'Error allocating DstLinTypeData%RotFrame_z.', ErrStat, ErrMsg,RoutineName)
+      RETURN
+    END IF
+  END IF
+    DstLinTypeData%RotFrame_z = SrcLinTypeData%RotFrame_z
+ENDIF
  END SUBROUTINE FAST_CopyLinType
 
  SUBROUTINE FAST_DestroyLinType( LinTypeData, ErrStat, ErrMsg )
@@ -2503,6 +2516,9 @@ IF (ALLOCATED(LinTypeData%RotFrame_y)) THEN
 ENDIF
 IF (ALLOCATED(LinTypeData%RotFrame_x)) THEN
   DEALLOCATE(LinTypeData%RotFrame_x)
+ENDIF
+IF (ALLOCATED(LinTypeData%RotFrame_z)) THEN
+  DEALLOCATE(LinTypeData%RotFrame_z)
 ENDIF
  END SUBROUTINE FAST_DestroyLinType
 
@@ -2660,6 +2676,11 @@ ENDIF
   IF ( ALLOCATED(InData%RotFrame_x) ) THEN
     Int_BufSz   = Int_BufSz   + 2*1  ! RotFrame_x upper/lower bounds for each dimension
       Int_BufSz  = Int_BufSz  + SIZE(InData%RotFrame_x)  ! RotFrame_x
+  END IF
+  Int_BufSz   = Int_BufSz   + 1     ! RotFrame_z allocated yes/no
+  IF ( ALLOCATED(InData%RotFrame_z) ) THEN
+    Int_BufSz   = Int_BufSz   + 2*1  ! RotFrame_z upper/lower bounds for each dimension
+      Int_BufSz  = Int_BufSz  + SIZE(InData%RotFrame_z)  ! RotFrame_z
   END IF
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
@@ -3041,6 +3062,19 @@ ENDIF
 
       IF (SIZE(InData%RotFrame_x)>0) IntKiBuf ( Int_Xferred:Int_Xferred+SIZE(InData%RotFrame_x)-1 ) = TRANSFER(PACK( InData%RotFrame_x ,.TRUE.), IntKiBuf(1), SIZE(InData%RotFrame_x))
       Int_Xferred   = Int_Xferred   + SIZE(InData%RotFrame_x)
+  END IF
+  IF ( .NOT. ALLOCATED(InData%RotFrame_z) ) THEN
+    IntKiBuf( Int_Xferred ) = 0
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    IntKiBuf( Int_Xferred ) = 1
+    Int_Xferred = Int_Xferred + 1
+    IntKiBuf( Int_Xferred    ) = LBOUND(InData%RotFrame_z,1)
+    IntKiBuf( Int_Xferred + 1) = UBOUND(InData%RotFrame_z,1)
+    Int_Xferred = Int_Xferred + 2
+
+      IF (SIZE(InData%RotFrame_z)>0) IntKiBuf ( Int_Xferred:Int_Xferred+SIZE(InData%RotFrame_z)-1 ) = TRANSFER(PACK( InData%RotFrame_z ,.TRUE.), IntKiBuf(1), SIZE(InData%RotFrame_z))
+      Int_Xferred   = Int_Xferred   + SIZE(InData%RotFrame_z)
   END IF
  END SUBROUTINE FAST_PackLinType
 
@@ -3670,6 +3704,29 @@ ENDIF
     mask1 = .TRUE. 
       IF (SIZE(OutData%RotFrame_x)>0) OutData%RotFrame_x = UNPACK( TRANSFER( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%RotFrame_x))-1 ), OutData%RotFrame_x), mask1,.TRUE.)
       Int_Xferred   = Int_Xferred   + SIZE(OutData%RotFrame_x)
+    DEALLOCATE(mask1)
+  END IF
+  IF ( IntKiBuf( Int_Xferred ) == 0 ) THEN  ! RotFrame_z not allocated
+    Int_Xferred = Int_Xferred + 1
+  ELSE
+    Int_Xferred = Int_Xferred + 1
+    i1_l = IntKiBuf( Int_Xferred    )
+    i1_u = IntKiBuf( Int_Xferred + 1)
+    Int_Xferred = Int_Xferred + 2
+    IF (ALLOCATED(OutData%RotFrame_z)) DEALLOCATE(OutData%RotFrame_z)
+    ALLOCATE(OutData%RotFrame_z(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating OutData%RotFrame_z.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      IF (SIZE(OutData%RotFrame_z)>0) OutData%RotFrame_z = UNPACK( TRANSFER( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%RotFrame_z))-1 ), OutData%RotFrame_z), mask1,.TRUE.)
+      Int_Xferred   = Int_Xferred   + SIZE(OutData%RotFrame_z)
     DEALLOCATE(mask1)
   END IF
  END SUBROUTINE FAST_UnPackLinType
