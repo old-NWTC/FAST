@@ -10490,7 +10490,7 @@ SUBROUTINE ED_JacobianPInput( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrM
 
       ! allocate dYdu if necessary
       if (.not. allocated(dYdu)) then
-         call AllocAry(dYdu, p%Jac_ny, size(p%Jac_u_indx,1), 'dYdu', ErrStat2, ErrMsg2)
+         call AllocAry(dYdu, p%Jac_ny, size(p%Jac_u_indx,1)+1, 'dYdu', ErrStat2, ErrMsg2)
          call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
          if (ErrStat>=AbortErrLev) then
             call cleanup()
@@ -10535,7 +10535,13 @@ SUBROUTINE ED_JacobianPInput( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrM
          
       end do
       
-
+      ! now do the extended input: sum the p%NumBl blade pitch columns
+      dYdu(:,size(p%Jac_u_indx,1)+1) = dYdu(:,size(p%Jac_u_indx,1)-p%NumBl-1) ! last NumBl+2 columns are: GenTrq, YawMom, and BlPitchCom   
+      do i=2,p%NumBl
+         dYdu(:,size(p%Jac_u_indx,1)+1) = dYdu(:,size(p%Jac_u_indx,1)+1) + dYdu(:,size(p%Jac_u_indx,1)-p%NumBl-2+i) 
+      end do
+      
+      
       if (ErrStat>=AbortErrLev) then
          call cleanup()
          return
@@ -10553,7 +10559,7 @@ SUBROUTINE ED_JacobianPInput( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrM
 
       ! allocate dXdu if necessary
       if (.not. allocated(dXdu)) then
-         call AllocAry(dXdu, p%DOFs%NActvDOF * 2, size(p%Jac_u_indx,1), 'dXdu', ErrStat2, ErrMsg2)
+         call AllocAry(dXdu, p%DOFs%NActvDOF * 2, size(p%Jac_u_indx,1)+1, 'dXdu', ErrStat2, ErrMsg2)
          call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
          if (ErrStat>=AbortErrLev) then
             call cleanup()
@@ -10603,11 +10609,23 @@ SUBROUTINE ED_JacobianPInput( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrM
          
       end do
       
+      
+      ! now do the extended input: sum the p%NumBl blade pitch columns
+      dXdu(:,size(p%Jac_u_indx,1)+1) = dXdu(:,size(p%Jac_u_indx,1)-p%NumBl-1) ! last NumBl+2 columns are: GenTrq, YawMom, and BlPitchCom   
+      do i=2,p%NumBl
+         dXdu(:,size(p%Jac_u_indx,1)+1) = dXdu(:,size(p%Jac_u_indx,1)+1) + dXdu(:,size(p%Jac_u_indx,1)-p%NumBl-2+i) 
+      end do
+      
+      
       call ED_DestroyContState( x_p, ErrStat2, ErrMsg2 ) ! we don't need this any more
       call ED_DestroyContState( x_m, ErrStat2, ErrMsg2 ) ! we don't need this any more
       
+      
+      
    END IF
 
+   
+   
    IF ( PRESENT( dXddu ) ) THEN
       if (allocated(dXddu)) deallocate(dXddu)
    END IF
@@ -11363,8 +11381,8 @@ SUBROUTINE ED_Init_Jacobian( p, u, y, InitOut, ErrStat, ErrMsg)
    !................
    ! names of the columns, InitOut%LinNames_u:
    !................
-   call AllocAry(InitOut%LinNames_u, nu, 'LinNames_u', ErrStat2, ErrMsg2); call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
-   call AllocAry(InitOut%RotFrame_u, nu, 'RotFrame_u', ErrStat2, ErrMsg2); call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+   call AllocAry(InitOut%LinNames_u, nu+1, 'LinNames_u', ErrStat2, ErrMsg2); call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
+   call AllocAry(InitOut%RotFrame_u, nu+1, 'RotFrame_u', ErrStat2, ErrMsg2); call SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
       if (ErrStat >= AbortErrLev) return
       
    InitOut%RotFrame_u = .false.
@@ -11389,8 +11407,8 @@ SUBROUTINE ED_Init_Jacobian( p, u, y, InitOut, ErrStat, ErrMsg)
    InitOut%RotFrame_u(index_last:index-1) = .true.
 
    InitOut%LinNames_u(index) = 'Yaw moment, Nm' ; index = index + 1
-   InitOut%LinNames_u(index) = 'Generator torque, Nm'
-
+   InitOut%LinNames_u(index) = 'Generator torque, Nm' ; index = index + 1
+   InitOut%LinNames_u(index) = 'Extended input: collective blade-pitch command, rad'
    
 END SUBROUTINE ED_Init_Jacobian
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -11663,7 +11681,7 @@ SUBROUTINE ED_GetOP( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrMsg, u_op,
    !..................................
    IF ( PRESENT( u_op ) ) THEN
       if (.not. allocated(u_op)) then         
-         call AllocAry(u_op, size(p%Jac_u_indx,1),'u_op',ErrStat2,ErrMsg2)
+         call AllocAry(u_op, size(p%Jac_u_indx,1)+1,'u_op',ErrStat2,ErrMsg2)
             call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
          if (ErrStat>=AbortErrLev) return
       end if
@@ -11684,7 +11702,19 @@ SUBROUTINE ED_GetOP( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrMsg, u_op,
          index = index + 1
       end do
       u_op(index) = u%YawMom ; index = index + 1
-      u_op(index) = u%GenTrq
+      u_op(index) = u%GenTrq ; index = index + 1
+      
+         ! extended input:
+      u_op(index) = u%BlPitchCom(1)
+      
+      do k = 2,p%NumBl
+         if (.not. EqualRealNos( u%BlPitchCom(1), u%BlPitchCom(k) ) ) then
+            call SetErrStat(ErrID_Info,"Operating point of collective pitch extended input is invalid because "// &
+                     "the commanded blade pitch angles are not the same for each blade.", ErrStat, ErrMsg, RoutineName)
+            return
+         end if      
+      end do      
+      
    END IF
 
    !..................................

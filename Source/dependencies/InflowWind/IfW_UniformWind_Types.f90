@@ -70,13 +70,8 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: NumDataLines      !<  [-]
   END TYPE IfW_UniformWind_ParameterType
 ! =======================
-! =========  IfW_UniformWind_InputType  =======
-  TYPE, PUBLIC :: IfW_UniformWind_InputType
-    REAL(SiKi)  :: dummy      !< dummy type because we need extrap/interp routine if we put the below outputs in the InflowWind type [-]
-  END TYPE IfW_UniformWind_InputType
-! =======================
-! =========  IfW_UniformWind_OutputType  =======
-  TYPE, PUBLIC :: IfW_UniformWind_OutputType
+! =========  IfW_UniformWind_Intrp  =======
+  TYPE, PUBLIC :: IfW_UniformWind_Intrp
     REAL(ReKi)  :: DELTA      !< HH Wind direction (angle) [degrees]
     REAL(ReKi)  :: V      !< HH horizontal wind speed [meters/sec]
     REAL(ReKi)  :: VZ      !< wind, including tower shadow, along the Z axis [meters/sec]
@@ -84,7 +79,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: VSHR      !< HH vertical shear exponent [-]
     REAL(ReKi)  :: VLINSHR      !< HH vertical linear shear [-]
     REAL(ReKi)  :: VGUST      !< HH wind gust [-]
-  END TYPE IfW_UniformWind_OutputType
+  END TYPE IfW_UniformWind_Intrp
 ! =======================
 CONTAINS
  SUBROUTINE IfW_UniformWind_CopyInitInput( SrcInitInputData, DstInitInputData, CtrlCode, ErrStat, ErrMsg )
@@ -1216,9 +1211,9 @@ ENDIF
       Int_Xferred   = Int_Xferred + 1
  END SUBROUTINE IfW_UniformWind_UnPackParam
 
- SUBROUTINE IfW_UniformWind_CopyInput( SrcInputData, DstInputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(IfW_UniformWind_InputType), INTENT(IN) :: SrcInputData
-   TYPE(IfW_UniformWind_InputType), INTENT(INOUT) :: DstInputData
+ SUBROUTINE IfW_UniformWind_CopyIntrp( SrcIntrpData, DstIntrpData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(IfW_UniformWind_Intrp), INTENT(IN) :: SrcIntrpData
+   TYPE(IfW_UniformWind_Intrp), INTENT(INOUT) :: DstIntrpData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -1226,29 +1221,35 @@ ENDIF
    INTEGER(IntKi)                 :: i,j,k
    INTEGER(IntKi)                 :: ErrStat2
    CHARACTER(ErrMsgLen)           :: ErrMsg2
-   CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_UniformWind_CopyInput'
+   CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_UniformWind_CopyIntrp'
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-    DstInputData%dummy = SrcInputData%dummy
- END SUBROUTINE IfW_UniformWind_CopyInput
+    DstIntrpData%DELTA = SrcIntrpData%DELTA
+    DstIntrpData%V = SrcIntrpData%V
+    DstIntrpData%VZ = SrcIntrpData%VZ
+    DstIntrpData%HSHR = SrcIntrpData%HSHR
+    DstIntrpData%VSHR = SrcIntrpData%VSHR
+    DstIntrpData%VLINSHR = SrcIntrpData%VLINSHR
+    DstIntrpData%VGUST = SrcIntrpData%VGUST
+ END SUBROUTINE IfW_UniformWind_CopyIntrp
 
- SUBROUTINE IfW_UniformWind_DestroyInput( InputData, ErrStat, ErrMsg )
-  TYPE(IfW_UniformWind_InputType), INTENT(INOUT) :: InputData
+ SUBROUTINE IfW_UniformWind_DestroyIntrp( IntrpData, ErrStat, ErrMsg )
+  TYPE(IfW_UniformWind_Intrp), INTENT(INOUT) :: IntrpData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-  CHARACTER(*),    PARAMETER :: RoutineName = 'IfW_UniformWind_DestroyInput'
+  CHARACTER(*),    PARAMETER :: RoutineName = 'IfW_UniformWind_DestroyIntrp'
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE IfW_UniformWind_DestroyInput
+ END SUBROUTINE IfW_UniformWind_DestroyIntrp
 
- SUBROUTINE IfW_UniformWind_PackInput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE IfW_UniformWind_PackIntrp( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(IfW_UniformWind_InputType),  INTENT(IN) :: InData
+  TYPE(IfW_UniformWind_Intrp),  INTENT(IN) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1263,144 +1264,7 @@ ENDIF
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(ErrMsgLen)           :: ErrMsg2
-  CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_UniformWind_PackInput'
- ! buffers to store subtypes, if any
-  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
-  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
-  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
-
-  OnlySize = .FALSE.
-  IF ( PRESENT(SizeOnly) ) THEN
-    OnlySize = SizeOnly
-  ENDIF
-    !
-  ErrStat = ErrID_None
-  ErrMsg  = ""
-  Re_BufSz  = 0
-  Db_BufSz  = 0
-  Int_BufSz  = 0
-      Re_BufSz   = Re_BufSz   + 1  ! dummy
-  IF ( Re_BufSz  .GT. 0 ) THEN 
-     ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
-     IF (ErrStat2 /= 0) THEN 
-       CALL SetErrStat(ErrID_Fatal, 'Error allocating ReKiBuf.', ErrStat, ErrMsg,RoutineName)
-       RETURN
-     END IF
-  END IF
-  IF ( Db_BufSz  .GT. 0 ) THEN 
-     ALLOCATE( DbKiBuf(  Db_BufSz  ), STAT=ErrStat2 )
-     IF (ErrStat2 /= 0) THEN 
-       CALL SetErrStat(ErrID_Fatal, 'Error allocating DbKiBuf.', ErrStat, ErrMsg,RoutineName)
-       RETURN
-     END IF
-  END IF
-  IF ( Int_BufSz  .GT. 0 ) THEN 
-     ALLOCATE( IntKiBuf(  Int_BufSz  ), STAT=ErrStat2 )
-     IF (ErrStat2 /= 0) THEN 
-       CALL SetErrStat(ErrID_Fatal, 'Error allocating IntKiBuf.', ErrStat, ErrMsg,RoutineName)
-       RETURN
-     END IF
-  END IF
-  IF(OnlySize) RETURN ! return early if only trying to allocate buffers (not pack them)
-
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred = 1
-
-      ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%dummy
-      Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE IfW_UniformWind_PackInput
-
- SUBROUTINE IfW_UniformWind_UnPackInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
-  REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
-  REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
-  INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(IfW_UniformWind_InputType), INTENT(INOUT) :: OutData
-  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local variables
-  INTEGER(IntKi)                 :: Buf_size
-  INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i
-  LOGICAL                        :: mask0
-  LOGICAL, ALLOCATABLE           :: mask1(:)
-  LOGICAL, ALLOCATABLE           :: mask2(:,:)
-  LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
-  LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
-  LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
-  INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(ErrMsgLen)           :: ErrMsg2
-  CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_UniformWind_UnPackInput'
- ! buffers to store meshes, if any
-  REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
-  REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
-  INTEGER(IntKi),  ALLOCATABLE   :: Int_Buf(:)
-    !
-  ErrStat = ErrID_None
-  ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-      OutData%dummy = REAL( ReKiBuf( Re_Xferred ), SiKi) 
-      Re_Xferred   = Re_Xferred + 1
- END SUBROUTINE IfW_UniformWind_UnPackInput
-
- SUBROUTINE IfW_UniformWind_CopyOutput( SrcOutputData, DstOutputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(IfW_UniformWind_OutputType), INTENT(IN) :: SrcOutputData
-   TYPE(IfW_UniformWind_OutputType), INTENT(INOUT) :: DstOutputData
-   INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
-   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-! Local 
-   INTEGER(IntKi)                 :: i,j,k
-   INTEGER(IntKi)                 :: ErrStat2
-   CHARACTER(ErrMsgLen)           :: ErrMsg2
-   CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_UniformWind_CopyOutput'
-! 
-   ErrStat = ErrID_None
-   ErrMsg  = ""
-    DstOutputData%DELTA = SrcOutputData%DELTA
-    DstOutputData%V = SrcOutputData%V
-    DstOutputData%VZ = SrcOutputData%VZ
-    DstOutputData%HSHR = SrcOutputData%HSHR
-    DstOutputData%VSHR = SrcOutputData%VSHR
-    DstOutputData%VLINSHR = SrcOutputData%VLINSHR
-    DstOutputData%VGUST = SrcOutputData%VGUST
- END SUBROUTINE IfW_UniformWind_CopyOutput
-
- SUBROUTINE IfW_UniformWind_DestroyOutput( OutputData, ErrStat, ErrMsg )
-  TYPE(IfW_UniformWind_OutputType), INTENT(INOUT) :: OutputData
-  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-  CHARACTER(*),    PARAMETER :: RoutineName = 'IfW_UniformWind_DestroyOutput'
-  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
-! 
-  ErrStat = ErrID_None
-  ErrMsg  = ""
- END SUBROUTINE IfW_UniformWind_DestroyOutput
-
- SUBROUTINE IfW_UniformWind_PackOutput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
-  REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
-  REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
-  INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(IfW_UniformWind_OutputType),  INTENT(IN) :: InData
-  INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
-  CHARACTER(*),     INTENT(  OUT) :: ErrMsg
-  LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
-    ! Local variables
-  INTEGER(IntKi)                 :: Re_BufSz
-  INTEGER(IntKi)                 :: Re_Xferred
-  INTEGER(IntKi)                 :: Db_BufSz
-  INTEGER(IntKi)                 :: Db_Xferred
-  INTEGER(IntKi)                 :: Int_BufSz
-  INTEGER(IntKi)                 :: Int_Xferred
-  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5
-  LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
-  INTEGER(IntKi)                 :: ErrStat2
-  CHARACTER(ErrMsgLen)           :: ErrMsg2
-  CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_UniformWind_PackOutput'
+  CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_UniformWind_PackIntrp'
  ! buffers to store subtypes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
   REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
@@ -1464,13 +1328,13 @@ ENDIF
       Re_Xferred   = Re_Xferred   + 1
       ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) = InData%VGUST
       Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE IfW_UniformWind_PackOutput
+ END SUBROUTINE IfW_UniformWind_PackIntrp
 
- SUBROUTINE IfW_UniformWind_UnPackOutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE IfW_UniformWind_UnPackIntrp( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(IfW_UniformWind_OutputType), INTENT(INOUT) :: OutData
+  TYPE(IfW_UniformWind_Intrp), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1487,7 +1351,7 @@ ENDIF
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
   INTEGER(IntKi)                 :: ErrStat2
   CHARACTER(ErrMsgLen)           :: ErrMsg2
-  CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_UniformWind_UnPackOutput'
+  CHARACTER(*), PARAMETER        :: RoutineName = 'IfW_UniformWind_UnPackIntrp'
  ! buffers to store meshes, if any
   REAL(ReKi),      ALLOCATABLE   :: Re_Buf(:)
   REAL(DbKi),      ALLOCATABLE   :: Db_Buf(:)
@@ -1512,337 +1376,7 @@ ENDIF
       Re_Xferred   = Re_Xferred + 1
       OutData%VGUST = ReKiBuf( Re_Xferred )
       Re_Xferred   = Re_Xferred + 1
- END SUBROUTINE IfW_UniformWind_UnPackOutput
-
-
- SUBROUTINE IfW_UniformWind_Input_ExtrapInterp(u, t, u_out, t_out, ErrStat, ErrMsg )
-!
-! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
-! values of u (which has values associated with times in t).  Order of the interpolation is given by the size of u
-!
-!  expressions below based on either
-!
-!  f(t) = a
-!  f(t) = a + b * t, or
-!  f(t) = a + b * t + c * t**2
-!
-!  where a, b and c are determined as the solution to
-!  f(t1) = u1, f(t2) = u2, f(t3) = u3  (as appropriate)
-!
-!..................................................................................................................................
-
- TYPE(IfW_UniformWind_InputType), INTENT(INOUT)  :: u(:) ! Input at t1 > t2 > t3
- REAL(DbKi),                 INTENT(IN   )  :: t(:)           ! Times associated with the Inputs
- TYPE(IfW_UniformWind_InputType), INTENT(INOUT)  :: u_out ! Input at tin_out
- REAL(DbKi),                 INTENT(IN   )  :: t_out           ! time to be extrap/interp'd to
- INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat         ! Error status of the operation
- CHARACTER(*),               INTENT(  OUT)  :: ErrMsg          ! Error message if ErrStat /= ErrID_None
-   ! local variables
- INTEGER(IntKi)                             :: order           ! order of polynomial fit (max 2)
- INTEGER(IntKi)                             :: ErrStat2        ! local errors
- CHARACTER(ErrMsgLen)                       :: ErrMsg2         ! local errors
- CHARACTER(*),    PARAMETER                 :: RoutineName = 'IfW_UniformWind_Input_ExtrapInterp'
-    ! Initialize ErrStat
- ErrStat = ErrID_None
- ErrMsg  = ""
- if ( size(t) .ne. size(u)) then
-    CALL SetErrStat(ErrID_Fatal,'size(t) must equal size(u)',ErrStat,ErrMsg,RoutineName)
-    RETURN
- endif
- order = SIZE(u) - 1
- IF ( order .eq. 0 ) THEN
-   CALL IfW_UniformWind_CopyInput(u(1), u_out, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
- ELSE IF ( order .eq. 1 ) THEN
-   CALL IfW_UniformWind_Input_ExtrapInterp1(u(1), u(2), t, u_out, t_out, ErrStat2, ErrMsg2 )
-     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
- ELSE IF ( order .eq. 2 ) THEN
-   CALL IfW_UniformWind_Input_ExtrapInterp2(u(1), u(2), u(3), t, u_out, t_out, ErrStat2, ErrMsg2 )
-     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
- ELSE 
-   CALL SetErrStat(ErrID_Fatal,'size(u) must be less than 4 (order must be less than 3).',ErrStat,ErrMsg,RoutineName)
-   RETURN
- ENDIF 
- END SUBROUTINE IfW_UniformWind_Input_ExtrapInterp
-
-
- SUBROUTINE IfW_UniformWind_Input_ExtrapInterp1(u1, u2, tin, u_out, tin_out, ErrStat, ErrMsg )
-!
-! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
-! values of u (which has values associated with times in t).  Order of the interpolation is 1.
-!
-!  f(t) = a + b * t, or
-!
-!  where a and b are determined as the solution to
-!  f(t1) = u1, f(t2) = u2
-!
-!..................................................................................................................................
-
- TYPE(IfW_UniformWind_InputType), INTENT(INOUT)  :: u1    ! Input at t1 > t2
- TYPE(IfW_UniformWind_InputType), INTENT(INOUT)  :: u2    ! Input at t2 
- REAL(DbKi),         INTENT(IN   )          :: tin(2)   ! Times associated with the Inputs
- TYPE(IfW_UniformWind_InputType), INTENT(INOUT)  :: u_out ! Input at tin_out
- REAL(DbKi),         INTENT(IN   )          :: tin_out  ! time to be extrap/interp'd to
- INTEGER(IntKi),     INTENT(  OUT)          :: ErrStat  ! Error status of the operation
- CHARACTER(*),       INTENT(  OUT)          :: ErrMsg   ! Error message if ErrStat /= ErrID_None
-   ! local variables
- REAL(DbKi)                                 :: t(2)     ! Times associated with the Inputs
- REAL(DbKi)                                 :: t_out    ! Time to which to be extrap/interpd
- CHARACTER(*),                    PARAMETER :: RoutineName = 'IfW_UniformWind_Input_ExtrapInterp1'
- REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
- REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
- INTEGER(IntKi)                             :: ErrStat2 ! local errors
- CHARACTER(ErrMsgLen)                       :: ErrMsg2  ! local errors
-    ! Initialize ErrStat
- ErrStat = ErrID_None
- ErrMsg  = ""
-    ! we'll subtract a constant from the times to resolve some 
-    ! numerical issues when t gets large (and to simplify the equations)
- t = tin - tin(1)
- t_out = tin_out - tin(1)
-
-   IF ( EqualRealNos( t(1), t(2) ) ) THEN
-     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
-     RETURN
-   END IF
-  b0 = -(u1%dummy - u2%dummy)/t(2)
-  u_out%dummy = u1%dummy + b0 * t_out
- END SUBROUTINE IfW_UniformWind_Input_ExtrapInterp1
-
-
- SUBROUTINE IfW_UniformWind_Input_ExtrapInterp2(u1, u2, u3, tin, u_out, tin_out, ErrStat, ErrMsg )
-!
-! This subroutine calculates a extrapolated (or interpolated) Input u_out at time t_out, from previous/future time
-! values of u (which has values associated with times in t).  Order of the interpolation is 2.
-!
-!  expressions below based on either
-!
-!  f(t) = a + b * t + c * t**2
-!
-!  where a, b and c are determined as the solution to
-!  f(t1) = u1, f(t2) = u2, f(t3) = u3
-!
-!..................................................................................................................................
-
- TYPE(IfW_UniformWind_InputType), INTENT(INOUT)  :: u1      ! Input at t1 > t2 > t3
- TYPE(IfW_UniformWind_InputType), INTENT(INOUT)  :: u2      ! Input at t2 > t3
- TYPE(IfW_UniformWind_InputType), INTENT(INOUT)  :: u3      ! Input at t3
- REAL(DbKi),                 INTENT(IN   )  :: tin(3)    ! Times associated with the Inputs
- TYPE(IfW_UniformWind_InputType), INTENT(INOUT)  :: u_out     ! Input at tin_out
- REAL(DbKi),                 INTENT(IN   )  :: tin_out   ! time to be extrap/interp'd to
- INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat   ! Error status of the operation
- CHARACTER(*),               INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
-   ! local variables
- REAL(DbKi)                                 :: t(3)      ! Times associated with the Inputs
- REAL(DbKi)                                 :: t_out     ! Time to which to be extrap/interpd
- INTEGER(IntKi)                             :: order     ! order of polynomial fit (max 2)
- REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
- REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
- INTEGER(IntKi)                             :: ErrStat2 ! local errors
- CHARACTER(ErrMsgLen)                       :: ErrMsg2  ! local errors
- CHARACTER(*),            PARAMETER         :: RoutineName = 'IfW_UniformWind_Input_ExtrapInterp2'
-    ! Initialize ErrStat
- ErrStat = ErrID_None
- ErrMsg  = ""
-    ! we'll subtract a constant from the times to resolve some 
-    ! numerical issues when t gets large (and to simplify the equations)
- t = tin - tin(1)
- t_out = tin_out - tin(1)
-
-   IF ( EqualRealNos( t(1), t(2) ) ) THEN
-     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
-     RETURN
-   ELSE IF ( EqualRealNos( t(2), t(3) ) ) THEN
-     CALL SetErrStat(ErrID_Fatal, 't(2) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
-     RETURN
-   ELSE IF ( EqualRealNos( t(1), t(3) ) ) THEN
-     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
-     RETURN
-   END IF
-  b0 = (t(3)**2*(u1%dummy - u2%dummy) + t(2)**2*(-u1%dummy + u3%dummy))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*u1%dummy + t(3)*u2%dummy - t(2)*u3%dummy ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%dummy = u1%dummy + b0 * t_out + c0 * t_out**2
- END SUBROUTINE IfW_UniformWind_Input_ExtrapInterp2
-
-
- SUBROUTINE IfW_UniformWind_Output_ExtrapInterp(y, t, y_out, t_out, ErrStat, ErrMsg )
-!
-! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
-! values of y (which has values associated with times in t).  Order of the interpolation is given by the size of y
-!
-!  expressions below based on either
-!
-!  f(t) = a
-!  f(t) = a + b * t, or
-!  f(t) = a + b * t + c * t**2
-!
-!  where a, b and c are determined as the solution to
-!  f(t1) = y1, f(t2) = y2, f(t3) = y3  (as appropriate)
-!
-!..................................................................................................................................
-
- TYPE(IfW_UniformWind_OutputType), INTENT(INOUT)  :: y(:) ! Output at t1 > t2 > t3
- REAL(DbKi),                 INTENT(IN   )  :: t(:)           ! Times associated with the Outputs
- TYPE(IfW_UniformWind_OutputType), INTENT(INOUT)  :: y_out ! Output at tin_out
- REAL(DbKi),                 INTENT(IN   )  :: t_out           ! time to be extrap/interp'd to
- INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat         ! Error status of the operation
- CHARACTER(*),               INTENT(  OUT)  :: ErrMsg          ! Error message if ErrStat /= ErrID_None
-   ! local variables
- INTEGER(IntKi)                             :: order           ! order of polynomial fit (max 2)
- INTEGER(IntKi)                             :: ErrStat2        ! local errors
- CHARACTER(ErrMsgLen)                       :: ErrMsg2         ! local errors
- CHARACTER(*),    PARAMETER                 :: RoutineName = 'IfW_UniformWind_Output_ExtrapInterp'
-    ! Initialize ErrStat
- ErrStat = ErrID_None
- ErrMsg  = ""
- if ( size(t) .ne. size(y)) then
-    CALL SetErrStat(ErrID_Fatal,'size(t) must equal size(y)',ErrStat,ErrMsg,RoutineName)
-    RETURN
- endif
- order = SIZE(y) - 1
- IF ( order .eq. 0 ) THEN
-   CALL IfW_UniformWind_CopyOutput(y(1), y_out, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
-     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
- ELSE IF ( order .eq. 1 ) THEN
-   CALL IfW_UniformWind_Output_ExtrapInterp1(y(1), y(2), t, y_out, t_out, ErrStat2, ErrMsg2 )
-     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
- ELSE IF ( order .eq. 2 ) THEN
-   CALL IfW_UniformWind_Output_ExtrapInterp2(y(1), y(2), y(3), t, y_out, t_out, ErrStat2, ErrMsg2 )
-     CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
- ELSE 
-   CALL SetErrStat(ErrID_Fatal,'size(y) must be less than 4 (order must be less than 3).',ErrStat,ErrMsg,RoutineName)
-   RETURN
- ENDIF 
- END SUBROUTINE IfW_UniformWind_Output_ExtrapInterp
-
-
- SUBROUTINE IfW_UniformWind_Output_ExtrapInterp1(y1, y2, tin, y_out, tin_out, ErrStat, ErrMsg )
-!
-! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
-! values of y (which has values associated with times in t).  Order of the interpolation is 1.
-!
-!  f(t) = a + b * t, or
-!
-!  where a and b are determined as the solution to
-!  f(t1) = y1, f(t2) = y2
-!
-!..................................................................................................................................
-
- TYPE(IfW_UniformWind_OutputType), INTENT(INOUT)  :: y1    ! Output at t1 > t2
- TYPE(IfW_UniformWind_OutputType), INTENT(INOUT)  :: y2    ! Output at t2 
- REAL(DbKi),         INTENT(IN   )          :: tin(2)   ! Times associated with the Outputs
- TYPE(IfW_UniformWind_OutputType), INTENT(INOUT)  :: y_out ! Output at tin_out
- REAL(DbKi),         INTENT(IN   )          :: tin_out  ! time to be extrap/interp'd to
- INTEGER(IntKi),     INTENT(  OUT)          :: ErrStat  ! Error status of the operation
- CHARACTER(*),       INTENT(  OUT)          :: ErrMsg   ! Error message if ErrStat /= ErrID_None
-   ! local variables
- REAL(DbKi)                                 :: t(2)     ! Times associated with the Outputs
- REAL(DbKi)                                 :: t_out    ! Time to which to be extrap/interpd
- CHARACTER(*),                    PARAMETER :: RoutineName = 'IfW_UniformWind_Output_ExtrapInterp1'
- REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
- REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
- INTEGER(IntKi)                             :: ErrStat2 ! local errors
- CHARACTER(ErrMsgLen)                       :: ErrMsg2  ! local errors
-    ! Initialize ErrStat
- ErrStat = ErrID_None
- ErrMsg  = ""
-    ! we'll subtract a constant from the times to resolve some 
-    ! numerical issues when t gets large (and to simplify the equations)
- t = tin - tin(1)
- t_out = tin_out - tin(1)
-
-   IF ( EqualRealNos( t(1), t(2) ) ) THEN
-     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
-     RETURN
-   END IF
-  b0 = -(y1%DELTA - y2%DELTA)/t(2)
-  y_out%DELTA = y1%DELTA + b0 * t_out
-  b0 = -(y1%V - y2%V)/t(2)
-  y_out%V = y1%V + b0 * t_out
-  b0 = -(y1%VZ - y2%VZ)/t(2)
-  y_out%VZ = y1%VZ + b0 * t_out
-  b0 = -(y1%HSHR - y2%HSHR)/t(2)
-  y_out%HSHR = y1%HSHR + b0 * t_out
-  b0 = -(y1%VSHR - y2%VSHR)/t(2)
-  y_out%VSHR = y1%VSHR + b0 * t_out
-  b0 = -(y1%VLINSHR - y2%VLINSHR)/t(2)
-  y_out%VLINSHR = y1%VLINSHR + b0 * t_out
-  b0 = -(y1%VGUST - y2%VGUST)/t(2)
-  y_out%VGUST = y1%VGUST + b0 * t_out
- END SUBROUTINE IfW_UniformWind_Output_ExtrapInterp1
-
-
- SUBROUTINE IfW_UniformWind_Output_ExtrapInterp2(y1, y2, y3, tin, y_out, tin_out, ErrStat, ErrMsg )
-!
-! This subroutine calculates a extrapolated (or interpolated) Output y_out at time t_out, from previous/future time
-! values of y (which has values associated with times in t).  Order of the interpolation is 2.
-!
-!  expressions below based on either
-!
-!  f(t) = a + b * t + c * t**2
-!
-!  where a, b and c are determined as the solution to
-!  f(t1) = y1, f(t2) = y2, f(t3) = y3
-!
-!..................................................................................................................................
-
- TYPE(IfW_UniformWind_OutputType), INTENT(INOUT)  :: y1      ! Output at t1 > t2 > t3
- TYPE(IfW_UniformWind_OutputType), INTENT(INOUT)  :: y2      ! Output at t2 > t3
- TYPE(IfW_UniformWind_OutputType), INTENT(INOUT)  :: y3      ! Output at t3
- REAL(DbKi),                 INTENT(IN   )  :: tin(3)    ! Times associated with the Outputs
- TYPE(IfW_UniformWind_OutputType), INTENT(INOUT)  :: y_out     ! Output at tin_out
- REAL(DbKi),                 INTENT(IN   )  :: tin_out   ! time to be extrap/interp'd to
- INTEGER(IntKi),             INTENT(  OUT)  :: ErrStat   ! Error status of the operation
- CHARACTER(*),               INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
-   ! local variables
- REAL(DbKi)                                 :: t(3)      ! Times associated with the Outputs
- REAL(DbKi)                                 :: t_out     ! Time to which to be extrap/interpd
- INTEGER(IntKi)                             :: order     ! order of polynomial fit (max 2)
- REAL(DbKi)                                 :: b0       ! temporary for extrapolation/interpolation
- REAL(DbKi)                                 :: c0       ! temporary for extrapolation/interpolation
- INTEGER(IntKi)                             :: ErrStat2 ! local errors
- CHARACTER(ErrMsgLen)                       :: ErrMsg2  ! local errors
- CHARACTER(*),            PARAMETER         :: RoutineName = 'IfW_UniformWind_Output_ExtrapInterp2'
-    ! Initialize ErrStat
- ErrStat = ErrID_None
- ErrMsg  = ""
-    ! we'll subtract a constant from the times to resolve some 
-    ! numerical issues when t gets large (and to simplify the equations)
- t = tin - tin(1)
- t_out = tin_out - tin(1)
-
-   IF ( EqualRealNos( t(1), t(2) ) ) THEN
-     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(2) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
-     RETURN
-   ELSE IF ( EqualRealNos( t(2), t(3) ) ) THEN
-     CALL SetErrStat(ErrID_Fatal, 't(2) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
-     RETURN
-   ELSE IF ( EqualRealNos( t(1), t(3) ) ) THEN
-     CALL SetErrStat(ErrID_Fatal, 't(1) must not equal t(3) to avoid a division-by-zero error.', ErrStat, ErrMsg,RoutineName)
-     RETURN
-   END IF
-  b0 = (t(3)**2*(y1%DELTA - y2%DELTA) + t(2)**2*(-y1%DELTA + y3%DELTA))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y1%DELTA + t(3)*y2%DELTA - t(2)*y3%DELTA ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%DELTA = y1%DELTA + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y1%V - y2%V) + t(2)**2*(-y1%V + y3%V))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y1%V + t(3)*y2%V - t(2)*y3%V ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%V = y1%V + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y1%VZ - y2%VZ) + t(2)**2*(-y1%VZ + y3%VZ))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y1%VZ + t(3)*y2%VZ - t(2)*y3%VZ ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%VZ = y1%VZ + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y1%HSHR - y2%HSHR) + t(2)**2*(-y1%HSHR + y3%HSHR))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y1%HSHR + t(3)*y2%HSHR - t(2)*y3%HSHR ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%HSHR = y1%HSHR + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y1%VSHR - y2%VSHR) + t(2)**2*(-y1%VSHR + y3%VSHR))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y1%VSHR + t(3)*y2%VSHR - t(2)*y3%VSHR ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%VSHR = y1%VSHR + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y1%VLINSHR - y2%VLINSHR) + t(2)**2*(-y1%VLINSHR + y3%VLINSHR))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y1%VLINSHR + t(3)*y2%VLINSHR - t(2)*y3%VLINSHR ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%VLINSHR = y1%VLINSHR + b0 * t_out + c0 * t_out**2
-  b0 = (t(3)**2*(y1%VGUST - y2%VGUST) + t(2)**2*(-y1%VGUST + y3%VGUST))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*y1%VGUST + t(3)*y2%VGUST - t(2)*y3%VGUST ) / (t(2)*t(3)*(t(2) - t(3)))
-  y_out%VGUST = y1%VGUST + b0 * t_out + c0 * t_out**2
- END SUBROUTINE IfW_UniformWind_Output_ExtrapInterp2
+ END SUBROUTINE IfW_UniformWind_UnPackIntrp
 
 END MODULE IfW_UniformWind_Types
 !ENDOFREGISTRYGENERATEDFILE

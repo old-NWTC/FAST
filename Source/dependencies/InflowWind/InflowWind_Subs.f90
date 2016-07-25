@@ -1389,8 +1389,8 @@ SUBROUTINE InflowWind_SetParameters( InitInp, InputFileData, p, m, ErrStat, ErrM
 
    if (InitInp%Linearize) then
       p%NumLinOuts = p%NumOuts !bjj: use this instead of SetOutParamLin
-      !CALL SetOutParamLin( p, TmpErrStat, TmpErrmsg )
-      !CALL SetErrStat(TmpErrStat,TmpErrMsg,ErrStat,ErrMsg,RoutineName)
+      CALL SetOutParamLin( p, TmpErrStat, TmpErrmsg )
+           CALL SetErrStat(TmpErrStat,TmpErrMsg,ErrStat,ErrMsg,RoutineName)
    else
       p%NumLinOuts = 0
    end if
@@ -1869,7 +1869,7 @@ SUBROUTINE CalculateOutput( Time, InputData, p, x, xd, z, OtherStates, y, m, Fil
 
                ! InputData only contains the Position array, so we can pass that directly.
             CALL  IfW_UniformWind_CalcOutput(  Time, PositionXYZprime, p%UniformWind, y%VelocityUVW, &
-                                          DiskVel, m%UniformWind, y%UniformWind, TmpErrStat, TmpErrMsg)
+                                          DiskVel, m%UniformWind, TmpErrStat, TmpErrMsg)
 
             CALL SetErrStat( TmpErrStat, TmpErrMsg, ErrStat, ErrMsg, RoutineName )
             IF ( ErrStat >= AbortErrLev ) RETURN
@@ -1878,7 +1878,7 @@ SUBROUTINE CalculateOutput( Time, InputData, p, x, xd, z, OtherStates, y, m, Fil
             IF ( p%NWindVel >= 1_IntKi .AND. FillWrOut ) THEN
                   ! Move the arrays for the Velocity information
                CALL  IfW_UniformWind_CalcOutput(  Time, p%WindViXYZprime, p%UniformWind, m%WindViUVW, &
-                                             DiskVel, m%UniformWind, y%UniformWind, TmpErrStat, TmpErrMsg)
+                                             DiskVel, m%UniformWind, TmpErrStat, TmpErrMsg)
             ENDIF
 
          CASE (TSFF_WindNumber)
