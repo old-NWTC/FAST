@@ -36,7 +36,7 @@ SET IfW_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\InflowWind\g
 SET IfW_Reg_Loc=%IfW_Loc%\Registry
 
 SET OpFM_Loc=%FAST_Loc%\dependencies\OpenFOAM
-SET Orca_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\OrcaFlex\SVNdirectory\trunk\Source
+SET Orca_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\OrcaFlex\gitHub\Source
 
 SET SD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\SubDyn\SVNdirectory\trunk\Source
 
