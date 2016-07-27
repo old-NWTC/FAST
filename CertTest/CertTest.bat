@@ -10,7 +10,7 @@ REM  Set up environment variables.  You will probably have to change these.
 rem @SET CRUNCH=Call Crunch
 
 @SET MATLAB=matlab
-@SET MBC_SOURCE=C:\Users\bjonkman\Documents\DATA\Downloads\MBC\Source
+@SET MBC_SOURCE=C:\Users\bjonkman\Documents\DATA\DesignCodes\postprocessors\MBC\Source
 rem @SET MBC_SOURCE=C:\Users\bjonkman\Data\DesignCodes\MBC\Source
 @SET DateTime=DateTime.exe
 @SET Editor=NotePad.EXE
@@ -277,10 +277,11 @@ rem *******************************************************
 
 rem *******************************************************
 :Test14
+@SET TEST=14
 @CALL :GenTestHeader %TEST14%
 %FAST% %FST_DIR%\Test14.fst
 
-@IF NOT EXIST Test%TEST%.lin  GOTO MATLABERROR
+@IF NOT EXIST %FST_DIR%\Test%TEST%.1.lin  GOTO MATLABERROR
 
 :: Perform an eigenanalysis in MATLAB:
 echo. Running Matlab to calculate eigenvalues. If an error occurs, close Matlab to continue CertTest....

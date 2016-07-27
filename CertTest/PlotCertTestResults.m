@@ -41,7 +41,6 @@ end
         newRoot  = strcat( newPath, filesep, fileRoot, {'.SFunc', '_ADAMS', ''} );
         
         if i == 14 % linearization case
-continue; %bjj: linearization not yet available in FAST 8.
             oldFiles = strcat( oldRoot,  {'.eig', '_LIN.out', '.eig'} );
             newFiles = strcat( newRoot,  {'.eig', '_LIN.out', '.eig'} );
             nModes   = 30;
@@ -212,7 +211,7 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
 
         set(fig,'paperorientation','landscape','paperposition',[0.25 0.25 10.5 8])
         if savePlts
-            print(['-f' num2str(fig)],'-dpng','-r150',[OutFileRoot '.png']);
+            print(fig,'-dpng','-r150',[OutFileRoot '.png']);
             close(fig)
         end
         
@@ -593,8 +592,14 @@ function [fig] = plotNaturalFrequencies( oldFiles, newFiles, descFiles, descTitl
         
         nFact = max(1,floor(nFreq/15)); %15 is max number of axis ticks
         
-        set(gca,'xtick',xAxis(1:nFact:end),'xticklab',1:nFact:maxNF);        
-        set(gca,'xlim',[1 groupSpacing*nFreq]);        
+        h=gca;
+        h.XTick = xAxis(1:nFact:end);
+        h.XTickLabel = 1:nFact:maxNF;
+        xlim([1, groupSpacing*nFreq]);
+%bjj: there is something weird here, but I'm too tired to care
+
+        %set(h,'xtick',xAxis(1:nFact:end),'xticklab',1:nFact:maxNF);        
+%         set(h,'xlim',[1 groupSpacing*nFreq]);        
     end
 
     set(gca,'FontSize',FntSz-3,'ygrid','on','gridlinestyle','-');
