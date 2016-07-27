@@ -15,3 +15,5 @@
 @move Test*.sum               tstfiles
 @move Test*.outb              tstfiles
 @move Test*.out               tstfiles
+@move Test*.lin               tstfiles
+@move Test*.eig               tstfiles

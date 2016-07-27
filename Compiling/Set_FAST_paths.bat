@@ -40,7 +40,7 @@ SET Orca_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\OrcaFlex\gi
 
 SET SD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\SubDyn\SVNdirectory\trunk\Source
 
-SET HD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\HydroDyn\SVNdirectory\trunk\Source
+SET HD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\HydroDyn\gitHub\Source
 SET HD_Reg_Loc=%HD_Loc%\RegistryFiles
 
 SET MAP_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\SVNdirectory\trunk
