@@ -17,9 +17,9 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2016-07-21 14:30:47 -0600 (Thu, 21 Jul 2016) $
-! (File) Revision #: $Rev: 228 $
-! URL: $HeadURL: https://windsvn2.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/AeroDyn/AeroDyn.f90 $
+! File last committed: $Date$
+! (File) Revision #: $Rev$
+! URL: $HeadURL$
 !**********************************************************************************************************************************
 !> AeroDyn is a time-domain aerodynamics module for horizontal-axis wind turbines.
 module AeroDyn

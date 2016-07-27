@@ -771,11 +771,14 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrMsg )
 
       ! Shaft Motions:
 
-   y%LSSTipPxa = x%QT (DOF_GeAz) + x%QT  (DOF_DrTr) + p%AzimB1Up + PiBy2 !bjj: this used IgnoreMod for linearization
-   CALL Zero2TwoPi(y%LSSTipPxa)  ! Return value between 0 and 2pi (LSSTipPxa is used only in calculations of SIN and COS, so it's okay to take MOD/MODULO here; this wouldn't be oaky for linearization)
+   y%LSSTipPxa = x%QT (DOF_GeAz) + x%QT  (DOF_DrTr) + p%AzimB1Up + PiBy2
+   if (.not. m%IgnoreMod) CALL Zero2TwoPi(y%LSSTipPxa)  ! Return value between 0 and 2pi (LSSTipPxa is used only in calculations of SIN and COS, so it's okay to take MOD/MODULO here; this wouldn't be oaky for linearization)
    m%AllOuts(LSSTipPxa) = y%LSSTipPxa*R2D
    
-   m%AllOuts(LSSGagPxa) = MODULO( (      x%QT (DOF_GeAz)                            + p%AzimB1Up)*R2D  + 90.0_R8Ki, 360.0_R8Ki ) !bjj: this used IgnoreMod for linearization (Zero2TwoPi)
+   m%AllOuts(LSSGagPxa) = x%QT (DOF_GeAz) + p%AzimB1Up + PiBy2 
+   if (.not. m%IgnoreMod) CALL Zero2TwoPi(m%AllOuts(LSSGagPxa))  ! Return value between 0 and 2pi 
+   m%AllOuts(LSSGagPxa) = m%AllOuts(LSSGagPxa)*R2D ! convert to degrees
+   
    m%AllOuts(   LSSTipVxa) =      (     x%QDT (DOF_GeAz) +          x%QDT (DOF_DrTr) )*RPS2RPM
    m%AllOuts(   LSSTipAxa) = ( m%QD2T(DOF_GeAz) + m%QD2T(DOF_DrTr) )*R2D
    m%AllOuts(   LSSGagVxa) =            x%QDT (DOF_GeAz)                              *RPS2RPM
@@ -3745,6 +3748,8 @@ SUBROUTINE Init_MiscOtherStates( m, OtherState, p, x, InputFileData, ErrStat, Er
          RETURN
       ENDIF   
    m%AllOuts = 0.0_ReKi
+   
+   m%IgnoreMod = .false. ! for general time steps, we don't ignore the modulos in ED_CalcOutput
    
       ! for loose coupling:
    CALL AllocAry( OtherState%IC,  ED_NMX,   'IC',   ErrStat, ErrMsg )
@@ -10473,7 +10478,8 @@ SUBROUTINE ED_JacobianPInput( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrM
 
    ErrStat = ErrID_None
    ErrMsg  = ''
-
+   m%IgnoreMod = .true. ! to compute perturbations, we need to ignore the modulo function
+   
       ! make a copy of the inputs to perturb
    call ED_CopyInput( u, u_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2)
       call SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)
@@ -10643,6 +10649,7 @@ contains
       call ED_DestroyContState(    x_p, ErrStat2, ErrMsg2 )
       call ED_DestroyContState(    x_m, ErrStat2, ErrMsg2 )
       call ED_DestroyInput(  u_perturb, ErrStat2, ErrMsg2 )
+      m%IgnoreMod = .false.
    end subroutine cleanup
    
 END SUBROUTINE ED_JacobianPInput
@@ -10693,6 +10700,7 @@ SUBROUTINE ED_JacobianPContState( t, u, p, x, xd, z, OtherState, y, m, ErrStat, 
 
    ErrStat = ErrID_None
    ErrMsg  = ''
+   m%IgnoreMod = .true. ! to get true perturbations, we can't use the modulo function
 
       ! make a copy of the continuous states to perturb
    call ED_CopyContState( x, x_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2)
@@ -10838,6 +10846,7 @@ contains
       call ED_DestroyContState(      x_p, ErrStat2, ErrMsg2 )
       call ED_DestroyContState(      x_m, ErrStat2, ErrMsg2 )
       call ED_DestroyContState(x_perturb, ErrStat2, ErrMsg2 )
+      m%IgnoreMod = .false.
    end subroutine cleanup
 
 END SUBROUTINE ED_JacobianPContState
@@ -11162,13 +11171,18 @@ SUBROUTINE ED_Init_Jacobian_x( p, InitOut, ErrStat, ErrMsg)
    
    
    ! set perturbation sizes: p%dx
-   p%dx(DOF_Sg  :DOF_Hv)   = 0.2_ReKi * D2R * p%TowerHt  ! platform translational displacement states
-   p%dx(DOF_R   :DOF_Y )   = 2.0_ReKi * D2R              ! platform rotational states 
-   p%dx(DOF_TFA1:DOF_TSS2) = 0.2_ReKi * D2R * p%TwrFlexL ! tower deflection states
-   p%dx(DOF_Yaw :DOF_TFrl) = 2.0_ReKi * D2R              ! nacelle-yaw, rotor-furl, generator azimuth, drivetrain, and tail-furl rotational states
-   
-   p%dx(DOF_BF(1,1):p%NDof)= 0.2_ReKi * D2R * p%BldFlexL ! blade-deflection states
+   p%dx(DOF_Sg  :DOF_Hv)   = 0.2_ReKi * D2R * p%TowerHt     ! platform translational displacement states
+   p%dx(DOF_R   :DOF_Y )   = 2.0_ReKi * D2R                 ! platform rotational states
+   p%dx(DOF_TFA1:DOF_TSS1) = 0.020_ReKi * D2R * p%TwrFlexL  ! tower deflection states: 1st tower
+   p%dx(DOF_TFA2:DOF_TSS2) = 0.002_ReKi * D2R * p%TwrFlexL  ! tower deflection states: 2nd tower
+   p%dx(DOF_Yaw :DOF_TFrl) = 2.0_ReKi * D2R                 ! nacelle-yaw, rotor-furl, generator azimuth, drivetrain, and tail-furl rotational states
 
+   do i=1,p%NumBl
+      p%dx(DOF_BF(i,1))= 0.20_ReKi * D2R * p%BldFlexL ! blade-deflection states: 1st blade flap mode 
+      p%dx(DOF_BF(i,2))= 0.02_ReKi * D2R * p%BldFlexL ! blade-deflection states: 2nd blade flap mode for blades (1/10 of the other perturbations)
+      p%dx(DOF_BE(i,1))= 0.20_ReKi * D2R * p%BldFlexL ! blade-deflection states: 1st blade edge mode
+   end do
+         
    if ( p%NumBl == 2 ) then
       p%dx(DOF_Teet)       = 2.0_ReKi * D2R              ! rotor-teeter rotational state
    end if
@@ -11214,7 +11228,7 @@ SUBROUTINE ED_Init_Jacobian( p, u, y, InitOut, ErrStat, ErrMsg)
    
       ! local variables:
    INTEGER(IntKi)                :: i, j, k, index, index_last, nu, i_meshField, m
-   REAL(ReKi)                    :: MaxThrust, MaxTorque, perturb, PerturbConst(2)
+   REAL(ReKi)                    :: MaxThrust, MaxTorque
    
    
    

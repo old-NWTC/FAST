@@ -9,9 +9,9 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed $Date: 2016-07-21 14:30:47 -0600 (Thu, 21 Jul 2016) $
-# (File) Revision #: $Rev: 228 $
-# URL: $HeadURL: https://windsvn2.nrel.gov/WT_Perf/branches/v4.x/Source/dependencies/AeroDyn/AeroDyn_Registry.txt $
+# File last committed $Date$
+# (File) Revision #: $Rev$
+# URL: $HeadURL$
 ###################################################################################################################################
 # ...... Include files (definitions from NWTC Library) ............................................................................
 include	Registry_NWTC_Library.txt

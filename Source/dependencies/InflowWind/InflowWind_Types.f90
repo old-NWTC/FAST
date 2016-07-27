@@ -178,7 +178,6 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: NumOuts = 0      !< Number of parameters in the output list (number of outputs requested) [-]
     TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam      !< Names and units (and other characteristics) of all requested output parameters [-]
     INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: OutParamLinIndx      !< Index into WriteOutput for WindViXYZ in linearization analysis [-]
-    INTEGER(IntKi)  :: NumLinOuts = 0      !< Number of WindViXYZ variables in WriteOutput for linearization analysis [-]
     TYPE(Lidar_ParameterType)  :: lidar      !< Lidar parameter data [-]
   END TYPE InflowWind_ParameterType
 ! =======================
@@ -2980,7 +2979,6 @@ IF (ALLOCATED(SrcParamData%OutParamLinIndx)) THEN
   END IF
     DstParamData%OutParamLinIndx = SrcParamData%OutParamLinIndx
 ENDIF
-    DstParamData%NumLinOuts = SrcParamData%NumLinOuts
       CALL Lidar_CopyParam( SrcParamData%lidar, DstParamData%lidar, CtrlCode, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,RoutineName)
          IF (ErrStat>=AbortErrLev) RETURN
@@ -3187,7 +3185,6 @@ ENDIF
     Int_BufSz   = Int_BufSz   + 2*2  ! OutParamLinIndx upper/lower bounds for each dimension
       Int_BufSz  = Int_BufSz  + SIZE(InData%OutParamLinIndx)  ! OutParamLinIndx
   END IF
-      Int_BufSz  = Int_BufSz  + 1  ! NumLinOuts
       Int_BufSz   = Int_BufSz + 3  ! lidar: size of buffers for each call to pack subtype
       CALL Lidar_PackParam( Re_Buf, Db_Buf, Int_Buf, InData%lidar, ErrStat2, ErrMsg2, .TRUE. ) ! lidar 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
@@ -3483,8 +3480,6 @@ ENDIF
       IF (SIZE(InData%OutParamLinIndx)>0) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%OutParamLinIndx))-1 ) = PACK(InData%OutParamLinIndx,.TRUE.)
       Int_Xferred   = Int_Xferred   + SIZE(InData%OutParamLinIndx)
   END IF
-      IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%NumLinOuts
-      Int_Xferred   = Int_Xferred   + 1
       CALL Lidar_PackParam( Re_Buf, Db_Buf, Int_Buf, InData%lidar, ErrStat2, ErrMsg2, OnlySize ) ! lidar 
         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, RoutineName)
         IF (ErrStat >= AbortErrLev) RETURN
@@ -3927,8 +3922,6 @@ ENDIF
       Int_Xferred   = Int_Xferred   + SIZE(OutData%OutParamLinIndx)
     DEALLOCATE(mask2)
   END IF
-      OutData%NumLinOuts = IntKiBuf( Int_Xferred ) 
-      Int_Xferred   = Int_Xferred + 1
       Buf_size=IntKiBuf( Int_Xferred )
       Int_Xferred = Int_Xferred + 1
       IF(Buf_size > 0) THEN

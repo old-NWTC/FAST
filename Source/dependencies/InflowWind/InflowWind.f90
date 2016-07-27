@@ -62,7 +62,7 @@ MODULE InflowWind
    IMPLICIT NONE
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: IfW_Ver = ProgDesc( 'InflowWind', 'v3.03.00a-bjj', '15-Jun-2016' )
+   TYPE(ProgDesc), PARAMETER            :: IfW_Ver = ProgDesc( 'InflowWind', 'v3.03.00', '26-Jul-2016' )
 
 
 
@@ -1184,14 +1184,17 @@ SUBROUTINE InflowWind_JacobianPInput( t, u, p, x, xd, z, OtherState, y, m, ErrSt
 
             ! these are the InflowWind WriteOutput velocities (and note that we may not have all of the components of each point) 
          ! they do not depend on the inputs, so the derivatives w.r.t. X, Y, Z are all zero
-         do i=1, p%NumLinOuts               
+         do i=1, p%NumOuts               
             node  = p%OutParamLinIndx(1,i) ! output node
             comp  = p%OutParamLinIndx(2,i) ! component of output node
-            SignM = p%OutParamLinIndx(3,i) 
 
-            call IfW_UniformWind_JacobianPInput( t, p%WindViXYZ(:,node), p%RotToWind(1,1), p%RotToWind(2,1), p%UniformWind, m%UniformWind, local_dYdu )                                                                                       
+            if (node > 0) then
+               call IfW_UniformWind_JacobianPInput( t, p%WindViXYZ(:,node), p%RotToWind(1,1), p%RotToWind(2,1), p%UniformWind, m%UniformWind, local_dYdu )                                                                                       
+            else
+               local_dYdu = 0.0_ReKi
+            end if            
             
-            dYdu(3*n+i, 3*n+1:) = SignM * local_dYdu( comp , 4:6)         
+            dYdu(3*n+i, 3*n+1:) = p%OutParam(i)%SignM * local_dYdu( comp , 4:6)         
          end do            
 
       CASE DEFAULT
@@ -1499,7 +1502,6 @@ SUBROUTINE InflowWind_GetOP( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrMs
             if (ErrStat >= AbortErrLev) return
       end if
       
-
       index = 0
       do i=1,size(u%PositionXYZ,2)
          do j=1,size(u%PositionXYZ,1)
@@ -1508,8 +1510,8 @@ SUBROUTINE InflowWind_GetOP( t, u, p, x, xd, z, OtherState, y, m, ErrStat, ErrMs
          end do            
       end do
          
-      do i=1,p%NumLinOuts                  
-         y_op(i+index) = y%WriteOutput( p%OutParamLinIndx(1,i) )
+      do i=1,p%NumOuts         
+         y_op(i+index) = y%WriteOutput( i )
       end do      
          
    END IF
