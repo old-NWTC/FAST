@@ -277,23 +277,12 @@ rem *******************************************************
 
 rem *******************************************************
 :Test14
-@echo FAST %TEST14%
+@CALL :GenTestHeader %TEST14%
+%FAST% %FST_DIR%\Test14.fst
 
+@IF NOT EXIST Test%TEST%.lin  GOTO MATLABERROR
 
-echo %POUNDS%
-@echo Skipping this test until linearization is included.
-echo %POUNDS%
-GOTO Test15
-
-rem Run FAST.
-
-rem %FAST% Test%TEST%.fst
-
-IF ERRORLEVEL 1  GOTO ERROR
-
-@IF NOT EXIST Test%TEST%.lin  GOTO ERROR
-
-Perform an eigenanalysis in MATLAB:
+:: Perform an eigenanalysis in MATLAB:
 echo. Running Matlab to calculate eigenvalues. If an error occurs, close Matlab to continue CertTest....
 %MATLAB% /wait /r addpath('%MBC_SOURCE%');Test%TEST% /logfile Test%TEST%.eig
 
@@ -302,11 +291,6 @@ echo. Running Matlab to calculate eigenvalues. If an error occurs, close Matlab 
 IF ERRORLEVEL 1  GOTO MATLABERROR
 
 @IF NOT EXIST Test%TEST%.eig  GOTO MATLABERROR
-
-echo.                                            >> %CompareFile%
-echo %POUNDS%                                    >> %CompareFile%
-echo.                                            >> %CompareFile%
-echo %TEST14%                                    >> %CompareFile%
 
 @CALL :CompareFiles 14 eig
 @CALL :CompareFiles 14 sum
