@@ -19,8 +19,9 @@ REM -- NOTE: do not use quotation marks around the path names!!!! --------------
 REM ----------------------------------------------------------------------------
 REM ----------------------------------------------------------------------------
 
-SET FAST_Loc=..\..\Source
-SET Registry=..\..\bin\Registry_win32.exe
+SET Root_Loc=..\..
+SET FAST_Loc=%Root_Loc%\Source
+SET Registry=%Root_Loc%\bin\Registry_win32.exe
 
 SET NWTC_Lib_Loc=%FAST_Loc%\dependencies\NWTC_Library
 SET ED_Loc=%FAST_Loc%\dependencies\ElastoDyn
@@ -43,6 +44,7 @@ SET IceD_Loc=%FAST_Loc%\dependencies\IceDyn
 SET MD_Loc=%FAST_Loc%\dependencies\MoorDyn
 SET OpFM_Loc=%FAST_Loc%\dependencies\OpenFOAM
 SET Orca_Loc=%FAST_Loc%\dependencies\OrcaFlex
+SET ExtPtfm_Loc=%Root_Loc%\subs\ExtPtfm\source
 
 SET HD_Reg_Loc=%HD_Loc%
 SET IfW_Reg_Loc=%IfW_Loc%
@@ -65,7 +67,7 @@ SET CURR_LOC=%FAST_Loc%
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
  "%AD_Loc%" -I "%BEMT_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -I "%BD_Loc%" -I^
  "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Loc%"  -I^
- "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -I "%Orca_Loc%" -noextrap -O "%CURR_LOC%"
+ "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -I "%Orca_Loc%" -I "%ExtPtfm_Loc%" -noextrap -O "%CURR_LOC%"
 
 echo off
 GOTO checkError
@@ -201,6 +203,12 @@ GOTO checkError
 SET CURR_LOC=%Orca_Loc%
 %REGISTRY% "%CURR_LOC%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
 GOTO checkError
+
+:ExtPtfm_MCKF
+SET CURR_LOC=%ExtPtfm_Loc%
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%" -O "%CURR_LOC%"
+GOTO checkError
+
 
 
 :checkError

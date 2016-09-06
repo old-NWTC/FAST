@@ -449,6 +449,19 @@
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat OrcaFlexInterface" Description="Running Registry for OrcaFlex Interface" Outputs="..\..\Source\dependencies\OrcaFlex\OrcaFlexInterface_Types.f90"/></FileConfiguration></File>
 		<File RelativePath="..\..\Source\dependencies\OrcaFlex\OrcaFlexInterface_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\OrcaFlex\OrcaFlexInterface.F90"/></Filter></Filter>
+		<Filter Name="External Platform">
+		<Filter Name="RegistryFiles">
+		<File RelativePath="..\..\subs\ExtPtfm\source\ExtPtfm_MCKF_Registry.txt">
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat ExtPtfm_MCKF" Description="Running Registry for ExtPtfm_MCKF" Outputs="..\..\subs\ExtPtfm\source\ExtPtfm_MCKF_Types.f90"/></FileConfiguration>
+			<FileConfiguration Name="Release|x64">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat ExtPtfm_MCKF" Description="Running Registry for ExtPtfm_MCKF" Outputs="..\..\subs\ExtPtfm\source\ExtPtfm_MCKF_Types.f90"/></FileConfiguration>
+			<FileConfiguration Name="Debug|x64">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat ExtPtfm_MCKF" Description="Running Registry for ExtPtfm_MCKF" Outputs="..\..\subs\ExtPtfm\source\ExtPtfm_MCKF_Types.f90"/></FileConfiguration>
+			<FileConfiguration Name="Release|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat ExtPtfm_MCKF" Description="Running Registry for ExtPtfm_MCKF" Outputs="..\..\subs\ExtPtfm\source\ExtPtfm_MCKF_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\subs\ExtPtfm\source\ExtPtfm_MCKF_Types.f90"/></Filter>
+		<File RelativePath="..\..\subs\ExtPtfm\source\ExtPtfm_MCKF.f90"/></Filter>
 		<Filter Name="NWTC_Library">
 		<Filter Name="NetLib">
 		<Filter Name="FFTPACK">
