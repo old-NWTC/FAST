@@ -5,8 +5,8 @@
 %--------------------------------------------------------------------------
 clear all;
 
-FASTSimulationToolbox = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\UtilityCodes\SimulationToolbox';
-addpath( genpath( FASTSimulationToolbox ) );
+% FASTSimulationToolbox = 'C:\Users\bjonkman\Documents\DATA\software\NREL\FAST\UtilityCodes\SimulationToolbox';
+% addpath( genpath( FASTSimulationToolbox ) );
 
 
 
@@ -16,7 +16,7 @@ addpath( genpath( FASTSimulationToolbox ) );
 % -------------------------------------------------------------------------
 
 %% FAST CertTests
-oldDir = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\CertTest';
+oldDir = 'C:\Users\bjonkman\Documents\DATA\software\NREL\FAST\CertTest';
 newDir = '.';
 
 
@@ -26,7 +26,7 @@ for i=1:26
     inputfile = [oldDir filesep baseFileName '.fst'];      
     
     
-    ConvertFAST8_15to16(inputfile,newDir);
+    ConvertFAST8_16to17(inputfile,newDir);
         
 end
 
@@ -35,9 +35,9 @@ end
 
 return
 
-ConvertFAST8_15to16([oldDir filesep 'Test19_noHD.fst'],newDir);
-ConvertFAST8_15to16([oldDir filesep 'Test19_withIce.fst'],newDir);
-ConvertFAST8_15to16([oldDir filesep 'Test21_withIce.fst'],newDir);
+ConvertFAST8_16to17([oldDir filesep 'Test19_noHD.fst'],newDir);
+ConvertFAST8_16to17([oldDir filesep 'Test19_withIce.fst'],newDir);
+ConvertFAST8_16to17([oldDir filesep 'Test21_withIce.fst'],newDir);
 
 return;
 
