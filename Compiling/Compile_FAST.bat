@@ -356,7 +356,7 @@ SET CURR_LOC=%IfW_Loc%
 CALL :RunRegistry_IfW IfW_BladedFFWind -noextrap
 CALL :RunRegistry_IfW IfW_TSFFWind -noextrap
 CALL :RunRegistry_IfW IfW_HAWCWind -noextrap
-CALL :RunRegistry_IfW IfW_UniformWind
+CALL :RunRegistry_IfW IfW_UniformWind -noextrap
 CALL :RunRegistry_IfW IfW_UserWind -noextrap
 CALL :RunRegistry_IfW Lidar
 CALL :RunRegistry_IfW InflowWind
