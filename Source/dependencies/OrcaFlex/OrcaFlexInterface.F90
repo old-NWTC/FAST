@@ -103,7 +103,8 @@ MODULE OrcaFlexInterface
    PRIVATE
 
 
-   ABSTRACT INTERFACE      ! These are interfaces to the DLL
+   !ABSTRACT INTERFACE      ! These are interfaces to the DLL
+   INTERFACE      ! These are interfaces to the DLL
 
 #ifdef __GFORTRAN__
       SUBROUTINE OrcaFlexUserPtfmLdInitialise(DT,TMax)   BIND(C)
