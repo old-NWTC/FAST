@@ -226,7 +226,7 @@
 		<Filter Name="NWTC_Library">
 		<Filter Name="NetLib">
 		<Filter Name="FFTPACK">
-		<File RelativePath="..\..\Source\dependencies\NetLib\fftpack4.1.f">
+		<File RelativePath="..\..\subs\NWTC_Library\source\NetLib\fftpack\fftpack4.1.f">
 			<FileConfiguration Name="Debug|Win32">
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
 			<FileConfiguration Name="Debug_OpFM|x64">
@@ -244,7 +244,7 @@
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration></File></Filter>
 		<Filter Name="FitPACK">
-		<File RelativePath="..\..\Source\dependencies\NetLib\dierckx_fitpack.f">
+		<File RelativePath="..\..\subs\NWTC_Library\source\NetLib\Dierckx_FitPack\dierckx_fitpack.f">
 			<FileConfiguration Name="Debug|Win32">
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
 			<FileConfiguration Name="Debug_OpFM|x64">
@@ -262,7 +262,7 @@
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration></File></Filter>
 		<Filter Name="ScaLAPACK">
-		<File RelativePath="..\..\Source\dependencies\NetLib\dlasrt2.f">
+		<File RelativePath="..\..\subs\NWTC_Library\source\NetLib\scalapack\dlasrt2.f">
 			<FileConfiguration Name="Debug|Win32">
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
 			<FileConfiguration Name="Debug_OpFM|x64">
@@ -279,7 +279,7 @@
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration></File>
-		<File RelativePath="..\..\Source\dependencies\NetLib\slasrt2.f">
+		<File RelativePath="..\..\subs\NWTC_Library\source\NetLib\scalapack\slasrt2.f">
 			<FileConfiguration Name="Debug|Win32">
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
 			<FileConfiguration Name="Debug_OpFM|x64">
@@ -296,25 +296,25 @@
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration></File></Filter>
-		<File RelativePath="..\..\Source\dependencies\NetLib\NWTC_FFTPACK.f90"/>
-		<File RelativePath="..\..\Source\dependencies\NetLib\NWTC_FitPack.f90"/>
-		<File RelativePath="..\..\Source\dependencies\NetLib\NWTC_LAPACK.f90"/>
-		<File RelativePath="..\..\Source\dependencies\NetLib\NWTC_ScaLAPACK.f90"/></Filter>
-		<File RelativePath="..\..\Source\dependencies\NWTC_Library\ModMesh.f90"/>
-		<File RelativePath="..\..\Source\dependencies\NWTC_Library\ModMesh_Mapping.f90"/>
-		<File RelativePath="..\..\Source\dependencies\NWTC_Library\ModMesh_Types.f90"/>
-		<File RelativePath="..\..\Source\dependencies\NWTC_Library\NWTC_Base.f90"/>
-		<File RelativePath="..\..\Source\dependencies\NWTC_Library\NWTC_IO.f90"/>
-		<File RelativePath="..\..\Source\dependencies\NWTC_Library\NWTC_Library.f90"/>
-		<File RelativePath="..\..\Source\dependencies\NWTC_Library\NWTC_Library_Types.f90"/>
-		<File RelativePath="..\..\Source\dependencies\NWTC_Library\NWTC_Num.f90"/>
-		<File RelativePath="..\..\Source\dependencies\NWTC_Library\SingPrec.f90"/>
-		<File RelativePath="..\..\Source\dependencies\NWTC_Library\SysIVF.f90">
+		<File RelativePath="..\..\subs\NWTC_Library\source\NetLib\fftpack\NWTC_FFTPACK.f90"/>
+		<File RelativePath="..\..\subs\NWTC_Library\source\NetLib\Dierckx_FitPack\NWTC_FitPack.f90"/>
+		<File RelativePath="..\..\subs\NWTC_Library\source\NetLib\lapack\NWTC_LAPACK.f90"/>
+		<File RelativePath="..\..\subs\NWTC_Library\source\NetLib\scalapack\NWTC_ScaLAPACK.f90"/></Filter>
+		<File RelativePath="..\..\subs\NWTC_Library\source\ModMesh.f90"/>
+		<File RelativePath="..\..\subs\NWTC_Library\source\ModMesh_Mapping.f90"/>
+		<File RelativePath="..\..\subs\NWTC_Library\source\ModMesh_Types.f90"/>
+		<File RelativePath="..\..\subs\NWTC_Library\source\NWTC_Base.f90"/>
+		<File RelativePath="..\..\subs\NWTC_Library\source\NWTC_IO.f90"/>
+		<File RelativePath="..\..\subs\NWTC_Library\source\NWTC_Library.f90"/>
+		<File RelativePath="..\..\subs\NWTC_Library\source\NWTC_Library_Types.f90"/>
+		<File RelativePath="..\..\subs\NWTC_Library\source\NWTC_Num.f90"/>
+		<File RelativePath="..\..\subs\NWTC_Library\source\SingPrec.f90"/>
+		<File RelativePath="..\..\subs\NWTC_Library\source\SysIVF.f90">
 			<FileConfiguration Name="Debug|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Release|Win32" ExcludedFromBuild="true"/></File>
-		<File RelativePath="..\..\Source\dependencies\NWTC_Library\SysMatlab.f90">
+		<File RelativePath="..\..\subs\NWTC_Library\source\SysMatlab.f90">
 			<FileConfiguration Name="Debug_OpFM|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Debug_OpFM|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Release_OpFM|Win32" ExcludedFromBuild="true"/>

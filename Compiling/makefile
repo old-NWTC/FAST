@@ -57,8 +57,11 @@ LDFLAGS = -O2 -m$(BITS) -fbacktrace
 
 FAST_DIR     = ../Source
 
-NWTC_Lib_DIR = $(FAST_DIR)/dependencies/NWTC_Library
-NETLIB_DIR   = $(FAST_DIR)/dependencies/NetLib
+NWTC_Lib_DIR = ../subs/NWTC_Library/source
+NETLIB_DIR   = $(NWTC_Lib_DIR)/NetLib/Dierckx_FitPack \
+				$(NWTC_Lib_DIR)/NetLib/fftpack \
+				$(NWTC_Lib_DIR)/NetLib/lapack \
+				$(NWTC_Lib_DIR)/NetLib/scalapack
 ED_DIR       = $(FAST_DIR)/dependencies/ElastoDyn
 BD_DIR       = $(FAST_DIR)/dependencies/BeamDyn
 SrvD_DIR     = $(FAST_DIR)/dependencies/ServoDyn
