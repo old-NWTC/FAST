@@ -51,54 +51,54 @@
 		<Filter Name="Aero">
 		<Filter Name="AeroDyn">
 		<Filter Name="RegistryFiles">
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn_Registry.txt">
+		<File RelativePath="..\..\subs\AeroDyn\Source\dependencies\AeroDyn\AeroDyn_Registry.txt">
 			<FileConfiguration Name="Debug|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AeroDyn" Description="Running Registry for AeroDyn" Outputs="..\..\Source\dependencies\AeroDyn\AeroDyn_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AeroDyn" Description="Running Registry for AeroDyn" Outputs="..\..\subs\AeroDyn\Source\dependencies\AeroDyn\AeroDyn_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AeroDyn" Description="Running Registry for AeroDyn" Outputs="..\..\Source\dependencies\AeroDyn\AeroDyn_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AeroDyn" Description="Running Registry for AeroDyn" Outputs="..\..\subs\AeroDyn\Source\dependencies\AeroDyn\AeroDyn_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Debug|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AeroDyn" Description="Running Registry for AeroDyn" Outputs="..\..\Source\dependencies\AeroDyn\AeroDyn_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AeroDyn" Description="Running Registry for AeroDyn" Outputs="..\..\subs\AeroDyn\Source\dependencies\AeroDyn\AeroDyn_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AeroDyn" Description="Running Registry for AeroDyn" Outputs="..\..\Source\dependencies\AeroDyn\AeroDyn_Types.f90"/></FileConfiguration></File>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn_Types.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\AirfoilInfo_Registry.txt">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AeroDyn" Description="Running Registry for AeroDyn" Outputs="..\..\subs\AeroDyn\Source\dependencies\AeroDyn\AeroDyn_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\subs\AeroDyn\Source\dependencies\AeroDyn\AeroDyn_Types.f90"/>
+		<File RelativePath="..\..\subs\AeroDyn\Source\dependencies\Airfoil_Info\AirfoilInfo_Registry.txt">
 			<FileConfiguration Name="Debug|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\Source\dependencies\AeroDyn\AirfoilInfo_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\subs\AeroDyn\Source\dependencies\Airfoil_Info\AirfoilInfo_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\Source\dependencies\AeroDyn\AirfoilInfo_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\subs\AeroDyn\Source\dependencies\Airfoil_Info\AirfoilInfo_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Debug|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\Source\dependencies\AeroDyn\AirfoilInfo_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\subs\AeroDyn\Source\dependencies\Airfoil_Info\AirfoilInfo_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\Source\dependencies\AeroDyn\AirfoilInfo_Types.f90"/></FileConfiguration></File>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\AirfoilInfo_Types.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMT_Registry.txt">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat AFI" Description="Running Registry for AirfoilInfo" Outputs="..\..\subs\AeroDyn\Source\dependencies\Airfoil_Info\AirfoilInfo_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\subs\AeroDyn\Source\dependencies\Airfoil_Info\AirfoilInfo_Types.f90"/>
+		<File RelativePath="..\..\subs\AeroDyn\Source\dependencies\BEMT\BEMT_Registry.txt">
 			<FileConfiguration Name="Debug|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat BEMT" Description="Running Registry for BEMT" Outputs="..\..\Source\dependencies\AeroDyn\BEMT_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat BEMT" Description="Running Registry for BEMT" Outputs="..\..\subs\AeroDyn\Source\dependencies\BEMT\BEMT_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat BEMT" Description="Running Registry for BEMT" Outputs="..\..\Source\dependencies\AeroDyn\BEMT_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat BEMT" Description="Running Registry for BEMT" Outputs="..\..\subs\AeroDyn\Source\dependencies\BEMT\BEMT_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Debug|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat BEMT" Description="Running Registry for BEMT" Outputs="..\..\Source\dependencies\AeroDyn\BEMT_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat BEMT" Description="Running Registry for BEMT" Outputs="..\..\subs\AeroDyn\Source\dependencies\BEMT\BEMT_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat BEMT" Description="Running Registry for BEMT" Outputs="..\..\Source\dependencies\AeroDyn\BEMT_Types.f90"/></FileConfiguration></File>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMT_Types.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\UnsteadyAero_Registry.txt">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat BEMT" Description="Running Registry for BEMT" Outputs="..\..\subs\AeroDyn\Source\dependencies\BEMT\BEMT_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\subs\AeroDyn\Source\dependencies\BEMT\BEMT_Types.f90"/>
+		<File RelativePath="..\..\subs\AeroDyn\Source\dependencies\UnsteadyAero\UnsteadyAero_Registry.txt">
 			<FileConfiguration Name="Debug|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat UA" Description="Running Registry for UnsteadyAero" Outputs="..\..\Source\dependencies\AeroDyn\UnsteadyAero_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat UA" Description="Running Registry for UnsteadyAero" Outputs="..\..\subs\AeroDyn\Source\dependencies\UnsteadyAero\UnsteadyAero_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat UA" Description="Running Registry for UnsteadyAero" Outputs="..\..\Source\dependencies\AeroDyn\UnsteadyAero_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat UA" Description="Running Registry for UnsteadyAero" Outputs="..\..\subs\AeroDyn\Source\dependencies\UnsteadyAero\UnsteadyAero_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Debug|x64">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat UA" Description="Running Registry for UnsteadyAero" Outputs="..\..\Source\dependencies\AeroDyn\UnsteadyAero_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat UA" Description="Running Registry for UnsteadyAero" Outputs="..\..\subs\AeroDyn\Source\dependencies\UnsteadyAero\UnsteadyAero_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat UA" Description="Running Registry for UnsteadyAero" Outputs="..\..\Source\dependencies\AeroDyn\UnsteadyAero_Types.f90"/></FileConfiguration></File>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\UnsteadyAero_Types.f90"/></Filter>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn_IO.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\AirfoilInfo.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMT.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\BEMTUncoupled.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\fmin_fcn.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\mod_root1dim.f90"/>
-		<File RelativePath="..\..\Source\dependencies\AeroDyn\UnsteadyAero.f90"/></Filter>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat UA" Description="Running Registry for UnsteadyAero" Outputs="..\..\subs\AeroDyn\Source\dependencies\UnsteadyAero\UnsteadyAero_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\subs\AeroDyn\Source\dependencies\UnsteadyAero\UnsteadyAero_Types.f90"/></Filter>
+		<File RelativePath="..\..\subs\AeroDyn\Source\dependencies\AeroDyn\AeroDyn.f90"/>
+		<File RelativePath="..\..\subs\AeroDyn\Source\dependencies\AeroDyn\AeroDyn_IO.f90"/>
+		<File RelativePath="..\..\subs\AeroDyn\Source\dependencies\Airfoil_Info\AirfoilInfo.f90"/>
+		<File RelativePath="..\..\subs\AeroDyn\Source\dependencies\BEMT\BEMT.f90"/>
+		<File RelativePath="..\..\subs\AeroDyn\Source\dependencies\BEMT\BEMTUncoupled.f90"/>
+		<File RelativePath="..\..\subs\AeroDyn\Source\dependencies\BEMT\fmin_fcn.f90"/>
+		<File RelativePath="..\..\subs\AeroDyn\Source\dependencies\BEMT\mod_root1dim.f90"/>
+		<File RelativePath="..\..\subs\AeroDyn\Source\dependencies\UnsteadyAero\UnsteadyAero.f90"/></Filter>
 		<Filter Name="AeroDyn14">
 		<Filter Name="DWM">
 		<Filter Name="RegistryFiles">

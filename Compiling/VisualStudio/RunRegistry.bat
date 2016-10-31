@@ -20,18 +20,15 @@ REM ----------------------------------------------------------------------------
 REM ----------------------------------------------------------------------------
 
 SET Root_Loc=..\..
+SET Subs_Loc=..\..\subs
 SET FAST_Loc=%Root_Loc%\Source
 SET Registry=%Root_Loc%\bin\Registry_win32.exe
 
-SET NWTC_Lib_Loc=%FAST_Loc%\dependencies\NWTC_Library
+
 SET ED_Loc=%FAST_Loc%\dependencies\ElastoDyn
 SET BD_Loc=%FAST_Loc%\dependencies\BeamDyn
 SET SrvD_Loc=%FAST_Loc%\dependencies\ServoDyn
 SET TMD_Loc=%SrvD_Loc%
-SET AD_Loc=%FAST_Loc%\dependencies\AeroDyn
-SET BEMT_Loc=%AD_Loc%
-SET UA_Loc=%AD_Loc%
-SET AFI_Loc=%AD_Loc%
 SET AD14_Loc=%FAST_Loc%\dependencies\AeroDyn14
 SET DWM_Loc=%AD14_Loc%
 SET IfW_Loc=%FAST_Loc%\dependencies\InflowWind
@@ -44,7 +41,16 @@ SET IceD_Loc=%FAST_Loc%\dependencies\IceDyn
 SET MD_Loc=%FAST_Loc%\dependencies\MoorDyn
 SET OpFM_Loc=%FAST_Loc%\dependencies\OpenFOAM
 SET Orca_Loc=%FAST_Loc%\dependencies\OrcaFlex
-SET ExtPtfm_Loc=%Root_Loc%\subs\ExtPtfm\source
+
+
+SET NWTC_Lib_Loc=%Subs_Loc%\NWTC_Library\source
+SET ExtPtfm_Loc=%Subs_Loc%\ExtPtfm\source
+
+SET AD_Loc=%Subs_Loc%\AeroDyn\Source\dependencies\AeroDyn
+SET BEMT_Loc=%Subs_Loc%\AeroDyn\Source\dependencies\BEMT
+SET UA_Loc=%Subs_Loc%\AeroDyn\Source\dependencies\UnsteadyAero
+SET AFI_Loc=%Subs_Loc%\AeroDyn\Source\dependencies\Airfoil_Info
+
 
 SET HD_Reg_Loc=%HD_Loc%
 SET IfW_Reg_Loc=%IfW_Loc%

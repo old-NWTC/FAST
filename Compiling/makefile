@@ -56,8 +56,9 @@ LDFLAGS = -O2 -m$(BITS) -fbacktrace
    # Location of source files for FAST, and its modules.
 
 FAST_DIR     = ../Source
+SubMod_DIR   = ../subs
 
-NWTC_Lib_DIR = ../subs/NWTC_Library/source
+NWTC_Lib_DIR = $(SubMod_DIR)/NWTC_Library/source
 NETLIB_DIR   = $(NWTC_Lib_DIR)/NetLib/Dierckx_FitPack \
 				$(NWTC_Lib_DIR)/NetLib/fftpack \
 				$(NWTC_Lib_DIR)/NetLib/lapack \
@@ -66,7 +67,12 @@ ED_DIR       = $(FAST_DIR)/dependencies/ElastoDyn
 BD_DIR       = $(FAST_DIR)/dependencies/BeamDyn
 SrvD_DIR     = $(FAST_DIR)/dependencies/ServoDyn
 AD14_DIR     = $(FAST_DIR)/dependencies/AeroDyn14
-AD_DIR       = $(FAST_DIR)/dependencies/AeroDyn
+AD_DIR       = $(SubMod_DIR)/AeroDyn/Source/dependencies/AeroDyn 
+AFI_DIR      = $(SubMod_DIR)/AeroDyn/Source/dependencies/Airfoil_Info 
+UA_DIR       = $(SubMod_DIR)/AeroDyn/Source/dependencies/UnsteadyAero  
+BEMT_DIR     = $(SubMod_DIR)/AeroDyn/Source/dependencies/BEMT 
+
+				
 IfW_DIR      = $(FAST_DIR)/dependencies/InflowWind
 OpFM_DIR     = $(FAST_DIR)/dependencies/OpenFOAM
 HD_DIR       = $(FAST_DIR)/dependencies/HydroDyn
@@ -81,9 +87,6 @@ ExtPtfm_DIR  = ../subs/ExtPtfm/source
 
 TMD_DIR      = $(SrvD_DIR)
 DWM_DIR      = $(AD14_DIR)
-AFI_DIR      = $(AD_DIR)
-UA_DIR       = $(AD_DIR)
-BEMT_DIR     = $(AD_DIR)
 
 HD_DIR_Reg   = $(HD_DIR)
 IfW_DIR_Reg  = $(IfW_DIR)
@@ -393,7 +396,7 @@ vpath %.f         $(NETLIB_DIR)
 vpath %.mod       $(INTER_DIR)
 vpath %$(OBJ_EXT) $(INTER_DIR)
 vpath %.txt       $(FAST_DIR) $(AD14_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(TMD_DIR) $(IceD_DIR) \
-                  $(DWM_DIR) $(FEAM_DIR) $(MD_DIR) $(MAP_DIR) $(AFI_DIR) $(UA_DIR) $(BEMT_DIR) $(AD_DIR) $(BD_DIR) $(OpFM_DIR)
+                  $(DWM_DIR) $(FEAM_DIR) $(MD_DIR) $(MAP_DIR) $(AFI_DIR) $(UA_DIR) $(BEMT_DIR) $(AD_DIR) $(BD_DIR) $(OpFM_DIR) $(ExtPtfm_DIR)
 vpath %.inp       $(IceF_DIR) $(Orca_DIR_Reg)
 #apparently vpath doesn't work as expected if I use %.F90 (is it not case sensitive???)
 #.F90 extension is required for some preprocessor directives (can get around this when compiling, but apparently not when using Doxygen)
@@ -404,7 +407,7 @@ vpath %           $(IceF_DIR) $(SrvD_DIR) $(Orca_DIR)
 ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD14_SOURCES) $(DWM_SOURCES) \
               $(OpFM_SOURCES) $(SrvD_SOURCES) $(ED_SOURCES) $(HD_SOURCES)  $(SD_SOURCES) \
               $(AFI_SOURCES) $(UA_SOURCES) $(BEMT_SOURCES) $(AD_SOURCES) \
-              $(MAP_SOURCES) $(FEAM_SOURCES) $(MD_SOURCES) $(Orca_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES) $(BD_SOURCES)
+              $(MAP_SOURCES) $(FEAM_SOURCES) $(MD_SOURCES) $(Orca_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES) $(BD_SOURCES) $(ExtPtfm_DIR)
 ALL_OBJS    = $(ALL_SOURCES:.f90=$(OBJ_EXT))
 ALL_OBJS   := $(ALL_OBJS:.F90=$(OBJ_EXT))       #note the upper case here (from IceFloe)
 ALL_OBJS   := $(ALL_OBJS:.f=$(OBJ_EXT))
@@ -435,8 +438,8 @@ default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
    # General rules for creating _Types.f90 files from Registry files.
 
 $(FAST_DIR)/FAST_Types.f90: $(FAST_DIR)/FAST_Registry.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(TMD_DIR) -I $(AD14_DIR) -I $(AD_DIR) -I $(BD_DIR) \
-	-I $(HD_DIR_Reg) -I $(IceF_DIR) -I $(IceD_DIR) -I $(MAP_DIR) -I $(FEAM_DIR) -I $(MD_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR) -I $(OpFM_DIR) \
+	$(Registry) $< -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(TMD_DIR) -I $(AD14_DIR) -I $(AD_DIR) -I $(BEMT_DIR) -I $(UA_DIR) -I $(AFI_DIR) -I $(BD_DIR) \
+	-I $(HD_DIR_Reg) -I $(IceF_DIR) -I $(IceD_DIR) -I $(MAP_DIR) -I $(FEAM_DIR) -I $(MD_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR) -I $(OpFM_DIR) -I $(ExtPtfm_DIR) \
 	-I $(Orca_DIR_Reg) -noextrap -O $(FAST_DIR)
 
 $(TMD_DIR)/TMD_Types.f90: $(TMD_DIR)/TMD_Registry.txt
