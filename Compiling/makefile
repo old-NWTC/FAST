@@ -65,14 +65,16 @@ NETLIB_DIR   = $(NWTC_Lib_DIR)/NetLib/Dierckx_FitPack \
 				$(NWTC_Lib_DIR)/NetLib/scalapack
 ED_DIR       = $(FAST_DIR)/dependencies/ElastoDyn
 BD_DIR       = $(FAST_DIR)/dependencies/BeamDyn
-SrvD_DIR     = $(FAST_DIR)/dependencies/ServoDyn
+
+SrvD_DIR     = $(SubMod_DIR)/ServoDyn/source/ServoDyn
+TMD_DIR      = $(SubMod_DIR)/ServoDyn/source/TMD
+
 AD14_DIR     = $(FAST_DIR)/dependencies/AeroDyn14
 AD_DIR       = $(SubMod_DIR)/AeroDyn/Source/dependencies/AeroDyn 
 AFI_DIR      = $(SubMod_DIR)/AeroDyn/Source/dependencies/Airfoil_Info 
 UA_DIR       = $(SubMod_DIR)/AeroDyn/Source/dependencies/UnsteadyAero  
 BEMT_DIR     = $(SubMod_DIR)/AeroDyn/Source/dependencies/BEMT 
 
-				
 IfW_DIR      = $(FAST_DIR)/dependencies/InflowWind
 OpFM_DIR     = $(FAST_DIR)/dependencies/OpenFOAM
 HD_DIR       = $(FAST_DIR)/dependencies/HydroDyn
@@ -85,7 +87,6 @@ IceF_DIR     = $(FAST_DIR)/dependencies/IceFloe
 IceD_DIR     = $(FAST_DIR)/dependencies/IceDyn
 ExtPtfm_DIR  = ../subs/ExtPtfm/source
 
-TMD_DIR      = $(SrvD_DIR)
 DWM_DIR      = $(AD14_DIR)
 
 HD_DIR_Reg   = $(HD_DIR)
