@@ -27,8 +27,6 @@ SET Registry=%Root_Loc%\bin\Registry_win32.exe
 
 SET ED_Loc=%FAST_Loc%\dependencies\ElastoDyn
 SET BD_Loc=%FAST_Loc%\dependencies\BeamDyn
-SET SrvD_Loc=%FAST_Loc%\dependencies\ServoDyn
-SET TMD_Loc=%SrvD_Loc%
 SET AD14_Loc=%FAST_Loc%\dependencies\AeroDyn14
 SET DWM_Loc=%AD14_Loc%
 SET IfW_Loc=%FAST_Loc%\dependencies\InflowWind
@@ -50,6 +48,9 @@ SET AD_Loc=%Subs_Loc%\AeroDyn\Source\dependencies\AeroDyn
 SET BEMT_Loc=%Subs_Loc%\AeroDyn\Source\dependencies\BEMT
 SET UA_Loc=%Subs_Loc%\AeroDyn\Source\dependencies\UnsteadyAero
 SET AFI_Loc=%Subs_Loc%\AeroDyn\Source\dependencies\Airfoil_Info
+
+SET SrvD_Loc=%Subs_Loc%\ServoDyn\source\ServoDyn
+SET TMD_Loc=%Subs_Loc%\ServoDyn\source\TMD
 
 
 SET HD_Reg_Loc=%HD_Loc%
