@@ -12902,7 +12902,7 @@ ENDIF
       OutData%AngVelEX = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AngVelEX))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%AngVelEX)
     DEALLOCATE(mask1)
-      OutData%TeetAngVel = REAL( DbKiBuf( Re_Xferred ), R8Ki) 
+      OutData%TeetAngVel = REAL( DbKiBuf( Db_Xferred ), R8Ki) 
       Db_Xferred   = Db_Xferred + 1
     i1_l = LBOUND(OutData%AngAccEBt,1)
     i1_u = UBOUND(OutData%AngAccEBt,1)
@@ -14430,7 +14430,7 @@ ENDIF
       OutData%PMXHydro = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PMXHydro))-1 ), mask2, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%PMXHydro)
     DEALLOCATE(mask2)
-      OutData%TeetAng = REAL( DbKiBuf( Re_Xferred ), R8Ki) 
+      OutData%TeetAng = REAL( DbKiBuf( Db_Xferred ), R8Ki) 
       Db_Xferred   = Db_Xferred + 1
     i1_l = LBOUND(OutData%FrcVGnRtt,1)
     i1_u = UBOUND(OutData%FrcVGnRtt,1)
@@ -19824,7 +19824,7 @@ ENDIF
       Int_Xferred   = Int_Xferred + 1
       OutData%NDOF = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
-      OutData%TwoPiNB = REAL( DbKiBuf( Re_Xferred ), R8Ki) 
+      OutData%TwoPiNB = REAL( DbKiBuf( Db_Xferred ), R8Ki) 
       Db_Xferred   = Db_Xferred + 1
       OutData%NAug = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
