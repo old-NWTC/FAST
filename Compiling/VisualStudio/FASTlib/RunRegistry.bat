@@ -5,7 +5,7 @@ echo %lines%
 IF "%1"=="" (
 ECHO.
 ECHO   The calling syntax for this script is
-ECHO             RunRegistry ModuleName
+ECHO             RunRegistry ModuleName [FAST_Root_Loc]
 ECHO.
 GOTO Done
 )
@@ -18,8 +18,9 @@ REM -- USERS MAY EDIT THESE PATHS TO POINT TO FOLDERS ON THEIR LOCAL MACHINES. -
 REM -- NOTE: do not use quotation marks around the path names!!!! --------------
 REM ----------------------------------------------------------------------------
 REM ----------------------------------------------------------------------------
-
 SET Root_Loc=..\..\..
+IF not "%2"/=="" SET Root_Loc=%2
+
 SET Subs_Loc=%Root_Loc%\subs
 SET FAST_Loc=%Root_Loc%\Source
 SET Registry=%Root_Loc%\bin\Registry_win32.exe
@@ -58,8 +59,11 @@ SET IfW_Reg_Loc=%IfW_Loc%
 
 SET MAP_Loc_R=%MAP_Loc%
 
+SET ALL_FAST_Includes=-I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
+ "%AD_Loc%" -I "%BEMT_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -I "%BD_Loc%" -I^
+ "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Loc%"  -I^
+ "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -I "%Orca_Loc%" -I "%ExtPtfm_Loc%"
 
-IF /I "%2"=="dev" CALL ..\Set_FAST_paths.bat
 
 SET ModuleName=%1
 
@@ -71,10 +75,7 @@ REM ----------------------------------------------------------------------------
 :FAST
 ECHO on
 SET CURR_LOC=%FAST_Loc%
-%REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
- "%AD_Loc%" -I "%BEMT_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -I "%BD_Loc%" -I^
- "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Loc%"  -I^
- "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -I "%Orca_Loc%" -I "%ExtPtfm_Loc%" -noextrap -O "%CURR_LOC%"
+%REGISTRY% "%CURR_LOC%\FAST_Registry.txt" %ALL_FAST_Includes% -noextrap -O "%CURR_LOC%"
 
 echo off
 GOTO checkError
@@ -237,17 +238,18 @@ REM ------------------------- CLEAR MEMORY -------------------------------------
 REM ----------------------------------------------------------------------------
 ECHO. 
 
+SET ModuleName=
+SET CURR_LOC=
 
-SET REGISTRY=
+SET Root_Loc=
 
-SET NWTC_Lib_Loc=
+SET Subs_Loc=
+SET FAST_Loc=
+SET Registry=
+
 SET ED_Loc=
-SET SrvD_Loc=
+SET BD_Loc=
 SET AD14_Loc=
-SET AD_Loc=
-SET AFI_Loc=
-SET BEMT_Loc=
-SET UA_Loc=
 SET DWM_Loc=
 SET IfW_Loc=
 SET HD_Loc=
@@ -255,17 +257,30 @@ SET SD_Loc=
 SET MAP_Loc=
 SET FEAM_Loc=
 SET IceF_Loc=
-SET ID_Loc=
-SET FAST_Loc=
-SET MAP_Include_Lib=
-SET HD_Reg_Loc=
-SET IfW_Reg_Loc=
+SET IceD_Loc=
 SET MD_Loc=
 SET OpFM_Loc=
 SET Orca_Loc=
 
-SET ModuleName=
-SET CURR_LOC=
+SET NWTC_Lib_Loc=
+SET ExtPtfm_Loc=
+
+SET AD_Loc=
+SET BEMT_Loc=
+SET UA_Loc=
+SET AFI_Loc=
+
+SET SrvD_Loc=
+SET TMD_Loc=
+
+SET HD_Reg_Loc=
+SET IfW_Reg_Loc=
+
+SET MAP_Loc_R=
+SET ALL_FAST_Includes=
+
 :Done
 echo %lines%
 set lines=
+
+:PathsOnly
