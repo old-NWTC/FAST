@@ -24,10 +24,6 @@ SET FST_DIR=.
 IF /I "%1"=="-X64" GOTO x64releaseVer
 IF /I "%1"=="-DEBUG" GOTO debugVer
 IF /I "%1"=="-GFORTRAN" GOTO gfortran
-IF /I "%1"=="-IFORT" GOTO ifort
-IF /I "%1"=="-DEVBUILD" GOTO devBuild
-IF /I "%1"=="-DEV" GOTO devBuild
-IF /I "%1"=="-DEVDEBUG" GOTO devDebugBuild
 
 :releaseVer
 @SET EXE_VER=Using released version of FAST (IVF/VS)
@@ -51,20 +47,6 @@ goto CertTest
 SET PATH=%PATH%;C:\LAPACK\win32;
 goto CertTest
 
-:ifort
-@SET EXE_VER=Using FAST compiled with Compile_FAST.bat (IVF)
-@SET FAST=..\compiling\FAST_iwin32.exe
-goto CertTest
-
-:devBuild
-@SET EXE_VER=Using FAST compiled with Visual Studio Project, release mode (IVF/VS)
-@SET FAST=..\bin\FAST_dev_win32.exe
-goto CertTest
-
-:devDebugBuild
-@SET EXE_VER=Using FAST compiled with Visual Studio Project, debug mode (IVF/VS)
-@SET FAST=..\bin\FAST_dev_debug_win32.exe
-goto CertTest
 
 ::=======================================================================================================
 :CertTest
