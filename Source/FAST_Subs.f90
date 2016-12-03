@@ -164,6 +164,7 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, BD, SrvD, 
    INTEGER(IntKi)                          :: IceDim              ! dimension we're pre-allocating for number of IceDyn legs/instances
    INTEGER(IntKi)                          :: I                   ! generic loop counter
    INTEGER(IntKi)                          :: k                   ! blade loop counter
+   logical                                 :: CallStart
    
    CHARACTER(ErrMsgLen)                    :: ErrMsg2
                                            
@@ -197,10 +198,16 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, BD, SrvD, 
    m_FAST%calcJacobian    = .TRUE.                                      ! we need to calculate the Jacobian
    m_FAST%NextJacCalcTime = m_FAST%t_global                             ! We want to calculate the Jacobian on the first step
    
+   if (present(ExternInitData)) then
+      CallStart = .not. ExternInitData%FarmIntegration ! .and. ExternInitData%TurbineID == 1
+   else
+      CallStart = .true.
+   end if
+   
+   
    
       ! Init NWTC_Library, display copyright and version information:
-   CALL FAST_ProgStart( FAST_Ver )
-   !call DispNVD( FAST_Ver )
+   if (CallStart) CALL FAST_ProgStart( FAST_Ver )
 
    
    IF (PRESENT(InFile)) THEN
@@ -1255,7 +1262,7 @@ SUBROUTINE FAST_ProgStart(ThisProgVer)
    CALL DispCopyrightLicense( ThisProgVer )
 
       ! Tell our users what they're running
-   CALL WrScr( ' Running '//TRIM(GetNVD(ThisProgVer))//NewLine//' linked with '//TRIM( GetNVD( NWTC_Ver ))//NewLine )
+   CALL WrScr( ' Running '//TRIM(GetVersion(ThisProgVer))//NewLine//' linked with '//TRIM( GetNVD( NWTC_Ver ))//NewLine )
    
 END SUBROUTINE FAST_ProgStart
 !----------------------------------------------------------------------------------------------------------------------------------
