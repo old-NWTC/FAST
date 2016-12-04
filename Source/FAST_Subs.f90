@@ -207,8 +207,11 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, BD, SrvD, 
    
    
       ! Init NWTC_Library, display copyright and version information:
-   if (CallStart) CALL FAST_ProgStart( FAST_Ver )
-
+   if (CallStart) then
+      CALL FAST_ProgStart( FAST_Ver )
+   else
+      CALL DispNVD( FAST_Ver )
+   end if
    
    IF (PRESENT(InFile)) THEN
       p_FAST%UseDWM = .FALSE.
