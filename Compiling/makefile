@@ -64,7 +64,7 @@ NETLIB_DIR   = $(NWTC_Lib_DIR)/NetLib/Dierckx_FitPack \
 				$(NWTC_Lib_DIR)/NetLib/lapack \
 				$(NWTC_Lib_DIR)/NetLib/scalapack
 ED_DIR       = $(FAST_DIR)/dependencies/ElastoDyn
-BD_DIR       = $(FAST_DIR)/dependencies/BeamDyn
+BD_DIR       = $(SubMod_DIR)/BeamDyn/source
 
 SrvD_DIR     = $(SubMod_DIR)/ServoDyn/source/ServoDyn
 TMD_DIR      = $(SubMod_DIR)/ServoDyn/source/TMD
