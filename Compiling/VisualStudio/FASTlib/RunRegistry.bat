@@ -19,7 +19,7 @@ REM -- NOTE: do not use quotation marks around the path names!!!! --------------
 REM ----------------------------------------------------------------------------
 REM ----------------------------------------------------------------------------
 SET Root_Loc=..\..\..
-IF not "%2"/=="" SET Root_Loc=%2
+IF not "%2"=="" SET Root_Loc=%2
 
 SET Subs_Loc=%Root_Loc%\subs
 SET FAST_Loc=%Root_Loc%\Source
@@ -59,7 +59,7 @@ SET IfW_Reg_Loc=%IfW_Loc%
 
 SET MAP_Loc_R=%MAP_Loc%
 
-SET ALL_FAST_Includes=-I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
+SET ALL_FAST_Includes=-I "%FAST_Loc%" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD14_Loc%" -I^
  "%AD_Loc%" -I "%BEMT_Loc%" -I "%UA_Loc%" -I "%AFI_Loc%" -I "%BD_Loc%" -I^
  "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc_R%" -I "%FEAM_Loc%"  -I^
  "%IceF_Loc%" -I "%IceD_Loc%" -I "%TMD_Loc%" -I "%MD_Loc%" -I "%OpFM_Loc%" -I "%Orca_Loc%" -I "%ExtPtfm_Loc%"
