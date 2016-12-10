@@ -29,7 +29,7 @@ SET Registry=%Root_Loc%\bin\Registry_win32.exe
 SET ED_Loc=%FAST_Loc%\dependencies\ElastoDyn
 SET AD14_Loc=%FAST_Loc%\dependencies\AeroDyn14
 SET DWM_Loc=%AD14_Loc%
-SET IfW_Loc=%FAST_Loc%\dependencies\InflowWind
+SET IfW_Loc=%Subs_Loc%\InflowWind\Source
 SET HD_Loc=%FAST_Loc%\dependencies\HydroDyn
 SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
 SET MAP_Loc=%FAST_Loc%\dependencies\MAP
@@ -55,7 +55,7 @@ SET BD_Loc=%Subs_Loc%\BeamDyn\source
 
 
 SET HD_Reg_Loc=%HD_Loc%
-SET IfW_Reg_Loc=%IfW_Loc%
+SET IfW_Reg_Loc=%IfW_Loc%\Registry
 
 SET MAP_Loc_R=%MAP_Loc%
 
