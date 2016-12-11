@@ -90,28 +90,28 @@ If you compile a 64-bit version of FAST, you can omit the ```/STACK``` and ```/L
 
 ###### <a name="Table1"></a>Table 1: Fortran Compiling/Linking Options
 
- | Category/Description                                           | Used in FAST?                  | Intel Fortran (Windows)   | Intel Fortran (Linux and Mac OS)   | GNU Fortran       |
- |----------------------------------------------------------------|--------------------------------|---------------------------|------------------------------------|-------------------|
-  `Data options`                                                  |                                |                           |                                    |                   | 
-  Define all default real (and complex) variables as 4 bytes long | Recommended (compiler default) | /real-size:32             | -real-size 32                      | (set by default)  | 
-  Define all default real (and complex) variables as 8 bytes long |                                | /real-size:64             | -real-size 64                      | -fdefault-real-8  | 
-  `Optimization options`                                          |                                |                           |                                    |                   | 
-  Disable all optimizations (debug mode)                          | Recommended for Debug          | /Od                       | -O0                                | -O0               | 
-  Enable optimizations for speed (release mode)                   | Recommended for Release        | /O2                       | -O2                                | -O2               | 
-  Enable higher optimizations (may set other options; may not be appropriate for all codes) |      | /O3                       | -O3                                | -O3               | 
-  `External libraries`                                            |                                |                           |                                    |                   | 
-  Use optimized LAPACK routines                                   | Required                       | /Qmkl:sequential          | -mkl=sequential                    | -llapack -lblas   |
-  `Debugging options`                                             |                                |                           |                                    |                   | 
-  Provide source file traceback information when a severe error occurs at run time |               | /traceback                | -traceback                         | -fbacktrace       |
-  Check array subscripts                                          |                                | /check:bounds             | -check bounds                      | -fcheck=bounds    |
-  `Fortran Dialect Options`                                       |                                |                           |                                    |                   | 
-  Produce warning/error for non-standard Fortran 2003 code        | Recommended                    | /stand:f03                | -std03                             | -std=f2003        |
-  Allow free-format code to exceed 132 columns                    | Required                       | (allowed by default)      | (allowed by default)               | -ffree-line-length-none |
-  `Other`                                                         |                                |                           |                                    |                   | 
-  Display compiler version information                            |                                | /logo                     | -logo (or -V)                      | -v (or --version) | 
-  Preprocess source files before compilation                      | Required                       | /fpp                      | -fpp                               | -x f95-cpp-input  |
-  Create 32-bit code                      |  | (use appropriate Visual Studio configuration or call appropriate script prior to using compiler from command line) | | -m32              |
-  Create 64-bit code                      |  | (use appropriate Visual Studio configuration or call appropriate script prior to using compiler from command line) | | -m64              |
+  Category/Description                                           | Used in FAST?                  | Intel Fortran (Windows)   | Intel Fortran (Linux and Mac OS)   | GNU Fortran      
+ ---------------------------------------------------------------|--------------------------------|---------------------------|------------------------------------|-------------------
+ `Data options`                                                  |                                |                           |                                    |                   
+ Define all default real (and complex) variables as 4 bytes long | Recommended (compiler default) | /real-size:32             | -real-size 32                      | (set by default)  
+ Define all default real (and complex) variables as 8 bytes long |                                | /real-size:64             | -real-size 64                      | -fdefault-real-8  
+ `Optimization options`                                          |                                |                           |                                    |                   
+ Disable all optimizations (debug mode)                          | Recommended for Debug          | /Od                       | -O0                                | -O0               
+ Enable optimizations for speed (release mode)                   | Recommended for Release        | /O2                       | -O2                                | -O2               
+ Enable higher optimizations (may set other options; may not be appropriate for all codes) |      | /O3                       | -O3                                | -O3               
+ `External libraries`                                            |                                |                           |                                    |                   
+ Use optimized LAPACK routines                                   | Required                       | /Qmkl:sequential          | -mkl=sequential                    | -llapack -lblas  
+ `Debugging options`                                             |                                |                           |                                    |                   
+ Provide source file traceback information when a severe error occurs at run time |               | /traceback                | -traceback                         | -fbacktrace      
+ Check array subscripts                                          |                                | /check:bounds             | -check bounds                      | -fcheck=bounds   
+ `Fortran Dialect Options`                                       |                                |                           |                                    |                   
+ Produce warning/error for non-standard Fortran 2003 code        | Recommended                    | /stand:f03                | -std03                             | -std=f2003       
+ Allow free-format code to exceed 132 columns                    | Required                       | (allowed by default)      | (allowed by default)               | -ffree-line-length-none
+ `Other`                                                         |                                |                           |                                    |                    
+ Display compiler version information                            |                                | /logo                     | -logo (or -V)                      | -v (or --version)  
+ Preprocess source files before compilation                      | Required                       | /fpp                      | -fpp                               | -x f95-cpp-input  
+ Create 32-bit code                      |  | (use appropriate Visual Studio configuration or call appropriate script prior to using compiler from command line) | | -m32              
+ Create 64-bit code                      |  | (use appropriate Visual Studio configuration or call appropriate script prior to using compiler from command line) | | -m64              
 
 
 ## Double Precision
