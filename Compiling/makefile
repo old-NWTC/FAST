@@ -104,7 +104,7 @@ BIN_DIR      = ../bin
 ifeq ($(OS),Windows_NT)
 
    Registry     = $(BIN_DIR)/Registry_win32.exe
-   MAP_lib      = $(MAP_DIR)/MAP_win32.lib
+   MAP_lib      = $(BIN_DIR)/MAP_win32.lib
    LDFLAGS     := $(LDFLAGS) -llapack -lblas -LC:/LAPACK/win32
    LAPACK_LINK :=
 
@@ -408,7 +408,7 @@ vpath %           $(IceF_DIR) $(SrvD_DIR) $(Orca_DIR)
 ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD14_SOURCES) $(DWM_SOURCES) \
               $(OpFM_SOURCES) $(SrvD_SOURCES) $(ED_SOURCES) $(HD_SOURCES)  $(SD_SOURCES) \
               $(AFI_SOURCES) $(UA_SOURCES) $(BEMT_SOURCES) $(AD_SOURCES) \
-              $(MAP_SOURCES) $(FEAM_SOURCES) $(MD_SOURCES) $(Orca_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES) $(BD_SOURCES) $(ExtPtfm_DIR)
+              $(MAP_SOURCES) $(FEAM_SOURCES) $(MD_SOURCES) $(Orca_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES) $(BD_SOURCES) $(ExtPtfm_SOURCES)
 ALL_OBJS    = $(ALL_SOURCES:.f90=$(OBJ_EXT))
 ALL_OBJS   := $(ALL_OBJS:.F90=$(OBJ_EXT))       #note the upper case here (from IceFloe)
 ALL_OBJS   := $(ALL_OBJS:.f=$(OBJ_EXT))
