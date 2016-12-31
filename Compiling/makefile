@@ -552,13 +552,17 @@ IfW_BladedFFWind_Types$(OBJ_EXT):   NWTC_Library$(OBJ_EXT) $(IfW_DIR)/IfW_Bladed
 IfW_BladedFFWind$(OBJ_EXT):         NWTC_Library$(OBJ_EXT) IfW_BladedFFWind_Types$(OBJ_EXT)
 IfW_UserWind_Types$(OBJ_EXT):       NWTC_Library$(OBJ_EXT) $(IfW_DIR)/IfW_UserWind_Types.f90
 IfW_UserWind$(OBJ_EXT):             NWTC_Library$(OBJ_EXT) IfW_UserWind_Types$(OBJ_EXT)
+IfW_4Dext_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT) $(IfW_DIR)/IfW_4Dext_Types.f90
+IfW_4Dext$(OBJ_EXT):                NWTC_Library$(OBJ_EXT) IfW_4Dext_Types$(OBJ_EXT)
 Lidar_Types$(OBJ_EXT):              NWTC_Library$(OBJ_EXT) $(IfW_DIR)/Lidar_Types.f90
 Lidar$(OBJ_EXT):                    NWTC_Library$(OBJ_EXT) Lidar_Types$(OBJ_EXT) InflowWind_Subs$(OBJ_EXT)
-InflowWind_Types$(OBJ_EXT):         NWTC_Library$(OBJ_EXT)  IfW_UniformWind_Types$(OBJ_EXT) Lidar_Types$(OBJ_EXT) \
-                                      IfW_TSFFWind_Types$(OBJ_EXT) IfW_BladedFFWind_Types$(OBJ_EXT) IfW_UserWind_Types$(OBJ_EXT) \
-                                      IfW_HAWCWind_Types$(OBJ_EXT) $(IfW_DIR)/InflowWind_Types.f90
+InflowWind_Types$(OBJ_EXT):         NWTC_Library$(OBJ_EXT)  $(IfW_DIR)/InflowWind_Types.f90 \
+                                    IfW_UniformWind_Types$(OBJ_EXT) IfW_HAWCWind_Types$(OBJ_EXT)  \
+                                    IfW_TSFFWind_Types$(OBJ_EXT) IfW_BladedFFWind_Types$(OBJ_EXT) IfW_UserWind_Types$(OBJ_EXT) \
+                                    Lidar_Types$(OBJ_EXT) IfW_4Dext_Types$(OBJ_EXT)  
 InflowWind_Subs$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  InflowWind_Types$(OBJ_EXT) IfW_UniformWind$(OBJ_EXT) \
-                                      IfW_TSFFWind$(OBJ_EXT) IfW_BladedFFWind$(OBJ_EXT) IfW_UserWind$(OBJ_EXT) IfW_HAWCWind$(OBJ_EXT)
+                                      IfW_TSFFWind$(OBJ_EXT) IfW_BladedFFWind$(OBJ_EXT) IfW_UserWind$(OBJ_EXT) IfW_HAWCWind$(OBJ_EXT) \
+                                      IfW_4Dext$(OBJ_EXT)
 InflowWind$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  InflowWind_Subs$(OBJ_EXT) Lidar$(OBJ_EXT)
 
 
