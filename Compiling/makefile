@@ -64,18 +64,18 @@ NETLIB_DIR   = $(NWTC_Lib_DIR)/NetLib/Dierckx_FitPack \
 				$(NWTC_Lib_DIR)/NetLib/lapack \
 				$(NWTC_Lib_DIR)/NetLib/scalapack
 ED_DIR       = $(FAST_DIR)/dependencies/ElastoDyn
-BD_DIR       = $(FAST_DIR)/dependencies/BeamDyn
+BD_DIR       = $(SubMod_DIR)/BeamDyn/source
 
 SrvD_DIR     = $(SubMod_DIR)/ServoDyn/source/ServoDyn
 TMD_DIR      = $(SubMod_DIR)/ServoDyn/source/TMD
 
 AD14_DIR     = $(FAST_DIR)/dependencies/AeroDyn14
-AD_DIR       = $(SubMod_DIR)/AeroDyn/Source/dependencies/AeroDyn 
-AFI_DIR      = $(SubMod_DIR)/AeroDyn/Source/dependencies/Airfoil_Info 
-UA_DIR       = $(SubMod_DIR)/AeroDyn/Source/dependencies/UnsteadyAero  
-BEMT_DIR     = $(SubMod_DIR)/AeroDyn/Source/dependencies/BEMT 
+AD_DIR       = $(SubMod_DIR)/AeroDyn/Source/dependencies/AeroDyn
+AFI_DIR      = $(SubMod_DIR)/AeroDyn/Source/dependencies/Airfoil_Info
+UA_DIR       = $(SubMod_DIR)/AeroDyn/Source/dependencies/UnsteadyAero
+BEMT_DIR     = $(SubMod_DIR)/AeroDyn/Source/dependencies/BEMT
 
-IfW_DIR      = $(FAST_DIR)/dependencies/InflowWind
+IfW_DIR      = $(SubMod_DIR)/InflowWind/Source
 OpFM_DIR     = $(FAST_DIR)/dependencies/OpenFOAM
 HD_DIR       = $(FAST_DIR)/dependencies/HydroDyn
 SD_DIR       = $(FAST_DIR)/dependencies/SubDyn
@@ -85,12 +85,12 @@ MD_DIR       = $(FAST_DIR)/dependencies/MoorDyn
 Orca_DIR     = $(FAST_DIR)/dependencies/OrcaFlex
 IceF_DIR     = $(FAST_DIR)/dependencies/IceFloe
 IceD_DIR     = $(FAST_DIR)/dependencies/IceDyn
-ExtPtfm_DIR  = ../subs/ExtPtfm/source
+ExtPtfm_DIR  = $(SubMod_DIR)/ExtPtfm/source
 
 DWM_DIR      = $(AD14_DIR)
 
 HD_DIR_Reg   = $(HD_DIR)
-IfW_DIR_Reg  = $(IfW_DIR)
+IfW_DIR_Reg  = $(IfW_DIR)/Registry
 MAP_DIR_Reg  = $(MAP_DIR)
 Orca_DIR_Reg = $(Orca_DIR)
 
@@ -104,7 +104,7 @@ BIN_DIR      = ../bin
 ifeq ($(OS),Windows_NT)
 
    Registry     = $(BIN_DIR)/Registry_win32.exe
-   MAP_lib      = $(MAP_DIR)/MAP_win32.lib
+   MAP_lib      = $(BIN_DIR)/MAP_win32.lib
    LDFLAGS     := $(LDFLAGS) -llapack -lblas -LC:/LAPACK/win32
    LAPACK_LINK :=
 
@@ -408,7 +408,7 @@ vpath %           $(IceF_DIR) $(SrvD_DIR) $(Orca_DIR)
 ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD14_SOURCES) $(DWM_SOURCES) \
               $(OpFM_SOURCES) $(SrvD_SOURCES) $(ED_SOURCES) $(HD_SOURCES)  $(SD_SOURCES) \
               $(AFI_SOURCES) $(UA_SOURCES) $(BEMT_SOURCES) $(AD_SOURCES) \
-              $(MAP_SOURCES) $(FEAM_SOURCES) $(MD_SOURCES) $(Orca_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES) $(BD_SOURCES) $(ExtPtfm_DIR)
+              $(MAP_SOURCES) $(FEAM_SOURCES) $(MD_SOURCES) $(Orca_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES) $(BD_SOURCES) $(ExtPtfm_SOURCES)
 ALL_OBJS    = $(ALL_SOURCES:.f90=$(OBJ_EXT))
 ALL_OBJS   := $(ALL_OBJS:.F90=$(OBJ_EXT))       #note the upper case here (from IceFloe)
 ALL_OBJS   := $(ALL_OBJS:.f=$(OBJ_EXT))
@@ -552,13 +552,17 @@ IfW_BladedFFWind_Types$(OBJ_EXT):   NWTC_Library$(OBJ_EXT) $(IfW_DIR)/IfW_Bladed
 IfW_BladedFFWind$(OBJ_EXT):         NWTC_Library$(OBJ_EXT) IfW_BladedFFWind_Types$(OBJ_EXT)
 IfW_UserWind_Types$(OBJ_EXT):       NWTC_Library$(OBJ_EXT) $(IfW_DIR)/IfW_UserWind_Types.f90
 IfW_UserWind$(OBJ_EXT):             NWTC_Library$(OBJ_EXT) IfW_UserWind_Types$(OBJ_EXT)
+IfW_4Dext_Types$(OBJ_EXT):          NWTC_Library$(OBJ_EXT) $(IfW_DIR)/IfW_4Dext_Types.f90
+IfW_4Dext$(OBJ_EXT):                NWTC_Library$(OBJ_EXT) IfW_4Dext_Types$(OBJ_EXT)
 Lidar_Types$(OBJ_EXT):              NWTC_Library$(OBJ_EXT) $(IfW_DIR)/Lidar_Types.f90
 Lidar$(OBJ_EXT):                    NWTC_Library$(OBJ_EXT) Lidar_Types$(OBJ_EXT) InflowWind_Subs$(OBJ_EXT)
-InflowWind_Types$(OBJ_EXT):         NWTC_Library$(OBJ_EXT)  IfW_UniformWind_Types$(OBJ_EXT) Lidar_Types$(OBJ_EXT) \
-                                      IfW_TSFFWind_Types$(OBJ_EXT) IfW_BladedFFWind_Types$(OBJ_EXT) IfW_UserWind_Types$(OBJ_EXT) \
-                                      IfW_HAWCWind_Types$(OBJ_EXT) $(IfW_DIR)/InflowWind_Types.f90
+InflowWind_Types$(OBJ_EXT):         NWTC_Library$(OBJ_EXT)  $(IfW_DIR)/InflowWind_Types.f90 \
+                                    IfW_UniformWind_Types$(OBJ_EXT) IfW_HAWCWind_Types$(OBJ_EXT)  \
+                                    IfW_TSFFWind_Types$(OBJ_EXT) IfW_BladedFFWind_Types$(OBJ_EXT) IfW_UserWind_Types$(OBJ_EXT) \
+                                    Lidar_Types$(OBJ_EXT) IfW_4Dext_Types$(OBJ_EXT)  
 InflowWind_Subs$(OBJ_EXT):          NWTC_Library$(OBJ_EXT)  InflowWind_Types$(OBJ_EXT) IfW_UniformWind$(OBJ_EXT) \
-                                      IfW_TSFFWind$(OBJ_EXT) IfW_BladedFFWind$(OBJ_EXT) IfW_UserWind$(OBJ_EXT) IfW_HAWCWind$(OBJ_EXT)
+                                      IfW_TSFFWind$(OBJ_EXT) IfW_BladedFFWind$(OBJ_EXT) IfW_UserWind$(OBJ_EXT) IfW_HAWCWind$(OBJ_EXT) \
+                                      IfW_4Dext$(OBJ_EXT)
 InflowWind$(OBJ_EXT):               NWTC_Library$(OBJ_EXT)  InflowWind_Subs$(OBJ_EXT) Lidar$(OBJ_EXT)
 
 
