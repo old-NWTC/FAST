@@ -508,9 +508,6 @@ $(IfW_DIR)/InflowWind_Types.f90: $(IfW_DIR_Reg)/InflowWind.txt
 $(IfW_DIR)/Lidar_Types.f90: $(IfW_DIR_Reg)/Lidar.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -O $(IfW_DIR)
 
-$(IfW_DIR)/IfW_UniformWind_Types.f90: $(IfW_DIR_Reg)/IfW_UniformWind.txt
-	$(Registry) $< -I $(NWTC_Lib_DIR) -noextrap  -O $(IfW_DIR)
-
 $(IfW_DIR)/IfW_%_Types.f90: $(IfW_DIR_Reg)/IfW_%.txt
 	$(Registry) $< -I $(NWTC_Lib_DIR) -noextrap  -O $(IfW_DIR)
 
