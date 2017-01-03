@@ -40,6 +40,7 @@ USE IfW_TSFFWind_Types
 USE IfW_BladedFFWind_Types
 USE IfW_HAWCWind_Types
 USE IfW_UserWind_Types
+USE IfW_4Dext_Types
 USE Lidar_Types
 USE InflowWind_Types
 USE DWM_Types
@@ -537,6 +538,9 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: NumSC2Ctrl      !< number of controller inputs [from supercontroller] [-]
     INTEGER(IntKi)  :: NumCtrl2SC      !< number of controller outputs [to supercontroller] [-]
     LOGICAL  :: FarmIntegration = .false.      !< whether this is called from FAST.Farm (or another program that doesn't want FAST to call all of the init stuff first) [-]
+    INTEGER(IntKi) , DIMENSION(1:4)  :: windGrid_n      !< number of grid points in the x, y, z, and t directions for IfW [-]
+    REAL(ReKi) , DIMENSION(1:4)  :: windGrid_delta      !< size between 2 consecutive grid points in each grid direction for IfW [m,m,m,s]
+    REAL(ReKi) , DIMENSION(1:3)  :: windGrid_pZero      !< fixed position of the XYZ grid (i.e., XYZ coordinates of IfW m%V(:,1,1,1,:)) [m]
   END TYPE FAST_ExternInitType
 ! =======================
 ! =========  FAST_TurbineType  =======
@@ -27933,6 +27937,9 @@ ENDIF
     DstExternInitTypeData%NumSC2Ctrl = SrcExternInitTypeData%NumSC2Ctrl
     DstExternInitTypeData%NumCtrl2SC = SrcExternInitTypeData%NumCtrl2SC
     DstExternInitTypeData%FarmIntegration = SrcExternInitTypeData%FarmIntegration
+    DstExternInitTypeData%windGrid_n = SrcExternInitTypeData%windGrid_n
+    DstExternInitTypeData%windGrid_delta = SrcExternInitTypeData%windGrid_delta
+    DstExternInitTypeData%windGrid_pZero = SrcExternInitTypeData%windGrid_pZero
  END SUBROUTINE FAST_CopyExternInitType
 
  SUBROUTINE FAST_DestroyExternInitType( ExternInitTypeData, ErrStat, ErrMsg )
@@ -27989,6 +27996,9 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1  ! NumSC2Ctrl
       Int_BufSz  = Int_BufSz  + 1  ! NumCtrl2SC
       Int_BufSz  = Int_BufSz  + 1  ! FarmIntegration
+      Int_BufSz  = Int_BufSz  + SIZE(InData%windGrid_n)  ! windGrid_n
+      Re_BufSz   = Re_BufSz   + SIZE(InData%windGrid_delta)  ! windGrid_delta
+      Re_BufSz   = Re_BufSz   + SIZE(InData%windGrid_pZero)  ! windGrid_pZero
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -28032,6 +28042,12 @@ ENDIF
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%FarmIntegration , IntKiBuf(1), 1)
       Int_Xferred   = Int_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%windGrid_n))-1 ) = PACK(InData%windGrid_n,.TRUE.)
+      Int_Xferred   = Int_Xferred   + SIZE(InData%windGrid_n)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%windGrid_delta))-1 ) = PACK(InData%windGrid_delta,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%windGrid_delta)
+      ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%windGrid_pZero))-1 ) = PACK(InData%windGrid_pZero,.TRUE.)
+      Re_Xferred   = Re_Xferred   + SIZE(InData%windGrid_pZero)
  END SUBROUTINE FAST_PackExternInitType
 
  SUBROUTINE FAST_UnPackExternInitType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -28092,6 +28108,39 @@ ENDIF
       Int_Xferred   = Int_Xferred + 1
       OutData%FarmIntegration = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
       Int_Xferred   = Int_Xferred + 1
+    i1_l = LBOUND(OutData%windGrid_n,1)
+    i1_u = UBOUND(OutData%windGrid_n,1)
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      OutData%windGrid_n = UNPACK( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%windGrid_n))-1 ), mask1, 0_IntKi )
+      Int_Xferred   = Int_Xferred   + SIZE(OutData%windGrid_n)
+    DEALLOCATE(mask1)
+    i1_l = LBOUND(OutData%windGrid_delta,1)
+    i1_u = UBOUND(OutData%windGrid_delta,1)
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      OutData%windGrid_delta = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%windGrid_delta))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%windGrid_delta)
+    DEALLOCATE(mask1)
+    i1_l = LBOUND(OutData%windGrid_pZero,1)
+    i1_u = UBOUND(OutData%windGrid_pZero,1)
+    ALLOCATE(mask1(i1_l:i1_u),STAT=ErrStat2)
+    IF (ErrStat2 /= 0) THEN 
+       CALL SetErrStat(ErrID_Fatal, 'Error allocating mask1.', ErrStat, ErrMsg,RoutineName)
+       RETURN
+    END IF
+    mask1 = .TRUE. 
+      OutData%windGrid_pZero = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%windGrid_pZero))-1 ), mask1, 0.0_ReKi )
+      Re_Xferred   = Re_Xferred   + SIZE(OutData%windGrid_pZero)
+    DEALLOCATE(mask1)
  END SUBROUTINE FAST_UnPackExternInitType
 
  SUBROUTINE FAST_CopyTurbineType( SrcTurbineTypeData, DstTurbineTypeData, CtrlCode, ErrStat, ErrMsg )

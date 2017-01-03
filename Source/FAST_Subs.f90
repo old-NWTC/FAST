@@ -511,14 +511,23 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, BD, SrvD, 
       ! lidar        
       InitInData_IfW%lidar%Tmax                   = p_FAST%TMax
       InitInData_IfW%lidar%HubPosition            = ED%Output(1)%HubPtMotion%Position(:,1) 
-         ! bjj: these should come from an InflowWind input file; I'm hard coding them here for now
       IF ( PRESENT(ExternInitData) ) THEN
+         InitInData_IfW%Use4Dext = ExternInitData%FarmIntegration
+
+         if (InitInData_IfW%Use4Dext) then
+            InitInData_IfW%FDext%n      = ExternInitData%windGrid_n
+            InitInData_IfW%FDext%delta  = ExternInitData%windGrid_delta
+            InitInData_IfW%FDext%pZero  = ExternInitData%windGrid_pZero
+         end if
+         
+         ! bjj: these lidar inputs should come from an InflowWind input file; I'm hard coding them here for now
          InitInData_IfW%lidar%SensorType          = ExternInitData%SensorType   
          InitInData_IfW%lidar%LidRadialVel        = ExternInitData%LidRadialVel   
          InitInData_IfW%lidar%RotorApexOffsetPos  = 0.0         
          InitInData_IfW%lidar%NumPulseGate        = 0
       ELSE
          InitInData_IfW%lidar%SensorType          = SensorType_None
+         InitInData_IfW%Use4Dext                  = .false.
       END IF
                                      
       CALL InflowWind_Init( InitInData_IfW, IfW%Input(1), IfW%p, IfW%x(STATE_CURR), IfW%xd(STATE_CURR), IfW%z(STATE_CURR),  &
