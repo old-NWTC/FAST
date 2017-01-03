@@ -3218,7 +3218,7 @@ SUBROUTINE AD_SetInitInput(InitInData_AD14, InitOutData_ED, y_ED, p_FAST, ErrSta
    RETURN
 END SUBROUTINE AD_SetInitInput
 !----------------------------------------------------------------------------------------------------------------------------------
-!> This module sets the number of subcycles (substeps) for modules at initialization, checking to make sure that their requested 
+!> This routine sets the number of subcycles (substeps) for modules at initialization, checking to make sure that their requested 
 !! time step is valid.
 SUBROUTINE SetModuleSubstepTime(ModuleID, p_FAST, y_FAST, ErrStat, ErrMsg)
    INTEGER(IntKi),           INTENT(IN   ) :: ModuleID            !< ID of the module to check time step and set

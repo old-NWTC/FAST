@@ -237,6 +237,8 @@ IfW_SOURCES =                  \
 	IfW_UniformWind.f90         \
 	IfW_UserWind_Types.f90      \
 	IfW_UserWind.f90            \
+	IfW_4Dext_Types.f90         \
+	IfW_4Dext.f90               \
 	InflowWind_Subs.f90         \
 	InflowWind_Types.f90        \
 	Lidar_Types.f90             \
