@@ -3491,8 +3491,15 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
 
    p%CosPreC  = COS( InputFileData%Precone(1:p%NumBl) )
    p%SinPreC  = SIN( InputFileData%Precone(1:p%NumBl) )
-   p%CosDel3  = COS( InputFileData%Delta3 )
-   p%SinDel3  = SIN( InputFileData%Delta3 )
+   
+   IF ( p%NumBl == 2 ) THEN
+      p%CosDel3  = COS( InputFileData%Delta3 )
+      p%SinDel3  = SIN( InputFileData%Delta3 )
+   ELSE
+      p%CosDel3  = 1.0_ReKi
+      p%SinDel3  = 0.0_ReKi
+   END IF
+   
 
    !...............................................................................................................................
 
