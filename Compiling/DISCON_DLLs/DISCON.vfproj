@@ -4,9 +4,9 @@
 		<Platform Name="Win32"/>
 		<Platform Name="x64"/></Platforms>
 	<Configurations>
-		<Configuration Name="Debug|Win32" OutputDirectory="..\..\CertTest\5MW_Baseline\ServoData" ConfigurationType="typeDynamicLibrary">
+		<Configuration Name="Debug|Win32" OutputDirectory="..\..\CertTest\5MW_Baseline\ServoData" TargetName="$(ProjectName)_$(PlatformName)" ConfigurationType="typeDynamicLibrary">
 				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" WarnInterfaces="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebugDLL"/>
-				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\$(ProjectName)_$(PlatformName).dll" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateManifest="false" GenerateDebugInformation="true" SubSystem="subSystemWindows" LinkDLL="true"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
@@ -14,9 +14,9 @@
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
-		<Configuration Name="Release|Win32" OutputDirectory="..\..\CertTest\5MW_Baseline\ServoData" ConfigurationType="typeDynamicLibrary">
+		<Configuration Name="Release|Win32" OutputDirectory="..\..\CertTest\5MW_Baseline\ServoData" TargetName="$(ProjectName)_$(PlatformName)" ConfigurationType="typeDynamicLibrary">
 				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Preprocess="preprocessYes"/>
-				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\$(ProjectName)_$(PlatformName).dll" SuppressStartupBanner="true" GenerateManifest="false" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFLinkerTool" SuppressStartupBanner="true" GenerateManifest="false" SubSystem="subSystemWindows" LinkDLL="true"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
