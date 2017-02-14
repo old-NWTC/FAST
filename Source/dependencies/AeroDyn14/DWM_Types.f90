@@ -36,6 +36,7 @@ USE IfW_TSFFWind_Types
 USE IfW_BladedFFWind_Types
 USE IfW_HAWCWind_Types
 USE IfW_UserWind_Types
+USE IfW_4Dext_Types
 USE Lidar_Types
 USE InflowWind_Types
 USE NWTC_Library
