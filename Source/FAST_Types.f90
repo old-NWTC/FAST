@@ -174,6 +174,7 @@ IMPLICIT NONE
     INTEGER(IntKi) , DIMENSION(NumModules,1:3)  :: LinStartIndx      !< dimension 1 is the module ID: dimension 2 is the starting index in combined matrices of (1) the module's inputs, (2) the module's linearized outputs, and (3) the module's continuous states [-]
     INTEGER(IntKi)  :: Lin_NumMods      !< number of modules in the linearization [-]
     INTEGER(IntKi) , DIMENSION(NumModules)  :: Lin_ModOrder      !< indices that determine which order the modules are in the glue-code linearization matrix [-]
+    CHARACTER(4)  :: Tdesc      !< description of turbine ID (for FAST.Farm) screen printing [-]
   END TYPE FAST_ParameterType
 ! =======================
 ! =========  FAST_LinType  =======
@@ -533,7 +534,7 @@ IMPLICIT NONE
     REAL(DbKi)  :: Tmax = -1      !< External code specified Tmax [s]
     INTEGER(IntKi)  :: SensorType = SensorType_None      !< lidar sensor type, which should not be pulsed at the moment; this input should be replaced with a section in the InflowWind input file [-]
     LOGICAL  :: LidRadialVel      !< TRUE => return radial component, FALSE => return 'x' direction estimate [-]
-    INTEGER(IntKi)  :: TurbineID      !< ID number for turbine (used to create output file naming convention) [-]
+    INTEGER(IntKi)  :: TurbineID = 0      !< ID number for turbine (used to create output file naming convention) [-]
     REAL(ReKi) , DIMENSION(1:3)  :: TurbinePos      !< Initial position of turbine base (origin used in future for graphics) [m]
     INTEGER(IntKi)  :: NumSC2Ctrl      !< number of controller inputs [from supercontroller] [-]
     INTEGER(IntKi)  :: NumCtrl2SC      !< number of controller outputs [to supercontroller] [-]
@@ -541,6 +542,7 @@ IMPLICIT NONE
     INTEGER(IntKi) , DIMENSION(1:4)  :: windGrid_n      !< number of grid points in the x, y, z, and t directions for IfW [-]
     REAL(ReKi) , DIMENSION(1:4)  :: windGrid_delta      !< size between 2 consecutive grid points in each grid direction for IfW [m,m,m,s]
     REAL(ReKi) , DIMENSION(1:3)  :: windGrid_pZero      !< fixed position of the XYZ grid (i.e., XYZ coordinates of IfW m%V(:,1,1,1,:)) [m]
+    CHARACTER(1024)  :: RootName      !< Root name of FAST output files (overrides normal operation) [-]
   END TYPE FAST_ExternInitType
 ! =======================
 ! =========  FAST_TurbineType  =======
@@ -1426,6 +1428,7 @@ ENDIF
     DstParamData%LinStartIndx = SrcParamData%LinStartIndx
     DstParamData%Lin_NumMods = SrcParamData%Lin_NumMods
     DstParamData%Lin_ModOrder = SrcParamData%Lin_ModOrder
+    DstParamData%Tdesc = SrcParamData%Tdesc
  END SUBROUTINE FAST_CopyParam
 
  SUBROUTINE FAST_DestroyParam( ParamData, ErrStat, ErrMsg )
@@ -1562,6 +1565,7 @@ ENDIF
       Int_BufSz  = Int_BufSz  + SIZE(InData%LinStartIndx)  ! LinStartIndx
       Int_BufSz  = Int_BufSz  + 1  ! Lin_NumMods
       Int_BufSz  = Int_BufSz  + SIZE(InData%Lin_ModOrder)  ! Lin_ModOrder
+      Int_BufSz  = Int_BufSz  + 1*LEN(InData%Tdesc)  ! Tdesc
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -1782,6 +1786,10 @@ ENDIF
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%Lin_ModOrder))-1 ) = PACK(InData%Lin_ModOrder,.TRUE.)
       Int_Xferred   = Int_Xferred   + SIZE(InData%Lin_ModOrder)
+        DO I = 1, LEN(InData%Tdesc)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%Tdesc(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
  END SUBROUTINE FAST_PackParam
 
  SUBROUTINE FAST_UnPackParam( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -2118,6 +2126,10 @@ ENDIF
       OutData%Lin_ModOrder = UNPACK( IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(OutData%Lin_ModOrder))-1 ), mask1, 0_IntKi )
       Int_Xferred   = Int_Xferred   + SIZE(OutData%Lin_ModOrder)
     DEALLOCATE(mask1)
+      DO I = 1, LEN(OutData%Tdesc)
+        OutData%Tdesc(I:I) = CHAR(IntKiBuf(Int_Xferred))
+        Int_Xferred = Int_Xferred   + 1
+      END DO ! I
  END SUBROUTINE FAST_UnPackParam
 
  SUBROUTINE FAST_CopyLinType( SrcLinTypeData, DstLinTypeData, CtrlCode, ErrStat, ErrMsg )
@@ -27940,6 +27952,7 @@ ENDIF
     DstExternInitTypeData%windGrid_n = SrcExternInitTypeData%windGrid_n
     DstExternInitTypeData%windGrid_delta = SrcExternInitTypeData%windGrid_delta
     DstExternInitTypeData%windGrid_pZero = SrcExternInitTypeData%windGrid_pZero
+    DstExternInitTypeData%RootName = SrcExternInitTypeData%RootName
  END SUBROUTINE FAST_CopyExternInitType
 
  SUBROUTINE FAST_DestroyExternInitType( ExternInitTypeData, ErrStat, ErrMsg )
@@ -27999,6 +28012,7 @@ ENDIF
       Int_BufSz  = Int_BufSz  + SIZE(InData%windGrid_n)  ! windGrid_n
       Re_BufSz   = Re_BufSz   + SIZE(InData%windGrid_delta)  ! windGrid_delta
       Re_BufSz   = Re_BufSz   + SIZE(InData%windGrid_pZero)  ! windGrid_pZero
+      Int_BufSz  = Int_BufSz  + 1*LEN(InData%RootName)  ! RootName
   IF ( Re_BufSz  .GT. 0 ) THEN 
      ALLOCATE( ReKiBuf(  Re_BufSz  ), STAT=ErrStat2 )
      IF (ErrStat2 /= 0) THEN 
@@ -28048,6 +28062,10 @@ ENDIF
       Re_Xferred   = Re_Xferred   + SIZE(InData%windGrid_delta)
       ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%windGrid_pZero))-1 ) = PACK(InData%windGrid_pZero,.TRUE.)
       Re_Xferred   = Re_Xferred   + SIZE(InData%windGrid_pZero)
+        DO I = 1, LEN(InData%RootName)
+          IntKiBuf(Int_Xferred) = ICHAR(InData%RootName(I:I), IntKi)
+          Int_Xferred = Int_Xferred   + 1
+        END DO ! I
  END SUBROUTINE FAST_PackExternInitType
 
  SUBROUTINE FAST_UnPackExternInitType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -28141,6 +28159,10 @@ ENDIF
       OutData%windGrid_pZero = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%windGrid_pZero))-1 ), mask1, 0.0_ReKi )
       Re_Xferred   = Re_Xferred   + SIZE(OutData%windGrid_pZero)
     DEALLOCATE(mask1)
+      DO I = 1, LEN(OutData%RootName)
+        OutData%RootName(I:I) = CHAR(IntKiBuf(Int_Xferred))
+        Int_Xferred = Int_Xferred   + 1
+      END DO ! I
  END SUBROUTINE FAST_UnPackExternInitType
 
  SUBROUTINE FAST_CopyTurbineType( SrcTurbineTypeData, DstTurbineTypeData, CtrlCode, ErrStat, ErrMsg )

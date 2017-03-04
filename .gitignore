@@ -77,5 +77,6 @@ Debug
 *.db
 *.opendb
 *Registry_tmp.*
-/Compiling/VisualStudio/My Amplifier XE Results - FAST_Project
+*My Amplifier XE Results*
 *.user
+*My Inspector XE Results*

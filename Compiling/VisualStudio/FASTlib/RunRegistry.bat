@@ -73,11 +73,8 @@ REM ----------------------------------------------------------------------------
 REM ---------------- RUN THE REGISTRY TO AUTO-GENERATE FILES -------------------
 REM ----------------------------------------------------------------------------
 :FAST
-ECHO on
 SET CURR_LOC=%FAST_Loc%
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" %ALL_FAST_Includes% -noextrap -O "%CURR_LOC%"
-
-echo off
 GOTO checkError
 
 
