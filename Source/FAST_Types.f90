@@ -146,6 +146,7 @@ IMPLICIT NONE
     CHARACTER(1024)  :: IceFile      !< Name of file containing ice loading input parameters [-]
     REAL(DbKi)  :: TStart      !< Time to begin tabular output [s]
     REAL(DbKi)  :: DT_Out      !< Time step for tabular output [s]
+    LOGICAL  :: WrSttsTime      !< Whether we should write the status times to the screen [-]
     INTEGER(IntKi)  :: n_SttsTime      !< Number of time steps between screen status messages [-]
     INTEGER(IntKi)  :: n_ChkptTime      !< Number of time steps between writing checkpoint files [-]
     INTEGER(IntKi)  :: n_VTKTime      !< Number of time steps between writing VTK files [-]
@@ -1387,6 +1388,7 @@ ENDIF
     DstParamData%IceFile = SrcParamData%IceFile
     DstParamData%TStart = SrcParamData%TStart
     DstParamData%DT_Out = SrcParamData%DT_Out
+    DstParamData%WrSttsTime = SrcParamData%WrSttsTime
     DstParamData%n_SttsTime = SrcParamData%n_SttsTime
     DstParamData%n_ChkptTime = SrcParamData%n_ChkptTime
     DstParamData%n_VTKTime = SrcParamData%n_VTKTime
@@ -1516,6 +1518,7 @@ ENDIF
       Int_BufSz  = Int_BufSz  + 1*LEN(InData%IceFile)  ! IceFile
       Db_BufSz   = Db_BufSz   + 1  ! TStart
       Db_BufSz   = Db_BufSz   + 1  ! DT_Out
+      Int_BufSz  = Int_BufSz  + 1  ! WrSttsTime
       Int_BufSz  = Int_BufSz  + 1  ! n_SttsTime
       Int_BufSz  = Int_BufSz  + 1  ! n_ChkptTime
       Int_BufSz  = Int_BufSz  + 1  ! n_VTKTime
@@ -1683,6 +1686,8 @@ ENDIF
       Db_Xferred   = Db_Xferred   + 1
       DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) = InData%DT_Out
       Db_Xferred   = Db_Xferred   + 1
+      IntKiBuf ( Int_Xferred:Int_Xferred+1-1 ) = TRANSFER( InData%WrSttsTime , IntKiBuf(1), 1)
+      Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%n_SttsTime
       Int_Xferred   = Int_Xferred   + 1
       IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = InData%n_ChkptTime
@@ -1961,6 +1966,8 @@ ENDIF
       Db_Xferred   = Db_Xferred + 1
       OutData%DT_Out = DbKiBuf( Db_Xferred ) 
       Db_Xferred   = Db_Xferred + 1
+      OutData%WrSttsTime = TRANSFER( IntKiBuf( Int_Xferred ), mask0 )
+      Int_Xferred   = Int_Xferred + 1
       OutData%n_SttsTime = IntKiBuf( Int_Xferred ) 
       Int_Xferred   = Int_Xferred + 1
       OutData%n_ChkptTime = IntKiBuf( Int_Xferred ) 
