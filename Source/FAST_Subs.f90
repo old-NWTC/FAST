@@ -3132,7 +3132,7 @@ SUBROUTINE WrVTK_Ground ( RefPoint, HalfLengths, FileRootName, ErrStat, ErrMsg )
    ! write the data that potentially changes each time step:
    !.................................................................
       
-   ! PolyData (.vtp) � Serial vtkPolyData (unstructured) file
+   ! PolyData (.vtp) - Serial vtkPolyData (unstructured) file
    FileName = TRIM(FileRootName)//'.vtp'
       
    call WrVTK_header( FileName, NumberOfPoints, NumberOfLines, NumberOfPolys, Un, ErrStat2, ErrMsg2 )    
@@ -5240,7 +5240,7 @@ SUBROUTINE WrVTK_WaveElev(t_global, p_FAST, y_FAST, HD)
    ! write the data that potentially changes each time step:
    !.................................................................
       
-   ! PolyData (.vtp) � Serial vtkPolyData (unstructured) file
+   ! PolyData (.vtp) - Serial vtkPolyData (unstructured) file
    FileName = TRIM(p_FAST%OutFileRoot)//'.WaveSurface.t'//TRIM(Num2LStr(y_FAST%VTK_count))//'.vtp'
       
    call WrVTK_header( FileName, NumberOfPoints, NumberOfLines, NumberOfPolys, Un, ErrStat2, ErrMsg2 )    
