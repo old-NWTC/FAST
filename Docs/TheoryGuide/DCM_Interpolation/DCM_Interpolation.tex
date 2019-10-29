@@ -183,13 +183,13 @@ At this point, the relationships between the components of $\lambda$ are set, so
 If $\theta$ is close to $\pi$, we will need to determine if we have the negative of the solution. This is required for numerical stability of the solution.
 In this case, $\Lambda-\Lambda^T$ is not exactly zero, so we can look at the sign of the solution we would have computed if we had used Equation \ref{EqLambdaSinNot0}:
 \begin{equation}
-\Lambda_{23}-\Lambda_{32} = \left|\frac{\sin\theta}{\theta}\right|\lambda_1
+\Lambda_{23}-\Lambda_{32} = \left|\frac{2\sin\theta}{\theta}\right|\lambda_1
 \end{equation}
 \begin{equation}
-\Lambda_{31}-\Lambda_{13} = \left|\frac{\sin\theta}{\theta}\right|\lambda_2
+\Lambda_{31}-\Lambda_{13} = \left|\frac{2\sin\theta}{\theta}\right|\lambda_2
 \end{equation}
 \begin{equation}
-\Lambda_{12}-\Lambda_{21} = \left|\frac{\sin\theta}{\theta}\right|\lambda_3
+\Lambda_{12}-\Lambda_{21} = \left|\frac{2\sin\theta}{\theta}\right|\lambda_3
 \end{equation}
 For numerical reasons, we don't want to use these equations to get the magnitude of the components of $\lambda$, but we can look at the sign of the element with largest magnitude and ensure our $\lambda$ has the same sign.
 

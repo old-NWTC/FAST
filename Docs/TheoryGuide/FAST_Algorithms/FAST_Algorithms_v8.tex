@@ -90,7 +90,7 @@ inputs and outputs are neither set nor used.
 	\State $\mathit{y\_AD} \gets \Call{AD\_CalcOutput}{\mathit{p\_AD},\mathit{u\_AD},\mathit{x\_AD},\mathit{xd\_AD},\mathit{z\_AD}}$
 
 \State
-	\State $\mathit{u\_SrvD} \gets \Call{TransferOutputsToInputs}{\mathit{y\_ED},\mathit{y\_AD},\mathit{y\_IfW}}$
+	\State $\mathit{u\_SrvD} \gets \Call{TransferOutputsToInputs}{\mathit{y\_ED},\mathit{y\_IfW}}$
 	\State $\mathit{y\_SrvD} \gets \Call{SrvD\_CalcOutput}{}( \!
 				\begin{aligned}[t]
 				                      & \mathit{p\_SrvD},\mathit{u\_SrvD}, \\
@@ -281,6 +281,45 @@ This makes the left-hand side of Equation \ref{EqLumpM2} known, leaving us with 
 solve uses the same matrix $A$ used to obtain the distributed forces in Equation \ref{EqLumpF}; $A$ depends 
 only on element reference positions and connectivity. We use 
 the $LU$ factorization of matrix $A$ so that the second solve does not introduce much additional overhead.
+
+
+
+\pagebreak %break here for now so that it doesn't look so strange
+\section{Solve Option 2 Improvements}
+\subsection {Input-Output Solves inside AdvanceStates}
+This algorithm documents the procedure for advancing states with option 2 
+Input-Output solves in FAST, assuming
+all modules are in use. If an individual module is not in use during a particular
+simulation, the calls to that module's subroutines are omitted and the module's 
+inputs and outputs are neither set nor used.
+
+\begin{algorithmic}[1]
+\Procedure{FAST\_AdvanceStates}{\null}
+\State $\Call{ED\_UpdateStates}{\mathit{p\_ED},\mathit{u\_ED},\mathit{x\_ED},\mathit{xd\_ED},\mathit{z\_ED}}$
+\State $\mathit{y\_ED} \gets \Call{ED\_CalcOutput}{\mathit{p\_ED},\mathit{u\_ED},\mathit{x\_ED},\mathit{xd\_ED},\mathit{z\_ED}}$
+\State
+\State $\mathit{u\_BD}($hub and root motions$) \gets \Call{TransferOutputsToInputs}{\mathit{y\_ED}}$
+\State $\Call{BD\_UpdateStates}{\mathit{p\_BD},\mathit{u\_BD},\mathit{x\_BD},\mathit{xd\_BD},\mathit{z\_BD}}$
+\State $\mathit{y\_BD} \gets \Call{BD\_CalcOutput}{\mathit{p\_BD},\mathit{u\_BD},\mathit{x\_BD},\mathit{xd\_BD},\mathit{z\_BD}}$
+\State
+\State $\mathit{u\_AD}($not InflowWind$) \gets \Call{TransferOutputsToInputs}{\mathit{y\_ED},\mathit{y\_BD}}$
+\State $\mathit{u\_IfW} \gets \Call{TransferOutputsToInputs}{\mathit{y\_ED},\mathit{y\_BD}$ at $\mathit{u\_AD}$ nodes$}$
+\State $\Call{IfW\_UpdateStates}{\mathit{p\_IfW},\mathit{u\_IfW},\mathit{x\_IfW},\mathit{xd\_IfW},\mathit{z\_IfW}}$
+\State $\mathit{y\_IfW} \gets \Call{IfW\_CalcOutput}{\mathit{u\_IfW}$ and other $\mathit{IfW}$ data structures$}$
+\State
+\State $\mathit{u\_AD}($InflowWind only$) \gets \Call{TransferOutputsToInputs}{\mathit{y\_IfW}}$
+\State $\mathit{u\_SrvD} \gets \Call{TransferOutputsToInputs}{\mathit{y\_ED},\mathit{y\_BD},\mathit{y\_IfW}}$
+\State $\Call{AD\_UpdateStates}{\mathit{p\_AD},\mathit{u\_AD},\mathit{x\_AD},\mathit{xd\_AD},\mathit{z\_AD}}$
+\State $\Call{SrvD\_UpdateStates}{\mathit{p\_SrvD},\mathit{u\_SrvD},\mathit{x\_SrvD},\mathit{xd\_SrvD},\mathit{z\_SrvD}}$
+\State
+\State All other modules (used in Solve Option 1) advance their states
+\EndProcedure
+\end{algorithmic}
+
+Note that AeroDyn and ServoDyn outputs get calculated inside the ${CalcOutputs\_And\_SolveForInputs}$ routine. ElastoDyn, BeamDyn, and
+InflowWind outputs do not get recalculated in ${CalcOutputs\_And\_SolveForInputs}$ except for the first time the routine is called
+(because CalcOutput is called before UpdateStates at time 0).
+
 
 
 \section {Linearization}
